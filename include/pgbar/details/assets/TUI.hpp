@@ -1001,7 +1001,7 @@ namespace pgbar {
           auto zfill2 = [&]( std::int64_t num_time ) -> io::CharPipeline& {
             PGBAR__TRUST( num_time >= 0 );
             if ( num_time > 99 )
-              return buffer.append( 'X', 2 );
+              return buffer.append( '#', 2 );
 
             auto ret = utils::format( num_time );
             if ( ret.size() < 2 )
@@ -1019,18 +1019,19 @@ namespace pgbar {
         }
 
       protected:
-#define PGBAR__ELASPED u8"--:--:--"
+#define PGBAR__TIMER u8"??:??:??"
         PGBAR__FORCEINLINE io::CharPipeline& build_elapsed( io::CharPipeline& buffer,
                                                             TimeGranule time_passed ) const
         {
+          buffer << '+';
           return to_hms( buffer, time_passed );
         }
         PGBAR__NODISCARD static PGBAR__FORCEINLINE PGBAR__CNSTEVAL types::Size fixed_len_elapsed() noexcept
         {
-          return sizeof( PGBAR__ELASPED ) - 1;
+          return sizeof( PGBAR__TIMER );
         }
 
-#define PGBAR__COUNTDOWN u8"~" PGBAR__ELASPED
+#define PGBAR__COUNTDOWN u8"-" PGBAR__TIMER
         PGBAR__CXX20_CNSTXPR io::CharPipeline& build_countdown( io::CharPipeline& buffer,
                                                                 const TimeGranule& time_passed,
                                                                 std::uint64_t num_task_done,
@@ -1047,8 +1048,8 @@ namespace pgbar {
           const auto remaining_tasks = num_all_tasks - num_task_done;
           // overflow check
           if ( remaining_tasks > ( std::numeric_limits<std::int64_t>::max )() / time_per_task.count() )
-            return buffer << u8"~XX:XX:XX";
-          buffer << '~';
+            return buffer << u8"-##:##:##";
+          buffer << '-';
           return to_hms( buffer, time_per_task * remaining_tasks );
         }
         PGBAR__NODISCARD static PGBAR__FORCEINLINE PGBAR__CNSTEVAL types::Size fixed_len_countdown() noexcept
@@ -1060,7 +1061,7 @@ namespace pgbar {
         PGBAR__EMPTY_COMPONENT( Timer )
       };
 #undef PGBAR__COUNTDOWN
-#undef PGBAR__ELASPED
+#undef PGBAR__TIMER
     } // namespace assets
 
     namespace traits {
