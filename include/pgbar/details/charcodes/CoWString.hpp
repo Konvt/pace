@@ -1,5 +1,5 @@
-#ifndef PGBAR__COWSTRING
-#define PGBAR__COWSTRING
+#ifndef PGBAR_COW_STRING
+#define PGBAR_COW_STRING
 
 #include "../traits/Backport.hpp"
 #include "../traits/Util.hpp"
@@ -292,8 +292,7 @@ namespace pgbar {
         , private CoWCopyAlloc<Alloc, BasicCoWString<Char, Traits, Alloc>>
         , private CoWMoveAlloc<Alloc, BasicCoWString<Char, Traits, Alloc>>
         , private CoWSwapAlloc<Alloc, BasicCoWString<Char, Traits, Alloc>> {
-        static_assert( traits::is_implicit_lifetime<Char>::value,
-                       "pgbar::_details::charcodes::BasicCoWString: Char must be implicit-lifetime" );
+        static_assert( traits::is_implicit_lifetime<Char>::value, "Char must be an implicit-lifetime type" );
 
         using CoWRef = std::atomic<std::uint64_t>;
 #ifdef __cpp_lib_string_view
@@ -485,7 +484,10 @@ namespace pgbar {
         {
           return ( sizeof( Payload ) / sizeof( Char ) ) - 1;
         }
-        static constexpr size_type dynamic_capacity( size_type old_cap ) noexcept { return old_cap * 1.5; }
+        static constexpr size_type dynamic_capacity( size_type old_cap ) noexcept
+        {
+          return static_cast<size_type>( old_cap * 1.5 );
+        }
 
         /// @brief Performs an in-place insertion of a character sequence into the buffer
         /// @param suffix Pointer to the start position where insertion happens
@@ -602,8 +604,7 @@ namespace pgbar {
         template<Kind Next, typename Operation>
         PGBAR__FORCEINLINE PGBAR__CXX20_CNSTXPR void transfer_to( size_type cap, Operation&& op )
         {
-          static_assert( Next != Kind::Literal,
-                         "pgbar::_details::charcodes::BasicCoWString::transfer_to: Invalid next state" );
+          static_assert( Next != Kind::Literal, "invalid next state" );
           if PGBAR__CXX17_CNSTXPR ( Next == Kind::Inline ) {
             const auto dest = utils::launder_as<Char>( &as_ );
             const size_type num_written =

@@ -1,9 +1,9 @@
-#ifndef PGBAR__TUPLEBAR
-#define PGBAR__TUPLEBAR
+#ifndef PGBAR_STATIC_LAYOUT
+#define PGBAR_STATIC_LAYOUT
 
-#include "../assets/TupleSlot.hpp"
+#include "../io/OStream.hpp"
 #include "../prefabs/BasicBar.hpp"
-#include "../traits/Backport.hpp"
+#include "../wrappers/TuplePacket.hpp"
 #include <initializer_list>
 #include <tuple>
 
@@ -11,69 +11,97 @@ namespace pgbar {
   namespace _details {
     namespace prefabs {
       template<typename Seq, typename... Bars>
-      class TupleBar;
+      class StaticLayout;
       template<types::Size... Tags, Channel Outlet, Policy Mode, Region Area, typename... Configs>
-      class TupleBar<traits::IndexSeq<Tags...>, prefabs::BasicBar<Configs, Outlet, Mode, Area>...> final
-        : public assets::TupleSlot<prefabs::BasicBar<Configs, Outlet, Mode, Area>, Tags>... {
-        static_assert( sizeof...( Tags ) == sizeof...( Configs ),
-                       "pgbar::_details::prefabs::TupleBar: Unexpected type mismatch" );
-        static_assert( sizeof...( Configs ) > 0,
-                       "pgbar::_details::prefabs::TupleBar: The number of progress bars cannot be zero" );
+      class StaticLayout<traits::IndexSeq<Tags...>, prefabs::BasicBar<Configs, Outlet, Mode, Area>...> final
+        : public wrappers::TuplePacket<prefabs::BasicBar<Configs, Outlet, Mode, Area>, Tags>... {
+        static_assert( sizeof...( Tags ) == sizeof...( Configs ), "unexpected type mismatch" );
+        static_assert( sizeof...( Configs ) > 0, "the number of progress bars cannot be zero" );
 
         template<types::Size Pos>
         using ElementAt_t =
-          traits::TypeAt_t<Pos, assets::TupleSlot<prefabs::BasicBar<Configs, Outlet, Mode, Area>, Tags>...>;
+          traits::TypeAt_t<Pos,
+                           wrappers::TuplePacket<prefabs::BasicBar<Configs, Outlet, Mode, Area>, Tags>...>;
 
         std::atomic<types::Size> alive_cnt_;
         mutable std::mutex sched_mtx_;
         // The std::bitset isn't TriviallyCopyable, so we cannot use std::atomic<std::bitset>.
         mutable concurrent::SharedMutex res_mtx_;
 
-        enum class State : std::uint8_t { Stop, Awake, Refresh };
-        std::atomic<State> state_;
+        enum class Phase : std::uint8_t { Stop, Awake, Refresh };
+        std::atomic<Phase> state_;
 
+        enum class Locus : std::uint8_t { Offstage, Onstage, Echo };
         // Bitmask indicating which bars produced output in the current render pass.
-        std::bitset<sizeof...( Configs )> active_mask_;
+        std::array<Locus, sizeof...( Configs )> stages_;
 
         template<types::Size Pos>
         PGBAR__FORCEINLINE PGBAR__CXX14_CNSTXPR typename std::enable_if<( Pos >= sizeof...( Configs ) )>::type
           do_render( bool, bool ) &
         {}
         template<types::Size Pos = 0>
-        inline typename std::enable_if<( Pos < sizeof...( Configs ) )>::type do_render( bool istty,
-                                                                                        bool hide_done ) &
+        typename std::enable_if<( Pos < sizeof...( Configs ) )>::type do_render( bool istty,
+                                                                                 bool hide_done ) &
         {
           PGBAR__ASSERT( online() );
           auto& ostream = io::OStream<Outlet>::itself();
-
-          bool this_rendered = false;
-          if ( at<Pos>().active() ) {
-            this_rendered = true;
-            active_mask_.set( Pos );
+          switch ( stages_[Pos] ) {
+          case Locus::Echo: {
+            if ( !istty || hide_done )
+              stages_[Pos] = Locus::Offstage;
+            else if ( !at<Pos>().active() ) {
+              ostream << console::escodes::nextline;
+              break;
+            }
+          }
+            PGBAR__FALLTHROUGH;
+          case Locus::Offstage: {
+            if ( !at<Pos>().active() )
+              break;
+            /**
+             * The newly added progress bar needs to obtain a screen line,
+             * and the progress bar under the Locus::Echo no longer outputs anything except for newline.
+             * We must reclaim it, even if this might go against the original intention of the Locus::Echo.
+             */
+            if ( istty && !hide_done && stages_[Pos] != Locus::Echo ) {
+              auto itr = std::find( stages_.begin(), stages_.end(), Locus::Echo );
+              if ( itr != stages_.end() )
+                *itr = Locus::Offstage;
+            }
+            stages_[Pos] = Locus::Onstage;
+          }
+            PGBAR__FALLTHROUGH;
+          case Locus::Onstage: {
             if ( istty )
               ostream << console::escodes::linewipe;
-            make_frame( at<Pos>() );
 
-            if ( ( !istty || hide_done ) && !at<Pos>().active() )
-              active_mask_.reset( Pos );
-          }
+            draw_content( at<Pos>() );
 
-          /**
-           * Here are the scenarios where a newline character is output:
-           * 1. If the output stream is bound to a terminal and the completed progress bar does not need to be
-           * hidden, it should be output when active_mask_[Pos] is true.
-           * 2. If the output stream is bound to a terminal and the completed progress bar needs to be hidden,
-           *    it only be output when Pos-th is still active.
-           * 3. If the output stream is not bound to a terminal,
-           *    it should be output whenever Pos-th has just been rendered.
-           */
-          if ( ( this_rendered || active_mask_[Pos] )
-               && ( ( !istty && this_rendered ) || ( istty && ( !hide_done || at<Pos>().active() ) ) ) )
-            ostream << console::escodes::nextline;
-          if ( istty && hide_done ) {
-            if ( !at<Pos>().active() )
-              ostream << console::escodes::linestart;
-            ostream << console::escodes::linewipe;
+            if ( !at<Pos>().active() ) {
+              /**
+               * Here are the scenarios where a newline character is output:
+               * 1. If the output stream is bound to a terminal and the completed progress bar does not need
+               *    to be hidden, it should be output when stages_[Pos] is equal to Step::Spare.
+               * 2. If the output stream is bound to a terminal and the completed progress bar needs to be
+               *    hidden, it only be output when Pos-th is still active.
+               * 3. If the output stream is not bound to a terminal,
+               *    it should be output whenever Pos-th has just been rendered.
+               */
+              if ( istty && hide_done )
+                ostream << console::escodes::linestart;
+              else
+                ostream << console::escodes::nextline;
+              if ( istty && !hide_done )
+                stages_[Pos] = Locus::Echo;
+              else
+                stages_[Pos] = Locus::Offstage;
+            } else
+              ostream << console::escodes::nextline;
+            if ( istty && hide_done )
+              ostream << console::escodes::linewipe;
+          } break;
+
+          default: utils::unreachable();
           }
 
           return do_render<Pos + 1>( istty, hide_done ); // tail recursive
@@ -90,7 +118,7 @@ namespace pgbar {
             if ( !forced )
               executor.template trigger<Mode>();
             if ( alive_cnt_.fetch_sub( 1, std::memory_order_acq_rel ) == 1 ) {
-              state_.store( State::Stop, std::memory_order_release );
+              state_.store( Phase::Stop, std::memory_order_release );
               executor.dismiss_then( []() noexcept { io::OStream<Outlet>::itself().release(); } );
             }
           }
@@ -99,34 +127,39 @@ namespace pgbar {
         {
           std::lock_guard<std::mutex> lock { sched_mtx_ };
           auto& executor = render::Renderer<Outlet>::itself();
-          if ( state_.load( std::memory_order_acquire ) == State::Stop ) {
+          if ( state_.load( std::memory_order_acquire ) == Phase::Stop ) {
             if ( !executor.try_appoint( [this]() {
                    auto& ostream    = io::OStream<Outlet>::itself();
                    const auto istty = console::TermContext<Outlet>::itself().connected();
                    switch ( state_.load( std::memory_order_acquire ) ) {
-                   case State::Awake: {
+                   case Phase::Awake: {
                      if PGBAR__CXX17_CNSTXPR ( Area == Region::Fixed )
                        if ( istty )
                          ostream << console::escodes::savecursor;
                      {
                        std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
-                       active_mask_.reset();
+                       std::fill( stages_.begin(), stages_.end(), Locus::Offstage );
                        do_render( console::TermContext<Outlet>::itself().connected(),
                                   config::hide_completed() );
                      }
                      ostream << io::flush;
 
-                     auto expected = State::Awake;
-                     state_.compare_exchange_strong( expected, State::Refresh, std::memory_order_release );
+                     auto expected = Phase::Awake;
+                     state_.compare_exchange_strong( expected, Phase::Refresh, std::memory_order_release );
                    } break;
-                   case State::Refresh: {
+                   case Phase::Refresh: {
                      {
                        std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
                        if ( istty ) {
                          if PGBAR__CXX17_CNSTXPR ( Area == Region::Fixed )
                            ostream << console::escodes::resetcursor;
                          else
-                           ostream.append( console::escodes::prevline, active_mask_.count() )
+                           ostream
+                             .append( console::escodes::prevline,
+                                      std::count_if(
+                                        stages_.cbegin(),
+                                        stages_.cend(),
+                                        []( Locus stage ) noexcept { return stage != Locus::Offstage; } ) )
                              .append( console::escodes::linestart );
                        }
                        do_render( console::TermContext<Outlet>::itself().connected(),
@@ -141,10 +174,10 @@ namespace pgbar {
                 charcodes::make_literal( "pgbar: another progress bar instance is already running" ) );
 
             io::OStream<Outlet>::itself() << io::release;
-            state_.store( State::Awake, std::memory_order_release );
+            state_.store( Phase::Awake, std::memory_order_release );
 
             auto guard = utils::make_scope_fail( [&]() noexcept {
-              state_.store( State::Stop, std::memory_order_release );
+              state_.store( Phase::Stop, std::memory_order_release );
               executor.dismiss();
             } );
             executor.template activate<Mode>();
@@ -155,21 +188,21 @@ namespace pgbar {
         }
 
         template<typename Tuple, types::Size... Is>
-        TupleBar( Tuple&& tup, const traits::IndexSeq<Is...>& )
+        StaticLayout( Tuple&& tup, const traits::IndexSeq<Is...>& )
           noexcept( std::tuple_size<typename std::decay<Tuple>::type>::value == sizeof...( Configs ) )
           : ElementAt_t<Is>( utils::pick_or<Is, ElementAt_t<Is>>( std::forward<Tuple>( tup ) ) )...
           , alive_cnt_ { 0 }
           , sched_mtx_ {}
           , res_mtx_ {}
-          , state_ { State::Stop }
+          , state_ { Phase::Stop }
         {
           static_assert( std::tuple_size<typename std::decay<Tuple>::type>::value <= sizeof...( Is ),
-                         "pgbar::_details::prefabs::TupleBar::ctor: Unexpected tuple size mismatch" );
+                         "unexpected tuple size mismatch" );
         }
 
       public:
         template<types::Size... Is, typename... Cs, Channel O, Policy M, Region A>
-        TupleBar( const assets::TupleSlot<prefabs::BasicBar<Cs, O, M, A>, Is>&... ) = delete;
+        StaticLayout( const wrappers::TuplePacket<prefabs::BasicBar<Cs, O, M, A>, Is>&... ) = delete;
 
         // SFINAE is used here to prevent infinite recursive matching of errors.
         template<typename Cfg,
@@ -177,28 +210,28 @@ namespace pgbar {
                  typename = typename std::enable_if<traits::TpStartsWith<
                    traits::TypeList<typename std::decay<Cfg>::type, typename std::decay<Cfgs>::type...>,
                    Configs...>::value>::type>
-        TupleBar( Cfg&& cfg, Cfgs&&... cfgs ) noexcept( sizeof...( Cfgs ) + 1 == sizeof...( Configs ) )
-          : TupleBar( std::forward_as_tuple( std::forward<Cfg>( cfg ), std::forward<Cfgs>( cfgs )... ),
-                      traits::MakeIndexSeq<sizeof...( Cfgs ) + 1>() )
+        StaticLayout( Cfg&& cfg, Cfgs&&... cfgs ) noexcept( sizeof...( Cfgs ) + 1 == sizeof...( Configs ) )
+          : StaticLayout( std::forward_as_tuple( std::forward<Cfg>( cfg ), std::forward<Cfgs>( cfgs )... ),
+                          traits::MakeIndexSeq<sizeof...( Cfgs ) + 1>() )
         {}
         template<typename... Cfgs,
                  typename = typename std::enable_if<
                    traits::TpStartsWith<traits::TypeList<Cfgs...>, Configs...>::value>::type>
-        TupleBar( prefabs::BasicBar<Cfgs, Outlet, Mode, Area>&&... bars )
+        StaticLayout( prefabs::BasicBar<Cfgs, Outlet, Mode, Area>&&... bars )
           noexcept( sizeof...( Cfgs ) == sizeof...( Configs ) )
-          : TupleBar( std::forward_as_tuple( std::move( bars )... ),
-                      traits::MakeIndexSeq<sizeof...( Cfgs )>() )
+          : StaticLayout( std::forward_as_tuple( std::move( bars )... ),
+                          traits::MakeIndexSeq<sizeof...( Cfgs )>() )
         {}
-        TupleBar( const TupleBar& )              = delete;
-        TupleBar& operator=( const TupleBar& ) & = delete;
-        TupleBar( TupleBar&& rhs ) noexcept
-          : assets::TupleSlot<prefabs::BasicBar<Configs, Outlet, Mode, Area>, Tags>( std::move( rhs ) )...
+        StaticLayout( const StaticLayout& )            = delete;
+        StaticLayout& operator=( const StaticLayout& ) = delete;
+        StaticLayout( StaticLayout&& rhs ) noexcept
+          : wrappers::TuplePacket<prefabs::BasicBar<Configs, Outlet, Mode, Area>, Tags>( std::move( rhs ) )...
           , alive_cnt_ { 0 }
-          , state_ { State::Stop }
+          , state_ { Phase::Stop }
         {
           PGBAR__ASSERT( rhs.online() == false );
         }
-        TupleBar& operator=( TupleBar&& rhs ) & noexcept
+        StaticLayout& operator=( StaticLayout&& rhs ) & noexcept
         { // The thread insecurity here is deliberately designed.
           // After all, for a type where a base class reference can be exposed,
           // we cannot apply the lock within the type to the outside.
@@ -206,12 +239,12 @@ namespace pgbar {
           PGBAR__ASSERT( online() == false );
           PGBAR__ASSERT( rhs.online() == false );
           (void)std::initializer_list<bool> { (
-            assets::TupleSlot<prefabs::BasicBar<Configs, Outlet, Mode, Area>, Tags>::operator=(
+            wrappers::TuplePacket<prefabs::BasicBar<Configs, Outlet, Mode, Area>, Tags>::operator=(
               std::move( rhs ) ),
             false )... };
           return *this;
         }
-        ~TupleBar() noexcept { kill(); }
+        ~StaticLayout() noexcept { kill(); }
 
         void shut()
         {
@@ -229,15 +262,17 @@ namespace pgbar {
         }
         PGBAR__NODISCARD PGBAR__FORCEINLINE bool online() const noexcept
         {
-          return state_.load( std::memory_order_acquire ) != State::Stop;
+          return state_.load( std::memory_order_acquire ) != Phase::Stop;
         }
         PGBAR__NODISCARD PGBAR__FORCEINLINE types::Size online_count() const noexcept
         {
           concurrent::SharedLock<concurrent::SharedMutex> lock { res_mtx_ };
-          return active_mask_.count();
+          return std::count_if( stages_.cbegin(), stages_.cend(), []( Locus stage ) noexcept {
+            return stage == Locus::Onstage || stage == Locus::Offstage;
+          } );
         }
 
-        void swap( TupleBar& other ) noexcept
+        void swap( StaticLayout& other ) noexcept
         { // The thread insecurity here is deliberately designed.
           // The reason can be found in the move assignment.
           PGBAR__TRUST( this != &other );

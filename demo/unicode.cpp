@@ -14,7 +14,7 @@ int main()
                       pgbar::option::Lead( u8"🚀" ),
                       pgbar::option::Filler( u8"急" ),
                       pgbar::option::Postfix( u8"한국어" ),
-                      pgbar::option::Tasks( iteration ) );
+                      pgbar::option::Quota( iteration ) );
 
   auto start = chrono::high_resolution_clock::now();
   for ( size_t i = 0; i < iteration; ++i )

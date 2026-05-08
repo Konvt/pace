@@ -1,5 +1,5 @@
-#ifndef PGBAR__TYPES
-#define PGBAR__TYPES
+#ifndef PGBAR_TYPES
+#define PGBAR_TYPES
 
 #include <chrono>
 #include <cstddef>
@@ -38,10 +38,13 @@ namespace pgbar {
       using Float      = double;
       using Bit8       = std::uint8_t; // a computable and addressable Byte type
       using GlyphWidth = std::uint8_t; // value is between [0, 3]
+      using Tempus     = std::chrono::nanoseconds;
     } // namespace types
   } // namespace _details
 
-  using TimeGranule = std::chrono::nanoseconds;
+  // ETA requires nanosecond resolution;
+  // microseconds may introduce significant precision loss
+  // for fast-updating progress bars.
 
   // A enum that specifies the type of the output stream.
   enum class Channel : int { Stdout = 1, Stderr = 2 };

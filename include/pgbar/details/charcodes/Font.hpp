@@ -1,5 +1,5 @@
-#ifndef PGBAR__GLYPH
-#define PGBAR__GLYPH
+#ifndef PGBAR_GLYPH
+#define PGBAR_GLYPH
 
 #include "../types/Types.hpp"
 

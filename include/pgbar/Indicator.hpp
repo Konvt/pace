@@ -23,12 +23,12 @@ namespace pgbar {
     friend bool config::auto_style_off() noexcept;
 
   public:
-    Indicator()                                = default;
-    Indicator( const Indicator& )              = delete;
-    Indicator& operator=( const Indicator& ) & = delete;
-    Indicator( Indicator&& )                   = default;
-    Indicator& operator=( Indicator&& ) &      = default;
-    virtual ~Indicator()                       = default;
+    Indicator()                              = default;
+    Indicator( const Indicator& )            = delete;
+    Indicator& operator=( const Indicator& ) = delete;
+    Indicator( Indicator&& )                 = default;
+    Indicator& operator=( Indicator&& ) &    = default;
+    virtual ~Indicator()                     = default;
 
     virtual void reset()                                  = 0;
     virtual void abort() noexcept                         = 0;
@@ -94,18 +94,18 @@ namespace pgbar {
 
     // Get the current output interval.
     template<Channel Outlet>
-    PGBAR__NODISCARD TimeGranule refresh_interval() noexcept
+    PGBAR__NODISCARD _details::types::Tempus refresh_interval() noexcept
     {
       return _details::render::Renderer<Outlet>::working_interval();
     }
     // Set the new output interval.
     template<Channel Outlet>
-    void refresh_interval( TimeGranule new_rate ) noexcept
+    void refresh_interval( _details::types::Tempus new_rate ) noexcept
     {
       _details::render::Renderer<Outlet>::working_interval( new_rate );
     }
     // Set every channels to the same output interval.
-    inline void refresh_interval( TimeGranule new_rate ) noexcept
+    inline void refresh_interval( _details::types::Tempus new_rate ) noexcept
     {
       _details::render::Renderer<Channel::Stderr>::working_interval( new_rate );
       _details::render::Renderer<Channel::Stdout>::working_interval( new_rate );

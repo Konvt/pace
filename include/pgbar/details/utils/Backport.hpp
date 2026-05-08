@@ -1,5 +1,5 @@
-#ifndef PGBAR__UTILS_BACKPORT
-#define PGBAR__UTILS_BACKPORT
+#ifndef PGBAR_UTILS_BACKPORT
+#define PGBAR_UTILS_BACKPORT
 
 #include "../core/Core.hpp"
 #include "../types/Types.hpp"
@@ -59,6 +59,21 @@ namespace pgbar {
       }
 #endif
 
+#ifdef __cpp_lib_clamp
+      using std::clamp;
+#else
+      template<class T, class Compare>
+      constexpr const T& clamp( const T& v, const T& lo, const T& hi, Compare comp )
+      {
+        return comp( v, lo ) ? lo : comp( hi, v ) ? hi : v;
+      }
+      template<class T>
+      constexpr const T& clamp( const T& v, const T& lo, const T& hi )
+      {
+        return clamp( v, lo, hi, std::less<T> {} );
+      }
+#endif
+
 #if PGBAR__CXX17
       using std::destroy_at;
 #else
@@ -67,8 +82,7 @@ namespace pgbar {
       PGBAR__FORCEINLINE PGBAR__CXX20_CNSTXPR void destroy_at( T* location )
         noexcept( std::is_nothrow_destructible<T>::value )
       {
-        static_assert( !std::is_array<T>::value,
-                       "pgbar::_details::utils::destroy_at: The program is ill-formed" );
+        static_assert( !std::is_array<T>::value, "the program is ill-formed" );
         if PGBAR__CXX17_CNSTXPR ( !std::is_trivially_destructible<T>::value )
           location->~T();
       }
@@ -240,7 +254,7 @@ namespace pgbar {
       template<typename T>
       PGBAR__FORCEINLINE constexpr T* to_address( T* p ) noexcept
       {
-        static_assert( !std::is_function<T>::value, "pgbar::_details::utils::to_address: Unexpected type" );
+        static_assert( !std::is_function<T>::value, "unexpected type" );
         return p;
       }
 #endif
@@ -317,7 +331,7 @@ namespace pgbar {
       PGBAR__FORCEINLINE PGBAR__CXX20_CNSTXPR T* construct_at( U* location, Args&&... args )
         noexcept( noexcept( construct_at( std::declval<T*>(), std::forward<Args>( args )... ) ) )
       {
-        static_assert( !std::is_void<T>::value, "pgbar::_details::utils::construct_at: Invalid type" );
+        static_assert( !std::is_void<T>::value, "invalid type" );
         return construct_at( reinterpret_cast<T*>( location ), std::forward<Args>( args )... );
       }
 

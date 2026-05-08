@@ -6,10 +6,9 @@ int main()
   spibar.config()
     .prefix( "Working" )
     .lead( { ".", "..", "..." } )
-    .tasks( 2147483647 )
-    .disable()
-    .entire();
-  spibar.config().enable().animation().speed().elapsed();
+    .quota( 2147483647 )
+    .disable_all()
+    .enable<pgbar::facade::SpinPlot, pgbar::facade::Speed, pgbar::facade::Elapsed, pgbar::facade::ETA>();
   for ( size_t i = 0; i < 2147483647; ++i )
     spibar.tick();
 }

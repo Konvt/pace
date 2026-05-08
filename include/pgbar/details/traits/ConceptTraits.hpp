@@ -1,5 +1,5 @@
-#ifndef PGBAR__CONCEPTTRAITS
-#define PGBAR__CONCEPTTRAITS
+#ifndef PGBAR_CONCEPT_TRAITS
+#define PGBAR_CONCEPT_TRAITS
 // Only contains trait entities unrelated to template metaprogramming here.
 
 #include "Backport.hpp"

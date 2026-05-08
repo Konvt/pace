@@ -1,5 +1,5 @@
-#ifndef PGBAR__UTILS_UTIL
-#define PGBAR__UTILS_UTIL
+#ifndef PGBAR_UTILS_UTIL
+#define PGBAR_UTILS_UTIL
 
 #include "../core/Core.hpp"
 #include "../traits/Backport.hpp"
@@ -21,7 +21,7 @@ namespace pgbar {
                                 decltype( std::get<I>( std::forward<Tuple>( tup ) ) )>::type
       {
         static_assert( std::is_convertible<typename std::tuple_element<I, Tuple>::type, T>::value,
-                       "pgbar::_details::traits::pick_or: Incompatible type" );
+                       "incompatible type" );
         return std::get<I>( std::forward<Tuple>( tup ) );
       }
       template<types::Size I, typename T, typename Tuple>

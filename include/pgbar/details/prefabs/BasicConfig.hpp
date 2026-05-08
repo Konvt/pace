@@ -1,204 +1,213 @@
-#ifndef PGBAR__BASICCONFIG
-#define PGBAR__BASICCONFIG
+#ifndef PGBAR_BASIC_CONFIG
+#define PGBAR_BASIC_CONFIG
 
-#include "../assets/TUI.hpp"
-#include <atomic>
-#include <initializer_list>
-#include <mutex>
+#include "../aspects/Schema.hpp"
+#include "../aspects/Segment.hpp"
+#include "../aspects/Text.hpp"
 
 namespace pgbar {
+  namespace option {
+    /**
+     * A special type, only used to construct the default value of BasicConfig.
+     * Please do not manually create this type; instead, use the type below for static inference.
+     */
+    struct Projection : PGBAR__DERIVING_OPTION1( Projection, std::vector<bool>, projection );
+
+    template<template<typename...> class... Facades>
+    // If there is an error here, it indicates that there are duplicate types involved.
+    struct Only : public _details::traits::TemplateSet<Facades...> {};
+    template<template<typename...> class... Facades>
+    struct Except : public _details::traits::TemplateSet<Facades...> {};
+
+#define PGBAR__METHOD( ParamType, ReturnType )                                 \
+  template<template<typename...> class... Facades>                             \
+  constexpr ReturnType<Facades...> operator!( ParamType<Facades...> ) noexcept \
+  {                                                                            \
+    return {};                                                                 \
+  }
+    PGBAR__METHOD( Except, Only );
+    PGBAR__METHOD( Only, Except );
+#undef PGBAR__METHOD
+#define PGBAR__METHOD( ParamType )                                                                           \
+  template<template<typename...> class... F1, template<typename...> class... F2>                             \
+  constexpr _details::traits::TmpNominalCast_t<                                                              \
+    _details::traits::Combine_t<_details::traits::TemplateSet<F1...>, _details::traits::TemplateSet<F2...>>, \
+    ParamType>                                                                                               \
+    operator|( ParamType<F1...>, ParamType<F2...> ) noexcept                                                 \
+  {                                                                                                          \
+    return {};                                                                                               \
+  }
+    PGBAR__METHOD( Only );
+    PGBAR__METHOD( Except );
+#undef PGBAR__METHOD
+  } // namespace option
+
   namespace _details {
+    namespace traits {
+      template<typename S>
+      struct _impl_is_selection {
+      private:
+        template<template<typename...> class... Fs>
+        static constexpr std::true_type check( const option::Only<Fs...>& );
+        template<template<typename...> class... Fs>
+        static constexpr std::true_type check( const option::Except<Fs...>& );
+        static constexpr std::false_type check( ... );
+
+      public:
+        using result = AllOf<Not<std::is_reference<S>>,
+                             decltype( check( std::declval<typename std::remove_cv<S>::type>() ) )>;
+      };
+      template<typename S>
+      using is_selection = typename _impl_is_selection<S>::result;
+    } // namespace traits
+
     namespace prefabs {
-      template<template<typename...> class BarType, typename Derived>
+      template<template<typename...> class... Facades>
       class BasicConfig
-        : public traits::LI_t<BarType,
-                              assets::PercentMeter,
-                              assets::SpeedMeter,
-                              assets::CounterMeter,
-                              assets::Timer,
-                              assets::Prefix,
-                              assets::Postfix,
-                              assets::Segment>::template type<assets::CoreConfig<Derived>, Derived> {
-        // In fact, all the dependent components of BasicConfig can be fully injected from the outside.
-        // This is not done here just to reduce repetitive code
+        : public traits::LI_t<aspects::Prefix, aspects::Postfix, aspects::Segment, Facades...>::
+            template type<aspects::Schema, BasicConfig<Facades...>> {
+        static_assert( traits::Distinct<traits::TemplateList<Facades...>>::value,
+                       "redundant Facades are not allowed" );
+        using Element = traits::TemplateSet<Facades...>;
+        template<typename Option>
+        using is_setting = traits::AnyOf<
+          traits::TpContain<traits::OptionLinker_t<
+                              traits::C3_t<aspects::Prefix, aspects::Postfix, aspects::Segment, Facades...>>,
+                            Option>,
+          traits::is_selection<Option>>;
 
-        // BarType must inherit from BasicIndicator or BasicAnimation
-        static_assert(
-          traits::AnyOf<traits::TmpContain<traits::C3_t<BarType>, assets::BasicIndicator>,
-                        traits::TmpContain<traits::C3_t<BarType>, assets::BasicAnimation>>::value,
-          "pgbar::_details::prefabs::BasicConfig: Invalid progress bar type" );
-
-        using Base =
-          typename traits::LI_t<BarType,
-                                assets::PercentMeter,
-                                assets::SpeedMeter,
-                                assets::CounterMeter,
-                                assets::Timer,
-                                assets::Prefix,
-                                assets::Postfix,
-                                assets::Segment>::template type<assets::CoreConfig<Derived>, Derived>;
-        using PermittedSet = traits::Merge_t<traits::TypeSet<option::Style>,
-                                             traits::OptionFor_t<BarType>,
-                                             traits::OptionFor_t<assets::SpeedMeter>,
-                                             traits::OptionFor_t<assets::Timer>,
-                                             traits::OptionFor_t<assets::CoreConfig>,
-                                             traits::OptionFor_t<assets::Prefix>,
-                                             traits::OptionFor_t<assets::Postfix>,
-                                             traits::OptionFor_t<assets::Segment>>;
-
-        friend PGBAR__FORCEINLINE PGBAR__CXX20_CNSTXPR void unpack( BasicConfig& cfg,
-                                                                    option::Style&& val ) noexcept
+        friend PGBAR__FORCEINLINE void unpack( BasicConfig& self, option::Projection proj ) noexcept
         {
-          cfg.visual_masks_ = val.value();
+          const size_t length = std::min( sizeof...( Facades ), proj.value().size() );
+          for ( size_t i = 0; i < length; ++i )
+            self.projection_.set( i, proj.value()[i] );
+        }
+        template<template<typename...> class... Fs>
+        friend PGBAR__FORCEINLINE PGBAR__CXX14_CNSTXPR void unpack( BasicConfig& self,
+                                                                    option::Only<Fs...> ) noexcept
+        {
+          static_assert( traits::AllOf<traits::TmpContain<traits::TemplateSet<Facades...>, Fs>...>::value,
+                         "try to modifiy an unkonwn Facade" );
+          self.projection_.reset();
+          (void)std::initializer_list<bool> {
+            ( self.projection_.set( traits::IndexIn<Fs, Facades...>::value ), false )...
+          };
+        }
+        template<template<typename...> class... Fs>
+        friend PGBAR__FORCEINLINE PGBAR__CXX14_CNSTXPR void unpack( BasicConfig& self,
+                                                                    option::Except<Fs...> ) noexcept
+        {
+          static_assert( traits::AllOf<traits::TmpContain<traits::TemplateSet<Facades...>, Fs>...>::value,
+                         "try to modifiy an unkonwn Facade" );
+          self.projection_.set();
+          (void)std::initializer_list<bool> {
+            ( self.projection_.reset( traits::IndexIn<Fs, Facades...>::value ), false )...
+          };
         }
 
-        template<bool Enable>
-        class Modifier final {
-          friend BasicConfig;
-          BasicConfig& self_;
-          std::atomic<bool> owner_;
-
-          Modifier( BasicConfig& self ) noexcept : self_ { self }, owner_ { true } { self_.rw_mtx_.lock(); }
-          Modifier( BasicConfig& self, std::adopt_lock_t ) noexcept : self_ { self }, owner_ { true } {}
-#if !PGBAR__CXX17
-          // There was not standard NRVO support before C++17.
-          Modifier( Modifier&& rhs ) noexcept : self_ { rhs.self_ }, owner_ { true }
-          {
-            rhs.owner_.store( false, std::memory_order_release );
-          }
-#endif
-        public:
-          ~Modifier() noexcept
-          {
-            if ( owner_.load( std::memory_order_acquire ) )
-              self_.rw_mtx_.unlock();
-          }
-          Modifier( const Modifier& )              = delete;
-          Modifier& operator=( const Modifier& ) & = delete;
-
-#define PGBAR__METHOD( MethodName, EnumName )                              \
-  Modifier&& MethodName()&& noexcept                                       \
-  {                                                                        \
-    if ( owner_.load( std::memory_order_acquire ) )                        \
-      self_.visual_masks_.set( utils::to_underlying( EnumName ), Enable ); \
-    return static_cast<Modifier&&>( *this );                               \
-  }
-          PGBAR__METHOD( percent, Mask::Per )
-          PGBAR__METHOD( animation, Mask::Ani )
-          PGBAR__METHOD( counter, Mask::Cnt )
-          PGBAR__METHOD( speed, Mask::Sped )
-          PGBAR__METHOD( elapsed, Mask::Elpsd )
-          PGBAR__METHOD( countdown, Mask::Cntdwn )
-#undef PGBAR__METHOD
-          Modifier&& entire() && noexcept
-          {
-            if ( owner_.load( std::memory_order_acquire ) ) {
-              if PGBAR__CXX17_CNSTXPR ( Enable )
-                self_.visual_masks_.set();
-              else
-                self_.visual_masks_.reset();
-            }
-            return static_cast<Modifier&&>( *this );
-          }
-
-          Modifier<!Enable> negate() && noexcept
-          {
-            auto negate = Modifier<!Enable>( this->self_, std::adopt_lock );
-            owner_.store( false, std::memory_order_release );
-            return negate;
-          }
-        };
-
       protected:
-        enum class Mask : std::uint8_t { Per = 0, Ani, Cnt, Sped, Elpsd, Cntdwn };
-        std::bitset<6> visual_masks_;
+        std::bitset<sizeof...( Facades )> projection_;
 
-        PGBAR__NODISCARD PGBAR__FORCEINLINE types::Size common_render_size() const noexcept
+        template<typename... Options>
+        PGBAR__CXX23_CNSTXPR BasicConfig( traits::TypeSet<Options...> tag ) : Layout( tag )
         {
-          return this->fixed_len_prefix() + this->fixed_len_postfix()
-               + ( visual_masks_[utils::to_underlying( Mask::Per )] ? Base::fixed_len_percent() : 0 )
-               + ( visual_masks_[utils::to_underlying( Mask::Cnt )] ? this->fixed_len_counter() : 0 )
-               + ( visual_masks_[utils::to_underlying( Mask::Sped )] ? this->fixed_len_speed() : 0 )
-               + ( visual_masks_[utils::to_underlying( Mask::Elpsd )] ? Base::fixed_len_elapsed() : 0 )
-               + ( visual_masks_[utils::to_underlying( Mask::Cntdwn )] ? Base::fixed_len_countdown() : 0 )
-               + this->fixed_len_segment( this->visual_masks_.count() );
+          // Projection is only used for injecting default values.
+          if PGBAR__CXX17_CNSTXPR ( !traits::AnyOf<traits::is_selection<Options>...>::value )
+            unpack( *this, utils::provide_for<BasicConfig, option::Projection>() );
         }
 
       public:
-        // Percent Meter
-        static constexpr types::Bit8 Per    = 1 << 0;
-        // Animation
-        static constexpr types::Bit8 Ani    = 1 << 1;
-        // Task Progress Counter
-        static constexpr types::Bit8 Cnt    = 1 << 2;
-        // Speed Meter
-        static constexpr types::Bit8 Sped   = 1 << 3;
-        // Elapsed Timer
-        static constexpr types::Bit8 Elpsd  = 1 << 4;
-        // Countdown Timer
-        static constexpr types::Bit8 Cntdwn = 1 << 5;
-        // Enable all components
-        static constexpr types::Bit8 Entire = ~0;
+        using Layout =
+          typename traits::LI_t<aspects::Prefix, aspects::Postfix, aspects::Segment, Facades...>::
+            template type<aspects::Schema, BasicConfig>;
+
+        /**
+         * Build a Projection that explicitly enables a selected subset of Facades.
+
+         * The resulting projection disables all Facades by default, and only marks
+         * the specified ones as enabled.
+
+         * This is typically used when a bar configuration should expose only a
+         * minimal or curated set of components.
+         */
+        template<template<typename...> class... Fs>
+        static option::Projection bake( option::Only<Fs...> )
+        {
+          static_assert( traits::AllOf<traits::TmpContain<traits::TemplateSet<Facades...>, Fs>...>::value,
+                         "try to modifiy an unkonwn Facade" );
+          std::vector<bool> projection;
+          projection.assign( sizeof...( Facades ), false );
+          (void)std::initializer_list<bool> { ( projection[traits::IndexIn<Fs, Facades...>::value] =
+                                                  true )... };
+          return { std::move( projection ) };
+        }
+        /**
+         * Build a Projection that disables a subset of Facades while keeping
+         * all others enabled.
+
+         * The resulting projection starts with all Facades enabled, and then
+         * removes the specified ones.
+
+         * This is typically used for standard configurations where most components
+         * are enabled by default, with only a few exclusions.
+         */
+        template<template<typename...> class... Fs>
+        static option::Projection bake( option::Except<Fs...> )
+        {
+          static_assert( traits::AllOf<traits::TmpContain<traits::TemplateSet<Facades...>, Fs>...>::value,
+                         "try to modifiy an unkonwn Facade" );
+          std::vector<bool> projection;
+          projection.assign( sizeof...( Facades ), true );
+          (void)std::initializer_list<bool> { ( projection[traits::IndexIn<Fs, Facades...>::value] =
+                                                  false )... };
+          return { std::move( projection ) };
+        }
 
         template<typename... Args
 #ifdef __cpp_concepts
                  >
-          requires( traits::Distinct<traits::TypeList<Args...>>::value
-                    && ( traits::TpContain<PermittedSet, Args>::value && ... ) )
+          requires( traits::Distinct<traits::TypeList<Args...>>::value && ( is_setting<Args>::value && ... ) )
 #else
                  ,
-                 typename = typename std::enable_if<
-                   traits::AllOf<traits::Distinct<traits::TypeList<Args...>>,
-                                 traits::TpContain<PermittedSet, Args>...>::value>::type>
+                 typename = typename std::enable_if<traits::AllOf<traits::Distinct<traits::TypeList<Args...>>,
+                                                                  is_setting<Args>...>::value>::type>
 #endif
         PGBAR__CXX23_CNSTXPR BasicConfig( Args... args )
+          : BasicConfig( traits::TypeSet<typename std::decay<Args>::type...>() )
         {
-          Derived::template inject<traits::TypeSet<Args...>>( *this );
           (void)std::initializer_list<bool> { ( unpack( *this, std::move( args ) ), false )... };
         }
 
-        BasicConfig( const BasicConfig& other )
-          noexcept( traits::AllOf<std::is_nothrow_default_constructible<Base>,
-                                  std::is_nothrow_copy_assignable<Base>>::value )
+        BasicConfig( const BasicConfig& other ) noexcept( std::is_nothrow_copy_assignable<Layout>::value )
         {
           std::lock_guard<concurrent::SharedMutex> lock { other.rw_mtx_ };
-          // Here we are calling the operator= of Base, which is lock-free.
-          Base::operator=( other );
-          visual_masks_ = other.visual_masks_;
+          Layout::operator=( other );
+          projection_ = other.projection_;
         }
         BasicConfig( BasicConfig&& rhs ) noexcept
         {
-          // static_assert(
-          //   std::is_nothrow_default_constructible<Base>::value,
-          //   "To ensure that the move ctor is strictly noexcept, "
-          //   "it is necessary to require that the default constructor of the base class is noexcept." );
-          std::lock_guard<concurrent::SharedMutex> lock { rhs.rw_mtx_ };
-          Base::operator=( std::move( rhs ) );
+          Layout::operator=( std::move( rhs ) );
           using std::swap;
-          swap( visual_masks_, rhs.visual_masks_ );
+          swap( projection_, rhs.projection_ );
         }
         BasicConfig& operator=( const BasicConfig& other ) & noexcept(
-          std::is_nothrow_copy_assignable<Base>::value )
+          std::is_nothrow_copy_assignable<Layout>::value )
         {
           PGBAR__TRUST( this != &other );
           concurrent::SharedLock<concurrent::SharedMutex> lock1 { other.rw_mtx_, std::defer_lock };
           std::lock( this->rw_mtx_, lock1 );
           std::lock_guard<concurrent::SharedMutex> lock2 { this->rw_mtx_, std::adopt_lock };
 
-          visual_masks_ = other.visual_masks_;
-          Base::operator=( other );
+          projection_ = other.projection_;
+          Layout::operator=( other );
           return *this;
         }
         BasicConfig& operator=( BasicConfig&& rhs ) & noexcept
         {
           PGBAR__TRUST( this != &rhs );
-          std::lock( this->rw_mtx_, rhs.rw_mtx_ );
-          std::lock_guard<concurrent::SharedMutex> lock1 { this->rw_mtx_, std::adopt_lock };
-          std::lock_guard<concurrent::SharedMutex> lock2 { rhs.rw_mtx_, std::adopt_lock };
-
           using std::swap;
-          swap( visual_masks_, rhs.visual_masks_ );
-          Base::operator=( std::move( rhs ) );
+          swap( projection_, rhs.projection_ );
+          Layout::operator=( std::move( rhs ) );
           return *this;
         }
         /**
@@ -208,108 +217,202 @@ namespace pgbar {
          */
         ~BasicConfig() = default;
 
-#define PGBAR__METHOD( ReturnType )                                \
-  std::lock_guard<concurrent::SharedMutex> lock { this->rw_mtx_ }; \
-  unpack( *this, option::Style( val ) );                           \
-  return static_cast<ReturnType>( *this )
-
-        Derived& style( types::Bit8 val ) & noexcept { PGBAR__METHOD( Derived& ); }
-        Derived&& style( types::Bit8 val ) && noexcept { PGBAR__METHOD( Derived&& ); }
-
-#undef PGBAR__METHOD
-#define PGBAR__METHOD( ReturnType )                                                       \
-  std::lock_guard<concurrent::SharedMutex> lock { this->rw_mtx_ };                        \
-  unpack( *this, std::move( arg ) );                                                      \
-  (void)std::initializer_list<bool> { ( unpack( *this, std::move( args ) ), false )... }; \
-  return static_cast<ReturnType>( *this )
-
         template<typename Arg, typename... Args>
+        auto with( Arg arg, Args... args ) &
 #ifdef __cpp_concepts
-          requires( traits::Distinct<traits::TypeList<Arg, Args...>>::value
-                    && traits::TpContain<PermittedSet, Arg>::value
-                    && ( traits::TpContain<PermittedSet, Args>::value && ... ) )
-        decltype( auto )
+          -> decltype( auto )
+          requires( traits::Distinct<traits::TypeList<Arg, Args...>>::value && is_setting<Arg>::value
+                    && ( is_setting<Args>::value && ... ) )
 #else
-        typename std::enable_if<traits::AllOf<traits::Distinct<traits::TypeList<Arg, Args...>>,
-                                              traits::TpContain<PermittedSet, Arg>,
-                                              traits::TpContain<PermittedSet, Args>...>::value,
-                                Derived&>::type
+          -> typename std::enable_if<traits::AllOf<traits::Distinct<traits::TypeList<Arg, Args...>>,
+                                                   is_setting<Arg>,
+                                                   is_setting<Args>...>::value,
+                                     BasicConfig&>::type
 #endif
-          with( Arg arg, Args... args ) &
         {
-          PGBAR__METHOD( Derived& );
+          std::lock_guard<concurrent::SharedMutex> lock { this->rw_mtx_ };
+          unpack( *this, std::move( arg ) );
+          (void)std::initializer_list<bool> { ( unpack( *this, std::move( args ) ), false )... };
+          return *this;
         }
         template<typename Arg, typename... Args>
+        auto with( Arg arg, Args... args ) &&
 #ifdef __cpp_concepts
-          requires( traits::Distinct<traits::TypeList<Arg, Args...>>::value
-                    && traits::TpContain<PermittedSet, Arg>::value
-                    && ( traits::TpContain<PermittedSet, Args>::value && ... ) )
-        decltype( auto )
+          -> decltype( auto )
+          requires( traits::Distinct<traits::TypeList<Arg, Args...>>::value && is_setting<Arg>::value
+                    && ( is_setting<Args>::value && ... ) )
 #else
-        typename std::enable_if<traits::AllOf<traits::Distinct<traits::TypeList<Arg, Args...>>,
-                                              traits::TpContain<PermittedSet, Arg>,
-                                              traits::TpContain<PermittedSet, Args>...>::value,
-                                Derived&>::type
+          -> typename std::enable_if<traits::AllOf<traits::Distinct<traits::TypeList<Arg, Args...>>,
+                                                   is_setting<Arg>,
+                                                   is_setting<Args>...>::value,
+                                     BasicConfig&>::type
 #endif
-          with( Arg arg, Args... args ) &&
         {
-          PGBAR__METHOD( Derived&& );
+          std::lock_guard<concurrent::SharedMutex> lock { this->rw_mtx_ };
+          unpack( *this, std::move( arg ) );
+          (void)std::initializer_list<bool> { ( unpack( *this, std::move( args ) ), false )... };
+          return std::move( *this );
         }
-
-#undef PGBAR__METHOD
 
         PGBAR__NODISCARD std::uint64_t fixed_width() const noexcept
         {
           concurrent::SharedLock<concurrent::SharedMutex> lock { this->rw_mtx_ };
-          return static_cast<const Derived*>( this )->fixed_render_size();
+          types::Size num_enabled = 0;
+          std::uint64_t width     = 0;
+          (void)std::initializer_list<bool> { ( ++num_enabled,
+                                                width +=
+                                                ( projection_.test( traits::IndexIn<Facades>::value )
+                                                    ? traits::BaseOf_t<Layout, Facades>::fixed_length()
+                                                    : 0 ),
+                                                false )... };
+          // Before the first element and the last element, we do not set a divider.
+          return width + traits::BaseOf_t<Layout, aspects::Prefix>::fixed_length()
+               + traits::BaseOf_t<Layout, aspects::Postfix>::fixed_length()
+               + traits::BaseOf_t<Layout, aspects::Segment>::fixed_length( num_enabled );
         }
 
-        PGBAR__NODISCARD Modifier<true> enable() & noexcept { return Modifier<true>( *this ); }
-        PGBAR__NODISCARD Modifier<false> disable() & noexcept { return Modifier<false>( *this ); }
+        BasicConfig& enable_all() & noexcept
+        {
+          std::lock_guard<concurrent::SharedMutex> lock { this->rw_mtx_ };
+          unpack( *this, option::Except<>() );
+          return *this;
+        }
+        BasicConfig&& enable_all() && noexcept
+        {
+          std::lock_guard<concurrent::SharedMutex> lock { this->rw_mtx_ };
+          unpack( *this, option::Except<>() );
+          return std::move( *this );
+        }
+
+        BasicConfig& disable_all() & noexcept
+        {
+          std::lock_guard<concurrent::SharedMutex> lock { this->rw_mtx_ };
+          unpack( *this, option::Only<>() );
+          return *this;
+        }
+        BasicConfig&& disable_all() && noexcept
+        {
+          std::lock_guard<concurrent::SharedMutex> lock { this->rw_mtx_ };
+          unpack( *this, option::Only<>() );
+          return std::move( *this );
+        }
+
+        // Enable the new facade based on the current state.
+        template<template<typename...> class F, template<typename...> class... Fs>
+        auto enable() & noexcept
+#ifdef __cpp_concepts
+          -> decltype( auto )
+          requires( traits::TmpContain<Element, F>::value
+                    && ( traits::TmpContain<Element, Fs>::value && ... ) )
+#else
+          -> typename std::enable_if<
+            traits::AllOf<traits::TmpContain<Element, F>, traits::TmpContain<Element, Fs>...>::value,
+            BasicConfig&>::type
+#endif
+        {
+          std::lock_guard<concurrent::SharedMutex> lock { this->rw_mtx_ };
+          projection_.set( traits::IndexIn<F, Facades...>::value );
+          (void)std::initializer_list<bool> { ( projection_.set( traits::IndexIn<Fs, Facades...>::value ),
+                                                false )... };
+          return *this;
+        }
+        // Enable the new facade based on the current state.
+        template<template<typename...> class F, template<typename...> class... Fs>
+        auto enable() && noexcept
+#ifdef __cpp_concepts
+          -> decltype( auto )
+          requires( traits::TmpContain<Element, F>::value
+                    && ( traits::TmpContain<Element, Fs>::value && ... ) )
+#else
+          -> typename std::enable_if<
+            traits::AllOf<traits::TmpContain<Element, F>, traits::TmpContain<Element, Fs>...>::value,
+            BasicConfig&&>::type
+#endif
+        {
+          std::lock_guard<concurrent::SharedMutex> lock { this->rw_mtx_ };
+          projection_.set( traits::IndexIn<F, Facades...>::value );
+          (void)std::initializer_list<bool> { ( projection_.set( traits::IndexIn<Fs, Facades...>::value ),
+                                                false )... };
+          return std::move( *this );
+        }
+
+        // Disable the new facade based on the current state.
+        template<template<typename...> class F, template<typename...> class... Fs>
+        auto disable() & noexcept
+#ifdef __cpp_concepts
+          -> decltype( auto )
+          requires( traits::TmpContain<Element, F>::value
+                    && ( traits::TmpContain<Element, Fs>::value && ... ) )
+#else
+          -> typename std::enable_if<
+            traits::AllOf<traits::TmpContain<Element, F>, traits::TmpContain<Element, Fs>...>::value,
+            BasicConfig&>::type
+#endif
+        {
+          std::lock_guard<concurrent::SharedMutex> lock { this->rw_mtx_ };
+          projection_.set( traits::IndexIn<F, Facades...>::value );
+          (void)std::initializer_list<bool> { ( projection_.reset( traits::IndexIn<Fs, Facades...>::value ),
+                                                false )... };
+          return *this;
+        }
+        // Disable the new facade based on the current state.
+        template<template<typename...> class F, template<typename...> class... Fs>
+        auto disable() && noexcept
+#ifdef __cpp_concepts
+          -> decltype( auto )
+          requires( traits::TmpContain<Element, F>::value
+                    && ( traits::TmpContain<Element, Fs>::value && ... ) )
+#else
+          -> typename std::enable_if<
+            traits::AllOf<traits::TmpContain<Element, F>, traits::TmpContain<Element, Fs>...>::value,
+            BasicConfig&&>::type
+#endif
+        {
+          std::lock_guard<concurrent::SharedMutex> lock { this->rw_mtx_ };
+          projection_.set( traits::IndexIn<F, Facades...>::value );
+          (void)std::initializer_list<bool> { ( projection_.reset( traits::IndexIn<Fs, Facades...>::value ),
+                                                false )... };
+          return std::move( *this );
+        }
 
         PGBAR__CXX23_CNSTXPR void swap( BasicConfig& other ) noexcept
         {
-          std::lock( this->rw_mtx_, other.rw_mtx_ );
-          std::lock_guard<concurrent::SharedMutex> lock1 { this->rw_mtx_, std::adopt_lock };
-          std::lock_guard<concurrent::SharedMutex> lock2 { other.rw_mtx_, std::adopt_lock };
           using std::swap;
-          swap( visual_masks_, other.visual_masks_ );
-          Base::swap( other );
+          swap( projection_, other.projection_ );
+          Layout::swap( other );
         }
         friend PGBAR__CXX23_CNSTXPR void swap( BasicConfig& a, BasicConfig& b ) noexcept { a.swap( b ); }
 
         template<typename Option>
         friend auto operator|=( BasicConfig& cfg, Option&& opt )
 #ifdef __cpp_concepts
-          requires traits::TpContain<PermittedSet, std::decay_t<Option>>::value
+          requires is_setting<std::decay_t<Option>>::value
 #else
-          -> typename std::enable_if<
-            traits::TpContain<PermittedSet, typename std::decay<Option>::type>::value>::type
+          -> typename std::enable_if<is_setting<typename std::decay<Option>::type>::value>::type
 #endif
         {
           cfg.with( std::forward<Option>( opt ) );
         }
         template<typename Option>
+        friend auto operator|( BasicConfig& cfg, Option&& opt )
 #ifdef __cpp_concepts
-          requires traits::TpContain<PermittedSet, Option>::value
-        friend decltype( auto )
+          -> decltype( auto )
+          requires is_setting<Option>::value
 #else
-        friend typename std::enable_if<traits::TpContain<PermittedSet, Option>::value, Derived&>::type
+          -> typename std::enable_if<is_setting<Option>::value, BasicConfig&>::type
 #endif
-          operator|( BasicConfig& cfg, Option&& opt )
         {
           return cfg.with( std::forward<Option>( opt ) );
         }
         template<typename Option>
+        friend auto operator|( BasicConfig&& cfg, Option&& opt )
 #ifdef __cpp_concepts
-          requires traits::TpContain<PermittedSet, std::decay_t<Option>>::value
-        friend decltype( auto )
+          -> decltype( auto )
+          requires is_setting<std::decay_t<Option>>::value
 #else
-        friend
-          typename std::enable_if<traits::TpContain<PermittedSet, typename std::decay<Option>::type>::value,
-                                  Derived&&>::type
+          ->
+          typename std::enable_if<is_setting<typename std::decay<Option>::type>::value, BasicConfig&&>::type
 #endif
-          operator|( BasicConfig&& cfg, Option&& opt )
         {
           return std::move( cfg.with( std::forward<Option>( opt ) ) );
         }
@@ -318,17 +421,18 @@ namespace pgbar {
 
     namespace traits {
       template<typename C>
-      struct is_config {
+      struct _impl_is_config {
       private:
-        template<template<typename...> class B, typename D>
-        static constexpr std::true_type check( const prefabs::BasicConfig<B, D>& );
+        template<template<typename...> class... Fs>
+        static constexpr std::true_type check( const prefabs::BasicConfig<Fs...>& );
         static constexpr std::false_type check( ... );
 
       public:
-        static constexpr bool value =
-          AllOf<Not<std::is_reference<C>>,
-                decltype( check( std::declval<typename std::remove_cv<C>::type>() ) )>::value;
+        using result = AllOf<Not<std::is_reference<C>>,
+                             decltype( check( std::declval<typename std::remove_cv<C>::type>() ) )>;
       };
+      template<typename C>
+      using is_config = typename _impl_is_config<C>::result;
     } // namespace traits
   } // namespace _details
 } // namespace pgbar

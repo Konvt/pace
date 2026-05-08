@@ -1,5 +1,5 @@
-#ifndef PGBAR__CORE
-#define PGBAR__CORE
+#ifndef PGBAR_CORE
+#define PGBAR_CORE
 
 #include "Version.hpp"
 #include <cstdint>
@@ -142,5 +142,20 @@
 
 // Pack multiple macro parameters into a single one.
 #define PGBAR__WRAP( ... ) __VA_ARGS__
+
+#define PGBAR__SPECIAL_MEMBERS_CX( ClassName, Constexpr )         \
+  Constexpr ClassName( const ClassName& )              = default; \
+  Constexpr ClassName( ClassName&& )                   = default; \
+  Constexpr ClassName& operator=( const ClassName& ) & = default; \
+  Constexpr ClassName& operator=( ClassName&& ) &      = default; \
+  PGBAR__CXX20_CNSTXPR ~ClassName()                    = default
+
+#define PGBAR__SPECIAL_MEMBERS( ClassName )                                  \
+  constexpr ClassName()                                           = default; \
+  constexpr ClassName( const ClassName& )                         = default; \
+  constexpr ClassName( ClassName&& )                              = default; \
+  PGBAR__CXX14_CNSTXPR ClassName& operator=( const ClassName& ) & = default; \
+  PGBAR__CXX14_CNSTXPR ClassName& operator=( ClassName&& ) &      = default; \
+  PGBAR__CXX20_CNSTXPR ~ClassName()                               = default
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef PGBAR__MOVABLEREF
-#define PGBAR__MOVABLEREF
+#ifndef PGBAR_MOVABLE_REF
+#define PGBAR_MOVABLE_REF
 
 #include "../traits/Backport.hpp"
 #include <utility>

@@ -1,21 +1,21 @@
-#ifndef PGBAR__MANAGEDBAR
-#define PGBAR__MANAGEDBAR
+#ifndef PGBAR_MANAGED_BAR
+#define PGBAR_MANAGED_BAR
 
 #include "../prefabs/BasicBar.hpp"
 #include <memory>
 
 namespace pgbar {
   namespace _details {
-    namespace assets {
+    namespace prefabs {
       template<Channel, Policy, Region>
-      class DynContext;
+      class DynamicLayout;
     }
 
     namespace prefabs {
       template<typename C, Channel O, Policy M, Region A>
       class ManagedBar final : public BasicBar<C, O, M, A> {
         using Base    = BasicBar<C, O, M, A>;
-        using Context = std::shared_ptr<assets::DynContext<O, M, A>>;
+        using Context = std::shared_ptr<prefabs::DynamicLayout<O, M, A>>;
 
         Context context_;
 
@@ -37,8 +37,8 @@ namespace pgbar {
         // This thing is always wrapped by `std::unique_ptr` under normal circumstances,
         // so there is no need to add move semantics support for it;
         // otherwise, additional null checks would be required in the methods.
-        ManagedBar( const ManagedBar& )              = delete;
-        ManagedBar& operator=( const ManagedBar& ) & = delete;
+        ManagedBar( const ManagedBar& )            = delete;
+        ManagedBar& operator=( const ManagedBar& ) = delete;
 
         /**
          * The object model of C++ requires that derived classes be destructed first.

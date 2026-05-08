@@ -1,5 +1,5 @@
-#ifndef PGBAR__EXCEPTIONBOX
-#define PGBAR__EXCEPTIONBOX
+#ifndef PGBAR_EXCEPTION_BOX
+#define PGBAR_EXCEPTION_BOX
 
 #include "SharedLock.hpp"
 #include "SharedMutex.hpp"
@@ -39,12 +39,12 @@ namespace pgbar {
         }
 
         // Store the exception if it is empty and return true, otherwise return false.
-        PGBAR__NODISCARD PGBAR__FORCEINLINE bool try_store( std::exception_ptr e ) & noexcept
+        PGBAR__NODISCARD PGBAR__FORCEINLINE bool try_store( const std::exception_ptr& e ) & noexcept
         {
           std::lock_guard<SharedMutex> lock { rw_mtx_ };
           if ( exception_ )
             return false;
-          exception_ = std::move( e );
+          exception_ = e;
           return true;
         }
         PGBAR__FORCEINLINE std::exception_ptr load() const noexcept

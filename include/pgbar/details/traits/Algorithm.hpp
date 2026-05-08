@@ -1,5 +1,5 @@
-#ifndef PGBAR__ALGORITHM
-#define PGBAR__ALGORITHM
+#ifndef PGBAR_ALGORITHM
+#define PGBAR_ALGORITHM
 
 #include "Backport.hpp"
 #include <tuple>
@@ -29,6 +29,33 @@ namespace pgbar {
 #else
 # define PGBAR__FAST_TYPEAT 0
 #endif
+
+      template<template<typename...> class Target, template<typename...> class... Tmps>
+      struct IndexIn {
+      private:
+        template<types::Size I,
+                 template<typename...> class T,
+                 template<typename...> class Head,
+                 template<typename...> class... Tail>
+        struct Helper : Helper<I + 1, T, Tail...> {};
+        template<types::Size I, template<typename...> class T, template<typename...> class... Tail>
+        struct Helper<I, T, T, Tail...> : std::integral_constant<types::Size, I> {};
+
+      public:
+        static constexpr types::Size value = Helper<0, Target, Tmps...>::value;
+      };
+
+      template<typename From, template<template<typename...> class...> class To>
+      struct TmpNominalCast;
+      template<typename From, template<template<typename...> class...> class To>
+      using TmpNominalCast_t = typename TmpNominalCast<From, To>::type;
+
+      template<template<template<typename...> class...> class From,
+               template<typename...> class... Tmps,
+               template<template<typename...> class...> class To>
+      struct TmpNominalCast<From<Tmps...>, To> {
+        using type = To<Tmps...>;
+      };
 
       template<typename Collection>
       struct Split;

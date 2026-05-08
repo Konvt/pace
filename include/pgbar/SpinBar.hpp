@@ -1,163 +1,94 @@
-#ifndef PGBAR_SPINBAR
-#define PGBAR_SPINBAR
+#ifndef PGBAR_SPIN_BAR
+#define PGBAR_SPIN_BAR
 
 #include "details/prefabs/BasicBar.hpp"
 #include "details/prefabs/BasicConfig.hpp"
 #include "details/render/Builder.hpp"
-#include "details/render/CommonBuilder.hpp"
+#include "facade/Counter.hpp"
+#include "facade/ETA.hpp"
+#include "facade/Elapsed.hpp"
+#include "facade/Percentage.hpp"
+#include "facade/Speed.hpp"
+#include "facade/SpinPlot.hpp"
 #include "slice/TrackedSpan.hpp"
 
 namespace pgbar {
-  namespace _details {
-    namespace assets {
-      template<typename Base, typename Derived>
-      class SpinIndic : public Base {
-      protected:
-        PGBAR__FORCEINLINE PGBAR__CXX20_CNSTXPR io::CharPipeline& build_spin(
-          io::CharPipeline& buffer,
-          std::uint32_t num_frame_cnt ) const
-        {
-          if ( this->lead_.empty() )
-            return buffer;
-          num_frame_cnt = static_cast<std::uint64_t>( num_frame_cnt * this->shift_factor_ );
-          num_frame_cnt %= this->lead_.size();
-          PGBAR__ASSERT( this->len_longest_lead_ >= this->lead_[num_frame_cnt].width() );
-
-          this->try_reset( buffer );
-          return this->try_style( buffer, this->lead_col_ )
-              << utils::format<utils::TxtLayout::Left>( this->len_longest_lead_, this->lead_[num_frame_cnt] );
-        }
-
-      public:
-        PGBAR__EMPTY_COMPONENT( SpinIndic )
-      };
-    } // namespace assets
-
-    namespace traits {
-      PGBAR__INHERIT_REGISTER( assets::SpinIndic, assets::BasicAnimation );
-      template<>
-      struct OptionFor<assets::SpinIndic>
-        : Merge<OptionFor_t<assets::Countable>, OptionFor_t<assets::BasicAnimation>> {};
-    }
-  } // namespace _details
-
   namespace config {
-    class Spin : public _details::prefabs::BasicConfig<_details::assets::SpinIndic, Spin> {
-      using Base = _details::prefabs::BasicConfig<_details::assets::SpinIndic, Spin>;
-      friend Base;
-
-      template<typename ArgSet>
-      static void inject( Base& self )
-      {
-        static_assert( _details::traits::is_instance_of<ArgSet, _details::traits::TypeSet>::value,
-                       "pgbar::config::Spin::initialize: Invalid template type" );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::Shift>::value )
-          unpack( self, option::Shift( -3 ) );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::Lead>::value )
-          unpack( self, option::Lead( { u8"/", u8"-", u8"\\", u8"|" } ) );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::Divider>::value )
-          unpack( self, option::Divider( u8" | " ) );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::InfoColor>::value )
-          unpack( self, option::InfoColor( Color::Cyan ) );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::SpeedUnit>::value )
-          unpack( self, option::SpeedUnit( { u8"Hz", u8"kHz", u8"MHz", u8"GHz" } ) );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::Magnitude>::value )
-          unpack( self, option::Magnitude( 1000 ) );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::Style>::value )
-          unpack( self, option::Style( Base::Ani | Base::Elpsd ) );
-      }
-
-    protected:
-      PGBAR__NODISCARD PGBAR__FORCEINLINE _details::types::Size fixed_render_size() const noexcept
-      {
-        return this->common_render_size()
-             + ( this->visual_masks_[_details::utils::to_underlying( Base::Mask::Ani )]
-                   ? this->fixed_len_frames()
-                   : 0 );
-      }
-
-    public:
-      using Base::Base;
-      Spin( const Spin& )              = default;
-      Spin( Spin&& )                   = default;
-      Spin& operator=( const Spin& ) & = default;
-      Spin& operator=( Spin&& ) &      = default;
-      ~Spin()                          = default;
-    };
-  } // namespace config
-
-  namespace _details {
-    namespace traits {
-      PGBAR__BIND_BEHAVIOUR( config::Spin, assets::NullableFrameBar );
-    }
-
-    namespace render {
-      template<>
-      struct Builder<config::Spin> final : public CommonBuilder<config::Spin> {
-      private:
-        using Self = config::Spin;
-
-      public:
-        using CommonBuilder<Self>::CommonBuilder;
-
-        io::CharPipeline& build( io::CharPipeline& buffer,
-                                 std::uint64_t num_frame_cnt,
-                                 std::uint64_t num_task_done,
-                                 std::uint64_t num_all_tasks,
-                                 const std::chrono::steady_clock::time_point& zero_point ) const
-        {
-          PGBAR__TRUST( num_task_done <= num_all_tasks );
-          const auto num_percent = static_cast<types::Float>( num_task_done ) / num_all_tasks;
-
-          concurrent::SharedLock<concurrent::SharedMutex> lock { this->rw_mtx_ };
-          if ( !this->prefix_.empty() || !this->postfix_.empty() || this->visual_masks_.any() ) {
-            this->try_style( buffer, this->info_col_ );
-            buffer << this->l_border_;
-          }
-
-          this->build_prefix( buffer );
-          this->try_reset( buffer );
-          if ( this->visual_masks_[utils::to_underlying( Self::Mask::Ani )] ) {
-            this->build_spin( buffer, num_frame_cnt );
-            this->try_reset( buffer );
-            auto masks = this->visual_masks_;
-            if ( masks.reset( utils::to_underlying( Self::Mask::Ani ) ).any() ) {
-              this->try_style( buffer, this->info_col_ );
-              buffer << this->divider_;
-            }
-          }
-          if ( this->visual_masks_[utils::to_underlying( Self::Mask::Per )] ) {
-            this->build_percent( buffer, num_percent );
-            auto masks = this->visual_masks_;
-            if ( masks.reset( utils::to_underlying( Self::Mask::Ani ) )
-                   .reset( utils::to_underlying( Self::Mask::Per ) )
-                   .any() )
-              buffer << this->divider_;
-          }
-          this->common_build( buffer, num_task_done, num_all_tasks, zero_point );
-
-          if ( !this->postfix_.empty() && ( !this->prefix_.empty() || this->visual_masks_.any() ) )
-            buffer << this->divider_;
-          this->build_postfix( buffer );
-          this->try_reset( buffer );
-          if ( !this->prefix_.empty() || !this->postfix_.empty() || this->visual_masks_.any() ) {
-            this->try_style( buffer, this->info_col_ );
-            buffer << this->r_border_;
-          }
-          return this->try_reset( buffer );
-        }
-      };
-    } // namespace render
-  } // namespace _details
+    using Spin = _details::prefabs::BasicConfig<facade::SpinPlot,
+                                                facade::Percentage,
+                                                facade::Counter,
+                                                facade::Speed,
+                                                facade::Elapsed,
+                                                facade::ETA>;
+  }
 
   /**
    * A progress bar without bar indicator, replaced by a fixed animation component.
    *
    * It's structure is shown below:
-   * {LeftBorder}{Lead}{Prefix}{Percent}{Counter}{Speed}{Elapsed}{Countdown}{Postfix}{RightBorder}
+   * {LeftBorder}{Prefix}{Lead}{Percent}{Counter}{Speed}{Elapsed}{ETA}{Postfix}{RightBorder}
    */
   template<Channel Outlet = Channel::Stderr, Policy Mode = Policy::Async, Region Area = Region::Fixed>
   using SpinBar = _details::prefabs::BasicBar<config::Spin, Outlet, Mode, Area>;
+
+  PGBAR__PROVIDE_FOR( config::Spin, option::Colored, true );
+  PGBAR__PROVIDE_FOR( config::Spin, option::Bolded, true );
+  PGBAR__PROVIDE_FOR( config::Spin, option::Shift, -3 );
+  PGBAR__PROVIDE_FOR( config::Spin, option::Magnitude, 1000 );
+  PGBAR__PROVIDE_FOR( config::Spin, option::Divider, u8" | " );
+  PGBAR__PROVIDE_FOR( config::Spin, option::InfoColor, Color::Cyan );
+  template<>
+  struct pgbar::config::ProvideFor<config::Spin, option::Projection> {
+    static option::Projection provide()
+    {
+      return config::Spin::bake( option::Only<facade::SpinPlot, facade::Elapsed>() );
+    }
+  };
+  template<>
+  struct pgbar::config::ProvideFor<config::Spin, option::Lead> {
+    static option::Lead provide() { return option::Lead( { u8"/", u8"-", u8"\\", u8"|" } ); }
+  };
+  template<>
+  struct pgbar::config::ProvideFor<config::Spin, option::SpeedUnit> {
+    static option::SpeedUnit provide() { return option::SpeedUnit( { u8"Hz", u8"kHz", u8"MHz", u8"GHz" } ); }
+  };
+
+  namespace _details {
+    namespace render {
+      template<>
+      struct Builder<config::Spin> final : public Assembler<config::Spin> {
+      private:
+        using Config = config::Spin;
+        using Base   = Assembler<config::Spin>;
+
+      public:
+        using Base::Base;
+
+        io::CharPipeline& build( io::CharPipeline& pipeline, Parameter params ) const
+        {
+          concurrent::SharedLock<concurrent::SharedMutex> lock { this->rw_mtx_ };
+          if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() ) {
+            pipeline << this->with_style( this->info_col_, params.style_off_ ) << this->l_border_;
+          }
+          // For SpinBar, we manually remove the divider between the Lead and the Percent.
+          this->traits::BaseOf_t<typename Config::Layout, aspects::Prefix>::build( pipeline, params );
+          this->traits::BaseOf_t<typename Config::Layout, facade::SpinPlot>::build( pipeline, params );
+
+          this->template render_each<facade::Percentage,
+                                     facade::Counter,
+                                     facade::Speed,
+                                     facade::Elapsed,
+                                     facade::ETA>( pipeline, params );
+
+          this->traits::BaseOf_t<typename Config::Layout, aspects::Postfix>::build( pipeline, params );
+          if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() ) {
+            pipeline << this->reset_then_style( this->info_col_, params.style_off_ ) << this->r_border_;
+          }
+          return pipeline << this->with_reset( params.style_off_ );
+        }
+      };
+    } // namespace render
+  } // namespace _details
 } // namespace pgbar
 
 #endif

@@ -1,5 +1,5 @@
-#ifndef PGBAR__CODECHART
-#define PGBAR__CODECHART
+#ifndef PGBAR_CODE_CHART
+#define PGBAR_CODE_CHART
 
 #include "../core/Core.hpp"
 #include "../types/Types.hpp"

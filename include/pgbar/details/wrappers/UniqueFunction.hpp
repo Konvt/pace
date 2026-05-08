@@ -1,5 +1,5 @@
-#ifndef PGBAR__UNIQUEFUNCTION
-#define PGBAR__UNIQUEFUNCTION
+#ifndef PGBAR_UNIQUE_FUNCTION
+#define PGBAR_UNIQUE_FUNCTION
 
 #include <type_traits>
 #ifdef __cpp_lib_move_only_function
@@ -260,8 +260,8 @@ namespace pgbar {
         using Base = FnInvoker<UniqueFunction, int&, R, false, Args...>;
 
       public:
-        UniqueFunction( const UniqueFunction& )              = delete;
-        UniqueFunction& operator=( const UniqueFunction& ) & = delete;
+        UniqueFunction( const UniqueFunction& )            = delete;
+        UniqueFunction& operator=( const UniqueFunction& ) = delete;
 
         constexpr UniqueFunction()                                           = default;
         constexpr UniqueFunction( UniqueFunction&& )                         = default;

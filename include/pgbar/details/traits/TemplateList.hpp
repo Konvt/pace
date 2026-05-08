@@ -1,5 +1,5 @@
-#ifndef PGBAR__TEMPLATELIST
-#define PGBAR__TEMPLATELIST
+#ifndef PGBAR_TEMPLATE_LIST
+#define PGBAR_TEMPLATE_LIST
 
 namespace pgbar {
   namespace _details {

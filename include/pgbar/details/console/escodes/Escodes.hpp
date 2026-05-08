@@ -1,5 +1,5 @@
-#ifndef PGBAR__COLOR
-#define PGBAR__COLOR
+#ifndef PGBAR_ESCODES
+#define PGBAR_ESCODES
 
 #include "../../io/CharPipeline.hpp"
 #include "../../utils/Backport.hpp"
@@ -11,23 +11,25 @@ namespace pgbar {
   namespace _details {
     namespace console {
       namespace escodes {
-#ifdef PGBAR_NOCOLOR
-        PGBAR__CXX17_INLINE constexpr types::LitU8 fontreset = u8"";
-        PGBAR__CXX17_INLINE constexpr types::LitU8 fontbold  = u8"";
+#ifdef PGBAR_NOSTYLE
+        PGBAR__CXX17_INLINE constexpr auto& fontreset = u8"";
+        PGBAR__CXX17_INLINE constexpr auto& fontbold  = u8"";
 #else
-        PGBAR__CXX17_INLINE constexpr types::LitU8 fontreset = u8"\x1B[0m";
-        PGBAR__CXX17_INLINE constexpr types::LitU8 fontbold  = u8"\x1B[1m";
+        PGBAR__CXX17_INLINE constexpr auto& fontreset = u8"\x1B[0m";
+        PGBAR__CXX17_INLINE constexpr auto& fontbold  = u8"\x1B[1m";
 #endif
-        PGBAR__CXX17_INLINE constexpr types::LitU8 savecursor  = u8"\x1B[s";
-        PGBAR__CXX17_INLINE constexpr types::LitU8 resetcursor = u8"\x1B[u";
-        PGBAR__CXX17_INLINE constexpr types::LitU8 linewipe    = u8"\x1B[K";
-        PGBAR__CXX17_INLINE constexpr types::LitU8 prevline    = u8"\x1b[A";
-        PGBAR__CXX17_INLINE constexpr types::Char nextline     = '\n';
-        PGBAR__CXX17_INLINE constexpr types::Char linestart    = '\r';
+        PGBAR__CXX17_INLINE constexpr auto& savecursor      = u8"\x1B[s";
+        PGBAR__CXX17_INLINE constexpr auto& resetcursor     = u8"\x1B[u";
+        PGBAR__CXX17_INLINE constexpr auto& linewipe        = u8"\x1B[K";
+        PGBAR__CXX17_INLINE constexpr auto& prevline        = u8"\x1b[A";
+        PGBAR__CXX17_INLINE constexpr types::Char nextline  = '\n';
+        PGBAR__CXX17_INLINE constexpr types::Char linestart = '\r';
 
         class RGBColor {
+#ifndef PGBAR_NOSTYLE
           std::array<types::Char, 17> sgr_; // Select Graphic Rendition
           std::uint8_t length_;
+#endif
 
           static PGBAR__CXX23_CNSTXPR types::Char* to_char( types::Char* first,
                                                             types::Char* last,
@@ -59,7 +61,9 @@ namespace pgbar {
 
           PGBAR__CXX23_CNSTXPR void from_hex( types::HexRGB hex_val ) & noexcept
           {
-#ifndef PGBAR_NOCOLOR
+#ifdef PGBAR_NOSTYLE
+            (void)hex_val;
+#else
             length_ = 1;
             if ( hex_val == PGBAR__DEFAULT ) {
               sgr_[0] = '0';
@@ -105,7 +109,7 @@ namespace pgbar {
               }
             }
 
-#ifndef PGBAR_NOCOLOR
+#ifndef PGBAR_NOSTYLE
             std::uint32_t hex_val = 0;
             if ( length == 4 ) {
               for ( types::Size i = 1; i < length; ++i ) {
@@ -179,26 +183,37 @@ namespace pgbar {
 
           PGBAR__FORCEINLINE PGBAR__CXX20_CNSTXPR void clear() noexcept
           {
+#ifndef PGBAR_NOSTYLE
             std::fill( sgr_.begin(), sgr_.end(), '\0' );
             length_ = 0;
+#endif
           }
 
           PGBAR__CXX20_CNSTXPR void swap( RGBColor& other ) noexcept
           {
+#ifdef PGBAR_NOSTYLE
+            (void)other;
+#else
             std::swap( sgr_, other.sgr_ );
             std::swap( length_, other.length_ );
+#endif
           }
           friend PGBAR__CXX20_CNSTXPR void swap( RGBColor& a, RGBColor& b ) noexcept { a.swap( b ); }
 
-          friend PGBAR__FORCEINLINE io::CharPipeline& operator<<( io::CharPipeline& buf, const RGBColor& col )
+          friend PGBAR__FORCEINLINE io::CharPipeline& operator<<( io::CharPipeline& pipeline,
+                                                                  const RGBColor& col )
           {
-#ifndef PGBAR_NOCOLOR
-            buf.append( '\x1B' )
-              .append( '[' )
-              .append( col.sgr_.data(), col.sgr_.data() + col.length_ )
-              .append( 'm' );
+#ifdef PGBAR_NOSTYLE
+            (void)col;
+#else
+            if ( col.length_ > 0 ) {
+              pipeline.append( '\x1B' )
+                .append( '[' )
+                .append( col.sgr_.data(), col.sgr_.data() + col.length_ )
+                .append( 'm' );
+            }
 #endif
-            return buf;
+            return pipeline;
           }
         };
       } // namespace escodes

@@ -1,5 +1,5 @@
-#ifndef PGBAR__U8TEXT
-#define PGBAR__U8TEXT
+#ifndef PGBAR_U8_TEXT
+#define PGBAR_U8_TEXT
 
 #include "EncodedView.hpp"
 #include "Font.hpp"

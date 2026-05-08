@@ -1,5 +1,5 @@
-#ifndef PGBAR__TYPESET
-#define PGBAR__TYPESET
+#ifndef PGBAR_TYPE_SET
+#define PGBAR_TYPE_SET
 
 #include "Algorithm.hpp"
 #include "TypeList.hpp"

@@ -1,5 +1,5 @@
-#ifndef PGBAR__SCOPEGUARD
-#define PGBAR__SCOPEGUARD
+#ifndef PGBAR_SCOPE_GUARD
+#define PGBAR_SCOPE_GUARD
 
 #include "../traits/Backport.hpp"
 #include "Backport.hpp"
@@ -49,7 +49,7 @@ namespace pgbar {
 #endif
         ScopeFail : private ScpStore<EF> {
         static_assert( traits::is_invocable<typename std::remove_reference<EF>::type&>::value,
-                       "pgbar::_details::utils::ScopeFail: Invalid callback type" );
+                       "invalid callback type" );
         using Base = ScpStore<EF>;
 
         int exceptions_on_entry_;

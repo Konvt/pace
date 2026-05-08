@@ -17,10 +17,9 @@ namespace pgbar {
     {
 #ifdef __cpp_lib_ranges
       static_assert( _details::traits::is_bounded_range<R>::value && !std::ranges::view<R>,
-                     "pgbar::slice::BoundedSpan: Only available for bounded ranges, excluding view types" );
+                     "only available for bounded ranges, excluding view types" );
 #else
-      static_assert( _details::traits::is_bounded_range<R>::value,
-                     "pgbar::slice::BoundedSpan: Only available for bounded ranges" );
+      static_assert( _details::traits::is_bounded_range<R>::value, "only available for bounded ranges" );
 #endif
 
       R* rnge_;

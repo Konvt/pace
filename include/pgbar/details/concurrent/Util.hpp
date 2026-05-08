@@ -1,5 +1,5 @@
-#ifndef PGBAR__CONCURRENT_UTIL
-#define PGBAR__CONCURRENT_UTIL
+#ifndef PGBAR_CONCURRENT_UTIL
+#define PGBAR_CONCURRENT_UTIL
 
 #include "../core/Core.hpp"
 #include "../types/Types.hpp"

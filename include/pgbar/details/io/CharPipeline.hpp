@@ -1,5 +1,5 @@
-#ifndef PGBAR__CHARPIPELINE
-#define PGBAR__CHARPIPELINE
+#ifndef PGBAR_CHAR_PIPELINE
+#define PGBAR_CHAR_PIPELINE
 
 #include "../charcodes/EncodedView.hpp"
 #include "../traits/Backport.hpp"
@@ -55,7 +55,7 @@ namespace pgbar {
                                                                       types::Size num = 1 ) &
         {
           while ( num-- )
-            append( info, info + N );
+            append( info, info + N - 1 );
           return *this;
         }
         PGBAR__FORCEINLINE PGBAR__CXX20_CNSTXPR CharPipeline& append( types::Char info,

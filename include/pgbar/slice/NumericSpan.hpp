@@ -26,8 +26,7 @@ namespace pgbar {
       : public std::ranges::view_interface<NumericSpan<N>>
 #endif
     {
-      static_assert( std::is_arithmetic<N>::value,
-                     "pgbar::slice::NumericSpan: Only available for arithmetic types" );
+      static_assert( std::is_arithmetic<N>::value, "only available for arithmetic types" );
 
       N start_, end_, step_;
 

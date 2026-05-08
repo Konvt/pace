@@ -15,13 +15,11 @@
 # include "DynamicBar.hpp"
 # include "MultiBar.hpp"
 
-# undef PGBAR__BIND_BEHAVIOUR
-# undef PGBAR__BIND_OPTION
+# undef PGBAR__DERIVING_OPTION2
+# undef PGBAR__DERIVING_OPTION1
 
-# undef PGBAR__EMPTY_COMPONENT
-# undef PGBAR__NONEMPTY_COMPONENT
-
-# undef PGBAR__INHERIT_REGISTER
+# undef PGBAR__SPECIAL_MEMBERS
+# undef PGBAR__SPECIAL_MEMBERS_CX
 
 # undef PGBAR__BUILTIN
 # undef PGBAR__WRAP

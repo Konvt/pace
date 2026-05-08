@@ -1,5 +1,5 @@
-#ifndef PGBAR__OSTREAM
-#define PGBAR__OSTREAM
+#ifndef PGBAR_OSTREAM
+#define PGBAR_OSTREAM
 
 #include "CharPipeline.hpp"
 #include <cerrno>
@@ -111,10 +111,10 @@ namespace pgbar {
 #endif
         }
 
-        PGBAR__CXX20_CNSTXPR OStream( const OStream& )              = delete;
-        PGBAR__CXX20_CNSTXPR OStream& operator=( const OStream& ) & = delete;
+        PGBAR__CXX20_CNSTXPR OStream( const OStream& )            = delete;
+        PGBAR__CXX20_CNSTXPR OStream& operator=( const OStream& ) = delete;
         // Intentional non-virtual destructors.
-        PGBAR__CXX20_CNSTXPR ~OStream()                             = default;
+        PGBAR__CXX20_CNSTXPR ~OStream()                           = default;
 
 #if PGBAR__WIN && !defined( PGBAR_UTF8 )
         PGBAR__FORCEINLINE PGBAR__CXX20_CNSTXPR void release() noexcept

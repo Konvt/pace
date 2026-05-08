@@ -51,7 +51,7 @@ int main()
     };
 
     mt19937 rd { random_device {}() };
-    bar.config<1>().tasks( 10000 );
+    bar.config<1>().quota( 10000 );
     const size_t terminate_val = 5000 + uniform_int_distribution<int>( 10, 1000 )( rd );
     for ( size_t i = 0; i < terminate_val; ++i ) {
       bar.tick<1>();

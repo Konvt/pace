@@ -22,10 +22,10 @@ namespace pgbar {
 #endif
     {
       static_assert( _details::traits::is_sized_cursor<Itr, Snt>::value,
-                     "pgbar::slice::IteratorSpan: Only available for sized iterator and sentinel pair" );
+                     "only available for sized iterator and sentinel pair" );
       static_assert(
         std::is_convertible<_details::traits::IterDifference_t<Itr>, _details::types::Size>::value,
-        "pgbar::slice::IteratorSpan: The 'difference_type' must be convertible to Size" );
+        "the difference_type must be convertible to Size" );
 
       _details::types::Size size_;
       Itr start_;

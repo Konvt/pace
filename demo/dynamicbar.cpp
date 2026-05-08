@@ -11,11 +11,11 @@ int main()
 
   auto /* std::unique<BarType> */ bar1 = dbar.insert<pgbar::ProgressBar<>>();
   auto bar2 =
-    dbar.insert( pgbar::config::Line( pgbar::option::Prefix( "No.2" ), pgbar::option::Tasks( 8000 ) ) );
+    dbar.insert( pgbar::config::Line( pgbar::option::Prefix( "No.2" ), pgbar::option::Quota( 8000 ) ) );
 
   vector<thread> pool;
   pool.emplace_back( [&bar1]() {
-    bar1->config().prefix( "No.1" ).tasks( 1919 );
+    bar1->config().prefix( "No.1" ).quota( 1919 );
     this_thread::sleep_for( chrono::seconds( 3 ) );
     do {
       bar1->tick();
@@ -31,7 +31,7 @@ int main()
   } );
   pool.emplace_back( [&dbar]() {
     auto bar =
-      dbar.insert<pgbar::config::Line>( pgbar::option::Prefix( "No.3" ), pgbar::option::Tasks( 1000 ) );
+      dbar.insert<pgbar::config::Line>( pgbar::option::Prefix( "No.3" ), pgbar::option::Quota( 1000 ) );
     // Do some ticks, then reset the current bar before completing.
     for ( int i = 0; i < 500; ++i ) {
       bar->tick();

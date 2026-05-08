@@ -1,5 +1,5 @@
-#ifndef PGBAR__TRAITS_BACKPORT
-#define PGBAR__TRAITS_BACKPORT
+#ifndef PGBAR_TRAITS_BACKPORT
+#define PGBAR_TRAITS_BACKPORT
 
 #include "../core/Core.hpp"
 #include "../types/Types.hpp"

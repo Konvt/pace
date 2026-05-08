@@ -1,5 +1,5 @@
-#ifndef PGBAR__U8RAW
-#define PGBAR__U8RAW
+#ifndef PGBAR_U8_RAW
+#define PGBAR_U8_RAW
 
 #include "../../exception/Error.hpp"
 #include "../utils/Backport.hpp"
@@ -247,8 +247,7 @@ namespace pgbar {
         }
 
 #ifdef __cpp_char8_t
-        static_assert( sizeof( char8_t ) == sizeof( char ),
-                       "pgbar::_details::charcodes::U8Raw: Unexpected type size mismatch" );
+        static_assert( sizeof( char8_t ) == sizeof( char ), "unexpected type size mismatch" );
 #endif
 #ifdef __cpp_lib_char8_t
         explicit PGBAR__CXX20_CNSTXPR U8Raw( types::LitU8 u8_sv ) : U8Raw()

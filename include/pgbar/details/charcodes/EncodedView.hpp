@@ -1,5 +1,5 @@
-#ifndef PGBAR__ENCODEDVIEW
-#define PGBAR__ENCODEDVIEW
+#ifndef PGBAR_ENCODED_VIEW
+#define PGBAR_ENCODED_VIEW
 
 #include "U8Raw.hpp"
 

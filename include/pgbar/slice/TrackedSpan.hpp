@@ -20,14 +20,13 @@ namespace pgbar {
       : public std::ranges::view_interface<TrackedSpan<View, UIRef>>
 #endif
     {
-      static_assert( _details::traits::is_bounded_range<View>::value,
-                     "pgbar::slice::TrackedSpan: Only available for bounded ranges" );
+      static_assert( _details::traits::is_bounded_range<View>::value, "only available for bounded ranges" );
       static_assert( _details::traits::AllOf<std::is_copy_constructible<UIRef>,
                                              _details::traits::is_pointer_like<UIRef>>::value,
-                     "pgbar::slice::TrackedSpan: Must be a copyable pointer-like bar reference" );
-      static_assert( _details::traits::is_iterable_bar<_details::traits::PointeeOf_t<UIRef>>::value,
-                     "pgbar::slice::TrackedSpan: Must have a method to configure the iteration "
-                     "count for the object's configuration type" );
+                     "must be a copyable pointer-like bar reference" );
+      static_assert(
+        _details::traits::is_iterable_bar<_details::traits::PointeeOf_t<UIRef>>::value,
+        "must have a method to configure the iteration count for the object's configuration type" );
 
       UIRef ui_;
       View view_;
@@ -235,7 +234,7 @@ namespace pgbar {
       // This function will CHANGE the state of the pgbar object it holds.
       PGBAR__NODISCARD PGBAR__FORCEINLINE PGBAR__CXX17_CNSTXPR iterator begin() &
       {
-        ui_->config().tasks( _details::utils::size( view_ ) );
+        ui_->config().quota( _details::utils::size( view_ ) );
         return { _details::utils::begin( view_ ), ui_ };
       }
       PGBAR__NODISCARD PGBAR__FORCEINLINE PGBAR__CXX17_CNSTXPR sentinel end() const

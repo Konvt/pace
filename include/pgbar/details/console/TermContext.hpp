@@ -1,5 +1,5 @@
-#ifndef PGBAR__TERMCONTEXT
-#define PGBAR__TERMCONTEXT
+#ifndef PGBAR_TERM_CONTEXT
+#define PGBAR_TERM_CONTEXT
 
 #include "../core/Core.hpp"
 #include "../types/Types.hpp"
@@ -25,8 +25,8 @@ namespace pgbar {
         TermContext() noexcept { detect(); }
 
       public:
-        TermContext( const TermContext& )              = delete;
-        TermContext& operator=( const TermContext& ) & = delete;
+        TermContext( const TermContext& )            = delete;
+        TermContext& operator=( const TermContext& ) = delete;
 
         ~TermContext() = default;
 
@@ -69,7 +69,7 @@ namespace pgbar {
          */
         void virtual_term() const noexcept
         {
-#if PGBAR__WIN && !defined( PGBAR_NOCOLOR ) && defined( ENABLE_VIRTUAL_TERMINAL_PROCESSING )
+#if PGBAR__WIN && !defined( PGBAR_NOSTYLE ) && defined( ENABLE_VIRTUAL_TERMINAL_PROCESSING )
           static std::once_flag flag;
           std::call_once( flag, []() noexcept {
             HANDLE stream_handle =

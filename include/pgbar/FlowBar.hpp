@@ -1,214 +1,61 @@
-#ifndef PGBAR_FLOWBAR
-#define PGBAR_FLOWBAR
+#ifndef PGBAR_FLOW_BAR
+#define PGBAR_FLOW_BAR
 
 #include "details/prefabs/BasicBar.hpp"
 #include "details/prefabs/BasicConfig.hpp"
-#include "details/render/AnimatedBuilder.hpp"
-#include "details/render/Builder.hpp"
+#include "facade/Counter.hpp"
+#include "facade/ETA.hpp"
+#include "facade/Elapsed.hpp"
+#include "facade/FlowPlot.hpp"
+#include "facade/Percentage.hpp"
+#include "facade/Speed.hpp"
 #include "slice/TrackedSpan.hpp"
 
 namespace pgbar {
-  namespace _details {
-    namespace assets {
-      template<typename Base, typename Derived>
-      class FlowIndic : public Base {
-      protected:
-        PGBAR__CXX23_CNSTXPR io::CharPipeline& build_flow( io::CharPipeline& buffer,
-                                                           std::uint32_t num_frame_cnt ) const
-        {
-          if ( this->bar_width_ == 0 )
-            return buffer;
-
-          num_frame_cnt = static_cast<std::uint64_t>( num_frame_cnt * this->shift_factor_ );
-
-          this->try_reset( buffer );
-          this->try_dye( buffer, this->start_col_ ) << this->starting_;
-
-          if ( !this->lead_.empty() ) {
-            const auto& current_lead = this->lead_[num_frame_cnt % this->lead_.size()];
-            if ( current_lead.width() <= this->bar_width_ ) {
-              // virtual_point is a value between 0 and this->bar_width - 1
-              const auto virtual_point = [this, num_frame_cnt]() noexcept {
-                const auto pos = num_frame_cnt % this->bar_width_;
-                return !this->reversed_ ? pos : ( this->bar_width_ - 1 - pos ) % this->bar_width_;
-              }();
-              const auto len_vacancy = this->bar_width_ - virtual_point;
-
-              if ( current_lead.width() <= len_vacancy ) {
-                const auto len_right_fill = len_vacancy - current_lead.width();
-
-                this->try_reset( buffer );
-                this->try_dye( buffer, this->filler_col_ )
-                  .append( this->filler_, virtual_point / this->filler_.width() )
-                  .append( ' ', virtual_point % this->filler_.width() );
-                this->try_reset( buffer );
-                this->try_dye( buffer, this->lead_col_ ).append( current_lead );
-
-                this->try_reset( buffer );
-                this->try_dye( buffer, this->filler_col_ )
-                  .append( ' ', len_right_fill % this->filler_.width() )
-                  .append( this->filler_, len_right_fill / this->filler_.width() );
-              } else {
-#ifdef __cpp_structured_bindings
-                const auto& [left_part, right_part] = current_lead.split_by( len_vacancy );
-#else
-                const auto _division  = current_lead.split_by( len_vacancy );
-                const auto &left_part = _division.first, &right_part = _division.second;
-#endif
-                const auto len_left_fill = virtual_point - right_part.width();
-
-                this->try_reset( buffer );
-                this->try_dye( buffer, this->lead_col_ ).append( right_part );
-                this->try_reset( buffer );
-                this->try_dye( buffer, this->filler_col_ )
-                  .append( ' ', len_left_fill % this->filler_.width() )
-                  .append( this->filler_, len_left_fill / this->filler_.width() );
-
-                this->try_reset( buffer );
-                this->try_dye( buffer, this->lead_col_ )
-                  .append( left_part )
-                  .append( ' ', len_vacancy - left_part.width() );
-              }
-            } else
-              buffer.append( ' ', this->bar_width_ );
-          } else if ( this->filler_.empty() )
-            buffer.append( ' ', this->bar_width_ );
-          else {
-            this->try_reset( buffer );
-            this->try_dye( buffer, this->filler_col_ );
-            buffer.append( this->filler_, this->bar_width_ / this->filler_.width() )
-              .append( ' ', this->bar_width_ % this->filler_.width() );
-          }
-
-          this->try_reset( buffer );
-          return this->try_dye( buffer, this->end_col_ ) << this->ending_;
-        }
-
-      public:
-        PGBAR__EMPTY_COMPONENT( FlowIndic )
-      };
-    } // namespace assets
-
-    namespace traits {
-      PGBAR__INHERIT_REGISTER( assets::FlowIndic,
-                               assets::Filler,
-                               assets::BasicAnimation,
-                               assets::BasicIndicator,
-                               assets::Reversible );
-      template<>
-      struct OptionFor<assets::FlowIndic>
-        : Merge<OptionFor_t<assets::Countable>,
-                OptionFor_t<assets::Reversible>,
-                OptionFor_t<assets::Frames>,
-                OptionFor_t<assets::Filler>,
-                OptionFor_t<assets::BasicAnimation>,
-                OptionFor_t<assets::BasicIndicator>> {};
-    }
-  } // namespace _details
-
   namespace config {
-    class Flow : public _details::prefabs::BasicConfig<_details::assets::FlowIndic, Flow> {
-      using Base = _details::prefabs::BasicConfig<_details::assets::FlowIndic, Flow>;
-      friend Base;
-
-      template<typename ArgSet>
-      static void inject( Base& self )
-      {
-        static_assert( _details::traits::is_instance_of<ArgSet, _details::traits::TypeSet>::value,
-                       "pgbar::config::Flow::initialize: Invalid template type" );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::Reversed>::value )
-          unpack( self, option::Reversed( false ) );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::Shift>::value )
-          unpack( self, option::Shift( -3 ) );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::Starting>::value )
-          unpack( self, option::Starting( u8"[" ) );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::Ending>::value )
-          unpack( self, option::Ending( u8"]" ) );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::BarWidth>::value )
-          unpack( self, option::BarWidth( 30 ) );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::Filler>::value )
-          unpack( self, option::Filler( u8" " ) );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::Lead>::value )
-          unpack( self, option::Lead( u8"====" ) );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::Divider>::value )
-          unpack( self, option::Divider( u8" | " ) );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::InfoColor>::value )
-          unpack( self, option::InfoColor( Color::Cyan ) );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::SpeedUnit>::value )
-          unpack( self, option::SpeedUnit( { u8"Hz", u8"kHz", u8"MHz", u8"GHz" } ) );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::Magnitude>::value )
-          unpack( self, option::Magnitude( 1000 ) );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<ArgSet, option::Style>::value )
-          unpack( self, option::Style( Base::Ani | Base::Elpsd ) );
-      }
-
-    protected:
-      PGBAR__NODISCARD PGBAR__FORCEINLINE _details::types::Size fixed_render_size() const noexcept
-      {
-        return this->common_render_size()
-             + ( this->visual_masks_[_details::utils::to_underlying( Base::Mask::Ani )]
-                   ? this->fixed_len_bar()
-                   : 0 );
-      }
-
-    public:
-      using Base::Base;
-      Flow( const Flow& )              = default;
-      Flow( Flow&& )                   = default;
-      Flow& operator=( const Flow& ) & = default;
-      Flow& operator=( Flow&& ) &      = default;
-      ~Flow()                          = default;
-    };
-  } // namespace config
-
-  namespace _details {
-    namespace traits {
-      PGBAR__BIND_BEHAVIOUR( config::Flow, assets::NullableFrameBar );
-    }
-
-    namespace render {
-      template<>
-      struct Builder<config::Flow> final : public AnimatedBuilder<config::Flow, Builder<config::Flow>> {
-      private:
-        using Base = AnimatedBuilder<config::Flow, Builder<config::Flow>>;
-        friend Base;
-
-      protected:
-        PGBAR__FORCEINLINE io::CharPipeline& build_animation( io::CharPipeline& buffer,
-                                                              std::uint64_t num_frame_cnt ) const
-        {
-          return this->build_flow( buffer, num_frame_cnt );
-        }
-
-      public:
-        using Base::Base;
-
-        PGBAR__FORCEINLINE io::CharPipeline& build(
-          io::CharPipeline& buffer,
-          std::uint64_t num_frame_cnt,
-          std::uint64_t num_task_done,
-          std::uint64_t num_all_tasks,
-          const std::chrono::steady_clock::time_point& zero_point ) const
-        {
-          PGBAR__TRUST( num_task_done <= num_all_tasks );
-          const auto num_percent = static_cast<types::Float>( num_task_done ) / num_all_tasks;
-
-          concurrent::SharedLock<concurrent::SharedMutex> lock { this->rw_mtx_ };
-          return this
-            ->indirect_build( buffer, num_task_done, num_all_tasks, num_percent, zero_point, num_frame_cnt );
-        }
-      };
-    } // namespace render
-  } // namespace _details
+    using Flow = _details::prefabs::BasicConfig<facade::Percentage,
+                                                facade::FlowPlot,
+                                                facade::Counter,
+                                                facade::Speed,
+                                                facade::Elapsed,
+                                                facade::ETA>;
+  }
 
   /**
    * A progress bar with a flowing indicator, where the lead moves in a single direction within the bar area.
    *
    * It's structure is shown below:
-   * {LeftBorder}{Prefix}{Percent}{Starting}{Filler}{Lead}{Filler}{Ending}{Counter}{Speed}{Elapsed}{Countdown}{Postfix}{RightBorder}
+   * {LeftBorder}{Prefix}{Percent}{Starting}{Filler}{Lead}{Filler}{Ending}{Counter}{Speed}{Elapsed}{ETA}{Postfix}{RightBorder}
    */
   template<Channel Outlet = Channel::Stderr, Policy Mode = Policy::Async, Region Area = Region::Fixed>
   using FlowBar = _details::prefabs::BasicBar<config::Flow, Outlet, Mode, Area>;
+
+  PGBAR__PROVIDE_FOR( config::Flow, option::Colored, true );
+  PGBAR__PROVIDE_FOR( config::Flow, option::Bolded, true );
+  PGBAR__PROVIDE_FOR( config::Flow, option::Reversed, false );
+  PGBAR__PROVIDE_FOR( config::Flow, option::Shift, -3 );
+  PGBAR__PROVIDE_FOR( config::Flow, option::BarWidth, 30 );
+  PGBAR__PROVIDE_FOR( config::Flow, option::Magnitude, 1000 );
+  PGBAR__PROVIDE_FOR( config::Flow, option::Starting, u8"[" );
+  PGBAR__PROVIDE_FOR( config::Flow, option::Ending, u8"]" );
+  PGBAR__PROVIDE_FOR( config::Flow, option::Filler, u8" " );
+  PGBAR__PROVIDE_FOR( config::Flow, option::Divider, u8" | " );
+  PGBAR__PROVIDE_FOR( config::Flow, option::InfoColor, Color::Cyan );
+  template<>
+  struct pgbar::config::ProvideFor<config::Flow, option::Projection> {
+    static option::Projection provide()
+    {
+      return config::Flow::bake( option::Only<facade::FlowPlot, facade::Elapsed>() );
+    }
+  };
+  template<>
+  struct pgbar::config::ProvideFor<config::Flow, option::Lead> {
+    static option::Lead provide() { return { "====" }; }
+  };
+  template<>
+  struct pgbar::config::ProvideFor<config::Flow, option::SpeedUnit> {
+    static option::SpeedUnit provide() { return option::SpeedUnit( { u8"Hz", u8"kHz", u8"MHz", u8"GHz" } ); }
+  };
 } // namespace pgbar
 
 #endif

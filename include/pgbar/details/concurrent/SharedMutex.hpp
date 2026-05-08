@@ -1,13 +1,14 @@
-#ifndef PGBAR__SHAREDMUTEX
-#define PGBAR__SHAREDMUTEX
+#ifndef PGBAR_SHARED_MUTEX
+#define PGBAR_SHARED_MUTEX
 
-#include "../core/Core.hpp"
-#if !defined( __cpp_lib_shared_mutex )
+#include <cstddef>
+#ifdef __cpp_lib_shared_mutex
+# include <shared_mutex>
+#else
+# include "../core/Core.hpp"
 # include <atomic>
 # include <mutex>
 # include <thread>
-#else
-# include <shared_mutex>
 #endif
 
 namespace pgbar {
@@ -32,8 +33,8 @@ namespace pgbar {
          */
 
       public:
-        SharedMutex( const SharedMutex& )              = delete;
-        SharedMutex& operator=( const SharedMutex& ) & = delete;
+        SharedMutex( const SharedMutex& )            = delete;
+        SharedMutex& operator=( const SharedMutex& ) = delete;
 
         SharedMutex() noexcept : num_readers_ { 0 } {}
         ~SharedMutex() = default;

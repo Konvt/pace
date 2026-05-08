@@ -1,5 +1,5 @@
-#ifndef PGBAR__C3
-#define PGBAR__C3
+#ifndef PGBAR_C3
+#define PGBAR_C3
 
 #include "Backport.hpp"
 #include "TemplateSet.hpp"
@@ -46,14 +46,15 @@ namespace pgbar {
       using InheritOrder_t = typename InheritOrder<Node>::type;
 
 // A helper macro to register the inheritance structure of a template class.
-#define PGBAR__INHERIT_REGISTER( Node, ... )            \
-  template<>                                            \
-  struct InheritOrder<Node> {                           \
-    using type = TmpPrepend_t<C3_t<__VA_ARGS__>, Node>; \
+#define PGBAR__INHERIT_REGISTER( Node, ... )                                     \
+  template<>                                                                     \
+  struct pgbar::_details::traits::InheritOrder<Node> {                           \
+    using type = pgbar::_details::traits::TmpPrepend_t<C3_t<__VA_ARGS__>, Node>; \
   }
 
-      template<template<typename...> class VB, template<typename...> class... VBs>
-      struct C3<C3Container<VB, VBs...>> {
+      // The implementation of the "merge" function in the C3 algorithm.
+      template<typename... VBLists>
+      struct C3Merge {
       private:
         // Check whether Candidate is the top priority within AnotherVBs.
         template<template<typename...> class Candidate, typename /* C3Container<...> */ AnotherVBs>
@@ -68,6 +69,8 @@ namespace pgbar {
                  template<typename...> class... Rests>
         struct PreferredWithin<Candidate, C3Container<Head, Rests...>>
           : Not<TmpContain<C3Container<Rests...>, Candidate>> {};
+
+        //////////////////////////////////////////////////
 
         // Check whether the next preferred candidate is from Inspected.
         template<typename /* C3Container<...> */ Inspected,
@@ -107,6 +110,8 @@ namespace pgbar {
           static constexpr types::Size value = Helper<0>::value;
         };
 
+        //////////////////////////////////////////////////
+
         // Remove the Candidate from the list (if exists).
         template<template<typename...> class Candidate, typename /* C3Container<...> */ List>
         struct DropCandidate;
@@ -121,6 +126,8 @@ namespace pgbar {
         struct DropCandidate<Candidate, C3Container<Rests...>> {
           using type = C3Container<Rests...>;
         };
+
+        //////////////////////////////////////////////////
 
         template<typename /* C3Container<...> */ Sorted, typename... /* C3Container<...>... */ MergedLists>
         struct Linearize {
@@ -159,9 +166,14 @@ namespace pgbar {
                          OtherLists...> : Linearize<Sorted, OtherLists...> {};
 
       public:
-        using type =
-          Linearize_t<C3Container<>, InheritOrder_t<VB>, InheritOrder_t<VBs>..., C3Container<VB, VBs...>>;
+        using type = Linearize_t<C3Container<>, VBLists...>;
       };
+      template<typename... VBLists>
+      using C3Merge_t = typename C3Merge<VBLists...>::type;
+
+      template<template<typename...> class VB, template<typename...> class... VBs>
+      struct C3<C3Container<VB, VBs...>>
+        : C3Merge<InheritOrder_t<VB>, InheritOrder_t<VBs>..., C3Container<VB, VBs...>> {};
 
       /**
        * Linearization of Inheritance.
@@ -201,6 +213,23 @@ namespace pgbar {
       struct LI_t {
         template<typename RBC, typename... Args>
         using type = typename LI<C3Container<VB, VBs...>>::template type<RBC, Args...>;
+      };
+
+      template<typename Linearized, template<typename...> class Target>
+      struct BaseOf;
+      template<typename Linearized, template<typename...> class Target>
+      using BaseOf_t = typename BaseOf<Linearized, Target>::type;
+
+      template<template<typename...> class Target, typename Base, typename... Rest>
+      struct BaseOf<Target<Base, Rest...>, Target> {
+        using type = Target<Base, Rest...>;
+      };
+      template<template<typename...> class Linearized,
+               typename Base,
+               typename... Rest,
+               template<typename...> class Target>
+      struct BaseOf<Linearized<Base, Rest...>, Target> {
+        using type = BaseOf_t<Base, Target>;
       };
     } // namespace traits
   } // namespace _details
