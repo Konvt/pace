@@ -5,7 +5,7 @@
 #include <chrono>
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace behaviors {
       template<typename Base, typename Derived>
       class Temporal : public Base {
@@ -25,7 +25,7 @@ namespace pgbar {
         using Base::Base;
       };
     } // namespace behaviors
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

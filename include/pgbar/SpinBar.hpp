@@ -1,8 +1,6 @@
 #ifndef PGBAR_SPIN_BAR
 #define PGBAR_SPIN_BAR
 
-#include "details/prefabs/BasicBar.hpp"
-#include "details/prefabs/BasicConfig.hpp"
 #include "details/render/Builder.hpp"
 #include "facade/Counter.hpp"
 #include "facade/ETA.hpp"
@@ -10,16 +8,18 @@
 #include "facade/Percentage.hpp"
 #include "facade/Speed.hpp"
 #include "facade/SpinPlot.hpp"
+#include "prefab/BasicBar.hpp"
+#include "prefab/BasicConfig.hpp"
 #include "slice/TrackedSpan.hpp"
 
 namespace pgbar {
   namespace config {
-    using Spin = _details::prefabs::BasicConfig<facade::SpinPlot,
-                                                facade::Percentage,
-                                                facade::Counter,
-                                                facade::Speed,
-                                                facade::Elapsed,
-                                                facade::ETA>;
+    using Spin = prefab::BasicConfig<facade::SpinPlot,
+                                     facade::Percentage,
+                                     facade::Counter,
+                                     facade::Speed,
+                                     facade::Elapsed,
+                                     facade::ETA>;
   }
 
   /**
@@ -29,7 +29,7 @@ namespace pgbar {
    * {LeftBorder}{Prefix}{Lead}{Percent}{Counter}{Speed}{Elapsed}{ETA}{Postfix}{RightBorder}
    */
   template<Channel Outlet = Channel::Stderr, Policy Mode = Policy::Async, Region Area = Region::Fixed>
-  using SpinBar = _details::prefabs::BasicBar<config::Spin, Outlet, Mode, Area>;
+  using SpinBar = prefab::BasicBar<config::Spin, Outlet, Mode, Area>;
 
   PGBAR__PROVIDE_FOR( config::Spin, option::Colored, true );
   PGBAR__PROVIDE_FOR( config::Spin, option::Bolded, true );
@@ -53,7 +53,7 @@ namespace pgbar {
     static option::SpeedUnit provide() { return option::SpeedUnit( { u8"Hz", u8"kHz", u8"MHz", u8"GHz" } ); }
   };
 
-  namespace _details {
+  namespace details {
     namespace render {
       template<>
       struct Builder<config::Spin> final : public Assembler<config::Spin> {
@@ -88,7 +88,7 @@ namespace pgbar {
         }
       };
     } // namespace render
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

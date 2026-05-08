@@ -8,7 +8,7 @@
 #endif
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace console {
       namespace escodes {
 #ifdef PGBAR_NOSTYLE
@@ -218,7 +218,7 @@ namespace pgbar {
         };
       } // namespace escodes
     } // namespace console
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

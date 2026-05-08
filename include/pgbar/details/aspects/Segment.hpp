@@ -8,20 +8,19 @@
 namespace pgbar {
   namespace option {
     // A wrapper that stores the separator component used to separate different infomation.
-    struct Divider : PGBAR__DERIVING_OPTION2( Divider, _details::charcodes::U8Raw, _divider );
+    struct Divider : PGBAR__DERIVING_OPTION2( Divider, details::charcodes::U8Raw, _divider );
 
     // A wrapper that stores the border component located to the left of the whole indicator.
-    struct LeftBorder : PGBAR__DERIVING_OPTION2( LeftBorder, _details::charcodes::U8Raw, _l_border );
+    struct LeftBorder : PGBAR__DERIVING_OPTION2( LeftBorder, details::charcodes::U8Raw, _l_border );
 
     // A wrapper that stores the border component located to the right of the whole indicator.
-    struct RightBorder : PGBAR__DERIVING_OPTION2( RightBorder, _details::charcodes::U8Raw, _r_border );
+    struct RightBorder : PGBAR__DERIVING_OPTION2( RightBorder, details::charcodes::U8Raw, _r_border );
 
     // A wrapper that stores the color of the whole infomation indicator.
-    struct InfoColor
-      : PGBAR__DERIVING_OPTION1( InfoColor, _details::console::escodes::RGBColor, _info_color );
+    struct InfoColor : PGBAR__DERIVING_OPTION1( InfoColor, details::console::escodes::RGBColor, _info_color );
   } // namespace option
 
-  namespace _details {
+  namespace details {
     namespace aspects {
       template<typename Base, typename Derived>
       class Segment : public Base {
@@ -56,13 +55,13 @@ namespace pgbar {
         {
           using OptionSet = traits::TypeSet<Options...>;
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Divider>::value )
-            unpack( *this, utils::provide_for<Derived, option::Divider>() );
+            unpack( *this, config::provide_for<Derived, option::Divider>() );
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::LeftBorder>::value )
-            unpack( *this, utils::provide_for<Derived, option::LeftBorder>() );
+            unpack( *this, config::provide_for<Derived, option::LeftBorder>() );
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::RightBorder>::value )
-            unpack( *this, utils::provide_for<Derived, option::RightBorder>() );
+            unpack( *this, config::provide_for<Derived, option::RightBorder>() );
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::InfoColor>::value )
-            unpack( *this, utils::provide_for<Derived, option::InfoColor>() );
+            unpack( *this, config::provide_for<Derived, option::InfoColor>() );
         }
 
         PGBAR__CXX20_CNSTXPR Segment() = default;
@@ -162,7 +161,7 @@ namespace pgbar {
                             option::LeftBorder,
                             option::RightBorder,
                             option::InfoColor );
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

@@ -1,6 +1,7 @@
 #ifndef PGBAR_RENDER_RULE
 #define PGBAR_RENDER_RULE
 
+#include "../../config/Provider.hpp"
 #include "../concurrent/SharedLock.hpp"
 #include "../concurrent/SharedMutex.hpp"
 #include "../console/escodes/Escodes.hpp"
@@ -18,7 +19,7 @@ namespace pgbar {
     struct Bolded : PGBAR__DERIVING_OPTION1( Bolded, bool, _enable );
   } // namespace option
 
-  namespace _details {
+  namespace details {
     namespace aspects {
       template<typename Base, typename Derived>
       class RenderRule : public Base {
@@ -107,9 +108,9 @@ namespace pgbar {
         {
           using OptionSet = traits::TypeSet<Options...>;
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Colored>::value )
-            unpack( *this, utils::provide_for<Derived, option::Colored>() );
+            unpack( *this, config::provide_for<Derived, option::Colored>() );
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Bolded>::value )
-            unpack( *this, utils::provide_for<Derived, option::Bolded>() );
+            unpack( *this, config::provide_for<Derived, option::Bolded>() );
         }
 
         PGBAR__SPECIAL_MEMBERS( RenderRule );
@@ -165,7 +166,7 @@ namespace pgbar {
     } // namespace aspects
 
     PGBAR__OPTION_REGISTER( aspects::RenderRule, option::Colored, option::Bolded );
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

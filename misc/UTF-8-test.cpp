@@ -4,13 +4,13 @@
 #include <string_view>
 
 /**
- * This file is a minimal implementation of the pgbar::__details::charcodes::U8String component,
+ * This file is a minimal implementation of the pgbar::details::charcodes::U8String component,
  * used to demonstrate the char_width function with character encoding mappings
  * from the Unicode CodeCharts.
  */
 
 namespace pgbar {
-  namespace __details {
+  namespace details {
     namespace types {
       using Size       = std::size_t;
       using String     = std::string;
@@ -197,7 +197,7 @@ namespace pgbar {
         /* cxx20constexpr */ operator types::ROStr() const noexcept { return bytes_; }
       };
     } // namespace charcodes
-  } // namespace __details
+  } // namespace details
 } // namespace pgbar
 
 int main()
@@ -206,7 +206,7 @@ int main()
   system( "chcp 65001" );
 #endif
 
-  using namespace pgbar::__details;
+  using namespace pgbar::details;
   std::cout << "🇫🇪" << ": " << charcodes::U8String::render_width( "🇫🇪" ) << std::endl;
   std::cout << "👨‍👩‍👧‍👦" << ": "
             << charcodes::U8String::render_width( "👨‍👩‍👧‍👦" ) << std::endl;

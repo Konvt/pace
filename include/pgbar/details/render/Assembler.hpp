@@ -1,17 +1,17 @@
 #ifndef PGBAR_ASSEMBLER
 #define PGBAR_ASSEMBLER
 
-#include "../prefabs/BasicConfig.hpp"
+#include "../../prefab/BasicConfig.hpp"
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace render {
       template<typename Config>
       struct Assembler;
       template<template<typename...> class... Facades>
-      struct Assembler<prefabs::BasicConfig<Facades...>> : public prefabs::BasicConfig<Facades...> {
+      struct Assembler<prefab::BasicConfig<Facades...>> : public prefab::BasicConfig<Facades...> {
       private:
-        using Base = prefabs::BasicConfig<Facades...>;
+        using Base = prefab::BasicConfig<Facades...>;
 
       protected:
         template<template<typename...> class... Compnts>
@@ -54,7 +54,7 @@ namespace pgbar {
         constexpr Assembler( Base&& config ) noexcept : Base( std::move( config ) ) {}
       };
     } // namespace render
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

@@ -5,7 +5,7 @@
 #include "../types/Types.hpp"
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace wrappers {
       template<typename Base, types::Size>
       struct TuplePacket : public Base {
@@ -21,7 +21,7 @@ namespace pgbar {
         }
       };
     } // namespace wrappers
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

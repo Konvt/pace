@@ -4,7 +4,7 @@
 #include "Renderable.hpp"
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace behaviors {
       template<typename Base, typename Derived>
       class Plain;
@@ -55,7 +55,7 @@ namespace pgbar {
     } // namespace behaviors
 
     PGBAR__INHERIT_REGISTER( behaviors::Plain, behaviors::Renderable );
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

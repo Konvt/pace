@@ -4,7 +4,7 @@
 #include "../io/CharPipeline.hpp"
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace wrappers {
       // A monoid type for implementing CPS transformation.
       template<typename Effect, typename NextAction = void>
@@ -66,7 +66,7 @@ namespace pgbar {
       template<typename Effect, typename NextAction = void>
       using Brush_t = Brush<typename std::remove_reference<Effect>::type, NextAction>;
     } // namespace wrappers
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

@@ -6,7 +6,7 @@
 #include <vector>
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace io {
       class CharPipeline {
       protected:
@@ -130,7 +130,7 @@ namespace pgbar {
 #endif
       };
     } // namespace io
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

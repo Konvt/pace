@@ -1,24 +1,24 @@
 #ifndef PGBAR_SWEEP_BAR
 #define PGBAR_SWEEP_BAR
 
-#include "details/prefabs/BasicBar.hpp"
-#include "details/prefabs/BasicConfig.hpp"
 #include "facade/Counter.hpp"
 #include "facade/ETA.hpp"
 #include "facade/Elapsed.hpp"
 #include "facade/Percentage.hpp"
 #include "facade/Speed.hpp"
 #include "facade/SweepPlot.hpp"
+#include "prefab/BasicBar.hpp"
+#include "prefab/BasicConfig.hpp"
 #include "slice/TrackedSpan.hpp"
 
 namespace pgbar {
   namespace config {
-    using Sweep = _details::prefabs::BasicConfig<facade::Percentage,
-                                                 facade::SweepPlot,
-                                                 facade::Counter,
-                                                 facade::Speed,
-                                                 facade::Elapsed,
-                                                 facade::ETA>;
+    using Sweep = prefab::BasicConfig<facade::Percentage,
+                                      facade::SweepPlot,
+                                      facade::Counter,
+                                      facade::Speed,
+                                      facade::Elapsed,
+                                      facade::ETA>;
   }
 
   /**
@@ -28,7 +28,7 @@ namespace pgbar {
    * {LeftBorder}{Prefix}{Percent}{Starting}{Filler}{Lead}{Filler}{Ending}{Counter}{Speed}{Elapsed}{ETA}{Postfix}{RightBorder}
    */
   template<Channel Outlet = Channel::Stderr, Policy Mode = Policy::Async, Region Area = Region::Fixed>
-  using SweepBar = _details::prefabs::BasicBar<config::Sweep, Outlet, Mode, Area>;
+  using SweepBar = prefab::BasicBar<config::Sweep, Outlet, Mode, Area>;
 
   PGBAR__PROVIDE_FOR( config::Sweep, option::Colored, true );
   PGBAR__PROVIDE_FOR( config::Sweep, option::Bolded, true );

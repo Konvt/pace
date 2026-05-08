@@ -19,7 +19,7 @@
 #endif
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace io {
       template<Channel Outlet>
       class OStream;
@@ -196,7 +196,7 @@ namespace pgbar {
         }
       };
     } // namespace io
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

@@ -4,7 +4,7 @@
 #include "../types/Types.hpp"
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace charcodes {
       // Represents a displayable character cell on the rendered surface.
       // `offset_` is the byte position of this character in the original encoded buffer,
@@ -19,7 +19,7 @@ namespace pgbar {
         {}
       };
     } // namespace charcodes
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

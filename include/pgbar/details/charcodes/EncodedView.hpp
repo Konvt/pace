@@ -4,7 +4,7 @@
 #include "U8Raw.hpp"
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace charcodes {
       // Basic string view, only provide basic reference semantics,
       // the function of traversing characters is not offered.
@@ -59,7 +59,7 @@ namespace pgbar {
         PGBAR__CXX20_CNSTXPR friend void swap( EncodedView& a, EncodedView& b ) noexcept { a.swap( b ); }
       };
     } // namespace charcodes
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

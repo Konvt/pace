@@ -185,32 +185,30 @@ namespace pgbar {
         if ( step > 0 && startpoint > endpoint )
           PGBAR__UNLIKELY
           {
-            _details::charcodes::CoWString message =
-              _details::charcodes::make_literal( "pgbar: 'endpoint (" );
-            message.append( _details::utils::format( endpoint ) )
+            details::charcodes::CoWString message = details::charcodes::make_literal( "pgbar: 'endpoint (" );
+            message.append( details::utils::format( endpoint ) )
               .append( ")' is less than 'startpoint (" )
-              .append( _details::utils::format( startpoint ) )
+              .append( details::utils::format( startpoint ) )
               .append( ")' while 'step (" )
-              .append( _details::utils::format( step ) )
+              .append( details::utils::format( step ) )
               .append( ")' is positive" );
             throw exception::InvalidArgument( std::move( message ) );
           }
         else if ( step < 0 && startpoint < endpoint )
           PGBAR__UNLIKELY
           {
-            _details::charcodes::CoWString message =
-              _details::charcodes::make_literal( "pgbar: 'endpoint (" );
-            message.append( _details::utils::format( endpoint ) )
+            details::charcodes::CoWString message = details::charcodes::make_literal( "pgbar: 'endpoint (" );
+            message.append( details::utils::format( endpoint ) )
               .append( ")' is greater than 'startpoint (" )
-              .append( _details::utils::format( startpoint ) )
+              .append( details::utils::format( startpoint ) )
               .append( ")' while 'step (" )
-              .append( _details::utils::format( step ) )
+              .append( details::utils::format( step ) )
               .append( ")' is negative" );
             throw exception::InvalidArgument( std::move( message ) );
           }
         else if ( step == 0 )
           PGBAR__UNLIKELY throw exception::InvalidArgument(
-            _details::charcodes::make_literal( "pgbar: 'step' is zero" ) );
+            details::charcodes::make_literal( "pgbar: 'step' is zero" ) );
 
         start_ = startpoint;
         step_  = step;

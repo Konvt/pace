@@ -9,7 +9,7 @@
 #endif
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace concurrent {
 #if PGBAR__CXX14
       template<typename Mtx>
@@ -79,6 +79,6 @@ namespace pgbar {
       };
 #endif
     }
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 #endif

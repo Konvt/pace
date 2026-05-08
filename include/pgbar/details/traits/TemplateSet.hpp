@@ -5,7 +5,7 @@
 #include "TemplateList.hpp"
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace traits {
       template<template<typename...> class... Ts>
       struct TemplateSet : TemplateList<Ts>... {};
@@ -71,11 +71,11 @@ namespace pgbar {
       struct Distinct<TemplateList<Elements...>>
         : _impl_distinct<TemplateSet<>, TemplateList<Elements...>> {};
     } // namespace traits
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 template<template<typename...> class... Ts>
-struct std::tuple_size<pgbar::_details::traits::TemplateSet<Ts...>>
-  : std::integral_constant<pgbar::_details::types::Size, sizeof...( Ts )> {};
+struct std::tuple_size<pgbar::details::traits::TemplateSet<Ts...>>
+  : std::integral_constant<pgbar::details::types::Size, sizeof...( Ts )> {};
 
 #endif

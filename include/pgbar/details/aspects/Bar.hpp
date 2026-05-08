@@ -10,20 +10,20 @@ namespace pgbar {
     struct BarWidth : PGBAR__DERIVING_OPTION1( BarWidth, std::uint16_t, _num_char );
 
     // A wrapper that stores characters located to the left of the bar indicator.
-    struct Starting : PGBAR__DERIVING_OPTION2( Starting, _details::charcodes::U8Raw, _starting );
+    struct Starting : PGBAR__DERIVING_OPTION2( Starting, details::charcodes::U8Raw, _starting );
 
     // A wrapper that stores characters located to the right of the bar indicator.
-    struct Ending : PGBAR__DERIVING_OPTION2( Ending, _details::charcodes::U8Raw, _ending );
+    struct Ending : PGBAR__DERIVING_OPTION2( Ending, details::charcodes::U8Raw, _ending );
 
     // A wrapper that stores the color of component located to the left of the bar indicator.
     struct StartColor
-      : PGBAR__DERIVING_OPTION1( StartColor, _details::console::escodes::RGBColor, _start_color );
+      : PGBAR__DERIVING_OPTION1( StartColor, details::console::escodes::RGBColor, _start_color );
 
     // A wrapper that stores the color of component located to the right of the bar indicator.
-    struct EndColor : PGBAR__DERIVING_OPTION1( EndColor, _details::console::escodes::RGBColor, _end_color );
+    struct EndColor : PGBAR__DERIVING_OPTION1( EndColor, details::console::escodes::RGBColor, _end_color );
   } // namespace option
 
-  namespace _details {
+  namespace details {
     namespace aspects {
       template<typename Base, typename Derived>
       class Bar : public Base {
@@ -54,15 +54,15 @@ namespace pgbar {
         {
           using OptionSet = traits::TypeSet<Options...>;
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Starting>::value )
-            unpack( *this, utils::provide_for<Derived, option::Starting>() );
+            unpack( *this, config::provide_for<Derived, option::Starting>() );
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Ending>::value )
-            unpack( *this, utils::provide_for<Derived, option::Ending>() );
+            unpack( *this, config::provide_for<Derived, option::Ending>() );
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::BarWidth>::value )
-            unpack( *this, utils::provide_for<Derived, option::BarWidth>() );
+            unpack( *this, config::provide_for<Derived, option::BarWidth>() );
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::StartColor>::value )
-            unpack( *this, utils::provide_for<Derived, option::StartColor>() );
+            unpack( *this, config::provide_for<Derived, option::StartColor>() );
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::EndColor>::value )
-            unpack( *this, utils::provide_for<Derived, option::EndColor>() );
+            unpack( *this, config::provide_for<Derived, option::EndColor>() );
         }
 
         PGBAR__CXX20_CNSTXPR Bar() = default;
@@ -168,7 +168,7 @@ namespace pgbar {
                             option::StartColor,
                             option::EndColor,
                             option::BarWidth );
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

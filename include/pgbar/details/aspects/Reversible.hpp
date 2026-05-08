@@ -1,6 +1,7 @@
 #ifndef PGBAR_REVERSIBLE
 #define PGBAR_REVERSIBLE
 
+#include "../../config/Provider.hpp"
 #include "../concurrent/SharedLock.hpp"
 #include "../concurrent/SharedMutex.hpp"
 #include "../wrappers/OptionPacket.hpp"
@@ -12,7 +13,7 @@ namespace pgbar {
     struct Reversed : PGBAR__DERIVING_OPTION1( Reversed, bool, _enable );
   }
 
-  namespace _details {
+  namespace details {
     namespace aspects {
       template<typename Base, typename Derived>
       class Reversible : public Base {
@@ -30,7 +31,7 @@ namespace pgbar {
         {
           using OptionSet = traits::TypeSet<Options...>;
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Reversed>::value )
-            unpack( *this, utils::provide_for<Derived, option::Reversed>() );
+            unpack( *this, config::provide_for<Derived, option::Reversed>() );
         }
 
         constexpr Reversible() = default;
@@ -69,7 +70,7 @@ namespace pgbar {
     } // namespace aspects
 
     PGBAR__OPTION_REGISTER( aspects::Reversible, option::Reversed );
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

@@ -21,13 +21,12 @@ namespace pgbar {
       : public std::ranges::view_interface<IteratorSpan<Itr, Snt>>
 #endif
     {
-      static_assert( _details::traits::is_sized_cursor<Itr, Snt>::value,
+      static_assert( details::traits::is_sized_cursor<Itr, Snt>::value,
                      "only available for sized iterator and sentinel pair" );
-      static_assert(
-        std::is_convertible<_details::traits::IterDifference_t<Itr>, _details::types::Size>::value,
-        "the difference_type must be convertible to Size" );
+      static_assert( std::is_convertible<details::traits::IterDifference_t<Itr>, details::types::Size>::value,
+                     "the difference_type must be convertible to Size" );
 
-      _details::types::Size size_;
+      details::types::Size size_;
       Itr start_;
       Snt end_;
 
@@ -55,14 +54,14 @@ namespace pgbar {
 
       public:
         using iterator_category = typename std::conditional<
-          _details::traits::AnyOf<
-            std::is_same<_details::traits::IterCategory_t<Itr>, std::input_iterator_tag>,
-            std::is_same<_details::traits::IterCategory_t<Itr>, std::output_iterator_tag>>::value,
-          _details::traits::IterCategory_t<Itr>,
+          details::traits::AnyOf<
+            std::is_same<details::traits::IterCategory_t<Itr>, std::input_iterator_tag>,
+            std::is_same<details::traits::IterCategory_t<Itr>, std::output_iterator_tag>>::value,
+          details::traits::IterCategory_t<Itr>,
           std::forward_iterator_tag>::type;
-        using value_type      = _details::traits::IterValue_t<Itr>;
-        using difference_type = _details::traits::IterDifference_t<Itr>;
-        using reference       = _details::traits::IterReference_t<Itr>;
+        using value_type      = details::traits::IterValue_t<Itr>;
+        using difference_type = details::traits::IterDifference_t<Itr>;
+        using reference       = details::traits::IterReference_t<Itr>;
         using pointer         = Itr;
 
         constexpr iterator() = default;
@@ -96,7 +95,7 @@ namespace pgbar {
           return current_;
         }
         PGBAR__NODISCARD PGBAR__FORCEINLINE PGBAR__CXX17_CNSTXPR reference
-          operator[]( _details::types::Size inc ) const
+          operator[]( details::types::Size inc ) const
         {
           return *std::next( current_, inc );
         }
@@ -123,7 +122,7 @@ namespace pgbar {
         }
         template<typename S>
         PGBAR__NODISCARD friend PGBAR__FORCEINLINE constexpr typename std::enable_if<
-          _details::traits::AllOf<std::is_same<S, Snt>, _details::traits::Not<std::is_same<Itr, Snt>>>::value,
+          details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator==( const iterator& a, const S& b )
         {
@@ -131,7 +130,7 @@ namespace pgbar {
         }
         template<typename S>
         PGBAR__NODISCARD friend PGBAR__FORCEINLINE constexpr typename std::enable_if<
-          _details::traits::AllOf<std::is_same<S, Snt>, _details::traits::Not<std::is_same<Itr, Snt>>>::value,
+          details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator==( const Snt& a, const iterator& b )
         {
@@ -139,7 +138,7 @@ namespace pgbar {
         }
         template<typename S>
         PGBAR__NODISCARD friend PGBAR__FORCEINLINE constexpr typename std::enable_if<
-          _details::traits::AllOf<std::is_same<S, Snt>, _details::traits::Not<std::is_same<Itr, Snt>>>::value,
+          details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator!=( const iterator& a, const Snt& b )
         {
@@ -147,7 +146,7 @@ namespace pgbar {
         }
         template<typename S>
         PGBAR__NODISCARD friend PGBAR__FORCEINLINE constexpr typename std::enable_if<
-          _details::traits::AllOf<std::is_same<S, Snt>, _details::traits::Not<std::is_same<Itr, Snt>>>::value,
+          details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator!=( const Snt& a, const iterator& b )
         {
@@ -166,7 +165,7 @@ namespace pgbar {
         PGBAR__NODISCARD friend PGBAR__FORCEINLINE constexpr difference_type operator-( const iterator& a,
                                                                                         const iterator& b )
         {
-          return _details::utils::distance( a.current_, b.current_ );
+          return details::utils::distance( a.current_, b.current_ );
         }
         PGBAR__NODISCARD friend PGBAR__FORCEINLINE constexpr bool operator==( const iterator& a,
                                                                               const Sentry& b )
@@ -201,11 +200,11 @@ namespace pgbar {
       PGBAR__CXX17_CNSTXPR IteratorSpan( Itr startpoint, Snt endpoint )
         : start_ { std::move( startpoint ) }, end_ { std::move( endpoint ) }
       {
-        const auto length = _details::utils::distance( start_, end_ );
+        const auto length = details::utils::distance( start_, end_ );
         if ( length < 0 )
           PGBAR__UNLIKELY throw exception::InvalidArgument(
-            _details::charcodes::make_literal( "pgbar: negative iterator range" ) );
-        size_ = static_cast<_details::types::Size>( length );
+            details::charcodes::make_literal( "pgbar: negative iterator range" ) );
+        size_ = static_cast<details::types::Size>( length );
       }
       PGBAR__CXX17_CNSTXPR IteratorSpan( const IteratorSpan& )              = default;
       PGBAR__CXX17_CNSTXPR IteratorSpan( IteratorSpan&& )                   = default;
@@ -215,14 +214,14 @@ namespace pgbar {
       PGBAR__CXX20_CNSTXPR ~IteratorSpan()                                  = default;
 
       PGBAR__NODISCARD PGBAR__FORCEINLINE constexpr iterator begin() const
-        noexcept( _details::traits::AllOf<std::is_nothrow_move_constructible<Itr>,
-                                          std::is_nothrow_copy_constructible<Itr>>::value )
+        noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<Itr>,
+                                         std::is_nothrow_copy_constructible<Itr>>::value )
       {
         return { this->start_ };
       }
       PGBAR__NODISCARD PGBAR__FORCEINLINE constexpr sentinel end() const
-        noexcept( _details::traits::AllOf<std::is_nothrow_move_constructible<sentinel>,
-                                          std::is_nothrow_copy_constructible<sentinel>>::value )
+        noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<sentinel>,
+                                         std::is_nothrow_copy_constructible<sentinel>>::value )
       {
         return { this->end_ };
       }
@@ -237,8 +236,8 @@ namespace pgbar {
       {
         return *std::next( start_, size_ - 1 );
       }
-      PGBAR__NODISCARD PGBAR__FORCEINLINE constexpr _details::types::Size step() const noexcept { return 1; }
-      PGBAR__NODISCARD PGBAR__FORCEINLINE constexpr _details::types::Size size() const noexcept
+      PGBAR__NODISCARD PGBAR__FORCEINLINE constexpr details::types::Size step() const noexcept { return 1; }
+      PGBAR__NODISCARD PGBAR__FORCEINLINE constexpr details::types::Size size() const noexcept
       {
         return size_;
       }
@@ -258,7 +257,7 @@ namespace pgbar {
       }
 
       PGBAR__NODISCARD PGBAR__FORCEINLINE PGBAR__CXX17_CNSTXPR typename iterator::reference operator[](
-        _details::types::Size inc ) const
+        details::types::Size inc ) const
       {
         return *std::next( start_, inc );
       }

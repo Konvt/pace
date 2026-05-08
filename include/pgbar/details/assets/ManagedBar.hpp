@@ -1,21 +1,19 @@
 #ifndef PGBAR_MANAGED_BAR
 #define PGBAR_MANAGED_BAR
 
-#include "../prefabs/BasicBar.hpp"
+#include "../../prefab/BasicBar.hpp"
 #include <memory>
 
 namespace pgbar {
-  namespace _details {
-    namespace prefabs {
+  namespace details {
+    namespace assets {
       template<Channel, Policy, Region>
       class DynamicLayout;
-    }
 
-    namespace prefabs {
       template<typename C, Channel O, Policy M, Region A>
-      class ManagedBar final : public BasicBar<C, O, M, A> {
-        using Base    = BasicBar<C, O, M, A>;
-        using Context = std::shared_ptr<prefabs::DynamicLayout<O, M, A>>;
+      class ManagedBar final : public prefab::BasicBar<C, O, M, A> {
+        using Base    = prefab::BasicBar<C, O, M, A>;
+        using Context = std::shared_ptr<DynamicLayout<O, M, A>>;
 
         Context context_;
 
@@ -26,7 +24,7 @@ namespace pgbar {
         ManagedBar( Context context, C&& config ) noexcept
           : Base( std::move( config ) ), context_ { std::move( context ) }
         {}
-        ManagedBar( Context context, BasicBar<C, O, M, A>&& bar ) noexcept
+        ManagedBar( Context context, prefab::BasicBar<C, O, M, A>&& bar ) noexcept
           : Base( std::move( bar ) ), context_ { std::move( context ) }
         {}
         template<typename... Args>
@@ -54,8 +52,8 @@ namespace pgbar {
          */
         virtual ~ManagedBar() noexcept { this->abort(); }
       };
-    } // namespace prefabs
-  } // namespace _details
+    } // namespace assets
+  } // namespace details
 } // namespace pgbar
 
 #endif

@@ -1,24 +1,24 @@
 #ifndef PGBAR_FLOW_BAR
 #define PGBAR_FLOW_BAR
 
-#include "details/prefabs/BasicBar.hpp"
-#include "details/prefabs/BasicConfig.hpp"
 #include "facade/Counter.hpp"
 #include "facade/ETA.hpp"
 #include "facade/Elapsed.hpp"
 #include "facade/FlowPlot.hpp"
 #include "facade/Percentage.hpp"
 #include "facade/Speed.hpp"
+#include "prefab/BasicBar.hpp"
+#include "prefab/BasicConfig.hpp"
 #include "slice/TrackedSpan.hpp"
 
 namespace pgbar {
   namespace config {
-    using Flow = _details::prefabs::BasicConfig<facade::Percentage,
-                                                facade::FlowPlot,
-                                                facade::Counter,
-                                                facade::Speed,
-                                                facade::Elapsed,
-                                                facade::ETA>;
+    using Flow = prefab::BasicConfig<facade::Percentage,
+                                     facade::FlowPlot,
+                                     facade::Counter,
+                                     facade::Speed,
+                                     facade::Elapsed,
+                                     facade::ETA>;
   }
 
   /**
@@ -28,7 +28,7 @@ namespace pgbar {
    * {LeftBorder}{Prefix}{Percent}{Starting}{Filler}{Lead}{Filler}{Ending}{Counter}{Speed}{Elapsed}{ETA}{Postfix}{RightBorder}
    */
   template<Channel Outlet = Channel::Stderr, Policy Mode = Policy::Async, Region Area = Region::Fixed>
-  using FlowBar = _details::prefabs::BasicBar<config::Flow, Outlet, Mode, Area>;
+  using FlowBar = prefab::BasicBar<config::Flow, Outlet, Mode, Area>;
 
   PGBAR__PROVIDE_FOR( config::Flow, option::Colored, true );
   PGBAR__PROVIDE_FOR( config::Flow, option::Bolded, true );

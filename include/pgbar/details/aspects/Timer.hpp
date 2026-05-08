@@ -5,7 +5,7 @@
 #include "../traits/TypeSet.hpp"
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace aspects {
       template<typename Base, typename Derived>
       class Timer : public Base {
@@ -15,7 +15,7 @@ namespace pgbar {
         static constexpr auto& _default_overflow    = u8"##:##:##";
 
         PGBAR__NODISCARD PGBAR__FORCEINLINE io::CharPipeline& to_hms( io::CharPipeline& pipeline,
-                                                                      _details::types::Tempus duration ) const
+                                                                      details::types::Tempus duration ) const
         {
           auto zfill2 = [&]( std::int64_t num_time ) -> io::CharPipeline& {
             PGBAR__TRUST( num_time >= 0 );
@@ -38,13 +38,13 @@ namespace pgbar {
         }
 
         template<typename... Options>
-        constexpr Timer( _details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
+        constexpr Timer( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
         {}
 
         PGBAR__SPECIAL_MEMBERS( Timer );
       };
     } // namespace aspects
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

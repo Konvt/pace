@@ -7,34 +7,7 @@
 #include <utility>
 
 namespace pgbar {
-  namespace config {
-    template<typename Config, typename Option>
-    struct ProvideFor {
-      static_assert( std::is_default_constructible<Option>::value,
-                     "the provided parameters cannot be constructed by default" );
-      static constexpr Option provide() noexcept( std::is_nothrow_default_constructible<Option>::value )
-      {
-        return Option();
-      }
-    };
-
-#if PGBAR__CXX14
-    template<typename Config, typename Option>
-    PGBAR__CXX17_INLINE constexpr const auto ProvideFor_v = ProvideFor<Config, Option>::provide;
-#endif
-
-#define PGBAR__PROVIDE_FOR( Config, Option, Defaults )                                   \
-  template<>                                                                             \
-  struct pgbar::config::ProvideFor<Config, Option> {                                     \
-    static Option provide()                                                              \
-      noexcept( std::is_nothrow_constructible<Option, decltype( ( Defaults ) )>::value ) \
-    {                                                                                    \
-      return Option( Defaults );                                                         \
-    }                                                                                    \
-  }
-  } // namespace config
-
-  namespace _details {
+  namespace details {
     namespace wrappers {
       template<typename T>
       struct OptionPacket {
@@ -77,10 +50,10 @@ namespace pgbar {
       template<template<typename...> class Component>
       using OptionOf_t = typename OptionOf<Component>::type;
 
-#define PGBAR__OPTION_REGISTER( Component, ... )                \
-  template<>                                                    \
-  struct pgbar::_details::traits::OptionOf<Component> {         \
-    using type = pgbar::_details::traits::TypeSet<__VA_ARGS__>; \
+#define PGBAR__OPTION_REGISTER( Component, ... )               \
+  template<>                                                   \
+  struct pgbar::details::traits::OptionOf<Component> {         \
+    using type = pgbar::details::traits::TypeSet<__VA_ARGS__>; \
   }
 
       // Resolves and links option declarations into a list.
@@ -92,66 +65,44 @@ namespace pgbar {
       template<template<typename...> class... Components>
       struct OptionLinker<TemplateSet<Components...>> : Merge<TypeSet<>, OptionOf_t<Components>...> {};
     } // namespace traits
-
-    namespace utils {
-      template<typename Config, typename Option>
-      constexpr Option provide_for()
-#if PGBAR__CXX14
-        noexcept( noexcept( config::ProvideFor_v<Config, Option>() ) )
-      {
-        static_assert(
-          std::is_constructible<Option, decltype( config::ProvideFor_v<Config, Option>() )>::value,
-          "the ProvideFor_v specialization must be an invocable object" );
-        return config::ProvideFor_v<Config, Option>();
-      }
-#else
-        noexcept( noexcept( config::ProvideFor<Config, Option>::provide() ) )
-      {
-        static_assert(
-          std::is_constructible<Option, decltype( config::ProvideFor<Config, Option>::provide() )>::value,
-          "the ProvideFor_v::provide must be an invocable object" );
-        return config::ProvideFor<Config, Option>::provide();
-      }
-#endif
-    } // namespace utils
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
-#define PGBAR__DERIVING_OPTION1( StructName, ValueType, ParamName )           \
-  _details::wrappers::OptionPacket<ValueType>                                 \
-  {                                                                           \
-  public:                                                                     \
-    StructName() = default;                                                   \
-    StructName( ValueType ParamName ) noexcept                                \
-      : _details::wrappers::OptionPacket<ValueType>( std::move( ParamName ) ) \
-    {}                                                                        \
+#define PGBAR__DERIVING_OPTION1( StructName, ValueType, ParamName )                 \
+  pgbar::details::wrappers::OptionPacket<ValueType>                                 \
+  {                                                                                 \
+  public:                                                                           \
+    StructName() = default;                                                         \
+    StructName( ValueType ParamName ) noexcept                                      \
+      : pgbar::details::wrappers::OptionPacket<ValueType>( std::move( ParamName ) ) \
+    {}                                                                              \
   }
 
 #ifdef __cpp_lib_char8_t
-# define PGBAR__DERIVING_OPTION2( StructName, ValueType, ParamName )                        \
-   _details::wrappers::OptionPacket<ValueType>                                              \
-   {                                                                                        \
-   public:                                                                                  \
-     StructName() = default;                                                                \
-     StructName( _details::types::String ParamName )                                        \
-       : _details::wrappers::OptionPacket<ValueType>( ValueType( std::move( ParamName ) ) ) \
-     {}                                                                                     \
-     StructName( _details::types::LitU8 ParamName )                                         \
-       : _details::wrappers::OptionPacket<ValueType>( ValueType( std::move( ParamName ) ) ) \
-     {}                                                                                     \
+# define PGBAR__DERIVING_OPTION2( StructName, ValueType, ParamName )                              \
+   pgbar::details::wrappers::OptionPacket<ValueType>                                              \
+   {                                                                                              \
+   public:                                                                                        \
+     StructName() = default;                                                                      \
+     StructName( pgbar::details::types::String ParamName )                                        \
+       : pgbar::details::wrappers::OptionPacket<ValueType>( ValueType( std::move( ParamName ) ) ) \
+     {}                                                                                           \
+     StructName( pgbar::details::types::LitU8 ParamName )                                         \
+       : pgbar::details::wrappers::OptionPacket<ValueType>( ValueType( std::move( ParamName ) ) ) \
+     {}                                                                                           \
    }
 #else
-# define PGBAR__DERIVING_OPTION2( StructName, ValueType, ParamName )                        \
-   _details::wrappers::OptionPacket<ValueType>                                              \
-   {                                                                                        \
-     static_assert( std::is_default_constructible<ValueType>::value,                        \
-                    "the value should be default constructible" );                          \
-                                                                                            \
-   public:                                                                                  \
-     StructName() = default;                                                                \
-     StructName( _details::types::String ParamName )                                        \
-       : _details::wrappers::OptionPacket<ValueType>( ValueType( std::move( ParamName ) ) ) \
-     {}                                                                                     \
+# define PGBAR__DERIVING_OPTION2( StructName, ValueType, ParamName )                              \
+   pgbar::details::wrappers::OptionPacket<ValueType>                                              \
+   {                                                                                              \
+     static_assert( std::is_default_constructible<ValueType>::value,                              \
+                    "the value should be default constructible" );                                \
+                                                                                                  \
+   public:                                                                                        \
+     StructName() = default;                                                                      \
+     StructName( pgbar::details::types::String ParamName )                                        \
+       : pgbar::details::wrappers::OptionPacket<ValueType>( ValueType( std::move( ParamName ) ) ) \
+     {}                                                                                           \
    }
 #endif
 

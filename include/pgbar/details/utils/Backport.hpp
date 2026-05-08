@@ -23,7 +23,7 @@
 #endif
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace utils {
       // Before C++17, not all std entities had feature macros.
 #if PGBAR__CXX14
@@ -436,6 +436,6 @@ namespace pgbar {
       };
 #endif
     } // namespace traits
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 #endif

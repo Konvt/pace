@@ -1,6 +1,7 @@
 #ifndef PGBAR_CAPACITY
 #define PGBAR_CAPACITY
 
+#include "../../config/Provider.hpp"
 #include "../concurrent/SharedLock.hpp"
 #include "../concurrent/SharedMutex.hpp"
 #include "../wrappers/OptionPacket.hpp"
@@ -12,7 +13,7 @@ namespace pgbar {
     struct Quota : PGBAR__DERIVING_OPTION1( Quota, std::uint64_t, _num_quota );
   }
 
-  namespace _details {
+  namespace details {
     namespace aspects {
       template<typename Base, typename Derived>
       class Capacity : public Base {
@@ -30,7 +31,7 @@ namespace pgbar {
         {
           using OptionSet = traits::TypeSet<Options...>;
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Quota>::value )
-            unpack( *this, utils::provide_for<Derived, option::Quota>() );
+            unpack( *this, config::provide_for<Derived, option::Quota>() );
         }
 
         constexpr Capacity() = default;
@@ -70,7 +71,7 @@ namespace pgbar {
     } // namespace aspects
 
     PGBAR__OPTION_REGISTER( aspects::Capacity, option::Quota );
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

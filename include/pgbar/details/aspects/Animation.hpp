@@ -1,6 +1,7 @@
 #ifndef PGBAR_ANIMATION
 #define PGBAR_ANIMATION
 
+#include "../../config/Provider.hpp"
 #include "../concurrent/SharedMutex.hpp"
 #include "../wrappers/OptionPacket.hpp"
 #include <mutex>
@@ -23,7 +24,7 @@ namespace pgbar {
     struct Shift : PGBAR__DERIVING_OPTION1( Shift, std::int8_t, _shift_factor );
   }
 
-  namespace _details {
+  namespace details {
     namespace aspects {
       template<typename Base, typename Derived>
       class Animation : public Base {
@@ -41,7 +42,7 @@ namespace pgbar {
         {
           using OptionSet = traits::TypeSet<Options...>;
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Shift>::value )
-            unpack( *this, utils::provide_for<Derived, option::Shift>() );
+            unpack( *this, config::provide_for<Derived, option::Shift>() );
         }
 
         PGBAR__CXX20_CNSTXPR Animation() = default;
@@ -82,7 +83,7 @@ namespace pgbar {
     } // namespace aspects
 
     PGBAR__OPTION_REGISTER( aspects::Animation, option::Shift );
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

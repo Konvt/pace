@@ -2,27 +2,27 @@
 #define PGBAR_ETA
 
 #include "../details/aspects/Capacity.hpp"
+#include "../details/aspects/Entailment.hpp"
 #include "../details/aspects/Timer.hpp"
 #include "../details/behaviors/Incremental.hpp"
 #include "../details/behaviors/Temporal.hpp"
 #include "../details/render/Parameter.hpp"
 #include "../details/traits/C3.hpp"
-#include "BehaviorRegistry.hpp"
 
 namespace pgbar {
   namespace facade {
     template<typename Base, typename Derived>
     class ETA : public Base {
     protected:
-      _details::io::CharPipeline& build( _details::io::CharPipeline& pipeline,
-                                         const _details::render::Parameter& params ) const
+      details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
+                                        const details::render::Parameter& params ) const
       {
         if ( params.tasks_completed_ == 0 || params.task_quota_ == 0 )
           return pipeline << '-' << Base::_default_timer;
 
         auto time_per_task = params.elapsed_time_ / params.tasks_completed_;
         if ( time_per_task.count() == 0 )
-          time_per_task = _details::types::Tempus( 1 );
+          time_per_task = details::types::Tempus( 1 );
 
         const auto remaining_tasks = params.task_quota_ - params.tasks_completed_;
         // overflow check
@@ -31,22 +31,22 @@ namespace pgbar {
         pipeline << '-';
         return this->to_hms( pipeline, time_per_task * remaining_tasks );
       }
-      PGBAR__NODISCARD static PGBAR__FORCEINLINE PGBAR__CNSTEVAL _details::types::Size fixed_length() noexcept
+      PGBAR__NODISCARD static PGBAR__FORCEINLINE PGBAR__CNSTEVAL details::types::Size fixed_length() noexcept
       { // deliberately not subtracting 1
         return sizeof( Base::_default_timer );
       }
 
       template<typename... Options>
-      constexpr ETA( _details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
+      constexpr ETA( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
       {}
 
       PGBAR__SPECIAL_MEMBERS( ETA );
     };
   } // namespace facade
 
-  PGBAR__INHERIT_REGISTER( facade::ETA, _details::aspects::Timer, _details::aspects::Capacity );
+  PGBAR__INHERIT_REGISTER( facade::ETA, details::aspects::Timer, details::aspects::Capacity );
 
-  PGBAR__BEHAVIOR_REGISTER( facade::ETA, _details::behaviors::Incremental, _details::behaviors::Temporal );
+  PGBAR__ENTAIL_REGISTER( facade::ETA, details::behaviors::Incremental, details::behaviors::Temporal );
 } // namespace pgbar
 
 #endif

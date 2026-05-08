@@ -5,13 +5,13 @@
 #include "../types/Types.hpp"
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace render {
       struct Parameter {
         std::uint64_t task_quota_;
         std::uint64_t tasks_completed_;
         types::Float progress_ratio_ { 0.0 };
-        _details::types::Tempus elapsed_time_;
+        details::types::Tempus elapsed_time_;
         std::uint32_t frame_count_;
         bool style_off_;
 
@@ -22,7 +22,7 @@ namespace pgbar {
                    bool style_off ) noexcept
           : task_quota_ { task_quota }
           , tasks_completed_ { tasks_completed }
-          , elapsed_time_ { std::chrono::duration_cast<_details::types::Tempus>(
+          , elapsed_time_ { std::chrono::duration_cast<details::types::Tempus>(
               std::chrono::steady_clock::now() - start_time ) }
           , frame_count_ { frame_count }
           , style_off_ { style_off }
@@ -42,7 +42,7 @@ namespace pgbar {
         {}
       };
     } // namespace render
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

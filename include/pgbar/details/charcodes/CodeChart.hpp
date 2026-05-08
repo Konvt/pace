@@ -5,7 +5,7 @@
 #include "../types/Types.hpp"
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace charcodes {
       // A type of wrapper that stores the mapping between Unicode code chart and character width.
       class CodeChart final {
@@ -68,7 +68,7 @@ namespace pgbar {
         }
       };
     } // namespace charcodes
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

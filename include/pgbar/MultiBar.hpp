@@ -1,29 +1,27 @@
 #ifndef PGBAR_MULTI_BAR
 #define PGBAR_MULTI_BAR
 
+#include "details/assets/StaticLayout.hpp"
 #include "details/core/Core.hpp"
-#include "details/prefabs/StaticLayout.hpp"
 
 namespace pgbar {
   template<typename Bar, typename... Bars>
   class MultiBar;
   template<Channel O, Policy M, Region A, typename Config, typename... Configs>
-  class MultiBar<_details::prefabs::BasicBar<Config, O, M, A>,
-                 _details::prefabs::BasicBar<Configs, O, M, A>...> {
-    static_assert( _details::traits::AllOf<_details::traits::is_config<Config>,
-                                           _details::traits::is_config<Configs>...>::value,
+  class MultiBar<prefab::BasicBar<Config, O, M, A>, prefab::BasicBar<Configs, O, M, A>...> {
+    static_assert( details::traits::AllOf<details::traits::is_config<Config>,
+                                          details::traits::is_config<Configs>...>::value,
                    "invalid config type" );
 
-    template<_details::types::Size Pos>
-    using ConfigAt_t = _details::traits::TypeAt_t<Pos, Config, Configs...>;
-    template<_details::types::Size Pos>
-    using BarAt_t = _details::traits::TypeAt_t<Pos,
-                                               _details::prefabs::BasicBar<Config, O, M, A>,
-                                               _details::prefabs::BasicBar<Configs, O, M, A>...>;
+    template<details::types::Size Pos>
+    using ConfigAt_t = details::traits::TypeAt_t<Pos, Config, Configs...>;
+    template<details::types::Size Pos>
+    using BarAt_t = details::traits::
+      TypeAt_t<Pos, prefab::BasicBar<Config, O, M, A>, prefab::BasicBar<Configs, O, M, A>...>;
 
-    _details::prefabs::StaticLayout<_details::traits::MakeIndexSeq<sizeof...( Configs ) + 1>,
-                                    _details::prefabs::BasicBar<Config, O, M, A>,
-                                    _details::prefabs::BasicBar<Configs, O, M, A>...>
+    details::assets::StaticLayout<details::traits::MakeIndexSeq<sizeof...( Configs ) + 1>,
+                                  prefab::BasicBar<Config, O, M, A>,
+                                  prefab::BasicBar<Configs, O, M, A>...>
       package_;
 
   public:
@@ -31,20 +29,20 @@ namespace pgbar {
 
 #ifdef __cpp_concepts
     template<typename Cfg, typename... Cfgs>
-      requires( sizeof...( Cfgs ) <= sizeof...( Configs )
-                && _details::traits::TpStartsWith<
-                  _details::traits::TypeList<std::decay_t<Cfg>, std::decay_t<Cfgs>...>,
-                  Config,
-                  Configs...>::value )
+      requires(
+        sizeof...( Cfgs ) <= sizeof...( Configs )
+        && details::traits::TpStartsWith<details::traits::TypeList<std::decay_t<Cfg>, std::decay_t<Cfgs>...>,
+                                         Config,
+                                         Configs...>::value )
 #else
     template<typename Cfg,
              typename... Cfgs,
-             typename = typename std::enable_if<_details::traits::AllOf<
-               _details::traits::BoolConstant<( sizeof...( Cfgs ) <= sizeof...( Configs ) )>,
-               _details::traits::TpStartsWith<_details::traits::TypeList<typename std::decay<Cfg>::type,
-                                                                         typename std::decay<Cfgs>::type...>,
-                                              Config,
-                                              Configs...>>::value>::type>
+             typename = typename std::enable_if<details::traits::AllOf<
+               details::traits::BoolConstant<( sizeof...( Cfgs ) <= sizeof...( Configs ) )>,
+               details::traits::TpStartsWith<details::traits::TypeList<typename std::decay<Cfg>::type,
+                                                                       typename std::decay<Cfgs>::type...>,
+                                             Config,
+                                             Configs...>>::value>::type>
 #endif
     MultiBar( Cfg&& cfg, Cfgs&&... cfgs ) noexcept( sizeof...( Cfgs ) == sizeof...( Configs ) )
       : package_ { std::forward<Cfg>( cfg ), std::forward<Cfgs>( cfgs )... }
@@ -53,21 +51,20 @@ namespace pgbar {
     template<typename Cfg, typename... Cfgs
 #ifdef __cpp_concepts
              >
-      requires( sizeof...( Cfgs ) <= sizeof...( Configs )
-                && _details::traits::
-                  TpStartsWith<_details::traits::TypeList<Cfg, Cfgs...>, Config, Configs...>::value )
+      requires(
+        sizeof...( Cfgs ) <= sizeof...( Configs )
+        && details::traits::TpStartsWith<details::traits::TypeList<Cfg, Cfgs...>, Config, Configs...>::value )
 #else
              ,
-             typename = typename std::enable_if<_details::traits::AllOf<
-               _details::traits::BoolConstant< ( sizeof...( Cfgs ) <= sizeof...( Configs ) )>,
-               _details::traits::TpStartsWith<
-                 _details::traits::TypeList<Cfg,
+             typename = typename std::enable_if<details::traits::AllOf<
+               details::traits::BoolConstant< ( sizeof...( Cfgs ) <= sizeof...( Configs ) )>,
+               details::traits::TpStartsWith<
+                 details::traits::TypeList<Cfg,
                  Cfgs...>,
                  Config,
                  Configs...>>::value>::type>
 #endif
-    MultiBar( _details::prefabs::BasicBar<Cfg, O, M, A>&& bar,
-              _details::prefabs::BasicBar<Cfgs, O, M, A>&&... bars )
+    MultiBar( prefab::BasicBar<Cfg, O, M, A>&& bar, prefab::BasicBar<Cfgs, O, M, A>&&... bars )
       noexcept( sizeof...( Cfgs ) == sizeof...( Configs ) )
       : package_ { std::move( bar ), std::move( bars )... }
     {}
@@ -85,107 +82,107 @@ namespace pgbar {
     // Abort all the progress bars.
     PGBAR__FORCEINLINE void abort() noexcept { package_.kill(); }
     // Returns the number of progress bars.
-    PGBAR__NODISCARD static PGBAR__FORCEINLINE PGBAR__CNSTEVAL _details::types::Size size() noexcept
+    PGBAR__NODISCARD static PGBAR__FORCEINLINE PGBAR__CNSTEVAL details::types::Size size() noexcept
     {
       return sizeof...( Configs ) + 1;
     }
     // Returns the number of progress bars which is running.
-    PGBAR__NODISCARD PGBAR__FORCEINLINE _details::types::Size active_count() const noexcept
+    PGBAR__NODISCARD PGBAR__FORCEINLINE details::types::Size active_count() const noexcept
     {
       return package_.online_count();
     }
     // Wait for all progress bars to stop.
     void wait() const noexcept
     {
-      _details::concurrent::spin_wait( [this]() noexcept { return !active(); } );
+      details::concurrent::spin_wait( [this]() noexcept { return !active(); } );
     }
     // Wait for all progress bars to stop or time out.
     template<class Rep, class Period>
     PGBAR__NODISCARD bool wait_for( const std::chrono::duration<Rep, Period>& timeout ) const noexcept
     {
-      return _details::concurrent::spin_wait_for( [this]() noexcept { return !active(); }, timeout );
+      return details::concurrent::spin_wait_for( [this]() noexcept { return !active(); }, timeout );
     }
 
-    template<_details::types::Size Pos>
+    template<details::types::Size Pos>
     PGBAR__FORCEINLINE BarAt_t<Pos>& at() & noexcept
     {
       return package_.template at<Pos>();
     }
-    template<_details::types::Size Pos>
+    template<details::types::Size Pos>
     PGBAR__FORCEINLINE const BarAt_t<Pos>& at() const& noexcept
     {
       return package_.template at<Pos>();
     }
-    template<_details::types::Size Pos>
+    template<details::types::Size Pos>
     PGBAR__FORCEINLINE BarAt_t<Pos>&& at() && noexcept
     {
       return std::move( package_.template at<Pos>() );
     }
 
-    template<_details::types::Size Pos>
+    template<details::types::Size Pos>
     PGBAR__FORCEINLINE void tick() &
     {
       at<Pos>().tick();
     }
-    template<_details::types::Size Pos>
+    template<details::types::Size Pos>
     PGBAR__FORCEINLINE void tick( std::uint64_t next_step ) &
     {
       at<Pos>().tick( next_step );
     }
-    template<_details::types::Size Pos>
+    template<details::types::Size Pos>
     PGBAR__FORCEINLINE void tick_to( std::uint8_t percentage ) &
     {
       at<Pos>().tick_to( percentage );
     }
-    template<_details::types::Size Pos>
+    template<details::types::Size Pos>
     PGBAR__FORCEINLINE void reset()
     {
       at<Pos>().reset();
     }
-    template<_details::types::Size Pos>
+    template<details::types::Size Pos>
     PGBAR__FORCEINLINE void abort() noexcept
     {
       at<Pos>().abort();
     }
-    template<_details::types::Size Pos>
+    template<details::types::Size Pos>
     PGBAR__FORCEINLINE void wait() const noexcept
     {
       at<Pos>().wait();
     }
-    template<_details::types::Size Pos, class Rep, class Period>
+    template<details::types::Size Pos, class Rep, class Period>
     PGBAR__NODISCARD PGBAR__FORCEINLINE bool wait_for(
       const std::chrono::duration<Rep, Period>& timeout ) const noexcept
     {
       return at<Pos>().wait_for( timeout );
     }
-    template<_details::types::Size Pos>
+    template<details::types::Size Pos>
     PGBAR__NODISCARD PGBAR__FORCEINLINE bool active() const noexcept
     {
       return at<Pos>().active();
     }
-    template<_details::types::Size Pos>
+    template<details::types::Size Pos>
     PGBAR__FORCEINLINE ConfigAt_t<Pos>& config() &
     {
       return at<Pos>().config();
     }
-    template<_details::types::Size Pos>
+    template<details::types::Size Pos>
     PGBAR__FORCEINLINE const ConfigAt_t<Pos>& config() const&
     {
       return at<Pos>().config();
     }
-    template<_details::types::Size Pos>
+    template<details::types::Size Pos>
     PGBAR__FORCEINLINE ConfigAt_t<Pos>&& config() &&
     {
       return at<Pos>().config();
     }
 
-    template<_details::types::Size Pos, typename... Args
+    template<details::types::Size Pos, typename... Args
 #ifdef __cpp_concepts
              >
-      requires _details::traits::is_iterable_bar<BarAt_t<Pos>>::value
+      requires details::traits::is_iterable_bar<BarAt_t<Pos>>::value
 #else
              ,
-      typename = typename std::enable_if<_details::traits::is_iterable_bar<BarAt_t<Pos>>::value>::type>
+      typename = typename std::enable_if<details::traits::is_iterable_bar<BarAt_t<Pos>>::value>::type>
 #endif
     PGBAR__FORCEINLINE auto iterate( Args&&... args ) & noexcept(
       noexcept( this->template at<Pos>().iterate( std::forward<Args>( args )... ) ) )
@@ -194,27 +191,27 @@ namespace pgbar {
       return at<Pos>().iterate( std::forward<Args>( args )... );
     }
 
-    template<_details::types::Size Pos, typename F
+    template<details::types::Size Pos, typename F
 #ifdef __cpp_concepts
              >
-      requires _details::traits::is_reactive_bar<BarAt_t<Pos>>::value
+      requires details::traits::is_reactive_bar<BarAt_t<Pos>>::value
 #else
       ,
-      typename = typename std::enable_if<_details::traits::is_reactive_bar<BarAt_t<Pos>>::value>::type>
+      typename = typename std::enable_if<details::traits::is_reactive_bar<BarAt_t<Pos>>::value>::type>
 #endif
     PGBAR__FORCEINLINE BarAt_t<Pos>& action( F&& fn ) & noexcept(
       noexcept( this->template at<Pos>().action( std::forward<F>( fn ) ) ) )
     {
       return at<Pos>().action( std::forward<F>( fn ) );
     }
-    template<_details::types::Size Pos
+    template<details::types::Size Pos
 #ifdef __cpp_concepts
              >
-      requires _details::traits::is_reactive_bar<BarAt_t<Pos>>::value
+      requires details::traits::is_reactive_bar<BarAt_t<Pos>>::value
 
 #else
              ,
-             typename = typename std::enable_if<_details::traits::is_reactive_bar<BarAt_t<Pos>>::value>::type>
+             typename = typename std::enable_if<details::traits::is_reactive_bar<BarAt_t<Pos>>::value>::type>
 #endif
     PGBAR__FORCEINLINE BarAt_t<Pos>& action() noexcept
     {
@@ -224,17 +221,17 @@ namespace pgbar {
     void swap( MultiBar& other ) noexcept { package_.swap( other.package_ ); }
     friend void swap( MultiBar& a, MultiBar& b ) noexcept { a.swap( b ); }
 
-    template<_details::types::Size Pos>
+    template<details::types::Size Pos>
     friend PGBAR__FORCEINLINE PGBAR__CXX14_CNSTXPR BarAt_t<Pos>& get( MultiBar& self ) noexcept
     {
       return self.template at<Pos>();
     }
-    template<_details::types::Size Pos>
+    template<details::types::Size Pos>
     friend PGBAR__FORCEINLINE PGBAR__CXX14_CNSTXPR const BarAt_t<Pos>& get( const MultiBar& self ) noexcept
     {
       return self.template at<Pos>();
     }
-    template<_details::types::Size Pos>
+    template<details::types::Size Pos>
     friend PGBAR__FORCEINLINE PGBAR__CXX14_CNSTXPR BarAt_t<Pos>&& get( MultiBar&& self ) noexcept
     {
       return std::move( self ).template at<Pos>();
@@ -243,46 +240,43 @@ namespace pgbar {
 
 #ifdef __cpp_deduction_guides
   template<Channel O, Policy M, Region A, typename Cfg, typename... Cfgs>
-  MultiBar( _details::prefabs::BasicBar<Cfg, O, M, A>&& bar,
-            _details::prefabs::BasicBar<Cfgs, O, M, A>&&... bars )
-    -> MultiBar<_details::prefabs::BasicBar<Cfg, O, M, A>, _details::prefabs::BasicBar<Cfgs, O, M, A>...>;
+  MultiBar( prefab::BasicBar<Cfg, O, M, A>&& bar, prefab::BasicBar<Cfgs, O, M, A>&&... bars )
+    -> MultiBar<prefab::BasicBar<Cfg, O, M, A>, prefab::BasicBar<Cfgs, O, M, A>...>;
 
   // CTAD, only generates the default version,
   // which means the the Outlet is `Channel::Stderr` and Mode is `Policy::Async`.
   template<typename Config, typename... Configs
 # ifdef __cpp_concepts
            >
-    requires( _details::traits::is_config<std::decay_t<Config>>::value
-              && ( _details::traits::is_config<std::decay_t<Configs>>::value && ... ) )
+    requires( details::traits::is_config<std::decay_t<Config>>::value
+              && ( details::traits::is_config<std::decay_t<Configs>>::value && ... ) )
 # else
            ,
-    typename = std::enable_if_t<_details::traits::AllOf<_details::traits::is_config<std::decay_t<Config>>,
-                                                         _details::traits::is_config<std::decay_t<Configs>>...>::value>>
+    typename = std::enable_if_t<details::traits::AllOf<details::traits::is_config<std::decay_t<Config>>,
+                                                         details::traits::is_config<std::decay_t<Configs>>...>::value>>
 # endif
-  MultiBar( Config, Configs... ) -> MultiBar<
-    _details::prefabs::BasicBar<std::decay_t<Config>, Channel::Stderr, Policy::Async, Region::Fixed>,
-    _details::prefabs::BasicBar<std::decay_t<Configs>, Channel::Stderr, Policy::Async, Region::Fixed>...>;
+  MultiBar( Config, Configs... )
+    -> MultiBar<prefab::BasicBar<std::decay_t<Config>, Channel::Stderr, Policy::Async, Region::Fixed>,
+                prefab::BasicBar<std::decay_t<Configs>, Channel::Stderr, Policy::Async, Region::Fixed>...>;
 #endif
 
   // Generates a MultiBar type containing Count instances of the given Bar type.
-  template<typename Bar, _details::types::Size Count>
-  using MakeMulti_t = _details::traits::FillWith_t<MultiBar, Bar, Count>;
+  template<typename Bar, details::types::Size Count>
+  using MakeMulti_t = details::traits::FillWith_t<MultiBar, Bar, Count>;
 
   // Creates a MultiBar using existing bar instances.
   template<typename Config, typename... Configs, Channel O, Policy M, Region A>
-  PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_multi(
-    _details::prefabs::BasicBar<Config, O, M, A>&& bar,
-    _details::prefabs::BasicBar<Configs, O, M, A>&&... bars ) noexcept
+  PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_multi( prefab::BasicBar<Config, O, M, A>&& bar,
+                                                       prefab::BasicBar<Configs, O, M, A>&&... bars ) noexcept
 #ifdef __cpp_concepts
-    -> MultiBar<_details::prefabs::BasicBar<Config, O, M, A>,
-                _details::prefabs::BasicBar<Configs, O, M, A>...>
-    requires( _details::traits::is_config<Config>::value
-              && ( _details::traits::is_config<Configs>::value && ... ) )
+    -> MultiBar<prefab::BasicBar<Config, O, M, A>, prefab::BasicBar<Configs, O, M, A>...>
+    requires( details::traits::is_config<Config>::value
+              && ( details::traits::is_config<Configs>::value && ... ) )
 #else
-    -> typename std::enable_if<_details::traits::AllOf<_details::traits::is_config<Config>,
-                                                       _details::traits::is_config<Configs>...>::value,
-                               MultiBar<_details::prefabs::BasicBar<Config, O, M, A>,
-                                        _details::prefabs::BasicBar<Configs, O, M, A>...>>::type
+    -> typename std::enable_if<
+      details::traits::AllOf<details::traits::is_config<Config>,
+                             details::traits::is_config<Configs>...>::value,
+      MultiBar<prefab::BasicBar<Config, O, M, A>, prefab::BasicBar<Configs, O, M, A>...>>::type
 #endif
   {
     return { std::move( bar ), std::move( bars )... };
@@ -294,31 +288,30 @@ namespace pgbar {
            typename Config,
            typename... Configs>
   PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_multi( Config&& cfg, Configs&&... cfgs )
-    noexcept( _details::traits::Not<_details::traits::AnyOf<std::is_lvalue_reference<Config&&>,
-                                                            std::is_lvalue_reference<Configs&&>...>>::value )
+    noexcept( details::traits::Not<details::traits::AnyOf<std::is_lvalue_reference<Config&&>,
+                                                          std::is_lvalue_reference<Configs&&>...>>::value )
 #ifdef __cpp_concepts
-      -> MultiBar<_details::prefabs::BasicBar<std::decay_t<Config>, Outlet, Mode, Area>,
-                  _details::prefabs::BasicBar<std::decay_t<Configs>, Outlet, Mode, Area>...>
-    requires( _details::traits::is_config<std::decay_t<Config>>::value
-              && ( _details::traits::is_config<std::decay_t<Configs>>::value && ... ) )
+      -> MultiBar<prefab::BasicBar<std::decay_t<Config>, Outlet, Mode, Area>,
+                  prefab::BasicBar<std::decay_t<Configs>, Outlet, Mode, Area>...>
+    requires( details::traits::is_config<std::decay_t<Config>>::value
+              && ( details::traits::is_config<std::decay_t<Configs>>::value && ... ) )
 #else
-      ->
-    typename std::enable_if<
-      _details::traits::AllOf<_details::traits::is_config<typename std::decay<Config>::type>,
-                              _details::traits::is_config<typename std::decay<Configs>::type>...>::value,
-      MultiBar<_details::prefabs::BasicBar<typename std::decay<Config>::type, Outlet, Mode, Area>,
-               _details::prefabs::BasicBar<typename std::decay<Configs>::type, Outlet, Mode, Area>...>>::type
+      -> typename std::enable_if<
+        details::traits::AllOf<details::traits::is_config<typename std::decay<Config>::type>,
+                               details::traits::is_config<typename std::decay<Configs>::type>...>::value,
+        MultiBar<prefab::BasicBar<typename std::decay<Config>::type, Outlet, Mode, Area>,
+                 prefab::BasicBar<typename std::decay<Configs>::type, Outlet, Mode, Area>...>>::type
 #endif
   {
     return { std::forward<Config>( cfg ), std::forward<Configs>( cfgs )... };
   }
 
-  namespace _details {
+  namespace details {
     namespace utils {
       template<types::Size Cnt, Channel O, Policy M, Region A, typename B, types::Size... Is>
       PGBAR__NODISCARD PGBAR__FORCEINLINE typename std::enable_if<
         traits::is_bar<typename std::decay<B>::type>::value,
-        MakeMulti_t<prefabs::BasicBar<typename std::decay<B>::type::Config, O, M, A>, Cnt>>::type
+        MakeMulti_t<prefab::BasicBar<typename std::decay<B>::type::Config, O, M, A>, Cnt>>::type
         make_multi_helper( B&& bar, const traits::IndexSeq<Is...>& )
           noexcept( traits::BoolConstant<( Cnt == 1 )>::value )
       {
@@ -329,7 +322,7 @@ namespace pgbar {
       template<types::Size Cnt, Channel O, Policy M, Region A, typename C, types::Size... Is>
       PGBAR__NODISCARD PGBAR__FORCEINLINE typename std::enable_if<
         traits::is_config<typename std::decay<C>::type>::value,
-        MakeMulti_t<prefabs::BasicBar<typename std::decay<C>::type, O, M, A>, Cnt>>::type
+        MakeMulti_t<prefab::BasicBar<typename std::decay<C>::type, O, M, A>, Cnt>>::type
         make_multi_helper( C&& cfg, const traits::IndexSeq<Is...>& )
           noexcept( traits::AllOf<traits::BoolConstant<( Cnt == 1 )>,
                                   traits::Not<std::is_lvalue_reference<C&&>>>::value )
@@ -338,51 +331,50 @@ namespace pgbar {
         return { std::forward<C>( cfg ), std::move( cfgs[Is] )... };
       }
     } // namespace utils
-  } // namespace _details
+  } // namespace details
 
   /**
    * Creates a MultiBar with a fixed number of BasicBar instances using a single bar object.
    * **All BasicBar instances are initialized using the same configuration.**
    */
-  template<_details::types::Size Cnt, typename Config, Channel O, Policy M, Region A>
-  PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_multi( _details::prefabs::BasicBar<Config, O, M, A>&& bar )
+  template<details::types::Size Cnt, typename Config, Channel O, Policy M, Region A>
+  PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_multi( prefab::BasicBar<Config, O, M, A>&& bar )
     noexcept( Cnt == 1 )
 #ifdef __cpp_concepts
-    requires( Cnt > 0 && _details::traits::is_config<Config>::value )
+    requires( Cnt > 0 && details::traits::is_config<Config>::value )
 #else
-      -> typename std::enable_if<_details::traits::AllOf<_details::traits::BoolConstant<( Cnt > 0 )>,
-                                                         _details::traits::is_config<Config>>::value,
-                                 MakeMulti_t<_details::prefabs::BasicBar<Config, O, M, A>, Cnt>>::type
+      -> typename std::enable_if<details::traits::AllOf<details::traits::BoolConstant<( Cnt > 0 )>,
+                                                        details::traits::is_config<Config>>::value,
+                                 MakeMulti_t<prefab::BasicBar<Config, O, M, A>, Cnt>>::type
 #endif
   {
-    return _details::utils::make_multi_helper<Cnt, O, M, A>( std::move( bar ),
-                                                             _details::traits::MakeIndexSeq<Cnt - 1>() );
+    return details::utils::make_multi_helper<Cnt, O, M, A>( std::move( bar ),
+                                                            details::traits::MakeIndexSeq<Cnt - 1>() );
   }
   /**
    * Creates a MultiBar with a fixed number of BasicBar instances using a single configuration object.
    * **All BasicBar instances are initialized using the same configuration.**
    */
-  template<_details::types::Size Cnt,
+  template<details::types::Size Cnt,
            Channel Outlet = Channel::Stderr,
            Policy Mode    = Policy::Async,
            Region Area    = Region::Fixed,
            typename Config>
   PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_multi( Config&& cfg )
-    noexcept( _details::traits::AllOf<_details::traits::BoolConstant<( Cnt == 1 )>,
-                                      _details::traits::Not<std::is_lvalue_reference<Config&&>>>::value )
+    noexcept( details::traits::AllOf<details::traits::BoolConstant<( Cnt == 1 )>,
+                                     details::traits::Not<std::is_lvalue_reference<Config&&>>>::value )
 #ifdef __cpp_concepts
-    requires( Cnt > 0 && _details::traits::is_config<std::decay_t<Config>>::value )
+    requires( Cnt > 0 && details::traits::is_config<std::decay_t<Config>>::value )
 #else
       -> typename std::enable_if<
-        _details::traits::AllOf<_details::traits::BoolConstant<( Cnt > 0 )>,
-                                _details::traits::is_config<typename std::decay<Config>::type>>::value,
-        MakeMulti_t<_details::prefabs::BasicBar<typename std::decay<Config>::type, Outlet, Mode, Area>,
-                    Cnt>>::type
+        details::traits::AllOf<details::traits::BoolConstant<( Cnt > 0 )>,
+                               details::traits::is_config<typename std::decay<Config>::type>>::value,
+        MakeMulti_t<prefab::BasicBar<typename std::decay<Config>::type, Outlet, Mode, Area>, Cnt>>::type
 #endif
   {
-    return _details::utils::make_multi_helper<Cnt, Outlet, Mode, Area>(
+    return details::utils::make_multi_helper<Cnt, Outlet, Mode, Area>(
       std::forward<Config>( cfg ),
-      _details::traits::MakeIndexSeq<Cnt - 1>() );
+      details::traits::MakeIndexSeq<Cnt - 1>() );
   }
 
   /**
@@ -390,25 +382,25 @@ namespace pgbar {
    * The ctor sequentially initializes the first few instances corresponding to the provided arguments;
    * **any remaining instances with no corresponding arguments will be default-initialized.**
    */
-  template<typename Bar, _details::types::Size Cnt, typename... Objs>
+  template<typename Bar, details::types::Size Cnt, typename... Objs>
   PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_multi( Objs&&... objs ) noexcept( sizeof...( Objs ) == Cnt )
 #ifdef __cpp_concepts
     -> MakeMulti_t<Bar, Cnt>
-    requires( Cnt > 0 && sizeof...( Objs ) <= Cnt && _details::traits::is_bar<Bar>::value
+    requires( Cnt > 0 && sizeof...( Objs ) <= Cnt && details::traits::is_bar<Bar>::value
               && ( ( ( std::is_same_v<std::remove_cv_t<Bar>, std::decay_t<Objs>> && ... )
                      && !( std::is_lvalue_reference_v<Objs &&> || ... ) )
                    || ( std::is_same_v<typename Bar::Config, std::decay_t<Objs>> && ... ) ) )
 #else
     -> typename std::enable_if<
-      _details::traits::AllOf<
-        _details::traits::BoolConstant<( Cnt > 0 )>,
-        _details::traits::BoolConstant<( sizeof...( Objs ) <= Cnt )>,
-        _details::traits::is_bar<Bar>,
-        _details::traits::AnyOf<
-          _details::traits::AllOf<
+      details::traits::AllOf<
+        details::traits::BoolConstant<( Cnt > 0 )>,
+        details::traits::BoolConstant<( sizeof...( Objs ) <= Cnt )>,
+        details::traits::is_bar<Bar>,
+        details::traits::AnyOf<
+          details::traits::AllOf<
             std::is_same<typename std::remove_cv<Bar>::type, typename std::decay<Objs>::type>...,
-            _details::traits::Not<_details::traits::AnyOf<std::is_lvalue_reference<Objs&&>...>>>,
-          _details::traits::AllOf<std::is_same<typename Bar::Config, typename std::decay<Objs>::type>...>>>::
+            details::traits::Not<details::traits::AnyOf<std::is_lvalue_reference<Objs&&>...>>>,
+          details::traits::AllOf<std::is_same<typename Bar::Config, typename std::decay<Objs>::type>...>>>::
         value,
       MakeMulti_t<Bar, Cnt>>::type
 #endif
@@ -421,7 +413,7 @@ namespace pgbar {
    * **any remaining instances with no corresponding configurations will be default-initialized.**
    */
   template<typename Config,
-           _details::types::Size Cnt,
+           details::types::Size Cnt,
            Channel Outlet = Channel::Stderr,
            Policy Mode    = Policy::Async,
            Region Area    = Region::Fixed,
@@ -429,16 +421,16 @@ namespace pgbar {
   PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_multi( Configs&&... configs )
     noexcept( sizeof...( Configs ) == Cnt )
 #ifdef __cpp_concepts
-      -> MakeMulti_t<_details::prefabs::BasicBar<Config, Outlet, Mode, Area>, Cnt>
-    requires( Cnt > 0 && sizeof...( Configs ) <= Cnt && _details::traits::is_config<Config>::value
+      -> MakeMulti_t<prefab::BasicBar<Config, Outlet, Mode, Area>, Cnt>
+    requires( Cnt > 0 && sizeof...( Configs ) <= Cnt && details::traits::is_config<Config>::value
               && ( std::is_same_v<Config, std::decay_t<Configs>> && ... ) )
 #else
       -> typename std::enable_if<
-        _details::traits::AllOf<_details::traits::BoolConstant<( Cnt > 0 )>,
-                                _details::traits::BoolConstant<( sizeof...( Configs ) <= Cnt )>,
-                                _details::traits::is_config<Config>,
-                                std::is_same<Config, typename std::decay<Configs>::type>...>::value,
-        MakeMulti_t<_details::prefabs::BasicBar<Config, Outlet, Mode, Area>, Cnt>>::type
+        details::traits::AllOf<details::traits::BoolConstant<( Cnt > 0 )>,
+                               details::traits::BoolConstant<( sizeof...( Configs ) <= Cnt )>,
+                               details::traits::is_config<Config>,
+                               std::is_same<Config, typename std::decay<Configs>::type>...>::value,
+        MakeMulti_t<prefab::BasicBar<Config, Outlet, Mode, Area>, Cnt>>::type
 #endif
   {
     return { std::forward<Configs>( configs )... };
@@ -449,25 +441,24 @@ namespace pgbar {
    * **any remaining instances with no corresponding configurations will be default-initialized.**
    */
   template<typename Config,
-           _details::types::Size Cnt,
+           details::types::Size Cnt,
            Channel Outlet = Channel::Stderr,
            Policy Mode    = Policy::Async,
            Region Area    = Region::Fixed,
            typename... Configs>
   PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_multi(
-    _details::prefabs::BasicBar<Configs, Outlet, Mode, Area>&&... bars )
-    noexcept( sizeof...( Configs ) == Cnt )
+    prefab::BasicBar<Configs, Outlet, Mode, Area>&&... bars ) noexcept( sizeof...( Configs ) == Cnt )
 #ifdef __cpp_concepts
-      -> MakeMulti_t<_details::prefabs::BasicBar<Config, Outlet, Mode, Area>, Cnt>
-    requires( Cnt > 0 && sizeof...( Configs ) <= Cnt && _details::traits::is_config<Config>::value
+    -> MakeMulti_t<prefab::BasicBar<Config, Outlet, Mode, Area>, Cnt>
+    requires( Cnt > 0 && sizeof...( Configs ) <= Cnt && details::traits::is_config<Config>::value
               && ( std::is_same_v<Config, std::decay_t<Configs>> && ... ) )
 #else
-      -> typename std::enable_if<
-        _details::traits::AllOf<_details::traits::BoolConstant<( Cnt > 0 )>,
-                                _details::traits::BoolConstant<( sizeof...( Configs ) <= Cnt )>,
-                                _details::traits::is_config<Config>,
-                                std::is_same<Config, typename std::decay<Configs>::type>&&...>::value,
-        MakeMulti_t<_details::prefabs::BasicBar<Config, Outlet, Mode, Area>, Cnt>>::type
+    -> typename std::enable_if<
+      details::traits::AllOf<details::traits::BoolConstant<( Cnt > 0 )>,
+                             details::traits::BoolConstant<( sizeof...( Configs ) <= Cnt )>,
+                             details::traits::is_config<Config>,
+                             std::is_same<Config, typename std::decay<Configs>::type>&&...>::value,
+      MakeMulti_t<prefab::BasicBar<Config, Outlet, Mode, Area>, Cnt>>::type
 #endif
   {
     return { std::move( bars )... };
@@ -478,6 +469,6 @@ template<typename... Bs>
 struct std::tuple_size<pgbar::MultiBar<Bs...>> : std::integral_constant<std::size_t, sizeof...( Bs )> {};
 
 template<std::size_t I, typename... Bs>
-struct std::tuple_element<I, pgbar::MultiBar<Bs...>> : pgbar::_details::traits::TypeAt<I, Bs...> {};
+struct std::tuple_element<I, pgbar::MultiBar<Bs...>> : pgbar::details::traits::TypeAt<I, Bs...> {};
 
 #endif

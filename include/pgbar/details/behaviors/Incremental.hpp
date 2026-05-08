@@ -12,7 +12,7 @@ namespace pgbar {
     class TrackedSpan;
   }
 
-  namespace _details {
+  namespace details {
     namespace behaviors {
       template<typename Base, typename Derived>
       class Incremental : public Base {
@@ -280,7 +280,7 @@ namespace pgbar {
         }
       };
     } // namespace behaviors
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

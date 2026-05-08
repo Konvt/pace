@@ -12,7 +12,7 @@
 #endif
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace traits {
       template<typename I>
       using IterCategory_t = typename std::iterator_traits<I>::iterator_category;
@@ -155,7 +155,7 @@ namespace pgbar {
       using is_bounded_range = _impl_is_bounded_range<T>;
 #endif
     } // namespace traits
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

@@ -6,7 +6,7 @@
 #include <limits>
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace utils {
       template<typename EF, typename = void>
       class ScpStore { // scope, not that "scp"
@@ -114,7 +114,7 @@ namespace pgbar {
         return ScopeFail<F>( std::forward<F>( fn ) );
       }
     } // namespace utils
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

@@ -1,27 +1,27 @@
 #ifndef PGBAR_STATIC_LAYOUT
 #define PGBAR_STATIC_LAYOUT
 
+#include "../../prefab/BasicBar.hpp"
 #include "../io/OStream.hpp"
-#include "../prefabs/BasicBar.hpp"
 #include "../wrappers/TuplePacket.hpp"
 #include <initializer_list>
 #include <tuple>
 
 namespace pgbar {
-  namespace _details {
-    namespace prefabs {
+  namespace details {
+    namespace assets {
       template<typename Seq, typename... Bars>
       class StaticLayout;
       template<types::Size... Tags, Channel Outlet, Policy Mode, Region Area, typename... Configs>
-      class StaticLayout<traits::IndexSeq<Tags...>, prefabs::BasicBar<Configs, Outlet, Mode, Area>...> final
-        : public wrappers::TuplePacket<prefabs::BasicBar<Configs, Outlet, Mode, Area>, Tags>... {
+      class StaticLayout<traits::IndexSeq<Tags...>, prefab::BasicBar<Configs, Outlet, Mode, Area>...> final
+        : public wrappers::TuplePacket<prefab::BasicBar<Configs, Outlet, Mode, Area>, Tags>... {
         static_assert( sizeof...( Tags ) == sizeof...( Configs ), "unexpected type mismatch" );
         static_assert( sizeof...( Configs ) > 0, "the number of progress bars cannot be zero" );
 
         template<types::Size Pos>
         using ElementAt_t =
           traits::TypeAt_t<Pos,
-                           wrappers::TuplePacket<prefabs::BasicBar<Configs, Outlet, Mode, Area>, Tags>...>;
+                           wrappers::TuplePacket<prefab::BasicBar<Configs, Outlet, Mode, Area>, Tags>...>;
 
         std::atomic<types::Size> alive_cnt_;
         mutable std::mutex sched_mtx_;
@@ -202,7 +202,7 @@ namespace pgbar {
 
       public:
         template<types::Size... Is, typename... Cs, Channel O, Policy M, Region A>
-        StaticLayout( const wrappers::TuplePacket<prefabs::BasicBar<Cs, O, M, A>, Is>&... ) = delete;
+        StaticLayout( const wrappers::TuplePacket<prefab::BasicBar<Cs, O, M, A>, Is>&... ) = delete;
 
         // SFINAE is used here to prevent infinite recursive matching of errors.
         template<typename Cfg,
@@ -217,7 +217,7 @@ namespace pgbar {
         template<typename... Cfgs,
                  typename = typename std::enable_if<
                    traits::TpStartsWith<traits::TypeList<Cfgs...>, Configs...>::value>::type>
-        StaticLayout( prefabs::BasicBar<Cfgs, Outlet, Mode, Area>&&... bars )
+        StaticLayout( prefab::BasicBar<Cfgs, Outlet, Mode, Area>&&... bars )
           noexcept( sizeof...( Cfgs ) == sizeof...( Configs ) )
           : StaticLayout( std::forward_as_tuple( std::move( bars )... ),
                           traits::MakeIndexSeq<sizeof...( Cfgs )>() )
@@ -225,7 +225,7 @@ namespace pgbar {
         StaticLayout( const StaticLayout& )            = delete;
         StaticLayout& operator=( const StaticLayout& ) = delete;
         StaticLayout( StaticLayout&& rhs ) noexcept
-          : wrappers::TuplePacket<prefabs::BasicBar<Configs, Outlet, Mode, Area>, Tags>( std::move( rhs ) )...
+          : wrappers::TuplePacket<prefab::BasicBar<Configs, Outlet, Mode, Area>, Tags>( std::move( rhs ) )...
           , alive_cnt_ { 0 }
           , state_ { Phase::Stop }
         {
@@ -239,7 +239,7 @@ namespace pgbar {
           PGBAR__ASSERT( online() == false );
           PGBAR__ASSERT( rhs.online() == false );
           (void)std::initializer_list<bool> { (
-            wrappers::TuplePacket<prefabs::BasicBar<Configs, Outlet, Mode, Area>, Tags>::operator=(
+            wrappers::TuplePacket<prefab::BasicBar<Configs, Outlet, Mode, Area>, Tags>::operator=(
               std::move( rhs ) ),
             false )... };
           return *this;
@@ -248,14 +248,14 @@ namespace pgbar {
 
         void shut()
         {
-          if ( online() && !_details::render::Renderer<Outlet>::itself().empty() )
+          if ( online() && !details::render::Renderer<Outlet>::itself().empty() )
             (void)std::initializer_list<bool> { ( this->ElementAt_t<Tags>::reset(), false )... };
           PGBAR__ASSERT( alive_cnt_ == 0 );
           PGBAR__ASSERT( online() == false );
         }
         void kill() noexcept
         {
-          if ( online() && !_details::render::Renderer<Outlet>::itself().empty() )
+          if ( online() && !details::render::Renderer<Outlet>::itself().empty() )
             (void)std::initializer_list<bool> { ( this->ElementAt_t<Tags>::abort(), false )... };
           PGBAR__ASSERT( alive_cnt_ == 0 );
           PGBAR__ASSERT( online() == false );
@@ -299,8 +299,8 @@ namespace pgbar {
           return std::move( at<Pos>() );
         }
       };
-    } // namespace prefabs
-  } // namespace _details
+    } // namespace assets
+  } // namespace details
 } // namespace pgbar
 
 #endif

@@ -7,7 +7,7 @@
 #include <vector>
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace charcodes {
       // A UTF-8 string that supports splitting strings by character width.
       class U8Text : public U8Raw {
@@ -137,7 +137,7 @@ namespace pgbar {
 #endif
       };
     } // namespace charcodes
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

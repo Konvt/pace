@@ -11,7 +11,7 @@
 #include <mutex>
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace behaviors {
       template<typename Base, typename Derived>
       class Renderable;
@@ -211,7 +211,7 @@ namespace pgbar {
     } // namespace behaviors
 
     PGBAR__INHERIT_REGISTER( behaviors::Renderable, behaviors::Reactive );
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

@@ -1,22 +1,22 @@
 #ifndef PGBAR_DYNAMIC_BAR
 #define PGBAR_DYNAMIC_BAR
 
-#include "details/prefabs/DynamicLayout.hpp"
+#include "details/assets/DynamicLayout.hpp"
 
 namespace pgbar {
   template<Channel Outlet = Channel::Stderr, Policy Mode = Policy::Async, Region Area = Region::Fixed>
   class DynamicBar {
-    using Context = _details::prefabs::DynamicLayout<Outlet, Mode, Area>;
+    using Context = details::assets::DynamicLayout<Outlet, Mode, Area>;
 
     std::shared_ptr<Context> core_;
-    mutable _details::concurrent::SharedMutex mtx_;
+    mutable details::concurrent::SharedMutex mtx_;
 
     PGBAR__FORCEINLINE void setup_if_null() &
     {
       if ( core_ == nullptr )
         PGBAR__UNLIKELY
         {
-          std::lock_guard<_details::concurrent::SharedMutex> lock { mtx_ };
+          std::lock_guard<details::concurrent::SharedMutex> lock { mtx_ };
           if ( core_ == nullptr )
             core_ = std::make_shared<Context>();
         }
@@ -45,28 +45,28 @@ namespace pgbar {
 
     PGBAR__NODISCARD PGBAR__FORCEINLINE bool active() const noexcept
     {
-      _details::concurrent::SharedLock<_details::concurrent::SharedMutex> lock { mtx_ };
+      details::concurrent::SharedLock<details::concurrent::SharedMutex> lock { mtx_ };
       return core_ != nullptr && core_->online_count() != 0;
     }
-    PGBAR__NODISCARD PGBAR__FORCEINLINE _details::types::Size size() const noexcept
+    PGBAR__NODISCARD PGBAR__FORCEINLINE details::types::Size size() const noexcept
     {
-      _details::concurrent::SharedLock<_details::concurrent::SharedMutex> lock { mtx_ };
+      details::concurrent::SharedLock<details::concurrent::SharedMutex> lock { mtx_ };
       return core_ != nullptr ? core_.use_count() - 1 : 0;
     }
-    PGBAR__NODISCARD PGBAR__FORCEINLINE _details::types::Size active_count() const noexcept
+    PGBAR__NODISCARD PGBAR__FORCEINLINE details::types::Size active_count() const noexcept
     {
-      _details::concurrent::SharedLock<_details::concurrent::SharedMutex> lock { mtx_ };
+      details::concurrent::SharedLock<details::concurrent::SharedMutex> lock { mtx_ };
       return core_ != nullptr ? core_->online_count() : 0;
     }
     PGBAR__FORCEINLINE void reset()
     {
-      std::lock_guard<_details::concurrent::SharedMutex> lock { mtx_ };
+      std::lock_guard<details::concurrent::SharedMutex> lock { mtx_ };
       if ( core_ != nullptr )
         core_->shut();
     }
     PGBAR__FORCEINLINE void abort() noexcept
     {
-      std::lock_guard<_details::concurrent::SharedMutex> lock { mtx_ };
+      std::lock_guard<details::concurrent::SharedMutex> lock { mtx_ };
       if ( core_ != nullptr )
         core_->kill();
     }
@@ -74,42 +74,40 @@ namespace pgbar {
     // Wait until the indicator is Stop.
     void wait() const noexcept
     {
-      _details::concurrent::spin_wait( [this]() noexcept { return !active(); } );
+      details::concurrent::spin_wait( [this]() noexcept { return !active(); } );
     }
     // Wait for the indicator is Stop or timed out.
     template<class Rep, class Period>
     PGBAR__NODISCARD bool wait_for( const std::chrono::duration<Rep, Period>& timeout ) const noexcept
     {
-      return _details::concurrent::spin_wait_for( [this]() noexcept { return !active(); }, timeout );
+      return details::concurrent::spin_wait_for( [this]() noexcept { return !active(); }, timeout );
     }
 
     template<typename Config>
-    PGBAR__NODISCARD auto insert( _details::prefabs::BasicBar<Config, Outlet, Mode, Area>&& bar )
+    PGBAR__NODISCARD auto insert( prefab::BasicBar<Config, Outlet, Mode, Area>&& bar )
 #ifdef __cpp_concepts
-      requires _details::traits::is_config<Config>::value
+      requires details::traits::is_config<Config>::value
 #else
-      ->
-      typename std::enable_if<_details::traits::is_config<Config>::value,
-                              std::unique_ptr<_details::prefabs::BasicBar<Config, Outlet, Mode, Area>>>::type
+      -> typename std::enable_if<details::traits::is_config<Config>::value,
+                                 std::unique_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>::type
 #endif
     {
       setup_if_null();
-      return _details::utils::make_unique<_details::prefabs::ManagedBar<Config, Outlet, Mode, Area>>(
+      return details::utils::make_unique<details::assets::ManagedBar<Config, Outlet, Mode, Area>>(
         core_,
         std::move( bar ) );
     }
     template<typename Config>
     PGBAR__NODISCARD auto insert( Config cfg )
 #ifdef __cpp_concepts
-      requires _details::traits::is_config<Config>::value
+      requires details::traits::is_config<Config>::value
 #else
-      ->
-      typename std::enable_if<_details::traits::is_config<Config>::value,
-                              std::unique_ptr<_details::prefabs::BasicBar<Config, Outlet, Mode, Area>>>::type
+      -> typename std::enable_if<details::traits::is_config<Config>::value,
+                                 std::unique_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>::type
 #endif
     {
       setup_if_null();
-      return _details::utils::make_unique<_details::prefabs::ManagedBar<Config, Outlet, Mode, Area>>(
+      return details::utils::make_unique<details::assets::ManagedBar<Config, Outlet, Mode, Area>>(
         core_,
         std::move( cfg ) );
     }
@@ -117,38 +115,36 @@ namespace pgbar {
     template<typename Bar, typename... Options>
     PGBAR__NODISCARD auto insert( Options&&... options )
 #ifdef __cpp_concepts
-      requires( _details::traits::is_bar<Bar>::value && Bar::Channel == Outlet && Bar::Policy == Mode
+      requires( details::traits::is_bar<Bar>::value && Bar::Channel == Outlet && Bar::Policy == Mode
                 && Bar::Region == Area && std::is_constructible_v<Bar, Options && ...> )
 #else
       -> typename std::enable_if<
-        _details::traits::AllOf<_details::traits::is_bar<Bar>,
-                                std::is_constructible<Bar, Options&&...>,
-                                _details::traits::BoolConstant<( Bar::Channel == Outlet )>,
-                                _details::traits::BoolConstant<( Bar::Policy == Mode )>,
-                                _details::traits::BoolConstant<( Bar::Region == Area )>>::value,
+        details::traits::AllOf<details::traits::is_bar<Bar>,
+                               std::is_constructible<Bar, Options&&...>,
+                               details::traits::BoolConstant<( Bar::Channel == Outlet )>,
+                               details::traits::BoolConstant<( Bar::Policy == Mode )>,
+                               details::traits::BoolConstant<( Bar::Region == Area )>>::value,
         std::unique_ptr<Bar>>::type
 #endif
     {
       setup_if_null();
-      return _details::utils::make_unique<
-        _details::prefabs::ManagedBar<typename Bar::Config, Outlet, Mode, Area>>(
+      return details::utils::make_unique<
+        details::assets::ManagedBar<typename Bar::Config, Outlet, Mode, Area>>(
         core_,
         std::forward<Options>( options )... );
     }
     template<typename Config, typename... Options>
     PGBAR__NODISCARD auto insert( Options&&... options )
 #ifdef __cpp_concepts
-      requires( _details::traits::is_config<Config>::value
-                && std::is_constructible_v<Config, Options && ...> )
+      requires( details::traits::is_config<Config>::value && std::is_constructible_v<Config, Options && ...> )
 #else
-      ->
-      typename std::enable_if<_details::traits::AllOf<_details::traits::is_config<Config>,
-                                                      std::is_constructible<Config, Options&&...>>::value,
-                              std::unique_ptr<_details::prefabs::BasicBar<Config, Outlet, Mode, Area>>>::type
+      -> typename std::enable_if<details::traits::AllOf<details::traits::is_config<Config>,
+                                                        std::is_constructible<Config, Options&&...>>::value,
+                                 std::unique_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>::type
 #endif
     {
       setup_if_null();
-      return _details::utils::make_unique<_details::prefabs::ManagedBar<Config, Outlet, Mode, Area>>(
+      return details::utils::make_unique<details::assets::ManagedBar<Config, Outlet, Mode, Area>>(
         core_,
         std::forward<Options>( options )... );
     }
@@ -166,18 +162,16 @@ namespace pgbar {
 
   // Creates a tuple of unique_ptr pointing to bars using existing bar instances.
   template<typename Config, typename... Configs, Channel O, Policy M, Region A>
-  PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_dynamic(
-    _details::prefabs::BasicBar<Config, O, M, A>&& bar,
-    _details::prefabs::BasicBar<Configs, O, M, A>&&... bars )
+  PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_dynamic( prefab::BasicBar<Config, O, M, A>&& bar,
+                                                         prefab::BasicBar<Configs, O, M, A>&&... bars )
 #ifdef __cpp_concepts
-    requires( _details::traits::is_config<Config>::value
-              && ( _details::traits::is_config<Configs>::value && ... ) )
+    requires( details::traits::is_config<Config>::value
+              && ( details::traits::is_config<Configs>::value && ... ) )
 #else
-    -> typename std::enable_if<
-      _details::traits::AllOf<_details::traits::is_config<Config>,
-                              _details::traits::is_config<Configs>...>::value,
-      std::tuple<std::unique_ptr<_details::prefabs::BasicBar<Config, O, M, A>>,
-                 std::unique_ptr<_details::prefabs::BasicBar<Configs, O, M, A>>...>>::type
+    -> typename std::enable_if<details::traits::AllOf<details::traits::is_config<Config>,
+                                                      details::traits::is_config<Configs>...>::value,
+                               std::tuple<std::unique_ptr<prefab::BasicBar<Config, O, M, A>>,
+                                          std::unique_ptr<prefab::BasicBar<Configs, O, M, A>>...>>::type
 #endif
   {
     DynamicBar<O, M, A> factory;
@@ -191,16 +185,15 @@ namespace pgbar {
            typename... Configs>
   PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_dynamic( Config&& cfg, Configs&&... cfgs )
 #ifdef __cpp_concepts
-    requires( _details::traits::is_config<std::decay_t<Config>>::value
-              && ( _details::traits::is_config<std::decay_t<Configs>>::value && ... ) )
+    requires( details::traits::is_config<std::decay_t<Config>>::value
+              && ( details::traits::is_config<std::decay_t<Configs>>::value && ... ) )
 #else
     -> typename std::enable_if<
-      _details::traits::AllOf<_details::traits::is_config<typename std::decay<Config>::type>,
-                              _details::traits::is_config<typename std::decay<Configs>::type>...>::value,
+      details::traits::AllOf<details::traits::is_config<typename std::decay<Config>::type>,
+                             details::traits::is_config<typename std::decay<Configs>::type>...>::value,
       std::tuple<
-        std::unique_ptr<_details::prefabs::BasicBar<typename std::decay<Config>::type, Outlet, Mode, Area>>,
-        std::unique_ptr<
-          _details::prefabs::BasicBar<typename std::decay<Configs>::type, Outlet, Mode, Area>>...>>::type
+        std::unique_ptr<prefab::BasicBar<typename std::decay<Config>::type, Outlet, Mode, Area>>,
+        std::unique_ptr<prefab::BasicBar<typename std::decay<Configs>::type, Outlet, Mode, Area>>...>>::type
 #endif
   {
     DynamicBar<Outlet, Mode, Area> factory;
@@ -213,17 +206,16 @@ namespace pgbar {
    * **All BasicBar instances are initialized using the same configuration.**
    */
   template<typename Config, Channel O, Policy M, Region A>
-  PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_dynamic( _details::prefabs::BasicBar<Config, O, M, A>&& bar,
-                                                         _details::types::Size count )
+  PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_dynamic( prefab::BasicBar<Config, O, M, A>&& bar,
+                                                         details::types::Size count )
 #ifdef __cpp_concepts
-    requires _details::traits::is_config<Config>::value
+    requires details::traits::is_config<Config>::value
 #else
-    ->
-    typename std::enable_if<_details::traits::is_config<Config>::value,
-                            std::vector<std::unique_ptr<_details::prefabs::BasicBar<Config, O, M, A>>>>::type
+    -> typename std::enable_if<details::traits::is_config<Config>::value,
+                               std::vector<std::unique_ptr<prefab::BasicBar<Config, O, M, A>>>>::type
 #endif
   {
-    std::vector<std::unique_ptr<_details::prefabs::BasicBar<Config, O, M, A>>> products;
+    std::vector<std::unique_ptr<prefab::BasicBar<Config, O, M, A>>> products;
     if ( count == 0 )
       PGBAR__UNLIKELY return products;
     DynamicBar<O, M, A> factory;
@@ -241,18 +233,17 @@ namespace pgbar {
            Policy Mode    = Policy::Async,
            Region Area    = Region::Fixed,
            typename Config>
-  PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_dynamic( Config&& cfg, _details::types::Size count )
+  PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_dynamic( Config&& cfg, details::types::Size count )
 #ifdef __cpp_concepts
-    requires _details::traits::is_config<std::decay_t<Config>>::value
+    requires details::traits::is_config<std::decay_t<Config>>::value
 #else
-    -> typename std::enable_if<
-      _details::traits::is_config<typename std::decay<Config>::type>::value,
-      std::vector<std::unique_ptr<
-        _details::prefabs::BasicBar<typename std::decay<Config>::type, Outlet, Mode, Area>>>>::type
+    ->
+    typename std::enable_if<details::traits::is_config<typename std::decay<Config>::type>::value,
+                            std::vector<std::unique_ptr<
+                              prefab::BasicBar<typename std::decay<Config>::type, Outlet, Mode, Area>>>>::type
 #endif
   {
-    std::vector<
-      std::unique_ptr<_details::prefabs::BasicBar<typename std::decay<Config>::type, Outlet, Mode, Area>>>
+    std::vector<std::unique_ptr<prefab::BasicBar<typename std::decay<Config>::type, Outlet, Mode, Area>>>
       products;
     if ( count == 0 )
       PGBAR__UNLIKELY return products;
@@ -270,25 +261,24 @@ namespace pgbar {
    * **An unmatched count and Bars number will cause an exception `pgbar::exception::InvalidArgument`.**
    */
   template<typename Bar, typename... Objs>
-  PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_dynamic( _details::types::Size count, Objs&&... objs )
+  PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_dynamic( details::types::Size count, Objs&&... objs )
     noexcept( false )
 #ifdef __cpp_concepts
-    requires( _details::traits::is_bar<Bar>::value
+    requires( details::traits::is_bar<Bar>::value
               && ( ( ( std::is_same_v<std::remove_cv_t<Bar>, std::remove_cv_t<Objs>> && ... )
                      && !( std::is_lvalue_reference_v<Objs &&> || ... ) )
                    || ( std::is_same<typename Bar::Config, std::decay_t<Objs>>::value && ... ) ) )
 #else
-      ->
-    typename std::enable_if<
-      _details::traits::AllOf<
-        _details::traits::is_bar<Bar>,
-        _details::traits::AnyOf<
-          _details::traits::AllOf<
-            std::is_same<typename std::remove_cv<Bar>::type, typename std::remove_cv<Objs>::type>...,
-            _details::traits::Not<_details::traits::AnyOf<std::is_lvalue_reference<Objs&&>...>>>,
-          _details::traits::AllOf<std::is_same<typename Bar::Config, typename std::decay<Objs>::type>...>>>::
-        value,
-      std::vector<std::unique_ptr<Bar>>>::type
+      -> typename std::enable_if<
+        details::traits::AllOf<
+          details::traits::is_bar<Bar>,
+          details::traits::AnyOf<
+            details::traits::AllOf<
+              std::is_same<typename std::remove_cv<Bar>::type, typename std::remove_cv<Objs>::type>...,
+              details::traits::Not<details::traits::AnyOf<std::is_lvalue_reference<Objs&&>...>>>,
+            details::traits::AllOf<std::is_same<typename Bar::Config, typename std::decay<Objs>::type>...>>>::
+          value,
+        std::vector<std::unique_ptr<Bar>>>::type
 #endif
   {
     std::vector<std::unique_ptr<Bar>> products;
@@ -297,11 +287,11 @@ namespace pgbar {
     else if ( count < sizeof...( Objs ) )
       PGBAR__UNLIKELY
       {
-        _details::charcodes::CoWString message =
-          _details::charcodes::make_literal( "pgbar: provided object count (" );
-        message.append( _details::utils::format( sizeof...( Objs ) ) )
+        details::charcodes::CoWString message =
+          details::charcodes::make_literal( "pgbar: provided object count (" );
+        message.append( details::utils::format( sizeof...( Objs ) ) )
           .append( ") exceeds the specified count (" )
-          .append( _details::utils::format( count ) )
+          .append( details::utils::format( count ) )
           .push_back( ')' );
         throw exception::InvalidArgument( std::move( message ) );
       }
@@ -325,30 +315,30 @@ namespace pgbar {
            Policy Mode    = Policy::Async,
            Region Area    = Region::Fixed,
            typename... Configs>
-  PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_dynamic( _details::types::Size count, Configs&&... cfgs )
+  PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_dynamic( details::types::Size count, Configs&&... cfgs )
     noexcept( false )
 #ifdef __cpp_concepts
-    requires( _details::traits::is_config<Config>::value
+    requires( details::traits::is_config<Config>::value
               && ( std::is_same_v<std::remove_cv_t<Config>, std::decay_t<Configs>> && ... ) )
 #else
       -> typename std::enable_if<
-        _details::traits::AllOf<
-          _details::traits::is_config<Config>,
+        details::traits::AllOf<
+          details::traits::is_config<Config>,
           std::is_same<typename std::remove_cv<Config>::type, typename std::decay<Configs>::type>...>::value,
-        std::vector<std::unique_ptr<_details::prefabs::BasicBar<Config, Outlet, Mode, Area>>>>::type
+        std::vector<std::unique_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
 #endif
   {
-    std::vector<std::unique_ptr<_details::prefabs::BasicBar<Config, Outlet, Mode, Area>>> products;
+    std::vector<std::unique_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>> products;
     if ( count == 0 )
       PGBAR__UNLIKELY return products;
     else if ( count < sizeof...( Configs ) )
       PGBAR__UNLIKELY
       {
-        _details::charcodes::CoWString message =
-          _details::charcodes::make_literal( "pgbar: provided configs count (" );
-        message.append( _details::utils::format( sizeof...( Configs ) ) )
+        details::charcodes::CoWString message =
+          details::charcodes::make_literal( "pgbar: provided configs count (" );
+        message.append( details::utils::format( sizeof...( Configs ) ) )
           .append( ") exceeds the specified count (" )
-          .append( _details::utils::format( count ) )
+          .append( details::utils::format( count ) )
           .push_back( ')' );
         throw exception::InvalidArgument( std::move( message ) );
       }
@@ -373,29 +363,29 @@ namespace pgbar {
            Region Area    = Region::Fixed,
            typename... Configs>
   PGBAR__NODISCARD PGBAR__FORCEINLINE auto make_dynamic(
-    _details::types::Size count,
-    _details::prefabs::BasicBar<Configs, Outlet, Mode, Area>&&... bars ) noexcept( false )
+    details::types::Size count,
+    prefab::BasicBar<Configs, Outlet, Mode, Area>&&... bars ) noexcept( false )
 #ifdef __cpp_concepts
-    requires( _details::traits::is_config<Config>::value
+    requires( details::traits::is_config<Config>::value
               && ( std::is_same_v<Config, std::decay_t<Configs>> && ... ) )
 #else
     -> typename std::enable_if<
-      _details::traits::AllOf<_details::traits::is_config<Config>,
-                              std::is_same<Config, typename std::decay<Configs>::type>...>::value,
-      std::vector<std::unique_ptr<_details::prefabs::BasicBar<Config, Outlet, Mode, Area>>>>::type
+      details::traits::AllOf<details::traits::is_config<Config>,
+                             std::is_same<Config, typename std::decay<Configs>::type>...>::value,
+      std::vector<std::unique_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
 #endif
   {
-    std::vector<std::unique_ptr<_details::prefabs::BasicBar<Config, Outlet, Mode, Area>>> products;
+    std::vector<std::unique_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>> products;
     if ( count == 0 )
       PGBAR__UNLIKELY return products;
     else if ( count < sizeof...( Configs ) )
       PGBAR__UNLIKELY
       {
-        _details::charcodes::CoWString message =
-          _details::charcodes::make_literal( "pgbar: provided bar count (" );
-        message.append( _details::utils::format( sizeof...( Configs ) ) )
+        details::charcodes::CoWString message =
+          details::charcodes::make_literal( "pgbar: provided bar count (" );
+        message.append( details::utils::format( sizeof...( Configs ) ) )
           .append( ") exceeds the specified count (" )
-          .append( _details::utils::format( count ) )
+          .append( details::utils::format( count ) )
           .push_back( ')' );
         throw exception::InvalidArgument( std::move( message ) );
       }

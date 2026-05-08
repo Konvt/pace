@@ -6,7 +6,7 @@
 #include "Temporal.hpp"
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace behaviors {
       template<typename Base, typename Derived>
       class Determinate : public Base {
@@ -48,7 +48,7 @@ namespace pgbar {
                              behaviors::Renderable,
                              behaviors::Incremental,
                              behaviors::Temporal );
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

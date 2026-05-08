@@ -1,9 +1,9 @@
 #ifndef PGBAR_TRACKEDSPAN
 #define PGBAR_TRACKEDSPAN
 
-#include "../details/prefabs/BasicBar.hpp"
 #include "../details/traits/ConceptTraits.hpp"
 #include "../details/traits/Util.hpp"
+#include "../prefab/BasicBar.hpp"
 #ifdef __cpp_lib_ranges
 # include <ranges>
 #endif
@@ -20,19 +20,19 @@ namespace pgbar {
       : public std::ranges::view_interface<TrackedSpan<View, UIRef>>
 #endif
     {
-      static_assert( _details::traits::is_bounded_range<View>::value, "only available for bounded ranges" );
-      static_assert( _details::traits::AllOf<std::is_copy_constructible<UIRef>,
-                                             _details::traits::is_pointer_like<UIRef>>::value,
+      static_assert( details::traits::is_bounded_range<View>::value, "only available for bounded ranges" );
+      static_assert( details::traits::AllOf<std::is_copy_constructible<UIRef>,
+                                            details::traits::is_pointer_like<UIRef>>::value,
                      "must be a copyable pointer-like bar reference" );
       static_assert(
-        _details::traits::is_iterable_bar<_details::traits::PointeeOf_t<UIRef>>::value,
+        details::traits::is_iterable_bar<details::traits::PointeeOf_t<UIRef>>::value,
         "must have a method to configure the iteration count for the object's configuration type" );
 
       UIRef ui_;
       View view_;
 
-      using Itr = _details::traits::IteratorOf_t<View>;
-      using Snt = _details::traits::SentinelOf_t<View>;
+      using Itr = details::traits::IteratorOf_t<View>;
+      using Snt = details::traits::SentinelOf_t<View>;
 
       class Sentry {
         UIRef ui_;
@@ -40,8 +40,8 @@ namespace pgbar {
 
       public:
         constexpr Sentry( Snt endpoint, UIRef ui_ref )
-          noexcept( _details::traits::AllOf<std::is_nothrow_move_constructible<Snt>,
-                                            std::is_nothrow_move_constructible<UIRef>>::value )
+          noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<Snt>,
+                                           std::is_nothrow_move_constructible<UIRef>>::value )
           : ui_ { std::move( ui_ref ) }, snt_ { std::move( endpoint ) }
         {}
         constexpr Snt base() const noexcept { return snt_; }
@@ -54,28 +54,28 @@ namespace pgbar {
 
       public:
         using iterator_category = typename std::conditional<
-          std::is_same<_details::traits::IterCategory_t<Itr>, std::output_iterator_tag>::value,
-          _details::traits::IterCategory_t<Itr>,
+          std::is_same<details::traits::IterCategory_t<Itr>, std::output_iterator_tag>::value,
+          details::traits::IterCategory_t<Itr>,
           std::input_iterator_tag>::type;
-        using value_type      = _details::traits::IterValue_t<Itr>;
-        using difference_type = _details::traits::IterDifference_t<Itr>;
-        using reference       = _details::traits::IterReference_t<Itr>;
+        using value_type      = details::traits::IterValue_t<Itr>;
+        using difference_type = details::traits::IterDifference_t<Itr>;
+        using reference       = details::traits::IterReference_t<Itr>;
         using pointer         = Itr;
 
         constexpr iterator() = default;
         PGBAR__CXX17_CNSTXPR iterator( Itr itr, UIRef ui_ref )
-          noexcept( _details::traits::AllOf<std::is_nothrow_move_constructible<Itr>,
-                                            std::is_nothrow_move_constructible<UIRef>>::value )
+          noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<Itr>,
+                                           std::is_nothrow_move_constructible<UIRef>>::value )
           : ui_ { std::move( ui_ref ) }, itr_ { std::move( itr ) }
         {}
         PGBAR__CXX17_CNSTXPR iterator( iterator&& rhs )
-          noexcept( _details::traits::AllOf<std::is_nothrow_move_constructible<View>,
-                                            std::is_nothrow_move_constructible<UIRef>>::value )
+          noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<View>,
+                                           std::is_nothrow_move_constructible<UIRef>>::value )
           : iterator( std::move( rhs.itr_ ), std::move( rhs.ui_ ) )
         {}
         PGBAR__CXX17_CNSTXPR iterator& operator=( iterator&& rhs ) & noexcept(
-          _details::traits::AllOf<std::is_nothrow_move_assignable<View>,
-                                  std::is_nothrow_move_assignable<UIRef>>::value )
+          details::traits::AllOf<std::is_nothrow_move_assignable<View>,
+                                 std::is_nothrow_move_assignable<UIRef>>::value )
         {
           PGBAR__TRUST( this != &rhs );
           itr_ = std::move( rhs.itr_ );
@@ -122,7 +122,7 @@ namespace pgbar {
         }
         template<typename S>
         PGBAR__NODISCARD friend PGBAR__FORCEINLINE constexpr typename std::enable_if<
-          _details::traits::AllOf<std::is_same<S, Snt>, _details::traits::Not<std::is_same<Itr, Snt>>>::value,
+          details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator==( const iterator& a, const S& b )
         {
@@ -130,7 +130,7 @@ namespace pgbar {
         }
         template<typename S>
         PGBAR__NODISCARD friend PGBAR__FORCEINLINE constexpr typename std::enable_if<
-          _details::traits::AllOf<std::is_same<S, Snt>, _details::traits::Not<std::is_same<Itr, Snt>>>::value,
+          details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator==( const S& ir, const iterator& itr )
         {
@@ -138,7 +138,7 @@ namespace pgbar {
         }
         template<typename S>
         PGBAR__NODISCARD friend PGBAR__FORCEINLINE constexpr typename std::enable_if<
-          _details::traits::AllOf<std::is_same<S, Snt>, _details::traits::Not<std::is_same<Itr, Snt>>>::value,
+          details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator!=( const iterator& itr, const S& ir )
         {
@@ -146,7 +146,7 @@ namespace pgbar {
         }
         template<typename S>
         PGBAR__NODISCARD friend PGBAR__FORCEINLINE constexpr typename std::enable_if<
-          _details::traits::AllOf<std::is_same<S, Snt>, _details::traits::Not<std::is_same<Itr, Snt>>>::value,
+          details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator!=( const S& snt, const iterator& itr )
         {
@@ -193,18 +193,18 @@ namespace pgbar {
 
       constexpr TrackedSpan() = default;
       PGBAR__CXX17_CNSTXPR TrackedSpan( View view, UIRef ui )
-        noexcept( _details::traits::AllOf<std::is_nothrow_move_constructible<View>,
-                                          std::is_nothrow_move_constructible<UIRef>>::value )
+        noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<View>,
+                                         std::is_nothrow_move_constructible<UIRef>>::value )
         : ui_ { std::move( ui ) }, view_ { std::move( view ) }
       {}
       PGBAR__CXX17_CNSTXPR TrackedSpan( TrackedSpan&& rhs )
-        noexcept( _details::traits::AllOf<std::is_nothrow_move_constructible<View>,
-                                          std::is_nothrow_move_constructible<UIRef>>::value )
+        noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<View>,
+                                         std::is_nothrow_move_constructible<UIRef>>::value )
         : TrackedSpan( std::move( rhs.view_ ), std::move( rhs.ui_ ) )
       {}
       PGBAR__CXX17_CNSTXPR TrackedSpan& operator=( TrackedSpan&& rhs ) & noexcept(
-        _details::traits::AllOf<std::is_nothrow_move_constructible<View>,
-                                std::is_nothrow_move_constructible<UIRef>>::value )
+        details::traits::AllOf<std::is_nothrow_move_constructible<View>,
+                               std::is_nothrow_move_constructible<UIRef>>::value )
       {
         PGBAR__TRUST( this != &rhs );
         view_ = std::move( rhs.view_ );
@@ -215,16 +215,16 @@ namespace pgbar {
       PGBAR__CXX20_CNSTXPR ~TrackedSpan() = default;
 
       PGBAR__CXX14_CNSTXPR View replace( View view ) & noexcept(
-        _details::traits::AllOf<std::is_nothrow_move_constructible<View>,
-                                std::is_nothrow_move_assignable<View>>::value )
+        details::traits::AllOf<std::is_nothrow_move_constructible<View>,
+                               std::is_nothrow_move_assignable<View>>::value )
       {
-        return _details::utils::exchange( view_, view );
+        return details::utils::exchange( view_, view );
       }
       PGBAR__CXX14_CNSTXPR UIRef replace( UIRef ui ) & noexcept(
-        _details::traits::AllOf<std::is_nothrow_move_constructible<UIRef>,
-                                std::is_nothrow_move_assignable<UIRef>>::value )
+        details::traits::AllOf<std::is_nothrow_move_constructible<UIRef>,
+                               std::is_nothrow_move_assignable<UIRef>>::value )
       {
-        return _details::utils::exchange( ui_, ui );
+        return details::utils::exchange( ui_, ui );
       }
 
       PGBAR__NODISCARD PGBAR__FORCEINLINE PGBAR__CXX17_CNSTXPR bool empty() const noexcept
@@ -234,12 +234,12 @@ namespace pgbar {
       // This function will CHANGE the state of the pgbar object it holds.
       PGBAR__NODISCARD PGBAR__FORCEINLINE PGBAR__CXX17_CNSTXPR iterator begin() &
       {
-        ui_->config().quota( _details::utils::size( view_ ) );
-        return { _details::utils::begin( view_ ), ui_ };
+        ui_->config().quota( details::utils::size( view_ ) );
+        return { details::utils::begin( view_ ), ui_ };
       }
       PGBAR__NODISCARD PGBAR__FORCEINLINE PGBAR__CXX17_CNSTXPR sentinel end() const
       {
-        return { _details::utils::end( view_ ), ui_ };
+        return { details::utils::end( view_ ), ui_ };
       }
 
       PGBAR__CXX14_CNSTXPR void swap( TrackedSpan& lhs ) noexcept

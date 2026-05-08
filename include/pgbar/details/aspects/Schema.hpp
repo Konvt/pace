@@ -5,7 +5,7 @@
 #include "../traits/TypeSet.hpp"
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace aspects {
       /**
        * The top type of each configuration type.
@@ -28,7 +28,7 @@ namespace pgbar {
         ~Schema() = default;
       };
     } // namespace aspects
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

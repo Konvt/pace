@@ -6,7 +6,7 @@
 #include <mutex>
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace behaviors {
       template<typename Base, typename Derived>
       class Reactive : public Base {
@@ -269,7 +269,7 @@ namespace pgbar {
         }
       };
     } // namespace behaviors
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

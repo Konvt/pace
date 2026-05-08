@@ -8,14 +8,14 @@
 namespace pgbar {
   namespace option {
     // A wrapper that stores the characters of the filler in the bar indicator.
-    struct Filler : PGBAR__DERIVING_OPTION2( Filler, _details::charcodes::U8Raw, _filler );
+    struct Filler : PGBAR__DERIVING_OPTION2( Filler, details::charcodes::U8Raw, _filler );
 
     // A wrapper that stores the color of the filler in the bar indicator.
     struct FillerColor
-      : PGBAR__DERIVING_OPTION1( FillerColor, _details::console::escodes::RGBColor, _filler_color );
+      : PGBAR__DERIVING_OPTION1( FillerColor, details::console::escodes::RGBColor, _filler_color );
   }
 
-  namespace _details {
+  namespace details {
     namespace aspects {
       template<typename Base, typename Derived>
       class Filler : public Base {
@@ -37,9 +37,9 @@ namespace pgbar {
         {
           using OptionSet = traits::TypeSet<Options...>;
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Filler>::value )
-            unpack( *this, utils::provide_for<Derived, option::Filler>() );
+            unpack( *this, config::provide_for<Derived, option::Filler>() );
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::FillerColor>::value )
-            unpack( *this, utils::provide_for<Derived, option::FillerColor>() );
+            unpack( *this, config::provide_for<Derived, option::FillerColor>() );
         }
 
         PGBAR__CXX20_CNSTXPR Filler() = default;
@@ -95,7 +95,7 @@ namespace pgbar {
     PGBAR__INHERIT_REGISTER( aspects::Filler, aspects::RenderRule );
 
     PGBAR__OPTION_REGISTER( aspects::Filler, option::Filler, option::FillerColor );
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

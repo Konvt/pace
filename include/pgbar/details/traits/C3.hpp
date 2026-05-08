@@ -5,7 +5,7 @@
 #include "TemplateSet.hpp"
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace traits {
       // The type used in the C3 algorithm to store template types.
       template<template<typename...> class... Ts>
@@ -35,7 +35,7 @@ namespace pgbar {
 
       // The structure that records the inheritance order of Node includes itself,
       // just like Python's MRO.
-      // The return value of this meta-function will serve as both the return value
+      // The return value of this config-function will serve as both the return value
       // and the entry parameter of C3.
       template<template<typename...> class Node>
       struct InheritOrder {
@@ -46,10 +46,10 @@ namespace pgbar {
       using InheritOrder_t = typename InheritOrder<Node>::type;
 
 // A helper macro to register the inheritance structure of a template class.
-#define PGBAR__INHERIT_REGISTER( Node, ... )                                     \
-  template<>                                                                     \
-  struct pgbar::_details::traits::InheritOrder<Node> {                           \
-    using type = pgbar::_details::traits::TmpPrepend_t<C3_t<__VA_ARGS__>, Node>; \
+#define PGBAR__INHERIT_REGISTER( Node, ... )                                    \
+  template<>                                                                    \
+  struct pgbar::details::traits::InheritOrder<Node> {                           \
+    using type = pgbar::details::traits::TmpPrepend_t<C3_t<__VA_ARGS__>, Node>; \
   }
 
       // The implementation of the "merge" function in the C3 algorithm.
@@ -81,7 +81,7 @@ namespace pgbar {
         struct FeasibleList<C3Container<>, MergedLists...> : std::false_type {
           // MergedLists contain the source list of Candidate.
           static_assert( sizeof...( MergedLists ) > 1,
-                         "pgbar::_details::traits::C3::FeasibleList: MergedLists is always non-empty" );
+                         "pgbar::details::traits::C3::FeasibleList: MergedLists is always non-empty" );
         };
         template<template<typename...> class Candidate,
                  template<typename...> class... Rests,
@@ -232,7 +232,7 @@ namespace pgbar {
         using type = BaseOf_t<Base, Target>;
       };
     } // namespace traits
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

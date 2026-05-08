@@ -10,21 +10,21 @@
 namespace pgbar {
   namespace option {
     // A wrapper that stores the prefix text.
-    struct Prefix : PGBAR__DERIVING_OPTION2( Prefix, _details::charcodes::U8Raw, _prefix );
+    struct Prefix : PGBAR__DERIVING_OPTION2( Prefix, details::charcodes::U8Raw, _prefix );
 
     // A wrapper that stores the postfix text.
-    struct Postfix : PGBAR__DERIVING_OPTION2( Postfix, _details::charcodes::U8Raw, _postfix );
+    struct Postfix : PGBAR__DERIVING_OPTION2( Postfix, details::charcodes::U8Raw, _postfix );
 
     // A wrapper that stores the prefix text color.
     struct PrefixColor
-      : PGBAR__DERIVING_OPTION1( PrefixColor, _details::console::escodes::RGBColor, _prfx_color );
+      : PGBAR__DERIVING_OPTION1( PrefixColor, details::console::escodes::RGBColor, _prfx_color );
 
     // A wrapper that stores the postfix text color.
     struct PostfixColor
-      : PGBAR__DERIVING_OPTION1( PostfixColor, _details::console::escodes::RGBColor, _pstfx_color );
+      : PGBAR__DERIVING_OPTION1( PostfixColor, details::console::escodes::RGBColor, _pstfx_color );
   } // namespace option
 
-  namespace _details {
+  namespace details {
     namespace aspects {
       template<typename Base, typename Derived>
       class Prefix : public Base {
@@ -58,9 +58,9 @@ namespace pgbar {
         {
           using OptionSet = traits::TypeSet<Options...>;
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Prefix>::value )
-            unpack( *this, utils::provide_for<Derived, option::Prefix>() );
+            unpack( *this, config::provide_for<Derived, option::Prefix>() );
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::PrefixColor>::value )
-            unpack( *this, utils::provide_for<Derived, option::PrefixColor>() );
+            unpack( *this, config::provide_for<Derived, option::PrefixColor>() );
         }
 
         PGBAR__CXX20_CNSTXPR Prefix() = default;
@@ -145,7 +145,7 @@ namespace pgbar {
         {
           using OptionSet = traits::TypeSet<Options...>;
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Postfix>::value ) {
-            unpack( *this, utils::provide_for<Derived, option::Postfix>() );
+            unpack( *this, config::provide_for<Derived, option::Postfix>() );
           }
         }
 
@@ -204,7 +204,7 @@ namespace pgbar {
 
     PGBAR__OPTION_REGISTER( aspects::Prefix, option::Prefix, option::PrefixColor );
     PGBAR__OPTION_REGISTER( aspects::Postfix, option::Postfix, option::PostfixColor );
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

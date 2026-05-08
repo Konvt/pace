@@ -5,7 +5,7 @@
 #include <utility>
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace wrappers {
       template<typename T>
       class MovableRef {
@@ -144,7 +144,7 @@ namespace pgbar {
       template<typename T>
       void mref( const T&& ) = delete;
     } // namespace wrappers
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

@@ -7,7 +7,7 @@
 #include <mutex>
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace concurrent {
       // A nullable container that holds an exception pointer.
       class ExceptionBox final {
@@ -80,7 +80,7 @@ namespace pgbar {
         friend void swap( ExceptionBox& a, ExceptionBox& b ) noexcept { a.swap( b ); }
       };
     } // namespace concurrent
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

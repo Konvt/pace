@@ -12,7 +12,7 @@
 #endif
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace utils {
       // Perfectly forward the I-th element of a tuple, constructing one by default if it's out of bound.
       template<types::Size I, typename T, typename Tuple>
@@ -170,7 +170,7 @@ namespace pgbar {
       }
 #endif
     } // namespace utils
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

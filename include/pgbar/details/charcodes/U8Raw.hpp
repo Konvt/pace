@@ -10,7 +10,7 @@
 #include <utility>
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace charcodes {
       // A simple UTF-8 string implementation, but it does not provide specific utf-8 codec operations.
       class U8Raw {
@@ -311,7 +311,7 @@ namespace pgbar {
         return format<Style>( width, std::move( str ).str() );
       }
     } // namespace utils
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

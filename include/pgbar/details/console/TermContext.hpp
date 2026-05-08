@@ -16,7 +16,7 @@
 #endif
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace console {
       template<Channel Outlet>
       class TermContext {
@@ -111,7 +111,7 @@ namespace pgbar {
         }
       };
     } // namespace console
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

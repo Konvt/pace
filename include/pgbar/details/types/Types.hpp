@@ -11,7 +11,7 @@
 #endif
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace types {
       using Size   = std::size_t;
       using String = std::string;
@@ -39,12 +39,11 @@ namespace pgbar {
       using Bit8       = std::uint8_t; // a computable and addressable Byte type
       using GlyphWidth = std::uint8_t; // value is between [0, 3]
       using Tempus     = std::chrono::nanoseconds;
+      // ETA requires nanosecond resolution;
+      // microseconds may introduce significant precision loss
+      // for fast-updating progress bars.
     } // namespace types
-  } // namespace _details
-
-  // ETA requires nanosecond resolution;
-  // microseconds may introduce significant precision loss
-  // for fast-updating progress bars.
+  } // namespace details
 
   // A enum that specifies the type of the output stream.
   enum class Channel : int { Stdout = 1, Stderr = 2 };

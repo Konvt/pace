@@ -10,7 +10,7 @@
 #include <limits>
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace charcodes {
       template<typename Char>
       struct Literal {
@@ -3042,7 +3042,7 @@ namespace pgbar {
         return { make_literal( str, len ) };
       }
     } // namespace charcodes
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

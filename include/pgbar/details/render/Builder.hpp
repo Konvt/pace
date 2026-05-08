@@ -4,15 +4,15 @@
 #include "Assembler.hpp"
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace render {
       template<typename Config>
       struct Builder;
       template<template<typename...> class... Facades>
-      struct Builder<prefabs::BasicConfig<Facades...>> final
-        : public Assembler<prefabs::BasicConfig<Facades...>> {
+      struct Builder<prefab::BasicConfig<Facades...>> final
+        : public Assembler<prefab::BasicConfig<Facades...>> {
       private:
-        using Config = prefabs::BasicConfig<Facades...>;
+        using Config = prefab::BasicConfig<Facades...>;
         using Base   = Assembler<Config>;
         static_assert( traits::AllOf<traits::is_instance_of<Config, aspects::Prefix>,
                                      traits::is_instance_of<Config, aspects::Postfix>,
@@ -40,7 +40,7 @@ namespace pgbar {
         }
       };
     } // namespace render
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

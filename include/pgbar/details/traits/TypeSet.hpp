@@ -5,7 +5,7 @@
 #include "TypeList.hpp"
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace traits {
       /**
        * A TypeList without duplicates;
@@ -87,7 +87,7 @@ namespace pgbar {
       template<typename... Elements>
       struct Distinct<TypeList<Elements...>> : _impl_distinct<TypeSet<>, TypeList<Elements...>> {};
     } // namespace traits
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

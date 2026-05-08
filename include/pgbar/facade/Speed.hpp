@@ -2,12 +2,12 @@
 #define PGBAR_SPEED
 
 #include "../details/aspects/Capacity.hpp"
+#include "../details/aspects/Entailment.hpp"
 #include "../details/behaviors/Incremental.hpp"
 #include "../details/behaviors/Temporal.hpp"
 #include "../details/io/CharPipeline.hpp"
 #include "../details/render/Parameter.hpp"
 #include "../details/traits/C3.hpp"
-#include "BehaviorRegistry.hpp"
 
 namespace pgbar {
   namespace option {
@@ -44,7 +44,7 @@ namespace pgbar {
      * @throw exception::InvalidArgument
      *   Thrown if any input string fails UTF-8 validation or the array size mismatches.
      */
-    struct SpeedUnit : _details::wrappers::OptionPacket<std::array<_details::charcodes::U8Raw, 4>> {
+    struct SpeedUnit : details::wrappers::OptionPacket<std::array<details::charcodes::U8Raw, 4>> {
       /**
        * @throw exception::InvalidArgument
        *
@@ -54,13 +54,13 @@ namespace pgbar {
        * The given each unit will be treated as 1,000 times greater than the previous one
        * (from left to right).
        */
-      PGBAR__CXX20_CNSTXPR SpeedUnit( std::array<_details::types::String, 4> _units )
+      PGBAR__CXX20_CNSTXPR SpeedUnit( std::array<details::types::String, 4> _units )
       {
         std::transform(
           std::make_move_iterator( _units.begin() ),
           std::make_move_iterator( _units.end() ),
           data_.begin(),
-          []( _details::types::String&& ele ) { return _details::charcodes::U8Raw( std::move( ele ) ); } );
+          []( details::types::String&& ele ) { return details::charcodes::U8Raw( std::move( ele ) ); } );
       }
 #ifdef __cpp_lib_char8_t
       /**
@@ -68,13 +68,12 @@ namespace pgbar {
        * The given each unit will be treated as 1,000 times greater than the previous one
        * (from left to right).
        */
-      PGBAR__CXX20_CNSTXPR SpeedUnit( std::array<_details::types::LitU8, 4> _units )
+      PGBAR__CXX20_CNSTXPR SpeedUnit( std::array<details::types::LitU8, 4> _units )
       {
-        std::transform(
-          _units.cbegin(),
-          _units.cend(),
-          data_.begin(),
-          []( const _details::types::LitU8& ele ) { return _details::charcodes::U8Raw( ele ); } );
+        std::transform( _units.cbegin(),
+                        _units.cend(),
+                        data_.begin(),
+                        []( const details::types::LitU8& ele ) { return details::charcodes::U8Raw( ele ); } );
       }
 #endif
     };
@@ -93,30 +92,30 @@ namespace pgbar {
       {
         self.units_            = std::move( val.value() );
         self.nth_longest_unit_ = static_cast<std::uint8_t>(
-          _details::utils::distance( self.units_.cbegin(),
-                                     std::max_element( self.units_.cbegin(),
-                                                       self.units_.cend(),
-                                                       []( const _details::charcodes::U8Raw& a,
-                                                           const _details::charcodes::U8Raw& b ) noexcept {
-                                                         return a.width() < b.width();
-                                                       } ) ) );
+          details::utils::distance( self.units_.cbegin(),
+                                    std::max_element( self.units_.cbegin(),
+                                                      self.units_.cend(),
+                                                      []( const details::charcodes::U8Raw& a,
+                                                          const details::charcodes::U8Raw& b ) noexcept {
+                                                        return a.width() < b.width();
+                                                      } ) ) );
       }
 
       // The width prepared for "999.99 "
       static constexpr auto& _default_speed = u8"   inf ";
 
     protected:
-      std::array<_details::charcodes::U8Raw, 4> units_;
+      std::array<details::charcodes::U8Raw, 4> units_;
       std::uint16_t magnitude_;
       std::uint8_t nth_longest_unit_;
 
-      _details::io::CharPipeline& build( _details::io::CharPipeline& pipeline,
-                                         const _details::render::Parameter& params ) const
+      details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
+                                        const details::render::Parameter& params ) const
       {
         if ( params.task_quota_ == 0 )
           PGBAR__UNLIKELY return pipeline
-            << _details::utils::format<_details::utils::TxtLayout::Right>( fixed_length(),
-                                                                           u8"-- " + units_.front() );
+            << details::utils::format<details::utils::TxtLayout::Right>( fixed_length(),
+                                                                         u8"-- " + units_.front() );
 
         /* Since the cube of the maximum value of std::uint16_t does not exceed
          * the representable range of std::uint64_t,
@@ -126,53 +125,53 @@ namespace pgbar {
         // tier0 is magnitude_ itself
 
         const auto seconds_passed =
-          std::chrono::duration<_details::types::Float>( params.elapsed_time_ ).count();
+          std::chrono::duration<details::types::Float>( params.elapsed_time_ ).count();
         // zero or negetive is invalid
-        const _details::types::Float frequency = seconds_passed <= 0.0
-                                                 ? ( std::numeric_limits<_details::types::Float>::max )()
-                                                 : params.tasks_completed_ / seconds_passed;
+        const details::types::Float frequency = seconds_passed <= 0.0
+                                                ? ( std::numeric_limits<details::types::Float>::max )()
+                                                : params.tasks_completed_ / seconds_passed;
 
-        _details::types::String orig;
+        details::types::String orig;
         if ( frequency < magnitude_ )
-          orig = _details::utils::format( frequency, 2 ) + ' ' + units_[0];
+          orig = details::utils::format( frequency, 2 ) + ' ' + units_[0];
         else if ( frequency < tier1 ) // "kilo"
-          orig = _details::utils::format( frequency / magnitude_, 2 ) + ' ' + units_[1];
+          orig = details::utils::format( frequency / magnitude_, 2 ) + ' ' + units_[1];
         else if ( frequency < tier2 ) // "Mega"
-          orig = _details::utils::format( frequency / tier1, 2 ) + ' ' + units_[2];
+          orig = details::utils::format( frequency / tier1, 2 ) + ' ' + units_[2];
         else { // "Giga" or "infinity"
-          const _details::types::Float remains = frequency / tier2;
+          const details::types::Float remains = frequency / tier2;
           if ( remains > magnitude_ )
             PGBAR__UNLIKELY orig = _default_speed + units_[3];
           else
-            orig = _details::utils::format( remains, 2 ) + ' ' + units_[3];
+            orig = details::utils::format( remains, 2 ) + ' ' + units_[3];
         }
 
-        return pipeline << _details::utils::format<_details::utils::TxtLayout::Right>( fixed_length(),
-                                                                                       std::move( orig ) );
+        return pipeline << details::utils::format<details::utils::TxtLayout::Right>( fixed_length(),
+                                                                                     std::move( orig ) );
       }
 
-      PGBAR__NODISCARD PGBAR__FORCEINLINE constexpr _details::types::Size fixed_length() const noexcept
+      PGBAR__NODISCARD PGBAR__FORCEINLINE constexpr details::types::Size fixed_length() const noexcept
       {
         return sizeof( _default_speed ) - 1 + units_[nth_longest_unit_].width();
       }
 
       template<typename... Options>
-      PGBAR__CXX20_CNSTXPR Speed( _details::traits::TypeSet<Options...> tag ) : Base( tag )
+      PGBAR__CXX20_CNSTXPR Speed( details::traits::TypeSet<Options...> tag ) : Base( tag )
       {
-        using OptionSet = _details::traits::TypeSet<Options...>;
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<OptionSet, option::Magnitude>::value )
-          unpack( *this, _details::utils::provide_for<Derived, option::Magnitude>() );
-        if PGBAR__CXX17_CNSTXPR ( !_details::traits::TpContain<OptionSet, option::SpeedUnit>::value )
-          unpack( *this, _details::utils::provide_for<Derived, option::SpeedUnit>() );
+        using OptionSet = details::traits::TypeSet<Options...>;
+        if PGBAR__CXX17_CNSTXPR ( !details::traits::TpContain<OptionSet, option::Magnitude>::value )
+          unpack( *this, config::provide_for<Derived, option::Magnitude>() );
+        if PGBAR__CXX17_CNSTXPR ( !details::traits::TpContain<OptionSet, option::SpeedUnit>::value )
+          unpack( *this, config::provide_for<Derived, option::SpeedUnit>() );
       }
 
       PGBAR__CXX20_CNSTXPR Speed() = default;
       PGBAR__SPECIAL_MEMBERS_CX( Speed, PGBAR__CXX20_CNSTXPR );
 
     public:
-#define PGBAR__METHOD( OptionName, ParamName, ReturnType )                   \
-  std::lock_guard<_details::concurrent::SharedMutex> lock { this->rw_mtx_ }; \
-  unpack( *this, option::OptionName( std::move( ParamName ) ) );             \
+#define PGBAR__METHOD( OptionName, ParamName, ReturnType )                  \
+  std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ }; \
+  unpack( *this, option::OptionName( std::move( ParamName ) ) );            \
   return static_cast<ReturnType>( *this )
 
       /**
@@ -184,11 +183,11 @@ namespace pgbar {
        * The given each unit will be treated as 1,000 times greater than the previous one
        * (from left to right).
        */
-      Derived& speed_unit( std::array<_details::types::String, 4> _units ) &
+      Derived& speed_unit( std::array<details::types::String, 4> _units ) &
       {
         PGBAR__METHOD( SpeedUnit, _units, Derived& );
       }
-      Derived&& speed_unit( std::array<_details::types::String, 4> _units ) &&
+      Derived&& speed_unit( std::array<details::types::String, 4> _units ) &&
       {
         PGBAR__METHOD( SpeedUnit, _units, Derived&& );
       }
@@ -198,11 +197,11 @@ namespace pgbar {
        * The given each unit will be treated as 1,000 times greater than the previous one
        * (from left to right).
        */
-      Derived& speed_unit( std::array<_details::types::LitU8, 4> _units ) &
+      Derived& speed_unit( std::array<details::types::LitU8, 4> _units ) &
       {
         PGBAR__METHOD( SpeedUnit, _units, Derived& );
       }
-      Derived&& speed_unit( std::array<_details::types::LitU8, 4> _units ) &&
+      Derived&& speed_unit( std::array<details::types::LitU8, 4> _units ) &&
       {
         PGBAR__METHOD( SpeedUnit, _units, Derived&& );
       }
@@ -235,9 +234,9 @@ namespace pgbar {
     };
   } // namespace facade
 
-  PGBAR__INHERIT_REGISTER( facade::Speed, _details::aspects::Capacity );
+  PGBAR__INHERIT_REGISTER( facade::Speed, details::aspects::Capacity );
 
-  PGBAR__BEHAVIOR_REGISTER( facade::Speed, _details::behaviors::Incremental, _details::behaviors::Temporal );
+  PGBAR__ENTAIL_REGISTER( facade::Speed, details::behaviors::Incremental, details::behaviors::Temporal );
 } // namespace pgbar
 
 #endif

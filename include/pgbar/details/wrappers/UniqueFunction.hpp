@@ -11,7 +11,7 @@
 #endif
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace wrappers {
 #ifdef __cpp_lib_move_only_function
       template<typename... Signature>
@@ -310,7 +310,7 @@ namespace pgbar {
       };
 #endif
     } // namespace wrappers
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

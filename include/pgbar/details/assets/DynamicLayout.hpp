@@ -6,8 +6,8 @@
 #include <deque>
 
 namespace pgbar {
-  namespace _details {
-    namespace prefabs {
+  namespace details {
+    namespace assets {
       template<Channel Outlet, Policy Mode, Region Area>
       class DynamicLayout final {
         enum Locus : std::uint8_t { Offstage, Onstage, Echo };
@@ -29,8 +29,8 @@ namespace pgbar {
           Locus stage_ { Locus::Onstage };
 
           template<typename Config>
-          Slot( prefabs::ManagedBar<Config, Outlet, Mode, Area>* item ) noexcept
-            : render_ { render<prefabs::BasicBar<Config, Outlet, Mode, Area>> }, target_ { item }
+          Slot( assets::ManagedBar<Config, Outlet, Mode, Area>* item ) noexcept
+            : render_ { render<prefab::BasicBar<Config, Outlet, Mode, Area>> }, target_ { item }
           {}
         };
 
@@ -175,7 +175,7 @@ namespace pgbar {
         void kill() noexcept { do_shut<true>(); }
 
         template<typename C>
-        void append( prefabs::ManagedBar<C, Outlet, Mode, Area>* item ) & noexcept( false )
+        void append( assets::ManagedBar<C, Outlet, Mode, Area>* item ) & noexcept( false )
         {
           std::lock_guard<std::mutex> lock1 { sched_mtx_ };
           auto& executor = render::Renderer<Outlet>::itself();
@@ -279,8 +279,8 @@ namespace pgbar {
           return items_.size();
         }
       };
-    } // namespace prefabs
-  } // namespace _details
+    } // namespace assets
+  } // namespace details
 } // namespace pgbar
 
 #endif

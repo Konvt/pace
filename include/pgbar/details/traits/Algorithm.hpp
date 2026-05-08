@@ -5,7 +5,7 @@
 #include <tuple>
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace traits {
       template<types::Size Nth, typename... Ts>
       struct TypeAt
@@ -163,7 +163,7 @@ namespace pgbar {
       template<typename Head, typename Tail>
       struct Merge<Head, Tail> : Combine<Head, Tail> {};
     } // namespace traits
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

@@ -6,7 +6,7 @@
 #include <type_traits>
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace traits {
       /**
        * A lightweight tuple type that stores multiple types.
@@ -90,7 +90,7 @@ namespace pgbar {
       struct TpStartsWith<TypeList<Head, Tail...>, T, Ts...>
         : AllOf<std::is_same<Head, T>, TpStartsWith<TypeList<Tail...>, Ts...>> {};
     } // namespace traits
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

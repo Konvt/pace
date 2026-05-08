@@ -12,7 +12,7 @@
 #endif
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace concurrent {
 #ifdef __cpp_lib_shared_mutex
       using SharedMutex = std::shared_mutex;
@@ -91,7 +91,7 @@ namespace pgbar {
       };
 #endif
     }
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

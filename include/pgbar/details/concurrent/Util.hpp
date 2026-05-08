@@ -7,7 +7,7 @@
 #include <thread>
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace concurrent {
       // spin with specified action
       template<typename F, typename Act>
@@ -109,7 +109,7 @@ namespace pgbar {
         return cas;
       }
     } // namespace concurrent
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

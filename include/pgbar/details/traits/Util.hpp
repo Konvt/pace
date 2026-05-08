@@ -5,7 +5,7 @@
 #include "TypeList.hpp"
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace traits {
       template<template<typename...> class Template, typename T, types::Size N>
       struct FillWith {
@@ -39,7 +39,7 @@ namespace pgbar {
       template<typename Src, typename Dst>
       using CopyConst_t = typename std::conditional<std::is_const<Src>::value, const Dst, Dst>::type;
     } // namespace traits
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

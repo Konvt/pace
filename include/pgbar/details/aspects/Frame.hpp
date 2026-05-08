@@ -11,9 +11,9 @@
 namespace pgbar {
   namespace option {
     // A wrapper that stores the `lead` animated element.
-    struct Lead : _details::wrappers::OptionPacket<std::vector<_details::charcodes::U8Text>> {
+    struct Lead : details::wrappers::OptionPacket<std::vector<details::charcodes::U8Text>> {
     private:
-      using Base = _details::wrappers::OptionPacket<std::vector<_details::charcodes::U8Text>>;
+      using Base = details::wrappers::OptionPacket<std::vector<details::charcodes::U8Text>>;
 
     public:
       PGBAR__CXX20_CNSTXPR Lead() = default;
@@ -22,39 +22,38 @@ namespace pgbar {
        *
        * If the passed parameters are not coding in UTF-8.
        */
-      Lead( std::vector<_details::types::String> _leads )
+      Lead( std::vector<details::types::String> _leads )
       {
         std::transform(
           std::make_move_iterator( _leads.begin() ),
           std::make_move_iterator( _leads.end() ),
           std::back_inserter( data_ ),
-          []( _details::types::String&& ele ) { return _details::charcodes::U8Text( std::move( ele ) ); } );
+          []( details::types::String&& ele ) { return details::charcodes::U8Text( std::move( ele ) ); } );
       }
       /**
        * @throw exception::InvalidArgument
        *
        * If the passed parameters are not coding in UTF-8.
        */
-      Lead( _details::types::String _lead ) : Base( { _details::charcodes::U8Text( std::move( _lead ) ) } ) {}
+      Lead( details::types::String _lead ) : Base( { details::charcodes::U8Text( std::move( _lead ) ) } ) {}
 #ifdef __cpp_lib_char8_t
-      Lead( const std::vector<_details::types::LitU8>& _leads )
+      Lead( const std::vector<details::types::LitU8>& _leads )
       {
         std::transform(
           _leads.cbegin(),
           _leads.cend(),
           std::back_inserter( data_ ),
-          []( const _details::types::LitU8& ele ) { return _details::charcodes::U8Text( ele ); } );
+          []( const details::types::LitU8& ele ) { return details::charcodes::U8Text( ele ); } );
       }
-      Lead( const _details::types::LitU8& _lead ) : Base( { _details::charcodes::U8Text( _lead ) } ) {}
+      Lead( const details::types::LitU8& _lead ) : Base( { details::charcodes::U8Text( _lead ) } ) {}
 #endif
     };
 
     // A wrapper that stores the color of the lead in the bar indicator.
-    struct LeadColor
-      : PGBAR__DERIVING_OPTION1( LeadColor, _details::console::escodes::RGBColor, _lead_color );
+    struct LeadColor : PGBAR__DERIVING_OPTION1( LeadColor, details::console::escodes::RGBColor, _lead_color );
   } // namespace option
 
-  namespace _details {
+  namespace details {
     namespace aspects {
       template<typename Base, typename Derived>
       class Frame : public Base {
@@ -96,9 +95,9 @@ namespace pgbar {
         {
           using OptionSet = traits::TypeSet<Options...>;
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Lead>::value )
-            unpack( *this, utils::provide_for<Derived, option::Lead>() );
+            unpack( *this, config::provide_for<Derived, option::Lead>() );
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::LeadColor>::value )
-            unpack( *this, utils::provide_for<Derived, option::LeadColor>() );
+            unpack( *this, config::provide_for<Derived, option::LeadColor>() );
         }
 
         PGBAR__CXX20_CNSTXPR Frame() = default;
@@ -174,7 +173,7 @@ namespace pgbar {
     PGBAR__INHERIT_REGISTER( aspects::Frame, aspects::Animation, aspects::RenderRule );
 
     PGBAR__OPTION_REGISTER( aspects::Frame, option::Lead, option::LeadColor );
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

@@ -7,14 +7,14 @@
 
 namespace pgbar {
   namespace option { // A wrapper that stores the characters of the remain in the bar indicator.
-    struct Remain : PGBAR__DERIVING_OPTION2( Remain, _details::charcodes::U8Raw, _remain );
+    struct Remain : PGBAR__DERIVING_OPTION2( Remain, details::charcodes::U8Raw, _remain );
 
     // A wrapper that stores the color of the remain in the bar indicator.
     struct RemainColor
-      : PGBAR__DERIVING_OPTION1( RemainColor, _details::console::escodes::RGBColor, _remain_color );
+      : PGBAR__DERIVING_OPTION1( RemainColor, details::console::escodes::RGBColor, _remain_color );
   }
 
-  namespace _details {
+  namespace details {
     namespace aspects {
       template<typename Base, typename Derived>
       class Remain : public Base {
@@ -36,9 +36,9 @@ namespace pgbar {
         {
           using OptionSet = traits::TypeSet<Options...>;
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Remain>::value )
-            unpack( *this, utils::provide_for<Derived, option::Remain>() );
+            unpack( *this, config::provide_for<Derived, option::Remain>() );
           if PGBAR__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::RemainColor>::value )
-            unpack( *this, utils::provide_for<Derived, option::RemainColor>() );
+            unpack( *this, config::provide_for<Derived, option::RemainColor>() );
         }
 
         PGBAR__CXX20_CNSTXPR Remain() = default;
@@ -94,7 +94,7 @@ namespace pgbar {
     PGBAR__INHERIT_REGISTER( aspects::Remain, aspects::RenderRule );
 
     PGBAR__OPTION_REGISTER( aspects::Remain, option::Remain, option::RemainColor );
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

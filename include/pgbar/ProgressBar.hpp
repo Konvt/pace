@@ -1,24 +1,24 @@
 #ifndef PGBAR_PROGRESS_BAR
 #define PGBAR_PROGRESS_BAR
 
-#include "details/prefabs/BasicBar.hpp"
-#include "details/prefabs/BasicConfig.hpp"
 #include "facade/CharPlot.hpp"
 #include "facade/Counter.hpp"
 #include "facade/ETA.hpp"
 #include "facade/Elapsed.hpp"
 #include "facade/Percentage.hpp"
 #include "facade/Speed.hpp"
+#include "prefab/BasicBar.hpp"
+#include "prefab/BasicConfig.hpp"
 #include "slice/TrackedSpan.hpp"
 
 namespace pgbar {
   namespace config {
-    using Line = _details::prefabs::BasicConfig<facade::Percentage,
-                                                facade::CharPlot,
-                                                facade::Counter,
-                                                facade::Speed,
-                                                facade::Elapsed,
-                                                facade::ETA>;
+    using Line = prefab::BasicConfig<facade::Percentage,
+                                     facade::CharPlot,
+                                     facade::Counter,
+                                     facade::Speed,
+                                     facade::Elapsed,
+                                     facade::ETA>;
   }
 
   /**
@@ -28,7 +28,7 @@ namespace pgbar {
    * {LeftBorder}{Prefix}{Percent}{Starting}{Filler}{Lead}{Remain}{Ending}{Counter}{Speed}{Elapsed}{ETA}{Postfix}{RightBorder}
    */
   template<Channel Outlet = Channel::Stderr, Policy Mode = Policy::Async, Region Area = Region::Fixed>
-  using ProgressBar = _details::prefabs::BasicBar<config::Line, Outlet, Mode, Area>;
+  using ProgressBar = prefab::BasicBar<config::Line, Outlet, Mode, Area>;
 
   PGBAR__PROVIDE_FOR( config::Line, option::Colored, true );
   PGBAR__PROVIDE_FOR( config::Line, option::Bolded, true );

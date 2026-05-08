@@ -2,21 +2,21 @@
 #define PGBAR_SWEEP_PLOT
 
 #include "../details/aspects/Bar.hpp"
+#include "../details/aspects/Entailment.hpp"
 #include "../details/aspects/Filler.hpp"
 #include "../details/aspects/Frame.hpp"
 #include "../details/behaviors/Fancy.hpp"
 #include "../details/behaviors/Indeterminate.hpp"
 #include "../details/io/CharPipeline.hpp"
 #include "../details/render/Parameter.hpp"
-#include "BehaviorRegistry.hpp"
 
 namespace pgbar {
   namespace facade {
     template<typename Base, typename Derived>
     class SweepPlot : public Base {
     protected:
-      _details::io::CharPipeline& build( _details::io::CharPipeline& pipeline,
-                                         const _details::render::Parameter& params ) const
+      details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
+                                        const details::render::Parameter& params ) const
       {
         if ( this->bar_width_ == 0 )
           return pipeline;
@@ -70,14 +70,14 @@ namespace pgbar {
         return pipeline << this->reset_then_dye( this->end_col_, params.style_off_ ) << this->ending_;
       }
 
-      PGBAR__NODISCARD PGBAR__FORCEINLINE PGBAR__CXX20_CNSTXPR _details::types::Size fixed_length()
+      PGBAR__NODISCARD PGBAR__FORCEINLINE PGBAR__CXX20_CNSTXPR details::types::Size fixed_length()
         const noexcept
       {
-        return this->_details::traits::BaseOf_t<Base, _details::aspects::Bar>::fixed_length();
+        return this->details::traits::BaseOf_t<Base, details::aspects::Bar>::fixed_length();
       }
 
       template<typename... Options>
-      constexpr SweepPlot( _details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
+      constexpr SweepPlot( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
       {}
 
       PGBAR__SPECIAL_MEMBERS( SweepPlot );
@@ -85,13 +85,11 @@ namespace pgbar {
   } // namespace facade
 
   PGBAR__INHERIT_REGISTER( facade::SweepPlot,
-                           _details::aspects::Filler,
-                           _details::aspects::Bar,
-                           _details::aspects::Frame );
+                           details::aspects::Filler,
+                           details::aspects::Bar,
+                           details::aspects::Frame );
 
-  PGBAR__BEHAVIOR_REGISTER( facade::SweepPlot,
-                            _details::behaviors::Indeterminate,
-                            _details::behaviors::Fancy );
+  PGBAR__ENTAIL_REGISTER( facade::SweepPlot, details::behaviors::Indeterminate, details::behaviors::Fancy );
 } // namespace pgbar
 
 #endif

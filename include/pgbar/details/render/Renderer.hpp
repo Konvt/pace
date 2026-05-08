@@ -13,11 +13,11 @@
 #endif
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace render {
       template<Channel Tag>
       class Renderer final {
-        static std::atomic<_details::types::Tempus> _working_interval;
+        static std::atomic<details::types::Tempus> _working_interval;
 
         std::atomic<std::uint64_t> quota_      = { 0 };
         concurrent::ExceptionBox box_          = {};
@@ -167,12 +167,12 @@ namespace pgbar {
 
       public:
         // Get the current working interval for all threads.
-        PGBAR__NODISCARD static PGBAR__FORCEINLINE _details::types::Tempus working_interval() noexcept
+        PGBAR__NODISCARD static PGBAR__FORCEINLINE details::types::Tempus working_interval() noexcept
         {
           return _working_interval.load( std::memory_order_acquire );
         }
         // Adjust the thread working interval between this loop and the next loop.
-        static PGBAR__FORCEINLINE void working_interval( _details::types::Tempus new_rate ) noexcept
+        static PGBAR__FORCEINLINE void working_interval( details::types::Tempus new_rate ) noexcept
         {
           _working_interval.store( new_rate, std::memory_order_release );
         }
@@ -366,11 +366,11 @@ namespace pgbar {
         }
       };
       template<Channel Tag>
-      std::atomic<_details::types::Tempus> Renderer<Tag>::_working_interval {
-        std::chrono::duration_cast<_details::types::Tempus>( std::chrono::milliseconds( 40 ) )
+      std::atomic<details::types::Tempus> Renderer<Tag>::_working_interval {
+        std::chrono::duration_cast<details::types::Tempus>( std::chrono::milliseconds( 40 ) )
       };
     } // namespace render
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

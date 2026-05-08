@@ -6,7 +6,7 @@
 #include <type_traits>
 
 namespace pgbar {
-  namespace _details {
+  namespace details {
     namespace traits {
       // Before C++17, not all std entities had feature macros.
 #if PGBAR__CXX14
@@ -115,7 +115,7 @@ namespace pgbar {
       using is_implicit_lifetime = std::is_trivial<T>;
 #endif
     } // namespace traits
-  } // namespace _details
+  } // namespace details
 } // namespace pgbar
 
 #endif

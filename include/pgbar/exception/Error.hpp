@@ -10,10 +10,10 @@ namespace pgbar {
     // The base exception class.
     class Error : public std::exception {
     protected:
-      _details::charcodes::CoWString message_;
+      details::charcodes::CoWString message_;
 
     public:
-      Error( _details::charcodes::CoWString mes ) noexcept : message_ { std::move( mes ) } {}
+      Error( details::charcodes::CoWString mes ) noexcept : message_ { std::move( mes ) } {}
       ~Error() override = default;
       PGBAR__NODISCARD const char* what() const noexcept override { return message_.c_str(); }
     };
@@ -38,7 +38,7 @@ namespace pgbar {
       std::error_code err_;
 
     public:
-      SystemError( std::error_code err, _details::charcodes::CoWString mes ) noexcept
+      SystemError( std::error_code err, details::charcodes::CoWString mes ) noexcept
         : Error( std::move( mes ) ), err_ { err }
       {}
       ~SystemError() override = default;

@@ -1,9 +1,8 @@
 #ifndef PGBAR_INDICATOR
 #define PGBAR_INDICATOR
 
+#include "config/Runtime.hpp"
 #include "details/concurrent/Util.hpp"
-#include "details/console/TermContext.hpp"
-#include "details/render/Renderer.hpp"
 
 namespace pgbar {
   namespace config {
@@ -38,13 +37,13 @@ namespace pgbar {
     // Wait until the indicator is Stop.
     void wait() const noexcept
     {
-      _details::concurrent::spin_wait( [this]() noexcept { return !active(); } );
+      details::concurrent::spin_wait( [this]() noexcept { return !active(); } );
     }
     // Wait for the indicator is Stop or timed out.
     template<class Rep, class Period>
     PGBAR__NODISCARD bool wait_for( const std::chrono::duration<Rep, Period>& timeout ) const noexcept
     {
-      return _details::concurrent::spin_wait_for( [this]() noexcept { return !active(); }, timeout );
+      return details::concurrent::spin_wait_for( [this]() noexcept { return !active(); }, timeout );
     }
   };
   PGBAR__CXX17_INLINE std::atomic<bool> Indicator::_hide_completed { false };
@@ -55,7 +54,7 @@ namespace pgbar {
     {
       Indicator::_hide_completed.store( flag, std::memory_order_relaxed );
     }
-    PGBAR__NODISCARD inline bool hide_completed() noexcept
+    inline bool hide_completed() noexcept
     {
       return Indicator::_hide_completed.load( std::memory_order_relaxed );
     }
@@ -67,48 +66,9 @@ namespace pgbar {
     {
       Indicator::_auto_style_off.store( flag, std::memory_order_relaxed );
     }
-    PGBAR__NODISCARD inline bool auto_style_off() noexcept
+    inline bool auto_style_off() noexcept
     {
       return Indicator::_auto_style_off.load( std::memory_order_relaxed );
-    }
-
-    /**
-     * Determine if the output stream is binded to the tty based on the platform api.
-     *
-     * Always returns true if defined `PGBAR_INTTY`,
-     * or the local platform is neither `Windows` nor `unix-like`.
-     */
-    PGBAR__NODISCARD inline bool intty( Channel channel ) noexcept
-    {
-      if ( channel == Channel::Stdout )
-        return _details::console::TermContext<Channel::Stdout>::itself().detect();
-      return _details::console::TermContext<Channel::Stderr>::itself().detect();
-    }
-
-    PGBAR__NODISCARD inline std::uint16_t terminal_width( Channel channel ) noexcept
-    {
-      if ( channel == Channel::Stdout )
-        return _details::console::TermContext<Channel::Stdout>::itself().width();
-      return _details::console::TermContext<Channel::Stderr>::itself().width();
-    }
-
-    // Get the current output interval.
-    template<Channel Outlet>
-    PGBAR__NODISCARD _details::types::Tempus refresh_interval() noexcept
-    {
-      return _details::render::Renderer<Outlet>::working_interval();
-    }
-    // Set the new output interval.
-    template<Channel Outlet>
-    void refresh_interval( _details::types::Tempus new_rate ) noexcept
-    {
-      _details::render::Renderer<Outlet>::working_interval( new_rate );
-    }
-    // Set every channels to the same output interval.
-    inline void refresh_interval( _details::types::Tempus new_rate ) noexcept
-    {
-      _details::render::Renderer<Channel::Stderr>::working_interval( new_rate );
-      _details::render::Renderer<Channel::Stdout>::working_interval( new_rate );
     }
   } // namespace config
 } // namespace pgbar
