@@ -1,9 +1,0 @@
-export module pgbar;
-export import pgbar.Core;
-export import pgbar.ProgressBar;
-export import pgbar.BlockBar;
-export import pgbar.SpinBar;
-export import pgbar.SweepBar;
-export import pgbar.FlowBar;
-export import pgbar.MultiBar;
-export import pgbar.DynamicBar;
