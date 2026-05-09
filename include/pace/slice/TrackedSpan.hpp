@@ -85,7 +85,7 @@ namespace pace {
         }
         PACE__CXX20_CNSTXPR ~iterator() noexcept
         {
-          if ( used_ && ui_->active() )
+          if ( used_ )
             ui_->abort();
         }
 

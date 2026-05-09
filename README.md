@@ -1,4 +1,4 @@
-[中文文档见此](docs/README_zh.md)。
+[中文文档见此](docs/README.zh.md)。
 
 ## Features
 - **Header-only design**: All functions are defined in `include/pace/`.
@@ -18,37 +18,37 @@
 {LeftBorder}{Prefix}{Percent}{Starting}{Filler}{Lead}{Remain}{Ending}{Counter}{Speed}{Elapsed}{Countdown}{Postfix}{RightBorder}
  30.87% | [=========>                    ] |  662933732/2147483647 |  11.92 MHz | +00:00:55 | -00:02:03
 ```
-![progressbar](../images/progressbar.gif)
+![progressbar](images/progressbar.gif)
 ### BlockBar
 ```
 {LeftBorder}{Prefix}{Percent}{Starting}{Filler}{Lead}{Remain}{Ending}{Counter}{Speed}{Elapsed}{Countdown}{Postfix}{RightBorder}
  35.22% | ██████████▋                    |  47275560/134217727 |  16.80 MHz | +00:00:02 | -00:00:05
 ```
-![BlockBar](../images/blockbar.gif)
+![BlockBar](images/blockbar.gif)
 ### SpinBar
 ```
 {LeftBorder}{Prefix}{Lead}{Percent}{Counter}{Speed}{Elapsed}{Countdown}{Postfix}{RightBorder}
 \ |  48.64% |  65288807/134217727 |  17.84 MHz | +00:00:03 | -00:00:03
 ```
-![spinbar](../images/spinbar.gif)
+![spinbar](images/spinbar.gif)
 ### SweepBar
 ```
 {LeftBorder}{Prefix}{Percent}{Starting}{Filler}{Lead}{Filler}{Ending}{Counter}{Speed}{Elapsed}{Countdown}{Postfix}{RightBorder}
  39.82% | [-------<=>--------------------] |  53458698/134217727 |  17.89 MHz | +00:00:02 | -00:00:04
 ```
-![sweepbar](../images/sweepbar.gif)
+![sweepbar](images/sweepbar.gif)
 ### FlowBar
 ```
 {LeftBorder}{Prefix}{Percent}{Starting}{Filler}{Lead}{Filler}{Ending}{Counter}{Speed}{Elapsed}{Countdown}{Postfix}{RightBorder}
  73.93% | [                     ====     ] |   99224978/134217727 |  81.02 MHz | +00:00:01 | -00:00:00
 ```
-![flowbar](../images/flowbar.gif)
+![flowbar](images/flowbar.gif)
 ### Custom
-![custom](../images/custom.gif)
+![custom](images/custom.gif)
 ### MultiBar
-![multibar](../images/multibar.gif)
+![multibar](images/multibar.gif)
 ### DynamicBar
-![dynamicbar](../images/dynamicbar.gif)
+![dynamicbar](images/dynamicbar.gif)
 
 ### Usage
 ```cpp
