@@ -1,5 +1,5 @@
-#ifndef PACE_ITERATORSPAN
-#define PACE_ITERATORSPAN
+#ifndef PACE_ITERATOR_SPAN
+#define PACE_ITERATOR_SPAN
 
 #include "../details/traits/ConceptTraits.hpp"
 #include "../details/utils/Backport.hpp"

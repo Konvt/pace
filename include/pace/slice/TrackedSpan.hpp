@@ -1,5 +1,5 @@
-#ifndef PACE_TRACKEDSPAN
-#define PACE_TRACKEDSPAN
+#ifndef PACE_TRACKED_SPAN
+#define PACE_TRACKED_SPAN
 
 #include "../details/traits/ConceptTraits.hpp"
 #include "../details/traits/Util.hpp"
@@ -20,7 +20,7 @@ namespace pace {
       : public std::ranges::view_interface<TrackedSpan<View, UIRef>>
 #endif
     {
-      static_assert( details::traits::is_bounded_range<View>::value, "only available for bounded ranges" );
+      static_assert( details::traits::is_sized_range<View>::value, "only available for bounded ranges" );
       static_assert( details::traits::AllOf<std::is_copy_constructible<UIRef>,
                                             details::traits::is_pointer_like<UIRef>>::value,
                      "must be a copyable pointer-like bar reference" );

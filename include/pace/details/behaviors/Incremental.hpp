@@ -1,9 +1,9 @@
 #ifndef PACE_INCREMENTAL
 #define PACE_INCREMENTAL
 
-#include "../../slice/BoundedSpan.hpp"
 #include "../../slice/IteratorSpan.hpp"
 #include "../../slice/NumericSpan.hpp"
+#include "../../slice/SizedSpan.hpp"
 #include "../wrappers/MovableRef.hpp"
 
 namespace pace {
@@ -244,13 +244,13 @@ namespace pace {
         template<class R>
         PACE__NODISCARD auto iterate( R& container ) &
 #ifdef __cpp_concepts
-          -> slice::TrackedSpan<slice::BoundedSpan<std::remove_reference_t<R>>, wrappers::MovableRef<Derived>>
-          requires( traits::is_bounded_range<std::remove_reference_t<R>>::value
+          -> slice::TrackedSpan<slice::SizedSpan<std::remove_reference_t<R>>, wrappers::MovableRef<Derived>>
+          requires( traits::is_sized_range<std::remove_reference_t<R>>::value
                     && !std::ranges::view<std::remove_reference_t<R>> )
 #else
           -> typename std::enable_if<
-            traits::is_bounded_range<typename std::remove_reference<R>::type>::value,
-            slice::TrackedSpan<slice::BoundedSpan<typename std::remove_reference<R>::type>,
+            traits::is_sized_range<typename std::remove_reference<R>::type>::value,
+            slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
                                wrappers::MovableRef<Derived>>>::type
 #endif
         {
@@ -259,7 +259,7 @@ namespace pace {
         }
 #ifdef __cpp_concepts
         template<class R>
-          requires( traits::is_bounded_range<R>::value && std::ranges::view<R> )
+          requires( traits::is_sized_range<R>::value && std::ranges::view<R> )
         PACE__NODISCARD slice::TrackedSpan<R, wrappers::MovableRef<Derived>> iterate( R view ) &
         {
           throw_if_active();
@@ -269,10 +269,10 @@ namespace pace {
         template<class R, typename Proc>
         auto iterate( R&& range, Proc&& op )
 #ifdef __cpp_concepts
-          requires traits::is_bounded_range<std::remove_reference_t<R>>::value
+          requires traits::is_sized_range<std::remove_reference_t<R>>::value
 #else
           -> typename std::enable_if<
-            traits::is_bounded_range<typename std::remove_reference<R>::type>::value>::type
+            traits::is_sized_range<typename std::remove_reference<R>::type>::value>::type
 #endif
         {
           for ( auto&& e : iterate( std::forward<R>( range ) ) )

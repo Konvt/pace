@@ -1,5 +1,5 @@
-#ifndef PACE_BOUNDEDSPAN
-#define PACE_BOUNDEDSPAN
+#ifndef PACE_SIZED_SPAN
+#define PACE_SIZED_SPAN
 
 #include "../details/traits/ConceptTraits.hpp"
 #include "../details/utils/Backport.hpp"
@@ -10,16 +10,16 @@
 namespace pace {
   namespace slice {
     template<typename R>
-    class BoundedSpan
+    class SizedSpan
 #ifdef __cpp_lib_ranges
-      : public std::ranges::view_interface<BoundedSpan<R>>
+      : public std::ranges::view_interface<SizedSpan<R>>
 #endif
     {
 #ifdef __cpp_lib_ranges
-      static_assert( details::traits::is_bounded_range<R>::value && !std::ranges::view<R>,
+      static_assert( details::traits::is_sized_range<R>::value && !std::ranges::view<R>,
                      "only available for bounded ranges, excluding view types" );
 #else
-      static_assert( details::traits::is_bounded_range<R>::value, "only available for bounded ranges" );
+      static_assert( details::traits::is_sized_range<R>::value, "only available for bounded ranges" );
 #endif
 
       R* rnge_;
@@ -28,11 +28,11 @@ namespace pace {
       using iterator = details::traits::IteratorOf_t<R>;
       using sentinel = details::traits::SentinelOf_t<R>;
 
-      PACE__CXX17_CNSTXPR BoundedSpan( R& rnge ) noexcept : rnge_ { std::addressof( rnge ) } {}
+      PACE__CXX17_CNSTXPR SizedSpan( R& rnge ) noexcept : rnge_ { std::addressof( rnge ) } {}
 
-      PACE__CXX14_CNSTXPR BoundedSpan( const BoundedSpan& )              = default;
-      PACE__CXX14_CNSTXPR BoundedSpan& operator=( const BoundedSpan& ) & = default;
-      PACE__CXX20_CNSTXPR ~BoundedSpan()                                 = default;
+      PACE__CXX14_CNSTXPR SizedSpan( const SizedSpan& )              = default;
+      PACE__CXX14_CNSTXPR SizedSpan& operator=( const SizedSpan& ) & = default;
+      PACE__CXX20_CNSTXPR ~SizedSpan()                               = default;
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR iterator begin() const
         noexcept( noexcept( details::utils::begin( *rnge_ ) ) )
@@ -62,12 +62,12 @@ namespace pace {
       }
       PACE__NODISCARD PACE__FORCEINLINE constexpr bool empty() const noexcept { return rnge_ == nullptr; }
 
-      PACE__CXX20_CNSTXPR void swap( BoundedSpan& lhs ) noexcept
+      PACE__CXX20_CNSTXPR void swap( SizedSpan& lhs ) noexcept
       {
         PACE__TRUST( this != &lhs );
         std::swap( rnge_, lhs.rnge_ );
       }
-      friend PACE__CXX20_CNSTXPR void swap( BoundedSpan& a, BoundedSpan& b ) noexcept { a.swap( b ); }
+      friend PACE__CXX20_CNSTXPR void swap( SizedSpan& a, SizedSpan& b ) noexcept { a.swap( b ); }
 
       explicit constexpr operator bool() const noexcept { return !empty(); }
     };

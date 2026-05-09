@@ -34,9 +34,9 @@ export namespace pace {
   }
 
   namespace slice {
-    using pace::slice::BoundedSpan;
     using pace::slice::IteratorSpan;
     using pace::slice::NumericSpan;
+    using pace::slice::SizedSpan;
     using pace::slice::TrackedSpan;
   }
 

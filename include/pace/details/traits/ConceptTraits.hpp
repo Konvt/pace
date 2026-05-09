@@ -138,21 +138,21 @@ namespace pace {
 
 #ifdef __cpp_lib_ranges
       template<typename T>
-      using is_bounded_range = BoolConstant<std::ranges::sized_range<T>>;
+      using is_sized_range = BoolConstant<std::ranges::sized_range<T>>;
 #else
       template<typename T, typename = void>
-      struct _impl_is_bounded_range : std::false_type {};
+      struct _impl_is_sized_range : std::false_type {};
       template<typename T, types::Size N>
-      struct _impl_is_bounded_range<T[N], void> : std::true_type {};
+      struct _impl_is_sized_range<T[N], void> : std::true_type {};
       template<typename T>
-      struct _impl_is_bounded_range<
+      struct _impl_is_sized_range<
         T,
         typename std::enable_if<
           AllOf<Not<std::is_reference<T>>,
                 std::is_convertible<decltype( std::declval<T>().begin() != std::declval<T>().end() ), bool>,
                 Not<std::is_void<decltype( std::declval<T>().size() )>>>::value>::type> : std::true_type {};
       template<typename T>
-      using is_bounded_range = _impl_is_bounded_range<T>;
+      using is_sized_range = _impl_is_sized_range<T>;
 #endif
     } // namespace traits
   } // namespace details

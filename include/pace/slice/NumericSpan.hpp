@@ -1,5 +1,5 @@
-#ifndef PACE_NUMERICSPAN
-#define PACE_NUMERICSPAN
+#ifndef PACE_NUMERIC_SPAN
+#define PACE_NUMERIC_SPAN
 
 #include "../details/utils/Util.hpp"
 #include "../exception/Error.hpp"

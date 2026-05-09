@@ -1277,15 +1277,15 @@ namespace pace {
   template<typename Bar, class R, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( R&& range, Options&&... options ) ->
 #ifdef __cpp_concepts
-    slice::TrackedSpan<slice::BoundedSpan<std::remove_reference_t<R>>, std::shared_ptr<Bar>>
-    requires( details::traits::is_bounded_range<R>::value && !std::ranges::view<std::remove_reference_t<R>>
+    slice::TrackedSpan<slice::SizedSpan<std::remove_reference_t<R>>, std::shared_ptr<Bar>>
+    requires( details::traits::is_sized_range<R>::value && !std::ranges::view<std::remove_reference_t<R>>
               && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> )
 #else
-    typename std::enable_if<details::traits::AllOf<details::traits::is_bounded_range<R>,
+    typename std::enable_if<details::traits::AllOf<details::traits::is_sized_range<R>,
                                                    details::traits::is_iterable_bar<Bar>,
                                                    std::is_constructible<Bar, Options&&...>>::value,
-                            slice::TrackedSpan<slice::BoundedSpan<typename std::remove_reference<R>::type>,
+                            slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
                                                std::shared_ptr<Bar>>>::type
 #endif
   {
@@ -1294,23 +1294,23 @@ namespace pace {
   template<typename Bar, class R, typename Act, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( R&& range, Act&& act, Options&&... options ) ->
 #ifdef __cpp_concepts
-    slice::TrackedSpan<slice::BoundedSpan<std::remove_reference_t<R>>, std::shared_ptr<Bar>>
+    slice::TrackedSpan<slice::SizedSpan<std::remove_reference_t<R>>, std::shared_ptr<Bar>>
     requires(
-      details::traits::is_bounded_range<R>::value && !std::ranges::view<std::remove_reference_t<R>>
+      details::traits::is_sized_range<R>::value && !std::ranges::view<std::remove_reference_t<R>>
       && details::traits::is_iterable_bar<Bar>::value && details::traits::is_reactive_bar<Bar>::value
       && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>,
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
     typename std::enable_if<
-      details::traits::AllOf<details::traits::is_bounded_range<R>,
+      details::traits::AllOf<details::traits::is_sized_range<R>,
                              details::traits::is_iterable_bar<Bar>,
                              details::traits::is_reactive_bar<Bar>,
                              std::is_same<typename std::remove_reference<
                                             decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
                                           Bar>,
                              std::is_constructible<Bar, Options&&...>>::value,
-      slice::TrackedSpan<slice::BoundedSpan<typename std::remove_reference<R>::type>,
+      slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
                          std::shared_ptr<Bar>>>::type
 #endif
   {
@@ -1319,7 +1319,7 @@ namespace pace {
   }
 #ifdef __cpp_concepts
   template<typename Bar, class R, typename... Options>
-    requires( details::traits::is_bounded_range<R>::value
+    requires( details::traits::is_sized_range<R>::value
               && std::ranges::view<R> && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> )
   PACE__NODISCARD PACE__FORCEINLINE
@@ -1331,7 +1331,7 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE slice::TrackedSpan<R, std::shared_ptr<Bar>>
     iterate( R view, Act&& act, Options&&... options )
     requires(
-      details::traits::is_bounded_range<R>::value && std::ranges::view<R>
+      details::traits::is_sized_range<R>::value && std::ranges::view<R>
       && details::traits::is_iterable_bar<Bar>::value && details::traits::is_reactive_bar<Bar>::value
       && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>,
                         Bar>
@@ -1344,14 +1344,14 @@ namespace pace {
   template<typename Bar, class R, typename Proc, typename... Options>
   PACE__FORCEINLINE auto iterate( R&& range, Proc&& op, Options&&... options )
 #ifdef __cpp_concepts
-    requires( details::traits::is_bounded_range<R>::value && details::traits::is_iterable_bar<Bar>::value
+    requires( details::traits::is_sized_range<R>::value && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...>
               && requires( details::traits::IterValue_t<details::traits::IteratorOf_t<R>> ele, Proc&& op ) {
                    op( ele );
                  } )
 #else
     -> typename std::enable_if<details::traits::AllOf<
-      details::traits::is_bounded_range<R>,
+      details::traits::is_sized_range<R>,
       details::traits::is_iterable_bar<Bar>,
       std::is_constructible<Bar, Options&&...>,
       std::is_void<decltype( std::declval<Proc&&>( std::declval<details::traits::IterValue_t<
@@ -1365,14 +1365,14 @@ namespace pace {
   PACE__FORCEINLINE auto iterate( R&& range, Proc&& op, Act&& act, Options&&... options )
 #ifdef __cpp_concepts
     requires(
-      details::traits::is_bounded_range<R>::value && details::traits::is_iterable_bar<Bar>::value
+      details::traits::is_sized_range<R>::value && details::traits::is_iterable_bar<Bar>::value
       && details::traits::is_reactive_bar<Bar>::value
       && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>,
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
     -> typename std::enable_if<
-      details::traits::AllOf<details::traits::is_bounded_range<R>,
+      details::traits::AllOf<details::traits::is_sized_range<R>,
                              details::traits::is_iterable_bar<Bar>,
                              details::traits::is_reactive_bar<Bar>,
                              std::is_same<typename std::remove_reference<
@@ -1392,13 +1392,13 @@ namespace pace {
            typename... Options
 #ifdef __cpp_concepts
            >
-    requires( details::traits::is_bounded_range<R>::value
+    requires( details::traits::is_sized_range<R>::value
               && !std::ranges::view<std::remove_reference_t<R>> && details::traits::is_config<Config>::value
               && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
-           typename std::enable_if<details::traits::AllOf<details::traits::is_bounded_range<R>,
+           typename std::enable_if<details::traits::AllOf<details::traits::is_sized_range<R>,
                                                           details::traits::is_config<Config>>::value,
                                    bool>::type = 0>
 #endif
@@ -1407,7 +1407,7 @@ namespace pace {
     -> typename std::enable_if<
       details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
                              std::is_constructible<Config, Options&&...>>::value,
-      slice::TrackedSpan<slice::BoundedSpan<typename std::remove_reference<R>::type>,
+      slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
                          std::shared_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
 #endif
   {
@@ -1423,7 +1423,7 @@ namespace pace {
            typename... Options
 #ifdef __cpp_concepts
            >
-    requires( details::traits::is_bounded_range<R>::value
+    requires( details::traits::is_sized_range<R>::value
               && !std::ranges::view<std::remove_reference_t<R>> && details::traits::is_config<Config>::value
               && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
               && details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
@@ -1434,7 +1434,7 @@ namespace pace {
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
-           typename std::enable_if<details::traits::AllOf<details::traits::is_bounded_range<R>,
+           typename std::enable_if<details::traits::AllOf<details::traits::is_sized_range<R>,
                                                           details::traits::is_config<Config>>::value,
                                    bool>::type = 0>
 #endif
@@ -1449,7 +1449,7 @@ namespace pace {
                                  | std::declval<Act&&>() )>::type,
                      prefab::BasicBar<Config, Outlet, Mode, Area>>,
         std::is_constructible<Config, Options&&...>>::value,
-      slice::TrackedSpan<slice::BoundedSpan<typename std::remove_reference<R>::type>,
+      slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
                          std::shared_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
 #endif
   {
@@ -1464,7 +1464,7 @@ namespace pace {
            Region Area    = Region::Fixed,
            class R,
            typename... Options>
-    requires( details::traits::is_bounded_range<R>::value
+    requires( details::traits::is_sized_range<R>::value
               && std::ranges::view<R> && details::traits::is_config<Config>::value
               && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
               && std::is_constructible_v<Config, Options && ...> )
@@ -1487,7 +1487,7 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE
     slice::TrackedSpan<R, std::shared_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>
     iterate( R view, Act&& act, Options&&... options )
-    requires( details::traits::is_bounded_range<R>::value
+    requires( details::traits::is_sized_range<R>::value
               && std::ranges::view<R> && details::traits::is_config<Config>::value
               && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
               && details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
@@ -1511,14 +1511,14 @@ namespace pace {
            typename... Options
 #ifdef __cpp_concepts
            >
-    requires( details::traits::is_bounded_range<R>::value && details::traits::is_config<Config>::value
+    requires( details::traits::is_sized_range<R>::value && details::traits::is_config<Config>::value
               && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
               && std::is_constructible_v<Config, Options && ...>
               && requires( details::traits::IterValue_t<details::traits::IteratorOf_t<R>> ele,
                            Proc&& op ) { op( ele ); } )
 #else
            ,
-           typename std::enable_if<details::traits::AllOf<details::traits::is_bounded_range<R>,
+           typename std::enable_if<details::traits::AllOf<details::traits::is_sized_range<R>,
                                                           details::traits::is_config<Config>>::value,
                                    bool>::type = 0>
 #endif
@@ -1546,7 +1546,7 @@ namespace pace {
            typename... Options
 #ifdef __cpp_concepts
            >
-    requires( details::traits::is_bounded_range<R>::value && details::traits::is_config<Config>::value
+    requires( details::traits::is_sized_range<R>::value && details::traits::is_config<Config>::value
               && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
               && details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
               && std::is_same_v<
@@ -1556,7 +1556,7 @@ namespace pace {
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
-           typename std::enable_if<details::traits::AllOf<details::traits::is_bounded_range<R>,
+           typename std::enable_if<details::traits::AllOf<details::traits::is_sized_range<R>,
                                                           details::traits::is_config<Config>>::value,
                                    bool>::type = 0>
 #endif
