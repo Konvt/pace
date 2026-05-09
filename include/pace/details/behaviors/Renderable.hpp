@@ -2,6 +2,7 @@
 #define PACE_RENDERABLE
 
 #include "../../Indicator.hpp"
+#include "../behaviors/Incremental.hpp"
 #include "../console/escodes/Escodes.hpp"
 #include "../io/OStream.hpp"
 #include "../render/Builder.hpp"
@@ -181,9 +182,7 @@ namespace pace {
         Renderable( Soul config ) noexcept : config_ { std::move( config ) } {}
 
         PACE__NODISCARD PACE__FORCEINLINE bool active() const noexcept final
-        {
-          return state_.load( std::memory_order_relaxed ) != Phase::Stop;
-        }
+        { return state_.load( std::memory_order_relaxed ) != Phase::Stop; }
 
         void reset() final
         {
@@ -210,7 +209,7 @@ namespace pace {
       };
     } // namespace behaviors
 
-    PACE__INHERIT_REGISTER( behaviors::Renderable, behaviors::Reactive );
+    PACE__INHERIT_REGISTER( behaviors::Renderable, behaviors::Reactive, behaviors::Incremental );
   } // namespace details
 } // namespace pace
 

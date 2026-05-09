@@ -4,9 +4,12 @@
 #include "../details/aspects/Capacity.hpp"
 #include "../details/aspects/Entailment.hpp"
 #include "../details/behaviors/Incremental.hpp"
+#include "../details/behaviors/Indeterminate.hpp"
+#include "../details/behaviors/Plain.hpp"
 #include "../details/io/CharPipeline.hpp"
 #include "../details/render/Parameter.hpp"
 #include "../details/traits/C3.hpp"
+
 
 namespace pace {
   namespace facade {
@@ -40,7 +43,10 @@ namespace pace {
 
   PACE__INHERIT_REGISTER( facade::Counter, details::aspects::Capacity );
 
-  PACE__ENTAIL_REGISTER( facade::Counter, details::behaviors::Incremental );
+  PACE__ENTAIL_REGISTER( facade::Counter,
+                         details::behaviors::Indeterminate,
+                         details::behaviors::Plain,
+                         details::behaviors::Incremental );
 } // namespace pace
 
 #endif

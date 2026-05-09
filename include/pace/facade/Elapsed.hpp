@@ -3,6 +3,8 @@
 
 #include "../details/aspects/Entailment.hpp"
 #include "../details/aspects/Timer.hpp"
+#include "../details/behaviors/Indeterminate.hpp"
+#include "../details/behaviors/Plain.hpp"
 #include "../details/behaviors/Temporal.hpp"
 #include "../details/render/Parameter.hpp"
 #include "../details/traits/C3.hpp"
@@ -35,7 +37,10 @@ namespace pace {
 
   PACE__INHERIT_REGISTER( facade::Elapsed, details::aspects::Timer );
 
-  PACE__ENTAIL_REGISTER( facade::Elapsed, details::behaviors::Temporal );
+  PACE__ENTAIL_REGISTER( facade::Elapsed,
+                         details::behaviors::Indeterminate,
+                         details::behaviors::Plain,
+                         details::behaviors::Temporal );
 } // namespace pace
 
 #endif

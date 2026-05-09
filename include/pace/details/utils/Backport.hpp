@@ -31,9 +31,7 @@ namespace pace {
 #else
       template<typename T, typename... Args>
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX23_CNSTXPR std::unique_ptr<T> make_unique( Args&&... args )
-      {
-        return std::unique_ptr<T>( ::new T( std::forward<Args>( args )... ) );
-      }
+      { return std::unique_ptr<T>( ::new T( std::forward<Args>( args )... ) ); }
 #endif
 
 #if PACE__CXX14
@@ -53,24 +51,7 @@ namespace pace {
       using std::uncaught_exceptions;
 #else
       PACE__FORCEINLINE int uncaught_exceptions() noexcept
-      {
-        return static_cast<int>( std::uncaught_exception() );
-      }
-#endif
-
-#ifdef __cpp_lib_clamp
-      using std::clamp;
-#else
-      template<class T, class Compare>
-      constexpr const T& clamp( const T& v, const T& lo, const T& hi, Compare comp )
-      {
-        return comp( v, lo ) ? lo : comp( hi, v ) ? hi : v;
-      }
-      template<class T>
-      constexpr const T& clamp( const T& v, const T& lo, const T& hi )
-      {
-        return clamp( v, lo, hi, std::less<T> {} );
-      }
+      { return static_cast<int>( std::uncaught_exception() ); }
 #endif
 
 #if PACE__CXX17
@@ -89,17 +70,13 @@ namespace pace {
       template<typename T>
       PACE__FORCEINLINE PACE__CXX20_CNSTXPR void destroy_at( T& object )
         noexcept( std::is_nothrow_destructible<T>::value )
-      {
-        destroy_at( std::addressof( object ) );
-      }
+      { destroy_at( std::addressof( object ) ); }
 
 #ifdef __cpp_lib_launder
       // Available only for buffers that use placement new.
       template<typename To, typename From>
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX17_CNSTXPR To* launder_as( From* src ) noexcept
-      {
-        return std::launder( reinterpret_cast<To*>( src ) );
-      }
+      { return std::launder( reinterpret_cast<To*>( src ) ); }
 #else
       // Available only for buffers that use placement new.
       template<typename To, typename From>
@@ -163,9 +140,7 @@ namespace pace {
                         traits::AnyOf<std::is_base_of<C, typename std::decay<Object>::type>,
                                       std::is_same<C, typename std::decay<Object>::type>>>::value,
           decltype( ( std::forward<Object>( object ).*method )( std::forward<Args>( args )... ) )>::type
-      {
-        return ( std::forward<Object>( object ).*method )( std::forward<Args>( args )... );
-      }
+      { return ( std::forward<Object>( object ).*method )( std::forward<Args>( args )... ); }
       template<typename C, typename MemFn, typename Object, typename... Args>
       PACE__FORCEINLINE constexpr auto invoke( MemFn C::* method, Object&& object, Args&&... args )
         noexcept( noexcept( ( object.get().*method )( std::forward<Args>( args )... ) ) ) ->
@@ -173,9 +148,7 @@ namespace pace {
                                               traits::is_instance_of<typename std::decay<Object>::type,
                                                                      std::reference_wrapper>>::value,
                                 decltype( ( object.get().*method )( std::forward<Args>( args )... ) )>::type
-      {
-        return ( object.get().*method )( std::forward<Args>( args )... );
-      }
+      { return ( object.get().*method )( std::forward<Args>( args )... ); }
       template<typename C, typename MemFn, typename Object, typename... Args>
       PACE__FORCEINLINE constexpr auto invoke( MemFn C::* method, Object&& object, Args&&... args )
         noexcept( noexcept( ( ( *std::forward<Object>( object ) )
@@ -187,9 +160,7 @@ namespace pace {
                                                   traits::is_instance_of<typename std::decay<Object>::type,
                                                                          std::reference_wrapper>>>>::value,
           decltype( ( ( *std::forward<Object>( object ) ).*method )( std::forward<Args>( args )... ) )>::type
-      {
-        return ( ( *std::forward<Object>( object ) ).*method )( std::forward<Args>( args )... );
-      }
+      { return ( ( *std::forward<Object>( object ) ).*method )( std::forward<Args>( args )... ); }
       template<typename C, typename MemObj, typename Object>
       PACE__FORCEINLINE constexpr auto invoke( MemObj C::* member, Object&& object ) noexcept ->
         typename std::enable_if<
@@ -197,18 +168,14 @@ namespace pace {
                         traits::AnyOf<std::is_base_of<C, typename std::decay<Object>::type>,
                                       std::is_same<C, typename std::decay<Object>::type>>>::value,
           decltype( std::forward<Object>( object ).*member )>::type
-      {
-        return std::forward<Object>( object ).*member;
-      }
+      { return std::forward<Object>( object ).*member; }
       template<typename C, typename MemObj, typename Object>
       PACE__FORCEINLINE constexpr auto invoke( MemObj C::* member, Object&& object ) noexcept ->
         typename std::enable_if<traits::AllOf<std::is_member_object_pointer<MemObj C::*>,
                                               traits::is_instance_of<typename std::decay<Object>::type,
                                                                      std::reference_wrapper>>::value,
                                 decltype( object.get().*member )>::type
-      {
-        return object.get().*member;
-      }
+      { return object.get().*member; }
       template<typename C, typename MemObj, typename Object>
       PACE__FORCEINLINE constexpr auto invoke( MemObj C::* member, Object&& object )
         noexcept( noexcept( ( *std::forward<Object>( object ) ).*member ) ) -> typename std::enable_if<
@@ -218,9 +185,7 @@ namespace pace {
                                                   traits::is_instance_of<typename std::decay<Object>::type,
                                                                          std::reference_wrapper>>>>::value,
           decltype( ( *std::forward<Object>( object ) ).*member )>::type
-      {
-        return ( *std::forward<Object>( object ) ).*member;
-      }
+      { return ( *std::forward<Object>( object ) ).*member; }
       template<typename Fn, typename... Args>
       PACE__FORCEINLINE constexpr auto invoke( Fn&& fn, Args&&... args )
         noexcept( noexcept( std::forward<Fn>( fn )( std::forward<Args>( args )... ) ) ) ->
@@ -229,9 +194,7 @@ namespace pace {
             traits::AnyOf<std::is_member_function_pointer<typename std::remove_reference<Fn>::type>,
                           std::is_member_object_pointer<typename std::remove_reference<Fn>::type>>>::value,
           decltype( std::forward<Fn>( fn )( std::forward<Args>( args )... ) )>::type
-      {
-        return std::forward<Fn>( fn )( std::forward<Args>( args )... );
-      }
+      { return std::forward<Fn>( fn )( std::forward<Args>( args )... ); }
 #endif
 
 #ifdef __cpp_lib_to_address
@@ -240,16 +203,12 @@ namespace pace {
       template<typename Ptr>
       PACE__FORCEINLINE constexpr auto to_address( const Ptr& p ) noexcept
         -> decltype( std::pointer_traits<Ptr>::to_address( p ) )
-      {
-        return std::pointer_traits<Ptr>::to_address( p );
-      }
+      { return std::pointer_traits<Ptr>::to_address( p ); }
       // template argument None is used to lower the priority of this overloaded
       template<typename Ptr, typename... None>
       PACE__FORCEINLINE constexpr auto to_address( const Ptr& p, None... ) noexcept
         -> decltype( to_address( p.operator->() ) )
-      {
-        return to_address( p.operator->() );
-      }
+      { return to_address( p.operator->() ); }
       template<typename T>
       PACE__FORCEINLINE constexpr T* to_address( T* p ) noexcept
       {
@@ -267,23 +226,17 @@ namespace pace {
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX17_CNSTXPR auto distance( Itr first, Itr second )
         noexcept( noexcept( std::distance( std::move( first ), std::move( second ) ) ) )
           -> decltype( std::distance( std::move( first ), std::move( second ) ) )
-      {
-        return std::distance( std::move( first ), std::move( second ) );
-      }
+      { return std::distance( std::move( first ), std::move( second ) ); }
       template<typename R>
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR auto begin( R&& r )
         noexcept( noexcept( std::begin( std::forward<R>( r ) ) ) )
           -> decltype( std::begin( std::forward<R>( r ) ) )
-      {
-        return std::begin( std::forward<R>( r ) );
-      }
+      { return std::begin( std::forward<R>( r ) ); }
       template<typename R>
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR auto end( R&& r )
         noexcept( noexcept( std::end( std::forward<R>( r ) ) ) )
           -> decltype( std::end( std::forward<R>( r ) ) )
-      {
-        return std::end( std::forward<R>( r ) );
-      }
+      { return std::end( std::forward<R>( r ) ); }
 #endif
 
 #ifdef __cpp_lib_ranges
@@ -295,14 +248,10 @@ namespace pace {
       PACE__NODISCARD PACE__FORCEINLINE constexpr auto size( Range&& rn )
         noexcept( noexcept( std::forward<Range>( rn ).size() ) )
           -> decltype( std::forward<Range>( rn ).size() )
-      {
-        return std::forward<Range>( rn ).size();
-      }
+      { return std::forward<Range>( rn ).size(); }
       template<typename Range, types::Size N>
       PACE__NODISCARD PACE__FORCEINLINE constexpr types::Size size( const Range ( & )[N] ) noexcept
-      {
-        return N;
-      }
+      { return N; }
 #endif
 
 #if PACE__CXX20
@@ -322,9 +271,7 @@ namespace pace {
       PACE__FORCEINLINE PACE__CXX20_CNSTXPR typename std::enable_if<!std::is_array<T>::value, T*>::type
         construct_at( T* location, Args&&... args )
           noexcept( noexcept( ::new ( std::declval<void*>() ) T( std::forward<Args>( args )... ) ) )
-      {
-        return ::new ( location ) T( std::forward<Args>( args )... );
-      }
+      { return ::new ( location ) T( std::forward<Args>( args )... ); }
 #endif
       template<typename T, typename U, typename... Args>
       PACE__FORCEINLINE PACE__CXX20_CNSTXPR T* construct_at( U* location, Args&&... args )
@@ -340,9 +287,7 @@ namespace pace {
       template<typename E>
       PACE__NODISCARD PACE__FORCEINLINE constexpr
         typename std::underlying_type<E>::type to_underlying( E enum_val ) noexcept
-      {
-        return static_cast<typename std::underlying_type<E>::type>( enum_val );
-      }
+      { return static_cast<typename std::underlying_type<E>::type>( enum_val ); }
 #endif
 
       // see https://github.com/llvm/llvm-project/issues/101614
@@ -387,9 +332,7 @@ namespace pace {
 # define PACE__METHOD( Qualifier )                                                                   \
    template<typename T>                                                                              \
    PACE__FORCEINLINE constexpr T* start_lifetime_as_array( Qualifier void* p, types::Size ) noexcept \
-   {                                                                                                 \
-     return static_cast<T*>( p );                                                                    \
-   }
+   { return static_cast<T*>( p ); }
       PACE__METHOD()
       PACE__METHOD( const )
       PACE__METHOD( volatile )

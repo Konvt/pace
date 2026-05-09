@@ -9,7 +9,10 @@
 
 namespace pace {
   namespace prefab {
-    template<typename Soul, Channel Outlet, Policy Mode, Region Area>
+    template<typename Soul,
+             Channel Outlet = Channel::Stderr,
+             Policy Mode    = Policy::Sync,
+             Region Area    = Region::Fixed>
     class BasicBar
       : public details::traits::LI<details::aspects::EntailLinker_t<Soul>>::
           template type<Indicator, BasicBar<Soul, Outlet, Mode, Area>> {

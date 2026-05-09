@@ -2,6 +2,7 @@
 #define PACE_FANCY
 
 #include "Motional.hpp"
+#include "Plain.hpp"
 #include "Renderable.hpp"
 
 namespace pace {
@@ -58,7 +59,9 @@ namespace pace {
       };
     } // namespace behaviors
 
-    PACE__INHERIT_REGISTER( behaviors::Fancy, behaviors::Renderable, behaviors::Motional );
+    // The Plain declaration is merely to resolve the uncertain dependency sequence,
+    // and it has nothing to do with the dependency relationships among them.
+    PACE__INHERIT_REGISTER( behaviors::Fancy, behaviors::Plain, behaviors::Renderable, behaviors::Motional );
   } // namespace details
 } // namespace pace
 

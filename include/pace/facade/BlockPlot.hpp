@@ -90,8 +90,8 @@ namespace pace {
                           details::aspects::Reversible,
                           details::aspects::Remain,
                           details::aspects::Filler,
-                          details::aspects::Frame,
                           details::aspects::Bar,
+                          details::aspects::Frame,
                           details::aspects::Capacity );
 
   PACE__ENTAIL_REGISTER( facade::BlockPlot, details::behaviors::Determinate, details::behaviors::Plain );

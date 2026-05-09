@@ -2,6 +2,7 @@
 #define PACE_DETERMINATE
 
 #include "Incremental.hpp"
+#include "Indeterminate.hpp"
 #include "Renderable.hpp"
 #include "Temporal.hpp"
 
@@ -44,7 +45,10 @@ namespace pace {
       };
     } // namespace behaviors
 
+    // The Indeterminate declaration is merely to resolve the uncertain dependency sequence,
+    // and it has nothing to do with the dependency relationships among them.
     PACE__INHERIT_REGISTER( behaviors::Determinate,
+                            behaviors::Indeterminate,
                             behaviors::Renderable,
                             behaviors::Incremental,
                             behaviors::Temporal );
