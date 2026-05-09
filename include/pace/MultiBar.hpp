@@ -262,7 +262,7 @@ namespace pace {
 
   // Generates a MultiBar type containing Count instances of the given Bar type.
   template<typename Bar, details::types::Size Count>
-  using MakeMulti_t = details::traits::FillWith_t<MultiBar, Bar, Count>;
+  using MultiBar_t = details::traits::FillWith_t<MultiBar, Bar, Count>;
 
   // Creates a MultiBar using existing bar instances.
   template<typename Config, typename... Configs, Channel O, Policy M, Region A>
@@ -311,7 +311,7 @@ namespace pace {
       template<types::Size Cnt, Channel O, Policy M, Region A, typename B, types::Size... Is>
       PACE__NODISCARD PACE__FORCEINLINE typename std::enable_if<
         traits::is_bar<typename std::decay<B>::type>::value,
-        MakeMulti_t<prefab::BasicBar<typename std::decay<B>::type::Config, O, M, A>, Cnt>>::type
+        MultiBar_t<prefab::BasicBar<typename std::decay<B>::type::Config, O, M, A>, Cnt>>::type
         make_multi_helper( B&& bar, const traits::IndexSeq<Is...>& )
           noexcept( traits::BoolConstant<( Cnt == 1 )>::value )
       {
@@ -322,7 +322,7 @@ namespace pace {
       template<types::Size Cnt, Channel O, Policy M, Region A, typename C, types::Size... Is>
       PACE__NODISCARD PACE__FORCEINLINE typename std::enable_if<
         traits::is_config<typename std::decay<C>::type>::value,
-        MakeMulti_t<prefab::BasicBar<typename std::decay<C>::type, O, M, A>, Cnt>>::type
+        MultiBar_t<prefab::BasicBar<typename std::decay<C>::type, O, M, A>, Cnt>>::type
         make_multi_helper( C&& cfg, const traits::IndexSeq<Is...>& )
           noexcept( traits::AllOf<traits::BoolConstant<( Cnt == 1 )>,
                                   traits::Not<std::is_lvalue_reference<C&&>>>::value )
@@ -345,7 +345,7 @@ namespace pace {
 #else
       -> typename std::enable_if<details::traits::AllOf<details::traits::BoolConstant<( Cnt > 0 )>,
                                                         details::traits::is_config<Config>>::value,
-                                 MakeMulti_t<prefab::BasicBar<Config, O, M, A>, Cnt>>::type
+                                 MultiBar_t<prefab::BasicBar<Config, O, M, A>, Cnt>>::type
 #endif
   {
     return details::utils::make_multi_helper<Cnt, O, M, A>( std::move( bar ),
@@ -369,7 +369,7 @@ namespace pace {
       -> typename std::enable_if<
         details::traits::AllOf<details::traits::BoolConstant<( Cnt > 0 )>,
                                details::traits::is_config<typename std::decay<Config>::type>>::value,
-        MakeMulti_t<prefab::BasicBar<typename std::decay<Config>::type, Outlet, Mode, Area>, Cnt>>::type
+        MultiBar_t<prefab::BasicBar<typename std::decay<Config>::type, Outlet, Mode, Area>, Cnt>>::type
 #endif
   {
     return details::utils::make_multi_helper<Cnt, Outlet, Mode, Area>(
@@ -385,7 +385,7 @@ namespace pace {
   template<typename Bar, details::types::Size Cnt, typename... Objs>
   PACE__NODISCARD PACE__FORCEINLINE auto make_multi( Objs&&... objs ) noexcept( sizeof...( Objs ) == Cnt )
 #ifdef __cpp_concepts
-    -> MakeMulti_t<Bar, Cnt>
+    -> MultiBar_t<Bar, Cnt>
     requires( Cnt > 0 && sizeof...( Objs ) <= Cnt && details::traits::is_bar<Bar>::value
               && ( ( ( std::is_same_v<std::remove_cv_t<Bar>, std::decay_t<Objs>> && ... )
                      && !( std::is_lvalue_reference_v<Objs &&> || ... ) )
@@ -402,7 +402,7 @@ namespace pace {
             details::traits::Not<details::traits::AnyOf<std::is_lvalue_reference<Objs&&>...>>>,
           details::traits::AllOf<std::is_same<typename Bar::Config, typename std::decay<Objs>::type>...>>>::
         value,
-      MakeMulti_t<Bar, Cnt>>::type
+      MultiBar_t<Bar, Cnt>>::type
 #endif
   {
     return { std::forward<Objs>( objs )... };
@@ -421,7 +421,7 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE auto make_multi( Configs&&... configs )
     noexcept( sizeof...( Configs ) == Cnt )
 #ifdef __cpp_concepts
-      -> MakeMulti_t<prefab::BasicBar<Config, Outlet, Mode, Area>, Cnt>
+      -> MultiBar_t<prefab::BasicBar<Config, Outlet, Mode, Area>, Cnt>
     requires( Cnt > 0 && sizeof...( Configs ) <= Cnt && details::traits::is_config<Config>::value
               && ( std::is_same_v<Config, std::decay_t<Configs>> && ... ) )
 #else
@@ -430,7 +430,7 @@ namespace pace {
                                details::traits::BoolConstant<( sizeof...( Configs ) <= Cnt )>,
                                details::traits::is_config<Config>,
                                std::is_same<Config, typename std::decay<Configs>::type>...>::value,
-        MakeMulti_t<prefab::BasicBar<Config, Outlet, Mode, Area>, Cnt>>::type
+        MultiBar_t<prefab::BasicBar<Config, Outlet, Mode, Area>, Cnt>>::type
 #endif
   {
     return { std::forward<Configs>( configs )... };
@@ -449,7 +449,7 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE auto make_multi( prefab::BasicBar<Configs, Outlet, Mode, Area>&&... bars )
     noexcept( sizeof...( Configs ) == Cnt )
 #ifdef __cpp_concepts
-      -> MakeMulti_t<prefab::BasicBar<Config, Outlet, Mode, Area>, Cnt>
+      -> MultiBar_t<prefab::BasicBar<Config, Outlet, Mode, Area>, Cnt>
     requires( Cnt > 0 && sizeof...( Configs ) <= Cnt && details::traits::is_config<Config>::value
               && ( std::is_same_v<Config, std::decay_t<Configs>> && ... ) )
 #else
@@ -458,7 +458,7 @@ namespace pace {
                                details::traits::BoolConstant<( sizeof...( Configs ) <= Cnt )>,
                                details::traits::is_config<Config>,
                                std::is_same<Config, typename std::decay<Configs>::type>&&...>::value,
-        MakeMulti_t<prefab::BasicBar<Config, Outlet, Mode, Area>, Cnt>>::type
+        MultiBar_t<prefab::BasicBar<Config, Outlet, Mode, Area>, Cnt>>::type
 #endif
   {
     return { std::move( bars )... };

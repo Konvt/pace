@@ -20,8 +20,8 @@ export namespace pace {
   using pace::SweepBar;
 
   using pace::make_multi;
-  using pace::MakeMulti_t;
   using pace::MultiBar;
+  using pace::MultiBar_t;
 
   using pace::DynamicBar;
   using pace::make_dynamic;
