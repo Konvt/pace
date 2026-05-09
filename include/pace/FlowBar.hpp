@@ -1,0 +1,61 @@
+#ifndef PACE_FLOW_BAR
+#define PACE_FLOW_BAR
+
+#include "facade/Counter.hpp"
+#include "facade/ETA.hpp"
+#include "facade/Elapsed.hpp"
+#include "facade/FlowPlot.hpp"
+#include "facade/Percentage.hpp"
+#include "facade/Speed.hpp"
+#include "prefab/BasicBar.hpp"
+#include "prefab/BasicConfig.hpp"
+#include "slice/TrackedSpan.hpp"
+
+namespace pace {
+  namespace config {
+    using Flow = prefab::BasicConfig<facade::Percentage,
+                                     facade::FlowPlot,
+                                     facade::Counter,
+                                     facade::Speed,
+                                     facade::Elapsed,
+                                     facade::ETA>;
+  }
+
+  /**
+   * A progress bar with a flowing indicator, where the lead moves in a single direction within the bar area.
+   *
+   * It's structure is shown below:
+   * {LeftBorder}{Prefix}{Percent}{Starting}{Filler}{Lead}{Filler}{Ending}{Counter}{Speed}{Elapsed}{ETA}{Postfix}{RightBorder}
+   */
+  template<Channel Outlet = Channel::Stderr, Policy Mode = Policy::Async, Region Area = Region::Fixed>
+  using FlowBar = prefab::BasicBar<config::Flow, Outlet, Mode, Area>;
+
+  PACE__PROVIDE_FOR( config::Flow, option::Colored, true );
+  PACE__PROVIDE_FOR( config::Flow, option::Bolded, true );
+  PACE__PROVIDE_FOR( config::Flow, option::Reversed, false );
+  PACE__PROVIDE_FOR( config::Flow, option::Shift, -3 );
+  PACE__PROVIDE_FOR( config::Flow, option::BarWidth, 30 );
+  PACE__PROVIDE_FOR( config::Flow, option::Magnitude, 1000 );
+  PACE__PROVIDE_FOR( config::Flow, option::Starting, u8"[" );
+  PACE__PROVIDE_FOR( config::Flow, option::Ending, u8"]" );
+  PACE__PROVIDE_FOR( config::Flow, option::Filler, u8" " );
+  PACE__PROVIDE_FOR( config::Flow, option::Divider, u8" | " );
+  PACE__PROVIDE_FOR( config::Flow, option::InfoColor, Color::Cyan );
+  template<>
+  struct pace::config::ProvideFor<config::Flow, option::Projection> {
+    static option::Projection provide()
+    {
+      return config::Flow::bake( option::Only<facade::FlowPlot, facade::Elapsed>() );
+    }
+  };
+  template<>
+  struct pace::config::ProvideFor<config::Flow, option::Lead> {
+    static option::Lead provide() { return { "====" }; }
+  };
+  template<>
+  struct pace::config::ProvideFor<config::Flow, option::SpeedUnit> {
+    static option::SpeedUnit provide() { return option::SpeedUnit( { u8"Hz", u8"kHz", u8"MHz", u8"GHz" } ); }
+  };
+} // namespace pace
+
+#endif

@@ -33,4 +33,4 @@ foreach(dir IN LISTS possible_dirs)
   endif()
 endforeach()
 
-message(STATUS "Uninstallation completed (including empty pgbar directories)")
+message(STATUS "Uninstallation completed (including empty pace directories)")

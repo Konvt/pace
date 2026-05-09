@@ -4,12 +4,12 @@
 #include <string_view>
 
 /**
- * This file is a minimal implementation of the pgbar::details::charcodes::U8String component,
+ * This file is a minimal implementation of the pace::details::charcodes::U8String component,
  * used to demonstrate the char_width function with character encoding mappings
  * from the Unicode CodeCharts.
  */
 
-namespace pgbar {
+namespace pace {
   namespace details {
     namespace types {
       using Size       = std::size_t;
@@ -132,13 +132,13 @@ namespace pgbar {
             // After RFC 3629, the maximum length of each standard UTF-8 character is 4 bytes.
             const auto first_byte  = static_cast<types::UCodePoint>( *start_point );
             auto integrity_checker = [start_point, &u8_str]( types::Size expected_len ) -> void {
-              // __PGBAR_ASSERT( start_point >= u8_str.data() );
+              // __PACE_ASSERT( start_point >= u8_str.data() );
               if ( u8_str.size() - ( start_point - u8_str.data() ) < expected_len )
-                throw std::invalid_argument( "pgbar: incomplete UTF-8 string" );
+                throw std::invalid_argument( "pace: incomplete UTF-8 string" );
 
               for ( types::Size i = 1; i < expected_len; ++i )
                 if ( ( start_point[i] & 0xC0 ) != 0x80 )
-                  throw std::invalid_argument( "pgbar: broken UTF-8 character" );
+                  throw std::invalid_argument( "pace: broken UTF-8 character" );
             };
 
             types::UCodePoint utf_codepoint = {};
@@ -164,7 +164,7 @@ namespace pgbar {
                             | ( static_cast<types::UCodePoint>( start_point[3] ) & 0x3F );
               i += 4;
             } else
-              throw std::invalid_argument( "pgbar: not a standard UTF-8 string" );
+              throw std::invalid_argument( "pace: not a standard UTF-8 string" );
 
             width += char_width( utf_codepoint );
           }
@@ -198,7 +198,7 @@ namespace pgbar {
       };
     } // namespace charcodes
   } // namespace details
-} // namespace pgbar
+} // namespace pace
 
 int main()
 {
@@ -206,7 +206,7 @@ int main()
   system( "chcp 65001" );
 #endif
 
-  using namespace pgbar::details;
+  using namespace pace::details;
   std::cout << "🇫🇪" << ": " << charcodes::U8String::render_width( "🇫🇪" ) << std::endl;
   std::cout << "👨‍👩‍👧‍👦" << ": "
             << charcodes::U8String::render_width( "👨‍👩‍👧‍👦" ) << std::endl;

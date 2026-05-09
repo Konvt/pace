@@ -1,6 +1,6 @@
-#include "pgbar/MultiBar.hpp"
-#include "pgbar/BlockBar.hpp"
-#include "pgbar/FlowBar.hpp"
+#include "pace/MultiBar.hpp"
+#include "pace/BlockBar.hpp"
+#include "pace/FlowBar.hpp"
 #include <chrono>
 #include <random>
 #include <thread>
@@ -8,26 +8,26 @@ using namespace std;
 
 int main()
 {
-  auto mbar = pgbar::make_multi(
-    pgbar::config::Flow( pgbar::option::Except<>(),
-                         pgbar::option::Filler( "━" ),
-                         pgbar::option::FillerColor( pgbar::Color::Red ),
-                         pgbar::option::Lead( "━━" ),
-                         pgbar::option::LeadColor( pgbar::Color::White ),
-                         pgbar::option::InfoColor( "#F5B0B6" ),
-                         pgbar::option::Starting(),
-                         pgbar::option::Ending() ),
-    pgbar::config::Block( pgbar::option::Lead( { " ", "▁", "▂", "▃", "▄", "▅", "▆", "▇" } ),
-                          pgbar::option::InfoColor( "#F7A699" ) ),
-    pgbar::config::Block( pgbar::option::Filler( "⠿" ),
-                          pgbar::option::Lead( { " ", "⠄", "⠆", "⠇", "⠧", "⠷" } ),
-                          pgbar::option::InfoColor( "#7DD4DF" ) ),
-    pgbar::config::Block( pgbar::option::Lead( { " ", "▖", "▞", "▛" } ),
-                          pgbar::option::InfoColor( "#8AB7EB" ) ) );
+  auto mbar = pace::make_multi(
+    pace::config::Flow( pace::option::Except<>(),
+                         pace::option::Filler( "━" ),
+                         pace::option::FillerColor( pace::Color::Red ),
+                         pace::option::Lead( "━━" ),
+                         pace::option::LeadColor( pace::Color::White ),
+                         pace::option::InfoColor( "#F5B0B6" ),
+                         pace::option::Starting(),
+                         pace::option::Ending() ),
+    pace::config::Block( pace::option::Lead( { " ", "▁", "▂", "▃", "▄", "▅", "▆", "▇" } ),
+                          pace::option::InfoColor( "#F7A699" ) ),
+    pace::config::Block( pace::option::Filler( "⠿" ),
+                          pace::option::Lead( { " ", "⠄", "⠆", "⠇", "⠧", "⠷" } ),
+                          pace::option::InfoColor( "#7DD4DF" ) ),
+    pace::config::Block( pace::option::Lead( { " ", "▖", "▞", "▛" } ),
+                          pace::option::InfoColor( "#8AB7EB" ) ) );
   mbar.config<0>().quota( ( tuple_size<decltype( mbar )>::value - 1 ) * 2 );
   // Bind a callback that will be executed at the end of the iteration below.
   mbar.at<0>() |=
-    [&]( pgbar::FlowBar<>& self ) { self.config().filler_color( pgbar::Color::Green ).lead( "" ); };
+    [&]( pace::FlowBar<>& self ) { self.config().filler_color( pace::Color::Green ).lead( "" ); };
   // Bind a callback to mark that the current bar has been compeleted.
   mbar.at<1>() |= [&]() { mbar.tick<0>(); };
   mbar.at<2>() |= [&]() { mbar.tick<0>(); };

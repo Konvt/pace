@@ -13,7 +13,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "PGBAR_BUILD_DEMO": "ON"
+        "PACE_BUILD_DEMO": "ON"
       }
     },
     {
@@ -23,7 +23,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "PGBAR_BUILD_DEMO": "ON"
+        "PACE_BUILD_DEMO": "ON"
       }
     },
     {
@@ -33,9 +33,9 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "OFF",
-        "PGBAR_INSTALL": "ON",
-        "PGBAR_PACKAGE": "ON",
-        "PGBAR_BUILD_DEMO": "OFF"
+        "PACE_INSTALL": "ON",
+        "PACE_PACKAGE": "ON",
+        "PACE_BUILD_DEMO": "OFF"
       }
     }
   ]

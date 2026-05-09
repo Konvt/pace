@@ -1,8 +1,8 @@
-#include "pgbar/BlockBar.hpp"
+#include "pace/BlockBar.hpp"
 
 int main()
 {
-  pgbar::BlockBar<> blckbar;
+  pace::BlockBar<> blckbar;
   blckbar.config().enable_all().quota( 2147483647 );
   for ( size_t i = 0; i < 2147483647; ++i )
     blckbar.tick();

@@ -1,5 +1,5 @@
-#include "pgbar/DynamicBar.hpp"
-#include "pgbar/ProgressBar.hpp"
+#include "pace/DynamicBar.hpp"
+#include "pace/ProgressBar.hpp"
 #include <chrono>
 #include <thread>
 #include <vector>
@@ -7,11 +7,11 @@ using namespace std;
 
 int main()
 {
-  pgbar::DynamicBar<> dbar;
+  pace::DynamicBar<> dbar;
 
-  auto /* std::unique<BarType> */ bar1 = dbar.insert<pgbar::ProgressBar<>>();
+  auto /* std::unique<BarType> */ bar1 = dbar.insert<pace::ProgressBar<>>();
   auto bar2 =
-    dbar.insert( pgbar::config::Line( pgbar::option::Prefix( "No.2" ), pgbar::option::Quota( 8000 ) ) );
+    dbar.insert( pace::config::Line( pace::option::Prefix( "No.2" ), pace::option::Quota( 8000 ) ) );
 
   vector<thread> pool;
   pool.emplace_back( [&bar1]() {
@@ -31,7 +31,7 @@ int main()
   } );
   pool.emplace_back( [&dbar]() {
     auto bar =
-      dbar.insert<pgbar::config::Line>( pgbar::option::Prefix( "No.3" ), pgbar::option::Quota( 1000 ) );
+      dbar.insert<pace::config::Line>( pace::option::Prefix( "No.3" ), pace::option::Quota( 1000 ) );
     // Do some ticks, then reset the current bar before completing.
     for ( int i = 0; i < 500; ++i ) {
       bar->tick();

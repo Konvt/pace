@@ -1,5 +1,5 @@
 // This file is only used to trigger CMake to generate compile_commands.json.
-#include "pgbar/pgbar.hpp"
+#include "pace/pace.hpp"
 #include <random>
 #include <thread>
 using namespace std;
@@ -8,21 +8,21 @@ int main()
 {
   mt19937 rd { random_device {}() };
   {
-    pgbar::iterate<pgbar::config::Block>(
+    pace::iterate<pace::config::Block>(
       10000,
       [&]( int ) {
         this_thread::sleep_for( chrono::microseconds( uniform_int_distribution<int>( 1, 1200 )( rd ) ) );
       },
-      []( pgbar::BlockBar<>& self ) { self.config().filler_color( pgbar::Color::Green ); },
-      pgbar::option::Lead( { " ", "▁", "▂", "▃", "▄", "▅", "▆", "▇" } ),
-      pgbar::option::InfoColor( "#FFD200" ) );
+      []( pace::BlockBar<>& self ) { self.config().filler_color( pace::Color::Green ); },
+      pace::option::Lead( { " ", "▁", "▂", "▃", "▄", "▅", "▆", "▇" } ),
+      pace::option::InfoColor( "#FFD200" ) );
   }
   {
-    for ( auto _ : pgbar::iterate<pgbar::config::Block>(
+    for ( auto _ : pace::iterate<pace::config::Block>(
             10000,
-            []( pgbar::BlockBar<>& self ) { self.config().filler_color( pgbar::Color::Green ); },
-            pgbar::option::Lead( { " ", " ", "░", "░", "▒", "▒", "▓", "▓" } ),
-            pgbar::option::InfoColor( "#00BBFF" ) ) ) {
+            []( pace::BlockBar<>& self ) { self.config().filler_color( pace::Color::Green ); },
+            pace::option::Lead( { " ", " ", "░", "░", "▒", "▒", "▓", "▓" } ),
+            pace::option::InfoColor( "#00BBFF" ) ) ) {
       this_thread::sleep_for( chrono::microseconds( uniform_int_distribution<int>( 1, 1200 )( rd ) ) );
     }
   }

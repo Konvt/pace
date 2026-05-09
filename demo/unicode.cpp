@@ -1,4 +1,4 @@
-#include "pgbar/ProgressBar.hpp"
+#include "pace/ProgressBar.hpp"
 #include <chrono>
 #include <iostream>
 using namespace std;
@@ -7,14 +7,14 @@ int main()
 {
   constexpr auto iteration = 2147483647;
 
-  pgbar::ProgressBar<> pbar;
-  pbar.config().with( pgbar::option::Prefix( u8"にほんご" ),
-                      pgbar::option::Starting( u8"🔥 " ),
-                      pgbar::option::Ending( u8" ✅" ),
-                      pgbar::option::Lead( u8"🚀" ),
-                      pgbar::option::Filler( u8"急" ),
-                      pgbar::option::Postfix( u8"한국어" ),
-                      pgbar::option::Quota( iteration ) );
+  pace::ProgressBar<> pbar;
+  pbar.config().with( pace::option::Prefix( u8"にほんご" ),
+                      pace::option::Starting( u8"🔥 " ),
+                      pace::option::Ending( u8" ✅" ),
+                      pace::option::Lead( u8"🚀" ),
+                      pace::option::Filler( u8"急" ),
+                      pace::option::Postfix( u8"한국어" ),
+                      pace::option::Quota( iteration ) );
 
   auto start = chrono::high_resolution_clock::now();
   for ( size_t i = 0; i < iteration; ++i )

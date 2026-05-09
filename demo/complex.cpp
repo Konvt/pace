@@ -1,7 +1,7 @@
-#include "pgbar/BlockBar.hpp"
-#include "pgbar/MultiBar.hpp"
-#include "pgbar/ProgressBar.hpp"
-#include "pgbar/SweepBar.hpp"
+#include "pace/BlockBar.hpp"
+#include "pace/MultiBar.hpp"
+#include "pace/ProgressBar.hpp"
+#include "pace/SweepBar.hpp"
 #include <chrono>
 #include <random>
 #include <thread>
@@ -11,29 +11,29 @@ using namespace std;
 int main()
 {
   auto bar =
-    pgbar::make_multi( pgbar::config::Line( pgbar::option::Prefix( "Eating something...." ),
-                                            pgbar::option::Filler( "⠇" ),
-                                            pgbar::option::Lead( { "⠈", "⠐", "⠠", "⢀", "⡀", "⠄", "⠂", "⠁" } ),
-                                            pgbar::option::Shift( 1 ),
-                                            pgbar::option::InfoColor( "#7D7" ) ),
-                       pgbar::config::Block( pgbar::option::Prefix( "Picking something..." ),
-                                             pgbar::option::Filler( "⠿" ),
-                                             pgbar::option::Lead( { " ", "⠄", "⠆", "⠇", "⠧", "⠷" } ),
-                                             pgbar::option::InfoColor( "#7BD" ) ),
-                       pgbar::config::Sweep( pgbar::option::Prefix( "Doing something....." ),
-                                             pgbar::option::Filler( "." ),
-                                             pgbar::option::Lead( "·" ),
-                                             pgbar::option::InfoColor( "#26B4EB" ) ) );
+    pace::make_multi( pace::config::Line( pace::option::Prefix( "Eating something...." ),
+                                            pace::option::Filler( "⠇" ),
+                                            pace::option::Lead( { "⠈", "⠐", "⠠", "⢀", "⡀", "⠄", "⠂", "⠁" } ),
+                                            pace::option::Shift( 1 ),
+                                            pace::option::InfoColor( "#7D7" ) ),
+                       pace::config::Block( pace::option::Prefix( "Picking something..." ),
+                                             pace::option::Filler( "⠿" ),
+                                             pace::option::Lead( { " ", "⠄", "⠆", "⠇", "⠧", "⠷" } ),
+                                             pace::option::InfoColor( "#7BD" ) ),
+                       pace::config::Sweep( pace::option::Prefix( "Doing something....." ),
+                                             pace::option::Filler( "." ),
+                                             pace::option::Lead( "·" ),
+                                             pace::option::InfoColor( "#26B4EB" ) ) );
 
   vector<thread> pool;
   pool.emplace_back( [&]() {
     bool flag = true;
     // Bind a callback executed at the end of the iteration below.
-    bar.at<0>() |= [&]( pgbar::ProgressBar<>& self ) {
+    bar.at<0>() |= [&]( pace::ProgressBar<>& self ) {
       if ( flag )
-        self.config().prefix( "✔ Mission Accomplished" ).prefix_color( pgbar::Color::Green );
+        self.config().prefix( "✔ Mission Accomplished" ).prefix_color( pace::Color::Green );
       else
-        self.config().prefix( "❌ Mission failed" ).prefix_color( pgbar::Color::Red );
+        self.config().prefix( "❌ Mission failed" ).prefix_color( pace::Color::Red );
     };
 
     mt19937 rd { random_device {}() };
@@ -43,11 +43,11 @@ int main()
   } );
   pool.emplace_back( [&]() {
     bool flag = true;
-    bar.at<1>() |= [&]( pgbar::BlockBar<>& self ) {
+    bar.at<1>() |= [&]( pace::BlockBar<>& self ) {
       if ( flag )
-        self.config().prefix( "✔ Mission Accomplished" ).prefix_color( pgbar::Color::Green );
+        self.config().prefix( "✔ Mission Accomplished" ).prefix_color( pace::Color::Green );
       else
-        self.config().prefix( "❌ Mission failed" ).prefix_color( pgbar::Color::Red );
+        self.config().prefix( "❌ Mission failed" ).prefix_color( pace::Color::Red );
     };
 
     mt19937 rd { random_device {}() };

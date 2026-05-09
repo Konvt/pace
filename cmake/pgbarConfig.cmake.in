@@ -1,7 +1,0 @@
-@PACKAGE_INIT@
-
-include(CMakeFindDependencyMacro)
-
-if(NOT TARGET pgbar::pgbar)
-  include(${CMAKE_CURRENT_LIST_DIR}/pgbarTargets.cmake)
-endif()
