@@ -52,6 +52,25 @@ namespace pace {
           : Base( config )
         {}
         constexpr Assembler( Base&& config ) noexcept : Base( std::move( config ) ) {}
+
+        std::uint64_t fixed_width() const noexcept override
+        {
+          details::concurrent::SharedLock<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
+          details::types::Size num_enabled = 0;
+          std::uint64_t width              = 0;
+          (void)std::initializer_list<bool> { (
+            num_enabled += this->projection_.test( details::traits::IndexIn<Facades, Facades...>::value ),
+            width += ( this->projection_.test( details::traits::IndexIn<Facades, Facades...>::value )
+                         ? details::traits::BaseOf_t<typename Base::Layout, Facades>::fixed_length()
+                         : 0 ),
+            false )... };
+          // Before the first element and the last element, we do not set a divider.
+          return width
+               + details::traits::BaseOf_t<typename Base::Layout, details::aspects::Prefix>::fixed_length()
+               + details::traits::BaseOf_t<typename Base::Layout, details::aspects::Postfix>::fixed_length()
+               + details::traits::BaseOf_t<typename Base::Layout, details::aspects::Segment>::fixed_length(
+                   num_enabled );
+        }
       };
     } // namespace render
   } // namespace details

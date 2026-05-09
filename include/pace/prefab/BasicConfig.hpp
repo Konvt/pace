@@ -276,22 +276,13 @@ namespace pace {
         return std::move( *this );
       }
 
-      PACE__NODISCARD std::uint64_t fixed_width() const noexcept
-      {
-        details::concurrent::SharedLock<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
-        details::types::Size num_enabled = 0;
-        std::uint64_t width              = 0;
-        (void)std::initializer_list<bool> { ( ++num_enabled,
-                                              width +=
-                                              ( projection_.test( details::traits::IndexIn<Facades>::value )
-                                                  ? details::traits::BaseOf_t<Layout, Facades>::fixed_length()
-                                                  : 0 ),
-                                              false )... };
-        // Before the first element and the last element, we do not set a divider.
-        return width + details::traits::BaseOf_t<Layout, details::aspects::Prefix>::fixed_length()
-             + details::traits::BaseOf_t<Layout, details::aspects::Postfix>::fixed_length()
-             + details::traits::BaseOf_t<Layout, details::aspects::Segment>::fixed_length( num_enabled );
-      }
+      /**
+       * Since the length of a progress bar is directly related to the way it is rendered,
+       * do not obtain `fixed_width` on a bare configuration type object;
+       * instead, access the `fixed_width()` of the internal configuration object
+       * through the `config()`method of a progress bar object.
+       */
+      PACE__NODISCARD virtual std::uint64_t fixed_width() const noexcept { return 0; }
 
       BasicConfig& enable_all() & noexcept
       {
@@ -374,7 +365,7 @@ namespace pace {
 #endif
       {
         std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
-        projection_.set( details::traits::IndexIn<F, Facades...>::value );
+        projection_.reset( details::traits::IndexIn<F, Facades...>::value );
         (void)std::initializer_list<bool> {
           ( projection_.reset( details::traits::IndexIn<Fs, Facades...>::value ), false )...
         };
@@ -394,7 +385,7 @@ namespace pace {
 #endif
       {
         std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
-        projection_.set( details::traits::IndexIn<F, Facades...>::value );
+        projection_.reset( details::traits::IndexIn<F, Facades...>::value );
         (void)std::initializer_list<bool> {
           ( projection_.reset( details::traits::IndexIn<Fs, Facades...>::value ), false )...
         };
