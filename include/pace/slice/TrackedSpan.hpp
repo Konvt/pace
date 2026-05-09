@@ -51,6 +51,7 @@ namespace pace {
       class iterator {
         UIRef ui_;
         Itr itr_;
+        bool used_ { false };
 
       public:
         using iterator_category = typename std::conditional<
@@ -82,12 +83,17 @@ namespace pace {
           ui_  = std::move( rhs.ui_ );
           return *this;
         }
-        PACE__CXX20_CNSTXPR ~iterator() = default;
+        PACE__CXX20_CNSTXPR ~iterator() noexcept
+        {
+          if ( used_ && ui_->active() )
+            ui_->abort();
+        }
 
         PACE__FORCEINLINE PACE__CXX14_CNSTXPR iterator& operator++() &
         {
           itr_ = std::next( itr_, 1 );
           ui_->tick();
+          used_ = true;
           return *this;
         }
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR iterator operator++( int ) &
