@@ -236,6 +236,8 @@ namespace pgbar {
 
   PGBAR__INHERIT_REGISTER( facade::Speed, details::aspects::Capacity );
 
+  PGBAR__OPTION_REGISTER( facade::Speed, option::Magnitude, option::SpeedUnit );
+
   PGBAR__ENTAIL_REGISTER( facade::Speed, details::behaviors::Incremental, details::behaviors::Temporal );
 } // namespace pgbar
 
