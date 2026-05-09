@@ -168,14 +168,10 @@ namespace pace {
       public:
         // Get the current working interval for all threads.
         PACE__NODISCARD static PACE__FORCEINLINE details::types::Tempus working_interval() noexcept
-        {
-          return _working_interval.load( std::memory_order_acquire );
-        }
+        { return _working_interval.load( std::memory_order_acquire ); }
         // Adjust the thread working interval between this loop and the next loop.
         static PACE__FORCEINLINE void working_interval( details::types::Tempus new_rate ) noexcept
-        {
-          _working_interval.store( new_rate, std::memory_order_release );
-        }
+        { _working_interval.store( new_rate, std::memory_order_release ); }
 
         static Renderer& itself() noexcept
         {

@@ -12,9 +12,7 @@ namespace pace {
       static_assert( std::is_default_constructible<Option>::value,
                      "the provided parameters cannot be constructed by default" );
       static constexpr Option provide() noexcept( std::is_nothrow_default_constructible<Option>::value )
-      {
-        return Option();
-      }
+      { return Option(); }
     };
 
 #if PACE__CXX14
@@ -29,9 +27,7 @@ namespace pace {
   struct pace::config::ProvideFor<Config, Option> {                                      \
     static Option provide()                                                              \
       noexcept( std::is_nothrow_constructible<Option, decltype( ( Defaults ) )>::value ) \
-    {                                                                                    \
-      return Option( Defaults );                                                         \
-    }                                                                                    \
+    { return Option( Defaults ); }                                                       \
   }
 
     template<typename Config, typename Option>

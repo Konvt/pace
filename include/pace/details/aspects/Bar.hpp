@@ -29,9 +29,7 @@ namespace pace {
       class Bar : public Base {
 #define PACE__UNPAKING( OptionName, MemberName, Constexpr )                                      \
   friend PACE__FORCEINLINE Constexpr void unpack( Bar& self, option::OptionName&& val ) noexcept \
-  {                                                                                              \
-    self.MemberName = std::move( val.value() );                                                  \
-  }
+  { self.MemberName = std::move( val.value() ); }
         PACE__UNPAKING( Starting, starting_, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( Ending, ending_, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( BarWidth, bar_width_, PACE__CXX20_CNSTXPR )
@@ -45,9 +43,7 @@ namespace pace {
         std::uint16_t bar_width_;
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length() const noexcept
-        {
-          return starting_.width() + ending_.width();
-        }
+        { return starting_.width() + ending_.width(); }
 
         template<typename... Options>
         PACE__CXX20_CNSTXPR Bar( traits::TypeSet<Options...> tag ) : Base( tag )
@@ -76,69 +72,41 @@ namespace pace {
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
         Derived& starting( types::String _starting ) &
-        {
-          PACE__METHOD( Starting, _starting, Derived&, std::move );
-        }
+        { PACE__METHOD( Starting, _starting, Derived&, std::move ); }
         Derived&& starting( types::String _starting ) &&
-        {
-          PACE__METHOD( Starting, _starting, Derived&&, std::move );
-        }
+        { PACE__METHOD( Starting, _starting, Derived&&, std::move ); }
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
         Derived& ending( types::String _ending ) &
-        {
-          PACE__METHOD( Ending, _ending, Derived&, std::move );
-        }
+        { PACE__METHOD( Ending, _ending, Derived&, std::move ); }
         Derived&& ending( types::String _ending ) &&
-        {
-          PACE__METHOD( Ending, _ending, Derived&&, std::move );
-        }
+        { PACE__METHOD( Ending, _ending, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
         Derived& starting( types::LitU8 _starting ) &
-        {
-          PACE__METHOD( Starting, _starting, Derived&, );
-        }
+        { PACE__METHOD( Starting, _starting, Derived&, ); }
         Derived&& starting( types::LitU8 _starting ) &&
-        {
-          PACE__METHOD( Starting, _starting, Derived&&, );
-        }
+        { PACE__METHOD( Starting, _starting, Derived&&, ); }
         Derived& ending( types::LitU8 _ending ) &
-        {
-          PACE__METHOD( Ending, _ending, Derived&, );
-        }
+        { PACE__METHOD( Ending, _ending, Derived&, ); }
         Derived&& ending( types::LitU8 _ending ) &&
-        {
-          PACE__METHOD( Ending, _ending, Derived&&, );
-        }
+        { PACE__METHOD( Ending, _ending, Derived&&, ); }
 #endif
 
         /// @throw exception::InvalidArgument  If the passed parameters is not a valid RGB color string.
         Derived& start_color( console::escodes::RGBColor _start_color ) &
-        {
-          PACE__METHOD( StartColor, _start_color, Derived&, std::move );
-        }
+        { PACE__METHOD( StartColor, _start_color, Derived&, std::move ); }
         Derived&& start_color( console::escodes::RGBColor _start_color ) &&
-        {
-          PACE__METHOD( StartColor, _start_color, Derived&&, std::move );
-        }
+        { PACE__METHOD( StartColor, _start_color, Derived&&, std::move ); }
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
         Derived& end_color( console::escodes::RGBColor _end_color ) &
-        {
-          PACE__METHOD( EndColor, _end_color, Derived&, std::move );
-        }
+        { PACE__METHOD( EndColor, _end_color, Derived&, std::move ); }
         Derived&& end_color( console::escodes::RGBColor _end_color ) &&
-        {
-          PACE__METHOD( EndColor, _end_color, Derived&&, std::move );
-        }
+        { PACE__METHOD( EndColor, _end_color, Derived&&, std::move ); }
 
         // Set the width of the bar indicator.
         Derived& bar_width( std::uint16_t _width ) & noexcept
-        {
-          PACE__METHOD( BarWidth, _width, Derived&, );
-        }
+        { PACE__METHOD( BarWidth, _width, Derived&, ); }
         Derived&& bar_width( std::uint16_t _width ) && noexcept
-        {
-          PACE__METHOD( BarWidth, _width, Derived&&, );
-        }
+        { PACE__METHOD( BarWidth, _width, Derived&&, ); }
 
 #undef PACE__METHOD
 

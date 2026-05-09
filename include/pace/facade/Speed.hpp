@@ -86,9 +86,7 @@ namespace pace {
     class Speed : public Base {
       friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Speed& self,
                                                                 option::Magnitude&& val ) noexcept
-      {
-        self.magnitude_ = val.value();
-      }
+      { self.magnitude_ = val.value(); }
       friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Speed& self,
                                                                 option::SpeedUnit&& val ) noexcept
       {
@@ -153,9 +151,7 @@ namespace pace {
       }
 
       PACE__NODISCARD PACE__FORCEINLINE constexpr details::types::Size fixed_length() const noexcept
-      {
-        return sizeof( _default_speed ) - 1 + units_[nth_longest_unit_].width();
-      }
+      { return sizeof( _default_speed ) - 1 + units_[nth_longest_unit_].width(); }
 
       template<typename... Options>
       PACE__CXX20_CNSTXPR Speed( details::traits::TypeSet<Options...> tag ) : Base( tag )
@@ -186,13 +182,9 @@ namespace pace {
        * (from left to right).
        */
       Derived& speed_unit( std::array<details::types::String, 4> _units ) &
-      {
-        PACE__METHOD( SpeedUnit, _units, Derived& );
-      }
+      { PACE__METHOD( SpeedUnit, _units, Derived& ); }
       Derived&& speed_unit( std::array<details::types::String, 4> _units ) &&
-      {
-        PACE__METHOD( SpeedUnit, _units, Derived&& );
-      }
+      { PACE__METHOD( SpeedUnit, _units, Derived&& ); }
 #ifdef __cpp_lib_char8_t
       /**
        * @param _units
@@ -200,13 +192,9 @@ namespace pace {
        * (from left to right).
        */
       Derived& speed_unit( std::array<details::types::LitU8, 4> _units ) &
-      {
-        PACE__METHOD( SpeedUnit, _units, Derived& );
-      }
+      { PACE__METHOD( SpeedUnit, _units, Derived& ); }
       Derived&& speed_unit( std::array<details::types::LitU8, 4> _units ) &&
-      {
-        PACE__METHOD( SpeedUnit, _units, Derived&& );
-      }
+      { PACE__METHOD( SpeedUnit, _units, Derived&& ); }
 #endif
 
       /**
@@ -217,13 +205,9 @@ namespace pace {
        * (e.g. 1000 -> "1k", 1000000 -> "1M").
        */
       Derived& magnitude( std::uint16_t _magnitude ) & noexcept
-      {
-        PACE__METHOD( Magnitude, _magnitude, Derived& );
-      }
+      { PACE__METHOD( Magnitude, _magnitude, Derived& ); }
       Derived&& magnitude( std::uint16_t _magnitude ) && noexcept
-      {
-        PACE__METHOD( Magnitude, _magnitude, Derived&& );
-      }
+      { PACE__METHOD( Magnitude, _magnitude, Derived&& ); }
 
 #undef PACE__METHOD
 

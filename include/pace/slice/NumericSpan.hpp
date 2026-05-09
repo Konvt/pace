@@ -73,34 +73,22 @@ namespace pace {
           return before;
         }
         PACE__NODISCARD PACE__FORCEINLINE constexpr reference operator*() const noexcept
-        {
-          return static_cast<reference>( itr_start_ + itr_step_ * itr_cnt_ );
-        }
+        { return static_cast<reference>( itr_start_ + itr_step_ * itr_cnt_ ); }
         PACE__NODISCARD PACE__FORCEINLINE constexpr reference operator[]( difference_type inc ) const noexcept
-        {
-          return static_cast<reference>( itr_start_ + itr_step_ * ( itr_cnt_ + inc ) );
-        }
+        { return static_cast<reference>( itr_start_ + itr_step_ * ( itr_cnt_ + inc ) ); }
 
         friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR iterator operator+( iterator itr,
                                                                          difference_type inc ) noexcept
-        {
-          return { itr.itr_start_, itr.itr_step_, itr.itr_cnt_ + inc };
-        }
+        { return { itr.itr_start_, itr.itr_step_, itr.itr_cnt_ + inc }; }
         friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR iterator operator+( difference_type inc,
                                                                          iterator itr ) noexcept
-        {
-          return itr + inc;
-        }
+        { return itr + inc; }
         friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR iterator operator-( iterator itr,
                                                                          difference_type inc ) noexcept
-        {
-          return { itr.itr_start_, itr.itr_step_, itr.itr_cnt_ - inc };
-        }
+        { return { itr.itr_start_, itr.itr_step_, itr.itr_cnt_ - inc }; }
         friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR iterator operator-( difference_type inc,
                                                                          iterator itr ) noexcept
-        {
-          return itr - inc;
-        }
+        { return itr - inc; }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr difference_type operator-( iterator a,
                                                                                       iterator b ) noexcept
         {
@@ -122,18 +110,12 @@ namespace pace {
         }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( iterator itr,
                                                                             value_type num ) noexcept
-        {
-          return *itr == num;
-        }
+        { return *itr == num; }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( iterator itr,
                                                                             value_type num ) noexcept
-        {
-          return !( itr == num );
-        }
+        { return !( itr == num ); }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( iterator a, iterator b ) noexcept
-        {
-          return a.itr_start_ == b.itr_start_ && a.itr_step_ == b.itr_step_ && a.itr_cnt_ == b.itr_cnt_;
-        }
+        { return a.itr_start_ == b.itr_start_ && a.itr_step_ == b.itr_step_ && a.itr_cnt_ == b.itr_cnt_; }
 #ifdef __cpp_lib_three_way_comparison
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr std::partial_ordering operator<=>(
           iterator a,
@@ -145,25 +127,15 @@ namespace pace {
         }
 #else
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( iterator a, iterator b ) noexcept
-        {
-          return !( a == b );
-        }
+        { return !( a == b ); }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator<( iterator a, iterator b ) noexcept
-        {
-          return a.itr_start_ == b.itr_start_ && a.itr_step_ == b.itr_step_ && a.itr_cnt_ < b.itr_cnt_;
-        }
+        { return a.itr_start_ == b.itr_start_ && a.itr_step_ == b.itr_step_ && a.itr_cnt_ < b.itr_cnt_; }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator>( iterator a, iterator b ) noexcept
-        {
-          return b < a;
-        }
+        { return b < a; }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator<=( iterator a, iterator b ) noexcept
-        {
-          return !( b < a );
-        }
+        { return !( b < a ); }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator>=( iterator a, iterator b ) noexcept
-        {
-          return !( a < b );
-        }
+        { return !( a < b ); }
 #endif
       };
       using sentinel = iterator;
@@ -226,19 +198,13 @@ namespace pace {
       PACE__CXX20_CNSTXPR ~NumericSpan()                                 = default;
 
       PACE__NODISCARD PACE__FORCEINLINE constexpr iterator begin() const noexcept
-      {
-        return iterator( start_, step_ );
-      }
+      { return iterator( start_, step_ ); }
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX23_CNSTXPR sentinel end() const noexcept
-      {
-        return sentinel( start_, step_, size() );
-      }
+      { return sentinel( start_, step_, size() ); }
 
       PACE__NODISCARD PACE__FORCEINLINE constexpr N front() const noexcept { return start_; }
       PACE__NODISCARD PACE__FORCEINLINE constexpr N back() const noexcept
-      {
-        return start_ + step_ * static_cast<N>( size() - 1 );
-      }
+      { return start_ + step_ * static_cast<N>( size() - 1 ); }
       PACE__NODISCARD PACE__FORCEINLINE constexpr N step() const noexcept { return step_; }
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX23_CNSTXPR std::uint64_t size() const noexcept
       {
@@ -267,9 +233,7 @@ namespace pace {
 
       PACE__NODISCARD PACE__FORCEINLINE constexpr typename iterator::reference operator[](
         typename iterator::difference_type inc ) const noexcept
-      {
-        return start_ + step_ * static_cast<N>( inc );
-      }
+      { return start_ + step_ * static_cast<N>( inc ); }
       explicit constexpr operator bool() const noexcept { return !empty(); }
     };
   } // namespace slice

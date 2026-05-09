@@ -30,9 +30,7 @@ namespace pace {
 
         Incremental() = default;
         Incremental( Incremental&& rhs ) noexcept : Base( std::move( rhs ) )
-        {
-          task_cnt_.store( 0, std::memory_order_relaxed );
-        }
+        { task_cnt_.store( 0, std::memory_order_relaxed ); }
         Incremental& operator=( Incremental&& rhs ) & noexcept
         {
           Base::operator=( std::move( rhs ) );
@@ -45,9 +43,7 @@ namespace pace {
 
         // Get the progress of the task.
         PACE__NODISCARD std::uint64_t progress() const noexcept
-        {
-          return task_cnt_.load( std::memory_order_acquire );
-        }
+        { return task_cnt_.load( std::memory_order_acquire ); }
 
         PACE__FORCEINLINE void tick() & final
         {

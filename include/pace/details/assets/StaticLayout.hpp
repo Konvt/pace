@@ -228,9 +228,7 @@ namespace pace {
           : wrappers::TuplePacket<prefab::BasicBar<Configs, Outlet, Mode, Area>, Tags>( std::move( rhs ) )...
           , alive_cnt_ { 0 }
           , state_ { Phase::Stop }
-        {
-          PACE__ASSERT( rhs.online() == false );
-        }
+        { PACE__ASSERT( rhs.online() == false ); }
         StaticLayout& operator=( StaticLayout&& rhs ) & noexcept
         { // The thread insecurity here is deliberately designed.
           // After all, for a type where a base class reference can be exposed,
@@ -261,9 +259,7 @@ namespace pace {
           PACE__ASSERT( online() == false );
         }
         PACE__NODISCARD PACE__FORCEINLINE bool online() const noexcept
-        {
-          return state_.load( std::memory_order_acquire ) != Phase::Stop;
-        }
+        { return state_.load( std::memory_order_acquire ) != Phase::Stop; }
         PACE__NODISCARD PACE__FORCEINLINE types::Size online_count() const noexcept
         {
           concurrent::SharedLock<concurrent::SharedMutex> lock { res_mtx_ };
@@ -285,19 +281,13 @@ namespace pace {
 
         template<types::Size Pos>
         PACE__FORCEINLINE ElementAt_t<Pos>& at() & noexcept
-        {
-          return static_cast<ElementAt_t<Pos>&>( *this );
-        }
+        { return static_cast<ElementAt_t<Pos>&>( *this ); }
         template<types::Size Pos>
         PACE__FORCEINLINE const ElementAt_t<Pos>& at() const& noexcept
-        {
-          return static_cast<const ElementAt_t<Pos>&>( *this );
-        }
+        { return static_cast<const ElementAt_t<Pos>&>( *this ); }
         template<types::Size Pos>
         PACE__FORCEINLINE ElementAt_t<Pos>& at() && noexcept
-        {
-          return std::move( at<Pos>() );
-        }
+        { return std::move( at<Pos>() ); }
       };
     } // namespace assets
   } // namespace details

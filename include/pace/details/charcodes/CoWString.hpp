@@ -34,14 +34,10 @@ namespace pace {
 
       template<typename Char, types::Size N>
       constexpr Literal<Char> make_literal( const Char ( &cstr )[N] ) noexcept
-      {
-        return { cstr };
-      }
+      { return { cstr }; }
       template<typename Char>
       constexpr Literal<Char> make_literal( const Char* cstr, types::Size length ) noexcept
-      {
-        return { cstr, length };
-      }
+      { return { cstr, length }; }
 
       template<typename Alloc, typename = void>
       class CoWAllocator {
@@ -207,14 +203,10 @@ namespace pace {
         constexpr Pointee* owner() const noexcept { return owner_; }
         PACE__NODISCARD constexpr typename Pointee::size_type offset() const noexcept { return pos_; }
         constexpr traits::CopyConst_t<Pointee, value_type>* base() const noexcept
-        {
-          return owner_->data() + pos_;
-        }
+        { return owner_->data() + pos_; }
 
         constexpr reference operator[]( difference_type offset ) const noexcept
-        {
-          return this->owner_[this->pos_ + offset];
-        }
+        { return this->owner_[this->pos_ + offset]; }
         constexpr reference operator*() const noexcept { return this->owner_[this->pos_]; }
         constexpr pointer operator->() const noexcept { return std::addressof( this->owner_[this->pos_] ); }
 
@@ -241,13 +233,9 @@ namespace pace {
           return copy;
         }
         friend constexpr bool operator==( const CoWIterator& a, const CoWIterator& b ) noexcept
-        {
-          return a.owner_ == b.owner_ && a.pos_ == b.pos_;
-        }
+        { return a.owner_ == b.owner_ && a.pos_ == b.pos_; }
         friend constexpr bool operator!=( const CoWIterator& a, const CoWIterator& b ) noexcept
-        {
-          return !( a == b );
-        }
+        { return !( a == b ); }
         friend PACE__CXX14_CNSTXPR Derived& operator+=( CoWIterator& itr, difference_type count ) noexcept
         {
           itr.pos_ += count;
@@ -260,21 +248,13 @@ namespace pace {
         }
 
         friend constexpr Derived operator+( const CoWIterator& itr, difference_type count ) noexcept
-        {
-          return Derived( itr.owner_, itr.pos_ + count );
-        }
+        { return Derived( itr.owner_, itr.pos_ + count ); }
         friend constexpr Derived operator+( difference_type count, const CoWIterator& itr ) noexcept
-        {
-          return itr + count;
-        }
+        { return itr + count; }
         friend constexpr Derived operator-( const CoWIterator& itr, difference_type count ) noexcept
-        {
-          return Derived( itr.owner_, itr.pos_ + ( -count ) );
-        }
+        { return Derived( itr.owner_, itr.pos_ + ( -count ) ); }
         friend constexpr Derived operator-( difference_type count, const CoWIterator& itr ) noexcept
-        {
-          return itr - count;
-        }
+        { return itr - count; }
         friend PACE__CXX14_CNSTXPR difference_type operator-( const CoWIterator& a,
                                                               const CoWIterator& b ) noexcept
         {
@@ -402,13 +382,9 @@ namespace pace {
             return { cursor };
           }
           friend constexpr bool operator==( const unsafe_iterator& a, const unsafe_iterator& b ) noexcept
-          {
-            return a.cursor_ == b.cursor_;
-          }
+          { return a.cursor_ == b.cursor_; }
           friend constexpr bool operator!=( const unsafe_iterator& a, const unsafe_iterator& b ) noexcept
-          {
-            return !( a == b );
-          }
+          { return !( a == b ); }
           friend PACE__CXX14_CNSTXPR unsafe_iterator& operator+=( unsafe_iterator& itr,
                                                                   difference_type count ) noexcept
           {
@@ -424,29 +400,19 @@ namespace pace {
 
           friend constexpr unsafe_iterator operator+( const unsafe_iterator& itr,
                                                       difference_type count ) noexcept
-          {
-            return { itr.cursor_ + count };
-          }
+          { return { itr.cursor_ + count }; }
           friend constexpr unsafe_iterator operator+( difference_type count,
                                                       const unsafe_iterator& itr ) noexcept
-          {
-            return itr + count;
-          }
+          { return itr + count; }
           friend constexpr unsafe_iterator operator-( const unsafe_iterator& itr,
                                                       difference_type count ) noexcept
-          {
-            return { itr.cursor_ + ( -count ) };
-          }
+          { return { itr.cursor_ + ( -count ) }; }
           friend constexpr unsafe_iterator operator-( difference_type count,
                                                       const unsafe_iterator& itr ) noexcept
-          {
-            return itr - count;
-          }
+          { return itr - count; }
           friend constexpr difference_type operator-( const unsafe_iterator& a,
                                                       const unsafe_iterator& b ) noexcept
-          {
-            return a.cursor_ - b.cursor_;
-          }
+          { return a.cursor_ - b.cursor_; }
 
           explicit constexpr operator bool() const noexcept { return cursor_ != nullptr; }
         };
@@ -481,13 +447,9 @@ namespace pace {
         Kind tag_;
 
         static PACE__CNSTEVAL size_type small_capacity() noexcept
-        {
-          return ( sizeof( Payload ) / sizeof( Char ) ) - 1;
-        }
+        { return ( sizeof( Payload ) / sizeof( Char ) ) - 1; }
         static constexpr size_type dynamic_capacity( size_type old_cap ) noexcept
-        {
-          return static_cast<size_type>( old_cap * 1.5 );
-        }
+        { return static_cast<size_type>( old_cap * 1.5 ); }
 
         /// @brief Performs an in-place insertion of a character sequence into the buffer
         /// @param suffix Pointer to the start position where insertion happens
@@ -547,13 +509,9 @@ namespace pace {
         }
 
         PACE__CXX14_CNSTXPR void deallocate( pointer ptr, size_type cap ) noexcept
-        {
-          std::allocator_traits<Alloc>::deallocate( this->allocator(), ptr, cap );
-        }
+        { std::allocator_traits<Alloc>::deallocate( this->allocator(), ptr, cap ); }
         PACE__CXX14_CNSTXPR pointer allocate( size_type cap )
-        {
-          return std::allocator_traits<Alloc>::allocate( this->allocator(), cap );
-        }
+        { return std::allocator_traits<Alloc>::allocate( this->allocator(), cap ); }
 
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR void throw_if_exceed( size_type expected_size ) const
           noexcept( false )
@@ -871,21 +829,15 @@ namespace pace {
         {}
         template<typename A>
         PACE__CXX20_CNSTXPR BasicCoWString& operator=( const std::basic_string<Char, Traits, A>& str ) &
-        {
-          return assign( str.data(), str.size() );
-        }
+        { return assign( str.data(), str.size() ); }
         template<typename A>
         PACE__CXX20_CNSTXPR BasicCoWString& assign( const std::basic_string<Char, Traits, A>& str ) &
-        {
-          return assign( str.data(), str.size() );
-        }
+        { return assign( str.data(), str.size() ); }
         constexpr BasicCoWString( Literal<Char> literal_str ) noexcept
           : as_ { literal_str.data() }, length_ { literal_str.size() }, tag_ { Kind::Literal }
         {}
         PACE__CXX14_CNSTXPR BasicCoWString& operator=( Literal<Char> literal_str ) noexcept
-        {
-          return assign( std::move( literal_str ) );
-        }
+        { return assign( std::move( literal_str ) ); }
         PACE__CXX14_CNSTXPR BasicCoWString& assign( Literal<Char> literal_str ) noexcept
         {
           switch ( tag_ ) {
@@ -916,9 +868,7 @@ namespace pace {
         template<typename A>
         PACE__CXX20_CNSTXPR BasicCoWString& insert( size_type index,
                                                     const std::basic_string<Char, Traits, A>& str )
-        {
-          return insert( index, str, 0 );
-        }
+        { return insert( index, str, 0 ); }
         template<typename A>
         PACE__CXX20_CNSTXPR BasicCoWString& append( const std::basic_string<Char, Traits, A>& str,
                                                     size_type pos,
@@ -930,9 +880,7 @@ namespace pace {
         }
         template<typename A>
         PACE__CXX20_CNSTXPR BasicCoWString& append( const std::basic_string<Char, Traits, A>& str )
-        {
-          return append( str, 0 );
-        }
+        { return append( str, 0 ); }
         template<typename A>
         PACE__CXX20_CNSTXPR BasicCoWString& replace( size_type pos,
                                                      size_type count,
@@ -953,9 +901,7 @@ namespace pace {
         PACE__CXX20_CNSTXPR BasicCoWString& replace( size_type pos,
                                                      size_type count,
                                                      const std::basic_string<Char, Traits, A>& str )
-        {
-          return replace( pos, count, str, 0, str.size() );
-        }
+        { return replace( pos, count, str, 0, str.size() ); }
 
         PACE__NODISCARD PACE__CXX14_CNSTXPR bool unique() const noexcept
         {
@@ -978,31 +924,21 @@ namespace pace {
         PACE__NODISCARD constexpr unsafe_iterator unsafe_begin() const&& noexcept { return begin(); }
 
         PACE__NODISCARD constexpr unsafe_iterator unsafe_end() const& noexcept
-        {
-          return { data() + length_ };
-        }
+        { return { data() + length_ }; }
         PACE__NODISCARD constexpr const_iterator unsafe_end() const&& noexcept { return end(); }
 
         PACE__NODISCARD constexpr reverse_unsafe_iterator unsafe_rbegin() const& noexcept
-        {
-          return unsafe_iterator( data() + length_ - 1 );
-        }
+        { return unsafe_iterator( data() + length_ - 1 ); }
         PACE__NODISCARD constexpr reverse_unsafe_iterator unsafe_rbegin() const&& noexcept
-        {
-          return rbegin();
-        }
+        { return rbegin(); }
 
         PACE__NODISCARD constexpr reverse_unsafe_iterator unsafe_rend() const& noexcept
-        {
-          return unsafe_iterator( data() - 1 );
-        }
+        { return unsafe_iterator( data() - 1 ); }
         PACE__NODISCARD constexpr const_reverse_iterator unsafe_rend() const&& noexcept { return rend(); }
 
         template<typename A>
         PACE__CXX20_CNSTXPR BasicCoWString& operator+=( const std::basic_string<Char, Traits, A>& str )
-        {
-          return append( str.data(), str.size() );
-        }
+        { return append( str.data(), str.size() ); }
         template<typename A>
         PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString
           operator+( const BasicCoWString& a, const std::basic_string<Char, Traits, A>& b )
@@ -1038,28 +974,20 @@ namespace pace {
         PACE__NODISCARD friend constexpr bool operator==(
           const BasicCoWString& a,
           const std::basic_string<Char, Traits, A>& b ) noexcept
-        {
-          return a.compare( 0, a.length_, b.data(), b.size() ) == 0;
-        }
+        { return a.compare( 0, a.length_, b.data(), b.size() ) == 0; }
         template<typename A>
         PACE__NODISCARD friend constexpr bool operator==( const std::basic_string<Char, Traits, A>& a,
                                                           const BasicCoWString& b ) noexcept
-        {
-          return b == a;
-        }
+        { return b == a; }
         template<typename A>
         PACE__NODISCARD friend constexpr bool operator!=(
           const BasicCoWString& a,
           const std::basic_string<Char, Traits, A>& b ) noexcept
-        {
-          return !( a == b );
-        }
+        { return !( a == b ); }
         template<typename A>
         PACE__NODISCARD friend constexpr bool operator!=( const std::basic_string<Char, Traits, A>& a,
                                                           const BasicCoWString& b ) noexcept
-        {
-          return b != a;
-        }
+        { return b != a; }
 #ifdef __cpp_lib_three_way_comparison
         template<typename A>
         PACE__NODISCARD friend constexpr auto operator<=>(
@@ -1073,76 +1001,52 @@ namespace pace {
         template<typename A>
         PACE__NODISCARD friend constexpr bool operator<( const BasicCoWString& a,
                                                          const std::basic_string<Char, Traits, A>& b )
-        {
-          return a.compare( 0, a.length_, b.data(), b.size() ) < 0;
-        }
+        { return a.compare( 0, a.length_, b.data(), b.size() ) < 0; }
         template<typename A>
         PACE__NODISCARD friend constexpr bool operator<=( const BasicCoWString& a,
                                                           const std::basic_string<Char, Traits, A>& b )
-        {
-          return a.compare( 0, a.length_, b.data(), b.size() ) <= 0;
-        }
+        { return a.compare( 0, a.length_, b.data(), b.size() ) <= 0; }
         template<typename A>
         PACE__NODISCARD friend constexpr bool operator>( const BasicCoWString& a,
                                                          const std::basic_string<Char, Traits, A>& b )
-        {
-          return a.compare( 0, a.length_, b.data(), b.size() ) > 0;
-        }
+        { return a.compare( 0, a.length_, b.data(), b.size() ) > 0; }
         template<typename A>
         PACE__NODISCARD friend constexpr bool operator>=( const BasicCoWString& a,
                                                           const std::basic_string<Char, Traits, A>& b )
-        {
-          return a.compare( 0, a.length_, b.data(), b.size() ) >= 0;
-        }
+        { return a.compare( 0, a.length_, b.data(), b.size() ) >= 0; }
         template<typename A>
         PACE__NODISCARD friend constexpr bool operator<( const std::basic_string<Char, Traits, A>& a,
                                                          const BasicCoWString& b )
-        {
-          return !( b >= a );
-        }
+        { return !( b >= a ); }
         template<typename A>
         PACE__NODISCARD friend constexpr bool operator<=( const std::basic_string<Char, Traits, A>& a,
                                                           const BasicCoWString& b )
-        {
-          return !( b > a );
-        }
+        { return !( b > a ); }
         template<typename A>
         PACE__NODISCARD friend constexpr bool operator>( const std::basic_string<Char, Traits, A>& a,
                                                          const BasicCoWString& b )
-        {
-          return !( b <= a );
-        }
+        { return !( b <= a ); }
         template<typename A>
         PACE__NODISCARD friend constexpr bool operator>=( const std::basic_string<Char, Traits, A>& a,
                                                           const BasicCoWString& b )
-        {
-          return !( b < a );
-        }
+        { return !( b < a ); }
 #endif
 
         PACE__NODISCARD explicit constexpr operator std::basic_string<Char, Traits, Alloc>() const
-        {
-          return { data(), length_ };
-        }
+        { return { data(), length_ }; }
 #ifdef __cpp_lib_string_view
         PACE__NODISCARD constexpr operator std::basic_string_view<Char, Traits>() const noexcept
-        {
-          return { data(), length_ };
-        }
+        { return { data(), length_ }; }
 #endif
 
         PACE__CXX14_CNSTXPR BasicCoWString() noexcept( noexcept( Alloc() ) ) : BasicCoWString( Alloc() ) {}
         explicit PACE__CXX14_CNSTXPR BasicCoWString( const Alloc& alloc )
           noexcept( std::is_nothrow_copy_constructible<Alloc>::value )
           : CoWAllocator<Alloc>( alloc ), as_ {}, length_ { 0 }, tag_ { Kind::Inline }
-        {
-          Traits::assign( utils::launder_as<Char>( &as_ )[0], Char() );
-        }
+        { Traits::assign( utils::launder_as<Char>( &as_ )[0], Char() ); }
         PACE__CXX20_CNSTXPR BasicCoWString( size_type count, Char ch, const Alloc& alloc = Alloc() )
           : BasicCoWString( alloc )
-        {
-          assign( count, ch );
-        }
+        { assign( count, ch ); }
         template<typename InputIt
 #ifdef __cpp_lib_concepts
                  >
@@ -1268,9 +1172,7 @@ namespace pace {
 #endif
         PACE__CXX20_CNSTXPR BasicCoWString( const Char* cstr, size_type count, const Alloc& alloc = Alloc() )
           : BasicCoWString( alloc )
-        {
-          assign( cstr, count );
-        }
+        { assign( cstr, count ); }
         constexpr BasicCoWString( const Char* cstr, const Alloc& alloc = Alloc() )
           : BasicCoWString( cstr, Traits::length( cstr ), alloc )
         {}
@@ -1292,9 +1194,7 @@ namespace pace {
                                             size_type count,
                                             const Alloc& alloc = Alloc() )
           : BasicCoWString( alloc )
-        {
-          assign( str_v, pos, count );
-        }
+        { assign( str_v, pos, count ); }
 #endif
         PACE__CXX20_CNSTXPR BasicCoWString( const BasicCoWString& other )
           noexcept( std::is_nothrow_copy_constructible<Alloc>::value
@@ -1302,9 +1202,7 @@ namespace pace {
                       other.allocator() ) ) )
           : BasicCoWString(
               std::allocator_traits<Alloc>::select_on_container_copy_construction( other.allocator() ) )
-        {
-          assign( other );
-        }
+        { assign( other ); }
         PACE__CXX20_CNSTXPR BasicCoWString( BasicCoWString&& rhs ) noexcept
           : CoWAllocator<Alloc>( std::move( rhs.allocator() ) ), as_ {}, length_ { 0 }, tag_ { Kind::Inline }
         {
@@ -1479,29 +1377,21 @@ namespace pace {
         PACE__CXX20_CNSTXPR BasicCoWString& operator=( const BasicCoWString& other ) & noexcept(
           traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_copy_assignment,
                         typename std::allocator_traits<Alloc>::is_always_equal>::value )
-        {
-          return assign( other );
-        }
+        { return assign( other ); }
         PACE__CXX20_CNSTXPR BasicCoWString& operator=( BasicCoWString&& rhs ) & noexcept(
           traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_move_assignment,
                         typename std::allocator_traits<Alloc>::is_always_equal>::value )
-        {
-          return assign( std::move( rhs ) );
-        }
+        { return assign( std::move( rhs ) ); }
         PACE__CXX20_CNSTXPR BasicCoWString& operator=( const Char* cstr ) & { return assign( cstr ); }
         PACE__CXX20_CNSTXPR BasicCoWString& operator=( Char ch ) & noexcept( small_capacity() >= 1 )
-        {
-          return assign( 1, ch );
-        }
+        { return assign( 1, ch ); }
         // BasicCoWString& operator=( std::initializer_list<Char> ) = delete;
 #ifdef __cpp_lib_string_view
         template<typename StringViewLike>
         PACE__CXX20_CNSTXPR
           typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicCoWString&>::type
           operator=( const StringViewLike& str_v ) &
-        {
-          return assign( str_v );
-        }
+        { return assign( str_v ); }
 #endif
         BasicCoWString& operator=( std::nullptr_t ) = delete;
 
@@ -1678,9 +1568,7 @@ namespace pace {
           typename std::enable_if<is_legacy_input_iterator<InputIt>::value, BasicCoWString&>::type
 #endif
           assign( InputIt first, InputIt last ) &
-        {
-          return assign( BasicCoWString( std::move( first ), std::move( last ), this->allocator() ) );
-        }
+        { return assign( BasicCoWString( std::move( first ), std::move( last ), this->allocator() ) ); }
         // BasicCoWString& assign( std::initializer_list<Char> ) = delete;
 
 #ifdef __cpp_lib_containers_ranges
@@ -1688,9 +1576,7 @@ namespace pace {
           requires( std::ranges::input_range<R>
                     && std::convertible_to<std::ranges::range_reference_t<R>, Char> )
         PACE__CXX20_CNSTXPR BasicCoWString& assign_range( R&& rg )
-        {
-          return assign( BasicCoWString( std::from_range, std::forward<R>( rg ), this->allocator() ) );
-        }
+        { return assign( BasicCoWString( std::from_range, std::forward<R>( rg ), this->allocator() ) ); }
 #endif
 
         constexpr allocator_type get_allocator() const { return this->allocator(); }
@@ -1761,28 +1647,20 @@ namespace pace {
 
         PACE__NODISCARD PACE__CXX14_CNSTXPR iterator begin() & noexcept { return iterator( *this, 0 ); }
         PACE__NODISCARD constexpr const_iterator begin() const& noexcept
-        {
-          return const_iterator( *this, 0 );
-        }
+        { return const_iterator( *this, 0 ); }
         PACE__NODISCARD constexpr const_iterator begin() const&& noexcept { return begin(); }
         PACE__NODISCARD constexpr const_iterator cbegin() const noexcept { return begin(); }
 
         PACE__NODISCARD PACE__CXX14_CNSTXPR iterator end() & noexcept { return iterator( *this, length_ ); }
         PACE__NODISCARD constexpr const_iterator end() const& noexcept
-        {
-          return const_iterator( *this, length_ );
-        }
+        { return const_iterator( *this, length_ ); }
         PACE__NODISCARD constexpr const_iterator end() const&& noexcept { return end(); }
         PACE__NODISCARD constexpr const_iterator cend() const noexcept { return end(); }
 
         PACE__NODISCARD PACE__CXX14_CNSTXPR reverse_iterator rbegin() & noexcept
-        {
-          return iterator( *this, length_ - 1 );
-        }
+        { return iterator( *this, length_ - 1 ); }
         PACE__NODISCARD constexpr const_reverse_iterator rbegin() const& noexcept
-        {
-          return const_iterator( *this, length_ - 1 );
-        }
+        { return const_iterator( *this, length_ - 1 ); }
         PACE__NODISCARD constexpr const_reverse_iterator rbegin() const&& noexcept { return rbegin(); }
         PACE__NODISCARD constexpr const_reverse_iterator crbegin() const noexcept { return rbegin(); }
 
@@ -1791,9 +1669,7 @@ namespace pace {
           return iterator( *this, npos );
         }
         PACE__NODISCARD constexpr const_reverse_iterator rend() const& noexcept
-        {
-          return const_iterator( *this, npos );
-        }
+        { return const_iterator( *this, npos ); }
         PACE__NODISCARD constexpr const_reverse_iterator rend() const&& noexcept { return rend(); }
         PACE__NODISCARD constexpr const_reverse_iterator crend() const noexcept { return end(); }
 
@@ -1801,9 +1677,7 @@ namespace pace {
         PACE__NODISCARD constexpr size_type size() const noexcept { return length_; }
         PACE__NODISCARD constexpr size_type length() const noexcept { return size(); }
         PACE__NODISCARD constexpr size_type max_size() const noexcept
-        {
-          return std::allocator_traits<Alloc>::max_size( this->allocator() ) - 1;
-        }
+        { return std::allocator_traits<Alloc>::max_size( this->allocator() ) - 1; }
         PACE__NODISCARD PACE__CXX14_CNSTXPR size_type capacity() const noexcept
         {
           switch ( tag_ ) {
@@ -1945,9 +1819,7 @@ namespace pace {
           return *this;
         }
         PACE__CXX20_CNSTXPR BasicCoWString& insert( size_type index, const Char* cstr )
-        {
-          return insert( index, cstr, Traits::length( cstr ) );
-        }
+        { return insert( index, cstr, Traits::length( cstr ) ); }
         PACE__CXX20_CNSTXPR BasicCoWString& insert( size_type index,
                                                     const BasicCoWString& other,
                                                     size_type other_index,
@@ -1963,9 +1835,7 @@ namespace pace {
           return insert( index, other.data() + other_index, count );
         }
         PACE__CXX20_CNSTXPR BasicCoWString& insert( size_type index, const BasicCoWString& other )
-        {
-          return insert( index, other, 0 );
-        }
+        { return insert( index, other, 0 ); }
         PACE__CXX20_CNSTXPR BasicCoWString& insert( size_type index, size_type count, Char ch )
         {
           if ( index > length_ )
@@ -2135,9 +2005,7 @@ namespace pace {
           return { *this, first.offset() };
         }
         PACE__CXX20_CNSTXPR iterator erase( const_iterator position ) noexcept
-        {
-          return erase( position, cend() );
-        }
+        { return erase( position, cend() ); }
 
         PACE__CXX20_CNSTXPR void push_back( Char ch ) & { append( 1, ch ); }
         PACE__CXX20_CNSTXPR void pop_back() noexcept { erase( cend() - 1 ); }
@@ -2175,9 +2043,7 @@ namespace pace {
           return *this;
         }
         PACE__CXX20_CNSTXPR BasicCoWString& append( const Char* cstr )
-        {
-          return append( cstr, Traits::length( cstr ) );
-        }
+        { return append( cstr, Traits::length( cstr ) ); }
         PACE__CXX20_CNSTXPR BasicCoWString& append( size_type count, Char ch )
         {
           const auto total_length = count + length_;
@@ -2253,9 +2119,7 @@ namespace pace {
           return append( other.data() + pos, count );
         }
         PACE__CXX20_CNSTXPR BasicCoWString& append( const BasicCoWString& other )
-        {
-          return append( other, 0 );
-        }
+        { return append( other, 0 ); }
         template<typename InputIt>
 #ifdef __cpp_lib_concepts
           requires( std::input_iterator<InputIt> && std::equality_comparable<InputIt> )
@@ -2265,9 +2129,7 @@ namespace pace {
           typename std::enable_if<is_legacy_input_iterator<InputIt>::value, BasicCoWString&>::type
 #endif
           append( InputIt first, InputIt last )
-        {
-          return append( BasicCoWString( std::move( first ), std::move( last ), this->allocator() ) );
-        }
+        { return append( BasicCoWString( std::move( first ), std::move( last ), this->allocator() ) ); }
         // BasicCoWString& append( std::initializer_list<Char> ) = delete;
 
 #ifdef __cpp_lib_containers_ranges
@@ -2275,9 +2137,7 @@ namespace pace {
           requires( std::ranges::input_range<R>
                     && std::convertible_to<std::ranges::range_reference_t<R>, Char> )
         PACE__CXX20_CNSTXPR BasicCoWString& append_range( R&& rg )
-        {
-          return append( BasicCoWString( std::from_range, std::forward<R>( rg ), this->allocator() ) );
-        }
+        { return append( BasicCoWString( std::from_range, std::forward<R>( rg ), this->allocator() ) ); }
 #endif
 
         PACE__CXX20_CNSTXPR BasicCoWString& replace( size_type pos,
@@ -2400,9 +2260,7 @@ namespace pace {
           return *this;
         }
         PACE__CXX20_CNSTXPR BasicCoWString& replace( size_type pos, size_type count, const Char* cstr )
-        {
-          return replace( pos, count, cstr, Traits::length( cstr ) );
-        }
+        { return replace( pos, count, cstr, Traits::length( cstr ) ); }
         PACE__CXX20_CNSTXPR BasicCoWString& replace( const_iterator first,
                                                      const_iterator last,
                                                      const Char* cstr,
@@ -2440,9 +2298,7 @@ namespace pace {
         PACE__CXX20_CNSTXPR BasicCoWString& replace( size_type pos,
                                                      size_type count,
                                                      const BasicCoWString& other )
-        {
-          return replace( pos, count, other, 0, other.length_ );
-        }
+        { return replace( pos, count, other, 0, other.length_ ); }
         PACE__CXX20_CNSTXPR BasicCoWString& replace( const_iterator first,
                                                      const_iterator last,
                                                      const BasicCoWString& other )
@@ -2671,13 +2527,9 @@ namespace pace {
         }
         PACE__NODISCARD PACE__CXX20_CNSTXPR int compare( const Char* cstr,
                                                          size_type cstr_count ) const noexcept
-        {
-          return compare( 0, npos, cstr, cstr_count );
-        }
+        { return compare( 0, npos, cstr, cstr_count ); }
         PACE__NODISCARD PACE__CXX20_CNSTXPR int compare( const Char* cstr ) const noexcept
-        {
-          return compare( cstr, Traits::length( cstr ) );
-        }
+        { return compare( cstr, Traits::length( cstr ) ); }
         PACE__NODISCARD PACE__CXX20_CNSTXPR int compare( size_type pos,
                                                          size_type count,
                                                          const BasicCoWString& other,
@@ -2694,13 +2546,9 @@ namespace pace {
         PACE__NODISCARD PACE__CXX20_CNSTXPR int compare( size_type pos,
                                                          size_type count,
                                                          const BasicCoWString& other ) const
-        {
-          return compare( pos, count, other, 0 );
-        }
+        { return compare( pos, count, other, 0 ); }
         PACE__NODISCARD PACE__CXX20_CNSTXPR int compare( const BasicCoWString& other ) const noexcept
-        {
-          return compare( 0, npos, other, 0 );
-        }
+        { return compare( 0, npos, other, 0 ); }
 #ifdef __cpp_lib_string_view
         template<typename StringViewLike>
         PACE__NODISCARD PACE__CXX20_CNSTXPR
@@ -2722,9 +2570,7 @@ namespace pace {
         PACE__NODISCARD PACE__CXX20_CNSTXPR
           typename std::enable_if<is_string_view_like<StringViewLike>::value, int>::type
           compare( size_type pos, size_type count, const StringViewLike& str_v ) const
-        {
-          return compare( pos, count, str_v, 0 );
-        }
+        { return compare( pos, count, str_v, 0 ); }
         template<typename StringViewLike>
         PACE__NODISCARD PACE__CXX20_CNSTXPR
           typename std::enable_if<is_string_view_like<StringViewLike>::value, int>::type
@@ -2733,20 +2579,14 @@ namespace pace {
           noexcept(
             std::is_nothrow_convertible<const StringViewLike&, std::basic_string_view<Char, Traits>>::value )
 # endif
-        {
-          return compare( 0, npos, str_v, 0 );
-        }
+        { return compare( 0, npos, str_v, 0 ); }
 #endif
 
         PACE__NODISCARD constexpr BasicCoWString substr( size_type pos = 0, size_type count = npos ) const&
-        {
-          return { *this, pos, count };
-        }
+        { return { *this, pos, count }; }
         PACE__NODISCARD PACE__CXX14_CNSTXPR BasicCoWString substr( size_type pos   = 0,
                                                                    size_type count = npos ) &&
-        {
-          return { std::move( *this ), pos, count };
-        }
+        { return { std::move( *this ), pos, count }; }
 
         PACE__CXX20_CNSTXPR void swap( BasicCoWString& other )
           noexcept( traits::AnyOf<typename std::allocator_traits<Alloc>::is_always_equal,
@@ -2812,9 +2652,7 @@ namespace pace {
         PACE__CXX20_CNSTXPR
           typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicCoWString&>::type
           operator+=( const StringViewLike& str_v )
-        {
-          return append( str_v );
-        }
+        { return append( str_v ); }
 #endif
 
         PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( const BasicCoWString& a,
@@ -2929,94 +2767,54 @@ namespace pace {
 
         PACE__NODISCARD friend constexpr bool operator==( const BasicCoWString& a,
                                                           const BasicCoWString& b ) noexcept
-        {
-          return a.compare( b ) == 0;
-        }
+        { return a.compare( b ) == 0; }
         PACE__NODISCARD friend constexpr bool operator==( const BasicCoWString& a, const Char* b )
-        {
-          return a.compare( b ) == 0;
-        }
+        { return a.compare( b ) == 0; }
         PACE__NODISCARD friend constexpr bool operator==( const Char* a, const BasicCoWString& b )
-        {
-          return b == a;
-        }
+        { return b == a; }
         PACE__NODISCARD friend constexpr bool operator!=( const BasicCoWString& a,
                                                           const BasicCoWString& b ) noexcept
-        {
-          return a.compare( b ) != 0;
-        }
+        { return a.compare( b ) != 0; }
         PACE__NODISCARD friend constexpr bool operator!=( const BasicCoWString& a, const Char* b )
-        {
-          return a.compare( b ) != 0;
-        }
+        { return a.compare( b ) != 0; }
         PACE__NODISCARD friend constexpr bool operator!=( const Char* a, const BasicCoWString& b )
-        {
-          return b != a;
-        }
+        { return b != a; }
 
 #ifdef __cpp_lib_three_way_comparison
         PACE__NODISCARD friend constexpr auto operator<=>( const BasicCoWString& a,
                                                            const BasicCoWString& b ) noexcept
-        {
-          return static_cast<typename ComparisonCategory<Traits>::type>( a.compare( b ) <=> 0 );
-        }
+        { return static_cast<typename ComparisonCategory<Traits>::type>( a.compare( b ) <=> 0 ); }
         PACE__NODISCARD friend constexpr auto operator<=>( const BasicCoWString& a, const Char* b )
-        {
-          return static_cast<typename ComparisonCategory<Traits>::type>( a.compare( b ) <=> 0 );
-        }
+        { return static_cast<typename ComparisonCategory<Traits>::type>( a.compare( b ) <=> 0 ); }
 #else
         PACE__NODISCARD friend constexpr bool operator<( const BasicCoWString& a,
                                                          const BasicCoWString& b ) noexcept
-        {
-          return a.compare( b ) < 0;
-        }
+        { return a.compare( b ) < 0; }
         PACE__NODISCARD friend constexpr bool operator<=( const BasicCoWString& a,
                                                           const BasicCoWString& b ) noexcept
-        {
-          return a.compare( b ) <= 0;
-        }
+        { return a.compare( b ) <= 0; }
         PACE__NODISCARD friend constexpr bool operator>( const BasicCoWString& a,
                                                          const BasicCoWString& b ) noexcept
-        {
-          return a.compare( b ) > 0;
-        }
+        { return a.compare( b ) > 0; }
         PACE__NODISCARD friend constexpr bool operator>=( const BasicCoWString& a,
                                                           const BasicCoWString& b ) noexcept
-        {
-          return a.compare( b ) >= 0;
-        }
+        { return a.compare( b ) >= 0; }
         PACE__NODISCARD friend constexpr bool operator<( const BasicCoWString& a, const Char* b )
-        {
-          return a.compare( b ) < 0;
-        }
+        { return a.compare( b ) < 0; }
         PACE__NODISCARD friend constexpr bool operator<=( const BasicCoWString& a, const Char* b )
-        {
-          return a.compare( b ) <= 0;
-        }
+        { return a.compare( b ) <= 0; }
         PACE__NODISCARD friend constexpr bool operator>( const BasicCoWString& a, const Char* b )
-        {
-          return a.compare( b ) > 0;
-        }
+        { return a.compare( b ) > 0; }
         PACE__NODISCARD friend constexpr bool operator>=( const BasicCoWString& a, const Char* b )
-        {
-          return a.compare( b ) >= 0;
-        }
+        { return a.compare( b ) >= 0; }
         PACE__NODISCARD friend constexpr bool operator<( const Char* a, const BasicCoWString& b )
-        {
-          return !( b >= a );
-        }
+        { return !( b >= a ); }
         PACE__NODISCARD friend constexpr bool operator<=( const Char* a, const BasicCoWString& b )
-        {
-          return !( b > a );
-        }
+        { return !( b > a ); }
         PACE__NODISCARD friend constexpr bool operator>( const Char* a, const BasicCoWString& b )
-        {
-          return !( b <= a );
-        }
+        { return !( b <= a ); }
         PACE__NODISCARD friend constexpr bool operator>=( const Char* a, const BasicCoWString& b )
-        {
-          return !( b < a );
-        }
+        { return !( b < a ); }
 #endif
       };
 
@@ -3032,9 +2830,7 @@ namespace pace {
       using CoWString = BasicCoWString<types::Char>;
 
       PACE__CXX20_CNSTXPR CoWString operator""_cow( const types::Char* str, types::Size len ) noexcept
-      {
-        return { make_literal( str, len ) };
-      }
+      { return { make_literal( str, len ) }; }
     } // namespace charcodes
   } // namespace details
 } // namespace pace

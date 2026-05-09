@@ -59,9 +59,7 @@ namespace pace {
           return value;
         }
         PACE__NODISCARD PACE__FORCEINLINE bool connected() const noexcept
-        {
-          return cache_.load( std::memory_order_acquire );
-        }
+        { return cache_.load( std::memory_order_acquire ); }
 
         /**
          * Enable virtual terminal processing on the specified output channel (Windows only).

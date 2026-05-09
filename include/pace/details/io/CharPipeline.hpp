@@ -23,9 +23,7 @@ namespace pace {
         PACE__CXX20_CNSTXPR ~CharPipeline()                                  = default;
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR bool empty() const noexcept
-        {
-          return buffer_.empty();
-        }
+        { return buffer_.empty(); }
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR void clear() & noexcept { buffer_.clear(); }
 
         // Releases the buffer space completely
@@ -71,9 +69,7 @@ namespace pace {
         }
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& append( const charcodes::U8Raw& info,
                                                                     types::Size num = 1 ) &
-        {
-          return append( info.str(), num );
-        }
+        { return append( info.str(), num ); }
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& append( const charcodes::EncodedView& info,
                                                                     types::Size num = 1 ) &
         {
@@ -86,9 +82,7 @@ namespace pace {
         template<typename Char, types::Size N>
         friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& operator<<( CharPipeline& stream,
                                                                                const Char ( &info )[N] )
-        {
-          return stream.append( info );
-        }
+        { return stream.append( info ); }
         template<typename T>
         friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR typename std::enable_if<
           traits::AnyOf<std::is_same<typename std::decay<T>::type, types::Char>,
@@ -97,14 +91,10 @@ namespace pace {
                         std::is_same<typename std::decay<T>::type, charcodes::EncodedView>>::value,
           CharPipeline&>::type
           operator<<( CharPipeline& stream, T&& info )
-        {
-          return stream.append( std::forward<T>( info ) );
-        }
+        { return stream.append( std::forward<T>( info ) ); }
         friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& operator<<( CharPipeline& stream,
                                                                                types::ROStr info )
-        {
-          return stream.append( info );
-        }
+        { return stream.append( info ); }
 
         PACE__CXX20_CNSTXPR void swap( CharPipeline& other ) noexcept
         {
@@ -122,9 +112,7 @@ namespace pace {
           return *this;
         }
         friend PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& stream, types::LitU8 info )
-        {
-          return stream.append( info );
-        }
+        { return stream.append( info ); }
 #endif
       };
     } // namespace io

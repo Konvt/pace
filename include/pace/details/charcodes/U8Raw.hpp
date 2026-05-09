@@ -46,8 +46,8 @@ namespace pace {
               overlong = 0x800;
               break;
             case 4:
-              ret = ( ( first_byte & 0x7 ) << 18 ) | ( ( raw_u8_str[1] & 0x3F ) << 12 )
-                  | ( ( raw_u8_str[2] & 0x3F ) << 6 ) | ( raw_u8_str[3] & 0x3F );
+              ret      = ( ( first_byte & 0x7 ) << 18 ) | ( ( raw_u8_str[1] & 0x3F ) << 12 )
+                       | ( ( raw_u8_str[2] & 0x3F ) << 6 ) | ( raw_u8_str[3] & 0x3F );
               overlong = 0x10000;
               break;
             default: utils::unreachable();
@@ -197,37 +197,25 @@ namespace pace {
 
         PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( U8Raw&& a,
                                                                                               const U8Raw& b )
-        {
-          return std::move( a.bytes_ ) + b.bytes_;
-        }
+        { return std::move( a.bytes_ ) + b.bytes_; }
         PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( const U8Raw& a,
                                                                                               const U8Raw& b )
-        {
-          return a.bytes_ + b.bytes_;
-        }
+        { return a.bytes_ + b.bytes_; }
         PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+(
           types::String&& a,
           const U8Raw& b )
-        {
-          return std::move( a ) + b.bytes_;
-        }
+        { return std::move( a ) + b.bytes_; }
         template<types::Size N>
         PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+(
           const char ( &a )[N],
           const U8Raw& b )
-        {
-          return a + b.bytes_;
-        }
+        { return a + b.bytes_; }
         PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( const char* a,
                                                                                               const U8Raw& b )
-        {
-          return a + b.bytes_;
-        }
+        { return a + b.bytes_; }
         PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( types::ROStr a,
                                                                                               const U8Raw& b )
-        {
-          return types::String( a ) + b;
-        }
+        { return types::String( a ) + b; }
         PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( U8Raw&& a,
                                                                                               types::ROStr b )
         {
@@ -236,9 +224,7 @@ namespace pace {
         }
         PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( const U8Raw& a,
                                                                                               types::ROStr b )
-        {
-          return a.bytes_ + types::String( b );
-        }
+        { return a.bytes_ + types::String( b ); }
 
 #ifdef __cpp_char8_t
         static_assert( sizeof( char8_t ) == sizeof( char ), "unexpected type size mismatch" );
@@ -292,15 +278,11 @@ namespace pace {
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String format(
         types::Size width,
         const charcodes::U8Raw& str )
-      {
-        return format<Style>( width, str.str() );
-      }
+      { return format<Style>( width, str.str() ); }
       template<TxtLayout Style>
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String format( types::Size width,
                                                                                   charcodes::U8Raw&& str )
-      {
-        return format<Style>( width, std::move( str ).str() );
-      }
+      { return format<Style>( width, std::move( str ).str() ); }
     } // namespace utils
   } // namespace details
 } // namespace pace

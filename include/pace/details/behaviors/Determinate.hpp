@@ -26,9 +26,7 @@ namespace pace {
         }
 
         PACE__NODISCARD PACE__FORCEINLINE bool test_completion() const noexcept
-        {
-          return this->task_cnt_.load( std::memory_order_relaxed ) >= this->task_end_;
-        }
+        { return this->task_cnt_.load( std::memory_order_relaxed ) >= this->task_end_; }
 
       protected:
         constexpr Determinate() = default;

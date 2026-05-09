@@ -87,111 +87,73 @@ namespace pace {
         }
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR reference operator*() const
-        {
-          return *current_;
-        }
+        { return *current_; }
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX17_CNSTXPR pointer operator->() const noexcept
-        {
-          return current_;
-        }
+        { return current_; }
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX17_CNSTXPR reference
           operator[]( details::types::Size inc ) const
-        {
-          return *std::next( current_, inc );
-        }
+        { return *std::next( current_, inc ); }
 
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( const iterator& itr,
                                                                             const Itr& ir )
-        {
-          return itr.current_ == ir;
-        }
+        { return itr.current_ == ir; }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( const Itr& ir,
                                                                             const iterator& itr )
-        {
-          return itr == ir;
-        }
+        { return itr == ir; }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( const iterator& itr,
                                                                             const Itr& ir )
-        {
-          return !( itr == ir );
-        }
+        { return !( itr == ir ); }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( const Itr& ir,
                                                                             const iterator& itr )
-        {
-          return !( itr == ir );
-        }
+        { return !( itr == ir ); }
         template<typename S>
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr typename std::enable_if<
           details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator==( const iterator& a, const S& b )
-        {
-          return a.current_ == b;
-        }
+        { return a.current_ == b; }
         template<typename S>
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr typename std::enable_if<
           details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator==( const Snt& a, const iterator& b )
-        {
-          return b == a;
-        }
+        { return b == a; }
         template<typename S>
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr typename std::enable_if<
           details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator!=( const iterator& a, const Snt& b )
-        {
-          return !( a == b );
-        }
+        { return !( a == b ); }
         template<typename S>
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr typename std::enable_if<
           details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator!=( const Snt& a, const iterator& b )
-        {
-          return !( b == a );
-        }
+        { return !( b == a ); }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( const iterator& a,
                                                                             const iterator& b )
-        {
-          return a.current_ == b.current_;
-        }
+        { return a.current_ == b.current_; }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( const iterator& a,
                                                                             const iterator& b )
-        {
-          return !( a == b );
-        }
+        { return !( a == b ); }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr difference_type operator-( const iterator& a,
                                                                                       const iterator& b )
-        {
-          return details::utils::distance( a.current_, b.current_ );
-        }
+        { return details::utils::distance( a.current_, b.current_ ); }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( const iterator& a,
                                                                             const Sentry& b )
-        {
-          return a.current_ == b.endpoint_;
-        }
+        { return a.current_ == b.endpoint_; }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( const iterator& a,
                                                                             const Sentry& b )
-        {
-          return !( a == b );
-        }
+        { return !( a == b ); }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( const Sentry& a,
                                                                             const iterator& b )
-        {
-          return b == a;
-        }
+        { return b == a; }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( const Sentry& a,
                                                                             const iterator& b )
-        {
-          return !( b == a );
-        }
+        { return !( b == a ); }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr difference_type operator-( const Sentry& a,
                                                                                       const iterator& b )
-        {
-          return b - a;
-        }
+        { return b - a; }
 
         explicit constexpr operator bool() const { return current_ != Itr(); }
       };
@@ -216,25 +178,17 @@ namespace pace {
       PACE__NODISCARD PACE__FORCEINLINE constexpr iterator begin() const
         noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<Itr>,
                                          std::is_nothrow_copy_constructible<Itr>>::value )
-      {
-        return { this->start_ };
-      }
+      { return { this->start_ }; }
       PACE__NODISCARD PACE__FORCEINLINE constexpr sentinel end() const
         noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<sentinel>,
                                          std::is_nothrow_copy_constructible<sentinel>>::value )
-      {
-        return { this->end_ };
-      }
+      { return { this->end_ }; }
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR typename iterator::reference front()
         const noexcept
-      {
-        return *start_;
-      }
+      { return *start_; }
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR typename iterator::reference back() const noexcept
-      {
-        return *std::next( start_, size_ - 1 );
-      }
+      { return *std::next( start_, size_ - 1 ); }
       PACE__NODISCARD PACE__FORCEINLINE constexpr details::types::Size step() const noexcept { return 1; }
       PACE__NODISCARD PACE__FORCEINLINE constexpr details::types::Size size() const noexcept { return size_; }
       PACE__NODISCARD PACE__FORCEINLINE constexpr bool empty() const noexcept { return size_ == 0; }
@@ -248,15 +202,11 @@ namespace pace {
         swap( size_, lhs.size_ );
       }
       friend PACE__CXX20_CNSTXPR void swap( IteratorSpan<Itr>& a, IteratorSpan<Itr>& b ) noexcept
-      {
-        a.swap( b );
-      }
+      { a.swap( b ); }
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX17_CNSTXPR typename iterator::reference operator[](
         details::types::Size inc ) const
-      {
-        return *std::next( start_, inc );
-      }
+      { return *std::next( start_, inc ); }
       explicit PACE__CXX17_CNSTXPR operator bool() const noexcept { return !empty(); }
     };
   } // namespace slice

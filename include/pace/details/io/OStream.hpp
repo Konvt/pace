@@ -25,9 +25,7 @@ namespace pace {
       class OStream;
       template<Channel Outlet>
       OStream<Outlet>& flush( OStream<Outlet>& stream )
-      {
-        return stream.flush();
-      }
+      { return stream.flush(); }
       template<Channel Outlet>
       PACE__CXX20_CNSTXPR OStream<Outlet>& release( OStream<Outlet>& stream ) noexcept
       {

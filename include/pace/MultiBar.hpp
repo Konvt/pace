@@ -83,14 +83,10 @@ namespace pace {
     PACE__FORCEINLINE void abort() noexcept { package_.kill(); }
     // Returns the number of progress bars.
     PACE__NODISCARD static PACE__FORCEINLINE PACE__CNSTEVAL details::types::Size size() noexcept
-    {
-      return sizeof...( Configs ) + 1;
-    }
+    { return sizeof...( Configs ) + 1; }
     // Returns the number of progress bars which is running.
     PACE__NODISCARD PACE__FORCEINLINE details::types::Size active_count() const noexcept
-    {
-      return package_.online_count();
-    }
+    { return package_.online_count(); }
     // Wait for all progress bars to stop.
     void wait() const noexcept
     {
@@ -105,76 +101,48 @@ namespace pace {
 
     template<details::types::Size Pos>
     PACE__FORCEINLINE BarAt_t<Pos>& at() & noexcept
-    {
-      return package_.template at<Pos>();
-    }
+    { return package_.template at<Pos>(); }
     template<details::types::Size Pos>
     PACE__FORCEINLINE const BarAt_t<Pos>& at() const& noexcept
-    {
-      return package_.template at<Pos>();
-    }
+    { return package_.template at<Pos>(); }
     template<details::types::Size Pos>
     PACE__FORCEINLINE BarAt_t<Pos>&& at() && noexcept
-    {
-      return std::move( package_.template at<Pos>() );
-    }
+    { return std::move( package_.template at<Pos>() ); }
 
     template<details::types::Size Pos>
     PACE__FORCEINLINE void tick() &
-    {
-      at<Pos>().tick();
-    }
+    { at<Pos>().tick(); }
     template<details::types::Size Pos>
     PACE__FORCEINLINE void tick( std::uint64_t next_step ) &
-    {
-      at<Pos>().tick( next_step );
-    }
+    { at<Pos>().tick( next_step ); }
     template<details::types::Size Pos>
     PACE__FORCEINLINE void tick_to( std::uint8_t percentage ) &
-    {
-      at<Pos>().tick_to( percentage );
-    }
+    { at<Pos>().tick_to( percentage ); }
     template<details::types::Size Pos>
     PACE__FORCEINLINE void reset()
-    {
-      at<Pos>().reset();
-    }
+    { at<Pos>().reset(); }
     template<details::types::Size Pos>
     PACE__FORCEINLINE void abort() noexcept
-    {
-      at<Pos>().abort();
-    }
+    { at<Pos>().abort(); }
     template<details::types::Size Pos>
     PACE__FORCEINLINE void wait() const noexcept
-    {
-      at<Pos>().wait();
-    }
+    { at<Pos>().wait(); }
     template<details::types::Size Pos, class Rep, class Period>
     PACE__NODISCARD PACE__FORCEINLINE bool wait_for(
       const std::chrono::duration<Rep, Period>& timeout ) const noexcept
-    {
-      return at<Pos>().wait_for( timeout );
-    }
+    { return at<Pos>().wait_for( timeout ); }
     template<details::types::Size Pos>
     PACE__NODISCARD PACE__FORCEINLINE bool active() const noexcept
-    {
-      return at<Pos>().active();
-    }
+    { return at<Pos>().active(); }
     template<details::types::Size Pos>
     PACE__FORCEINLINE ConfigAt_t<Pos>& config() &
-    {
-      return at<Pos>().config();
-    }
+    { return at<Pos>().config(); }
     template<details::types::Size Pos>
     PACE__FORCEINLINE const ConfigAt_t<Pos>& config() const&
-    {
-      return at<Pos>().config();
-    }
+    { return at<Pos>().config(); }
     template<details::types::Size Pos>
     PACE__FORCEINLINE ConfigAt_t<Pos>&& config() &&
-    {
-      return at<Pos>().config();
-    }
+    { return at<Pos>().config(); }
 
     template<details::types::Size Pos, typename... Args
 #ifdef __cpp_concepts
@@ -187,9 +155,7 @@ namespace pace {
     PACE__FORCEINLINE auto iterate( Args&&... args ) & noexcept(
       noexcept( this->template at<Pos>().iterate( std::forward<Args>( args )... ) ) )
       -> decltype( this->template at<Pos>().iterate( std::forward<Args>( args )... ) )
-    {
-      return at<Pos>().iterate( std::forward<Args>( args )... );
-    }
+    { return at<Pos>().iterate( std::forward<Args>( args )... ); }
 
     template<details::types::Size Pos, typename F
 #ifdef __cpp_concepts
@@ -201,9 +167,7 @@ namespace pace {
 #endif
     PACE__FORCEINLINE BarAt_t<Pos>& action( F&& fn ) & noexcept(
       noexcept( this->template at<Pos>().action( std::forward<F>( fn ) ) ) )
-    {
-      return at<Pos>().action( std::forward<F>( fn ) );
-    }
+    { return at<Pos>().action( std::forward<F>( fn ) ); }
     template<details::types::Size Pos
 #ifdef __cpp_concepts
              >
@@ -214,28 +178,20 @@ namespace pace {
              typename = typename std::enable_if<details::traits::is_reactive_bar<BarAt_t<Pos>>::value>::type>
 #endif
     PACE__FORCEINLINE BarAt_t<Pos>& action() noexcept
-    {
-      return at<Pos>().action();
-    }
+    { return at<Pos>().action(); }
 
     void swap( MultiBar& other ) noexcept { package_.swap( other.package_ ); }
     friend void swap( MultiBar& a, MultiBar& b ) noexcept { a.swap( b ); }
 
     template<details::types::Size Pos>
     friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR BarAt_t<Pos>& get( MultiBar& self ) noexcept
-    {
-      return self.template at<Pos>();
-    }
+    { return self.template at<Pos>(); }
     template<details::types::Size Pos>
     friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR const BarAt_t<Pos>& get( const MultiBar& self ) noexcept
-    {
-      return self.template at<Pos>();
-    }
+    { return self.template at<Pos>(); }
     template<details::types::Size Pos>
     friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR BarAt_t<Pos>&& get( MultiBar&& self ) noexcept
-    {
-      return std::move( self ).template at<Pos>();
-    }
+    { return std::move( self ).template at<Pos>(); }
   };
 
 #ifdef __cpp_deduction_guides
@@ -278,9 +234,7 @@ namespace pace {
                              details::traits::is_config<Configs>...>::value,
       MultiBar<prefab::BasicBar<Config, O, M, A>, prefab::BasicBar<Configs, O, M, A>...>>::type
 #endif
-  {
-    return { std::move( bar ), std::move( bars )... };
-  }
+  { return { std::move( bar ), std::move( bars )... }; }
   // Creates a MultiBar using configuration objects.
   template<Channel Outlet = Channel::Stderr,
            Policy Mode    = Policy::Async,
@@ -302,9 +256,7 @@ namespace pace {
         MultiBar<prefab::BasicBar<typename std::decay<Config>::type, Outlet, Mode, Area>,
                  prefab::BasicBar<typename std::decay<Configs>::type, Outlet, Mode, Area>...>>::type
 #endif
-  {
-    return { std::forward<Config>( cfg ), std::forward<Configs>( cfgs )... };
-  }
+  { return { std::forward<Config>( cfg ), std::forward<Configs>( cfgs )... }; }
 
   namespace details {
     namespace utils {
@@ -404,9 +356,7 @@ namespace pace {
         value,
       MultiBar_t<Bar, Cnt>>::type
 #endif
-  {
-    return { std::forward<Objs>( objs )... };
-  }
+  { return { std::forward<Objs>( objs )... }; }
   /**
    * Creates a MultiBar with a fixed number of BasicBar instances using mutiple configuration objects.
    * The ctor sequentially initializes the first few instances corresponding to the provided configurations;
@@ -432,9 +382,7 @@ namespace pace {
                                std::is_same<Config, typename std::decay<Configs>::type>...>::value,
         MultiBar_t<prefab::BasicBar<Config, Outlet, Mode, Area>, Cnt>>::type
 #endif
-  {
-    return { std::forward<Configs>( configs )... };
-  }
+  { return { std::forward<Configs>( configs )... }; }
   /**
    * Creates a MultiBar with a fixed number of BasicBar instances using mutiple bar objects.
    * The ctor sequentially initializes the first few instances corresponding to the provided objects;
@@ -460,9 +408,7 @@ namespace pace {
                                std::is_same<Config, typename std::decay<Configs>::type>&&...>::value,
         MultiBar_t<prefab::BasicBar<Config, Outlet, Mode, Area>, Cnt>>::type
 #endif
-  {
-    return { std::move( bars )... };
-  }
+  { return { std::move( bars )... }; }
 } // namespace pace
 
 template<typename... Bs>

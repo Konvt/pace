@@ -30,9 +30,7 @@ namespace pace {
       class Prefix : public Base {
 #define PACE__UNPAKING( OptionName, MemberName, Constexpr )                                         \
   friend PACE__FORCEINLINE Constexpr void unpack( Prefix& self, option::OptionName&& val ) noexcept \
-  {                                                                                                 \
-    self.MemberName = std::move( val.value() );                                                     \
-  }
+  { self.MemberName = std::move( val.value() ); }
         PACE__UNPAKING( Prefix, prefix_, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( PrefixColor, prfx_col_, )
 #undef PACE__UNPAKING
@@ -49,9 +47,7 @@ namespace pace {
         }
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length() const noexcept
-        {
-          return prefix_.width() + !prefix_.empty();
-        }
+        { return prefix_.width() + !prefix_.empty(); }
 
         template<typename... Options>
         PACE__CXX20_CNSTXPR Prefix( traits::TypeSet<Options...> tag ) : Base( tag )
@@ -74,34 +70,22 @@ namespace pace {
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
         Derived& prefix( types::String _prefix ) &
-        {
-          PACE__METHOD( Prefix, _prefix, Derived&, std::move );
-        }
+        { PACE__METHOD( Prefix, _prefix, Derived&, std::move ); }
         Derived&& prefix( types::String _prefix ) &&
-        {
-          PACE__METHOD( Prefix, _prefix, Derived&&, std::move );
-        }
+        { PACE__METHOD( Prefix, _prefix, Derived&&, std::move ); }
 
 #ifdef __cpp_lib_char8_t
         Derived& prefix( types::LitU8 _prefix ) &
-        {
-          PACE__METHOD( Prefix, _prefix, Derived&, );
-        }
+        { PACE__METHOD( Prefix, _prefix, Derived&, ); }
         Derived&& prefix( types::LitU8 _prefix ) &&
-        {
-          PACE__METHOD( Prefix, _prefix, Derived&&, );
-        }
+        { PACE__METHOD( Prefix, _prefix, Derived&&, ); }
 #endif
 
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
         Derived& prefix_color( console::escodes::RGBColor _prfx_color ) &
-        {
-          PACE__METHOD( PrefixColor, _prfx_color, Derived&, std::move );
-        }
+        { PACE__METHOD( PrefixColor, _prfx_color, Derived&, std::move ); }
         Derived&& prefix_color( console::escodes::RGBColor _prfx_color ) &&
-        {
-          PACE__METHOD( PrefixColor, _prfx_color, Derived&&, std::move );
-        }
+        { PACE__METHOD( PrefixColor, _prfx_color, Derived&&, std::move ); }
 
 #undef PACE__METHOD
 
@@ -117,9 +101,7 @@ namespace pace {
       class Postfix : public Base {
 #define PACE__UNPAKING( OptionName, MemberName, Constexpr )                                          \
   friend PACE__FORCEINLINE Constexpr void unpack( Postfix& self, option::OptionName&& val ) noexcept \
-  {                                                                                                  \
-    self.MemberName = std::move( val.value() );                                                      \
-  }
+  { self.MemberName = std::move( val.value() ); }
         PACE__UNPAKING( Postfix, postfix_, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( PostfixColor, pstfx_col_, )
 #undef PACE__UNPAKING
@@ -136,9 +118,7 @@ namespace pace {
         }
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length() const noexcept
-        {
-          return postfix_.width() + !postfix_.empty();
-        }
+        { return postfix_.width() + !postfix_.empty(); }
 
         template<typename... Options>
         PACE__CXX14_CNSTXPR Postfix( traits::TypeSet<Options...> tag ) : Base( tag )
@@ -160,33 +140,21 @@ namespace pace {
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
         Derived& postfix( types::String _postfix ) &
-        {
-          PACE__METHOD( Postfix, _postfix, Derived&, std::move );
-        }
+        { PACE__METHOD( Postfix, _postfix, Derived&, std::move ); }
         Derived&& postfix( types::String _postfix ) &&
-        {
-          PACE__METHOD( Postfix, _postfix, Derived&&, std::move );
-        }
+        { PACE__METHOD( Postfix, _postfix, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
         Derived& postfix( types::LitU8 _postfix ) &
-        {
-          PACE__METHOD( Postfix, _postfix, Derived&, );
-        }
+        { PACE__METHOD( Postfix, _postfix, Derived&, ); }
         Derived&& postfix( types::LitU8 _postfix ) &&
-        {
-          PACE__METHOD( Postfix, _postfix, Derived&&, );
-        }
+        { PACE__METHOD( Postfix, _postfix, Derived&&, ); }
 #endif
 
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
         Derived& postfix_color( console::escodes::RGBColor _pstfx_color ) &
-        {
-          PACE__METHOD( PostfixColor, _pstfx_color, Derived&, std::move );
-        }
+        { PACE__METHOD( PostfixColor, _pstfx_color, Derived&, std::move ); }
         Derived&& postfix_color( console::escodes::RGBColor _pstfx_color ) &&
-        {
-          PACE__METHOD( PostfixColor, _pstfx_color, Derived&&, std::move );
-        }
+        { PACE__METHOD( PostfixColor, _pstfx_color, Derived&&, std::move ); }
 
 #undef PACE__METHOD
 

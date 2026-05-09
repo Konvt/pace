@@ -58,9 +58,7 @@ namespace pace {
       template<typename Base, typename Derived>
       class Frame : public Base {
         friend PACE__FORCEINLINE void unpack( Frame& self, option::LeadColor&& val ) noexcept
-        {
-          self.lead_col_ = val.value();
-        }
+        { self.lead_col_ = val.value(); }
         friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Frame& self, option::Lead&& val ) noexcept
         {
           if ( std::all_of( val.value().cbegin(),
@@ -86,9 +84,7 @@ namespace pace {
         console::escodes::RGBColor lead_col_;
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length() const noexcept
-        {
-          return len_longest_lead_;
-        }
+        { return len_longest_lead_; }
 
         template<typename... Options>
         PACE__CXX20_CNSTXPR Frame( traits::TypeSet<Options...> tag ) : Base( tag )
@@ -111,51 +107,31 @@ namespace pace {
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
         Derived& lead( std::vector<types::String> _leads ) &
-        {
-          PACE__METHOD( Lead, _leads, Derived&, std::move );
-        }
+        { PACE__METHOD( Lead, _leads, Derived&, std::move ); }
         Derived&& lead( std::vector<types::String> _leads ) &&
-        {
-          PACE__METHOD( Lead, _leads, Derived&&, std::move );
-        }
+        { PACE__METHOD( Lead, _leads, Derived&&, std::move ); }
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
         Derived& lead( types::String _lead ) &
-        {
-          PACE__METHOD( Lead, _lead, Derived&, std::move );
-        }
+        { PACE__METHOD( Lead, _lead, Derived&, std::move ); }
         Derived&& lead( types::String _lead ) &&
-        {
-          PACE__METHOD( Lead, _lead, Derived&&, std::move );
-        }
+        { PACE__METHOD( Lead, _lead, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
         Derived& lead( const std::vector<types::LitU8>& _leads ) &
-        {
-          PACE__METHOD( Lead, _leads, Derived&, );
-        }
+        { PACE__METHOD( Lead, _leads, Derived&, ); }
         Derived&& lead( const std::vector<types::LitU8>& _leads ) &&
-        {
-          PACE__METHOD( Lead, _leads, Derived&&, );
-        }
+        { PACE__METHOD( Lead, _leads, Derived&&, ); }
         Derived& lead( types::LitU8 _lead ) &
-        {
-          PACE__METHOD( Lead, _lead, Derived&, );
-        }
+        { PACE__METHOD( Lead, _lead, Derived&, ); }
         Derived&& lead( types::LitU8 _lead ) &&
-        {
-          PACE__METHOD( Lead, _lead, Derived&&, );
-        }
+        { PACE__METHOD( Lead, _lead, Derived&&, ); }
 #endif
 
         /// @brief Set the color of the component `lead`.
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
         Derived& lead_color( console::escodes::RGBColor _lead_color ) &
-        {
-          PACE__METHOD( LeadColor, _lead_color, Derived&, std::move );
-        }
+        { PACE__METHOD( LeadColor, _lead_color, Derived&, std::move ); }
         Derived&& lead_color( console::escodes::RGBColor _lead_color ) &&
-        {
-          PACE__METHOD( LeadColor, _lead_color, Derived&&, std::move );
-        }
+        { PACE__METHOD( LeadColor, _lead_color, Derived&&, std::move ); }
 
 #undef PACE__METHOD
 

@@ -14,9 +14,7 @@ namespace pace {
         constexpr Brush( const Effect*, NextAction&& ) noexcept {}
 
         friend PACE__FORCEINLINE io::CharPipeline& operator<<( io::CharPipeline& pipeline, const Brush& )
-        {
-          return pipeline;
-        }
+        { return pipeline; }
 
 #else
         const Effect* effect_;
@@ -44,9 +42,7 @@ namespace pace {
         constexpr Brush( const Effect* ) noexcept {}
 
         friend PACE__FORCEINLINE io::CharPipeline& operator<<( io::CharPipeline& pipeline, const Brush& )
-        {
-          return pipeline;
-        }
+        { return pipeline; }
 #else
         const Effect* effect_ = nullptr;
 

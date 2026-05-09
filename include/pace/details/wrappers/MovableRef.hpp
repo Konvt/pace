@@ -16,9 +16,7 @@ namespace pace {
         PACE__CXX14_CNSTXPR MovableRef( const MovableRef& )              = default;
         PACE__CXX14_CNSTXPR MovableRef& operator=( const MovableRef& ) & = default;
         PACE__CXX14_CNSTXPR MovableRef( MovableRef&& rhs ) noexcept : ref_ { rhs.ref_ }
-        {
-          rhs.ref_ = nullptr;
-        }
+        { rhs.ref_ = nullptr; }
         PACE__CXX14_CNSTXPR MovableRef& operator=( MovableRef&& rhs ) & noexcept
         {
           ref_     = rhs.ref_;
@@ -81,47 +79,31 @@ namespace pace {
         PACE__NODISCARD friend constexpr
           typename std::enable_if<std::is_same<typename std::decay<U>::type, T>::value, bool>::type
           operator==( const MovableRef& a, const MovableRef<const U>& b ) noexcept
-        {
-          return a.ref_ == b.ref_;
-        }
+        { return a.ref_ == b.ref_; }
         template<typename U>
         PACE__NODISCARD friend constexpr
           typename std::enable_if<std::is_same<typename std::decay<U>::type, T>::value, bool>::type
           operator!=( const MovableRef& a, const MovableRef<const U>& b ) noexcept
-        {
-          return !( a == b );
-        }
+        { return !( a == b ); }
         template<typename U>
         PACE__NODISCARD friend constexpr
           typename std::enable_if<std::is_same<typename std::decay<U>::type, T>::value, bool>::type
           operator==( const MovableRef<const U>& a, const MovableRef& b ) noexcept
-        {
-          return a.ref_ == b.ref_;
-        }
+        { return a.ref_ == b.ref_; }
         template<typename U>
         PACE__NODISCARD friend constexpr
           typename std::enable_if<std::is_same<typename std::decay<U>::type, T>::value, bool>::type
           operator!=( const MovableRef<const U>& a, const MovableRef& b ) noexcept
-        {
-          return !( b == a );
-        }
+        { return !( b == a ); }
         PACE__NODISCARD friend constexpr bool operator==( const MovableRef& a, const T& b ) noexcept
-        {
-          return a.ref_ == std::addressof( b );
-        }
+        { return a.ref_ == std::addressof( b ); }
         template<typename U>
         PACE__NODISCARD friend constexpr bool operator!=( const MovableRef& a, const T& b ) noexcept
-        {
-          return !( a == b );
-        }
+        { return !( a == b ); }
         PACE__NODISCARD friend constexpr bool operator==( const T& a, const MovableRef& b ) noexcept
-        {
-          return b == a;
-        }
+        { return b == a; }
         PACE__NODISCARD friend constexpr bool operator!=( const T& a, const MovableRef& b ) noexcept
-        {
-          return !( b == a );
-        }
+        { return !( b == a ); }
       };
 
 #ifdef __cpp_deduction_guides
@@ -131,9 +113,7 @@ namespace pace {
 
       template<typename T>
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX17_CNSTXPR MovableRef<T> mref( T& x ) noexcept
-      {
-        return MovableRef<T>( x );
-      }
+      { return MovableRef<T>( x ); }
       template<typename T>
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR MovableRef<T> mref( MovableRef<T> x ) noexcept
       {

@@ -20,9 +20,7 @@ namespace pace {
       class Remain : public Base {
 #define PACE__UNPAKING( OptionName, MemberName, Constexpr )                                         \
   friend PACE__FORCEINLINE Constexpr void unpack( Remain& self, option::OptionName&& val ) noexcept \
-  {                                                                                                 \
-    self.MemberName = std::move( val.value() );                                                     \
-  }
+  { self.MemberName = std::move( val.value() ); }
         PACE__UNPAKING( Remain, remain_, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( RemainColor, remain_col_, )
 #undef PACE__UNPAKING
@@ -52,32 +50,20 @@ namespace pace {
 
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
         Derived& remain_color( console::escodes::RGBColor _remain_color ) &
-        {
-          PACE__METHOD( RemainColor, _remain_color, Derived&, std::move );
-        }
+        { PACE__METHOD( RemainColor, _remain_color, Derived&, std::move ); }
         Derived&& remain_color( console::escodes::RGBColor _remain_color ) &&
-        {
-          PACE__METHOD( RemainColor, _remain_color, Derived&&, std::move );
-        }
+        { PACE__METHOD( RemainColor, _remain_color, Derived&&, std::move ); }
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
         Derived& remain( types::String _remain ) &
-        {
-          PACE__METHOD( Remain, _remain, Derived&, std::move );
-        }
+        { PACE__METHOD( Remain, _remain, Derived&, std::move ); }
         Derived&& remain( types::String _remain ) &&
-        {
-          PACE__METHOD( Remain, _remain, Derived&&, std::move );
-        }
+        { PACE__METHOD( Remain, _remain, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
         Derived& remain( types::LitU8 _remain ) &
-        {
-          PACE__METHOD( Remain, _remain, Derived&, );
-        }
+        { PACE__METHOD( Remain, _remain, Derived&, ); }
         Derived&& remain( types::LitU8 _remain ) &&
-        {
-          PACE__METHOD( Remain, _remain, Derived&&, );
-        }
+        { PACE__METHOD( Remain, _remain, Derived&&, ); }
 #endif
 
 #undef PACE__METHOD

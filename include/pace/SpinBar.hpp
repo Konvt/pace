@@ -40,9 +40,7 @@ namespace pace {
   template<>
   struct pace::config::ProvideFor<config::Spin, option::Projection> {
     static option::Projection provide()
-    {
-      return config::Spin::bake( option::Only<facade::SpinPlot, facade::Elapsed>() );
-    }
+    { return config::Spin::bake( option::Only<facade::SpinPlot, facade::Elapsed>() ); }
   };
   template<>
   struct pace::config::ProvideFor<config::Spin, option::Lead> {

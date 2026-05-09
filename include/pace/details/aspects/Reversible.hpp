@@ -19,9 +19,7 @@ namespace pace {
       class Reversible : public Base {
         friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Reversible& self,
                                                                   option::Reversed&& val ) noexcept
-        {
-          self.reversed_ = val.value();
-        }
+        { self.reversed_ = val.value(); }
 
       protected:
         bool reversed_;
@@ -44,13 +42,9 @@ namespace pace {
   return static_cast<ReturnType>( *this )
 
         Derived& reverse( bool flag ) & noexcept
-        {
-          PACE__METHOD( Derived& );
-        }
+        { PACE__METHOD( Derived& ); }
         Derived&& reverse( bool flag ) && noexcept
-        {
-          PACE__METHOD( Derived&& );
-        }
+        { PACE__METHOD( Derived&& ); }
 
 #undef PACE__METHOD
 

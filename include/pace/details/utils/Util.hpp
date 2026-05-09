@@ -31,9 +31,7 @@ namespace pace {
             traits::BoolConstant<( I >= std::tuple_size<typename std::decay<Tuple>::type>::value )>,
             std::is_default_constructible<T>>::value,
           T>::type
-      {
-        return T();
-      }
+      { return T(); }
 
       template<typename Numeric>
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR
@@ -49,9 +47,7 @@ namespace pace {
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR
         typename std::enable_if<std::is_signed<Numeric>::value, types::Size>::type
         count_digits( Numeric val ) noexcept
-      {
-        return count_digits( static_cast<std::uint64_t>( val < 0 ? -val : val ) );
-      }
+      { return count_digits( static_cast<std::uint64_t>( val < 0 ? -val : val ) ); }
 
       // Format an integer number.
       template<typename Integer>
@@ -165,9 +161,7 @@ namespace pace {
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String format( types::Size width,
                                                                                   types::ROStr str )
         noexcept( false )
-      {
-        return format<Style>( width, types::String( str ) );
-      }
+      { return format<Style>( width, types::String( str ) ); }
 #endif
     } // namespace utils
   } // namespace details

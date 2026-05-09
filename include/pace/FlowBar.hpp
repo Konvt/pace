@@ -44,9 +44,7 @@ namespace pace {
   template<>
   struct pace::config::ProvideFor<config::Flow, option::Projection> {
     static option::Projection provide()
-    {
-      return config::Flow::bake( option::Only<facade::FlowPlot, facade::Elapsed>() );
-    }
+    { return config::Flow::bake( option::Only<facade::FlowPlot, facade::Elapsed>() ); }
   };
   template<>
   struct pace::config::ProvideFor<config::Flow, option::Lead> {

@@ -48,9 +48,7 @@ namespace pace {
 
         template<typename T>
         static PACE__NOINLINE PACE__CXX20_CNSTXPR void destroy_inline( AnyFn& fn ) noexcept
-        {
-          utils::destroy_at( utils::launder_as<T>( &fn.sso_ ) );
-        }
+        { utils::destroy_at( utils::launder_as<T>( &fn.sso_ ) ); }
         template<typename T>
         static PACE__CXX20_CNSTXPR PACE__NOINLINE void move_inline( AnyFn& dst, AnyFn& src ) noexcept
         {
@@ -187,13 +185,9 @@ namespace pace {
         }
         friend PACE__CXX23_CNSTXPR void swap( FnStore& a, FnStore& b ) noexcept { return a.swap( b ); }
         friend constexpr bool operator==( const FnStore& a, std::nullptr_t ) noexcept
-        {
-          return !static_cast<bool>( a );
-        }
+        { return !static_cast<bool>( a ); }
         friend constexpr bool operator!=( const FnStore& a, std::nullptr_t ) noexcept
-        {
-          return static_cast<bool>( a );
-        }
+        { return static_cast<bool>( a ); }
         explicit constexpr operator bool() const noexcept { return vtable_ != &table_null(); }
       };
       // `CrefInfo` can be any types that contains the `cref` info of the functor.

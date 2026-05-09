@@ -30,9 +30,7 @@ namespace pace {
       }
 
       PACE__NODISCARD static PACE__FORCEINLINE PACE__CNSTEVAL details::types::Size fixed_length() noexcept
-      {
-        return sizeof( _default_percent ) - 1;
-      }
+      { return sizeof( _default_percent ) - 1; }
 
       template<typename... Options>
       constexpr Percentage( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )

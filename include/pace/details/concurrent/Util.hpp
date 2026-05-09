@@ -46,9 +46,7 @@ namespace pace {
       }
       template<typename F>
       PACE__FORCEINLINE void spin_wait( F&& pred ) noexcept( noexcept( pred() ) )
-      {
-        spin_wait( std::forward<F>( pred ), 128 );
-      }
+      { spin_wait( std::forward<F>( pred ), 128 ); }
 
       template<typename F, typename Rep, typename Period>
       PACE__FORCEINLINE bool spin_wait_for( F&& pred,
@@ -65,9 +63,7 @@ namespace pace {
       template<typename F, typename Rep, typename Period>
       PACE__FORCEINLINE bool spin_wait_for( F&& pred, const std::chrono::duration<Rep, Period>& timeout )
         noexcept( noexcept( pred() ) )
-      {
-        return spin_wait_for( std::forward<F>( pred ), 128, timeout );
-      }
+      { return spin_wait_for( std::forward<F>( pred ), 128, timeout ); }
 
       template<typename T>
       PACE__FORCEINLINE void atomic_commit_all( std::atomic<T>& atom,

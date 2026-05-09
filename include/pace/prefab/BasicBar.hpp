@@ -395,9 +395,7 @@ namespace pace {
       std::is_constructible<Bar, Options&&...>,
       std::is_void<decltype( std::declval<Proc&&>( std::declval<N>() ), void() )>>::value>::type
 #endif
-  {
-    Bar( std::forward<Options>( options )... ).iterate( endpoint, step, std::forward<Proc>( op ) );
-  }
+  { Bar( std::forward<Options>( options )... ).iterate( endpoint, step, std::forward<Proc>( op ) ); }
   template<typename Bar, typename N, typename Proc, typename Act, typename... Options>
   PACE__FORCEINLINE auto iterate( N endpoint, N step, Proc&& op, Act&& act, Options&&... options )
 #ifdef __cpp_concepts
@@ -630,9 +628,7 @@ namespace pace {
       std::is_constructible<Bar, Options&&...>,
       std::is_void<decltype( std::declval<Proc&&>( std::declval<N>() ), void() )>>::value>::type
 #endif
-  {
-    Bar( std::forward<Options>( options )... ).iterate( startpoint, endpoint, std::forward<Proc>( op ) );
-  }
+  { Bar( std::forward<Options>( options )... ).iterate( startpoint, endpoint, std::forward<Proc>( op ) ); }
   template<typename Bar, typename N, typename Proc, typename Act, typename... Options>
   PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, Proc&& op, Act&& act, Options&&... options )
 #ifdef __cpp_concepts
@@ -817,9 +813,7 @@ namespace pace {
                                                    std::is_constructible<Bar, Options&&...>>::value,
                             slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
-  {
-    return { { endpoint }, std::make_shared<Bar>( std::forward<Options>( options )... ) };
-  }
+  { return { { endpoint }, std::make_shared<Bar>( std::forward<Options>( options )... ) }; }
   template<typename Bar, typename N, typename Act, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N endpoint, Act&& act, Options&&... options ) ->
 #ifdef __cpp_concepts
@@ -857,9 +851,7 @@ namespace pace {
       std::is_constructible<Bar, Options&&...>,
       std::is_void<decltype( std::declval<Proc&&>( std::declval<N>() ), void() )>>::value>::type
 #endif
-  {
-    Bar( std::forward<Options>( options )... ).iterate( endpoint, std::forward<Proc>( op ) );
-  }
+  { Bar( std::forward<Options>( options )... ).iterate( endpoint, std::forward<Proc>( op ) ); }
   template<typename Bar, typename N, typename Proc, typename Act, typename... Options>
   PACE__FORCEINLINE auto iterate( N endpoint, Proc&& op, Act&& act, Options&&... options )
 #ifdef __cpp_concepts
@@ -1291,9 +1283,7 @@ namespace pace {
                             slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
                                                std::shared_ptr<Bar>>>::type
 #endif
-  {
-    return { { std::forward<R>( range ) }, std::make_shared<Bar>( std::forward<Options>( options )... ) };
-  }
+  { return { { std::forward<R>( range ) }, std::make_shared<Bar>( std::forward<Options>( options )... ) }; }
   template<typename Bar, class R, typename Act, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( R&& range, Act&& act, Options&&... options ) ->
 #ifdef __cpp_concepts
@@ -1327,9 +1317,7 @@ namespace pace {
               && std::is_constructible_v<Bar, Options && ...> )
   PACE__NODISCARD PACE__FORCEINLINE
     slice::TrackedSpan<R, std::shared_ptr<Bar>> iterate( R view, Options&&... options )
-  {
-    return { std::move( view ), std::make_shared<Bar>( std::forward<Options>( options )... ) };
-  }
+  { return { std::move( view ), std::make_shared<Bar>( std::forward<Options>( options )... ) }; }
   template<typename Bar, class R, typename Act, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE slice::TrackedSpan<R, std::shared_ptr<Bar>>
     iterate( R view, Act&& act, Options&&... options )

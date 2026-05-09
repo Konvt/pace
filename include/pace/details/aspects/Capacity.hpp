@@ -19,9 +19,7 @@ namespace pace {
       class Capacity : public Base {
         friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Capacity& self,
                                                                   option::Quota&& val ) noexcept
-        {
-          self.task_quota_ = val.value();
-        }
+        { self.task_quota_ = val.value(); }
 
       protected:
         std::uint64_t task_quota_;
@@ -45,13 +43,9 @@ namespace pace {
 
         // Set the number of quota, passing in zero is no exception.
         Derived& quota( std::uint64_t _quota ) & noexcept
-        {
-          PACE__METHOD( Derived& );
-        }
+        { PACE__METHOD( Derived& ); }
         Derived&& quota( std::uint64_t _quota ) && noexcept
-        {
-          PACE__METHOD( Derived&& );
-        }
+        { PACE__METHOD( Derived&& ); }
 #undef PACE__METHOD
 
         // Get the current number of quota.

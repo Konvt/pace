@@ -26,9 +26,7 @@ namespace pace {
 #define PACE__UNPAKING( OptionName, MemberName )                                                \
   friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR void unpack( RenderRule& self,                   \
                                                             option::OptionName&& val ) noexcept \
-  {                                                                                             \
-    self.rules_[utils::to_underlying( Chroma::OptionName )] = val.value();                      \
-  }
+  { self.rules_[utils::to_underlying( Chroma::OptionName )] = val.value(); }
         PACE__UNPAKING( Colored, colored_ )
         PACE__UNPAKING( Bolded, bolded_ )
 #undef PACE__UNPAKING
@@ -123,22 +121,14 @@ namespace pace {
 
         // Enable or disable the color effect.
         Derived& colored( bool _enable ) & noexcept
-        {
-          PACE__METHOD( Colored, Derived& );
-        }
+        { PACE__METHOD( Colored, Derived& ); }
         Derived&& colored( bool _enable ) && noexcept
-        {
-          PACE__METHOD( Colored, Derived&& );
-        }
+        { PACE__METHOD( Colored, Derived&& ); }
         // Enable or disable the bold effect.
         Derived& bolded( bool _enable ) & noexcept
-        {
-          PACE__METHOD( Bolded, Derived& );
-        }
+        { PACE__METHOD( Bolded, Derived& ); }
         Derived&& bolded( bool _enable ) && noexcept
-        {
-          PACE__METHOD( Bolded, Derived&& );
-        }
+        { PACE__METHOD( Bolded, Derived&& ); }
 
 #undef PACE__METHOD
 #define PACE__METHOD( Offset )                                            \
@@ -147,21 +137,15 @@ namespace pace {
 
         // Check whether the color effect is enabled.
         PACE__NODISCARD bool colored() const noexcept
-        {
-          PACE__METHOD( Colored );
-        }
+        { PACE__METHOD( Colored ); }
         // Check whether the bold effect is enabled.
         PACE__NODISCARD bool bolded() const noexcept
-        {
-          PACE__METHOD( Bolded );
-        }
+        { PACE__METHOD( Bolded ); }
 
 #undef PACE__METHOD
 
         PACE__CXX14_CNSTXPR void swap( RenderRule& other ) noexcept
-        {
-          std::swap( rules_, other.rules_ );
-        }
+        { std::swap( rules_, other.rules_ ); }
       };
     } // namespace aspects
 

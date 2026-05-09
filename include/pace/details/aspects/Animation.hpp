@@ -30,9 +30,7 @@ namespace pace {
       class Animation : public Base {
         friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR void unpack( Animation& self,
                                                                   option::Shift&& val ) noexcept
-        {
-          self.shift_factor_ = val.value() < 0 ? ( 1.0 / ( -val.value() ) ) : val.value();
-        }
+        { self.shift_factor_ = val.value() < 0 ? ( 1.0 / ( -val.value() ) ) : val.value(); }
 
       protected:
         types::Float shift_factor_;
@@ -63,13 +61,9 @@ namespace pace {
          * If the value is zero, freeze the animation.
          */
         Derived& shift( std::int8_t _shift_factor ) & noexcept
-        {
-          PACE__METHOD( Derived& );
-        }
+        { PACE__METHOD( Derived& ); }
         Derived&& shift( std::int8_t _shift_factor ) && noexcept
-        {
-          PACE__METHOD( Derived&& );
-        }
+        { PACE__METHOD( Derived&& ); }
 
 #undef PACE__METHOD
 

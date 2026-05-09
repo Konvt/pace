@@ -143,14 +143,10 @@ namespace pace {
             : RGBColor( utils::to_underlying( enum_val ) )
           {}
           PACE__CXX23_CNSTXPR RGBColor( types::ROStr hex_str ) : RGBColor()
-          {
-            from_str( hex_str.data(), hex_str.size() );
-          }
+          { from_str( hex_str.data(), hex_str.size() ); }
           template<types::Size N>
           PACE__CXX23_CNSTXPR RGBColor( const types::Char ( &hex_str )[N] ) : RGBColor()
-          {
-            from_str( hex_str, N - 1 );
-          }
+          { from_str( hex_str, N - 1 ); }
 
           PACE__CXX20_CNSTXPR RGBColor( const RGBColor& other )              = default;
           PACE__CXX20_CNSTXPR RGBColor& operator=( const RGBColor& other ) & = default;

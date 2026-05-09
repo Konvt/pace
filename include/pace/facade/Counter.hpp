@@ -10,7 +10,6 @@
 #include "../details/render/Parameter.hpp"
 #include "../details/traits/C3.hpp"
 
-
 namespace pace {
   namespace facade {
     template<typename Base, typename Derived>
@@ -29,9 +28,7 @@ namespace pace {
       }
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR std::uint32_t fixed_length() const noexcept
-      {
-        return details::utils::count_digits( this->task_quota_ ) * 2 + 1;
-      }
+      { return details::utils::count_digits( this->task_quota_ ) * 2 + 1; }
 
       template<typename... Options>
       constexpr Counter( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )

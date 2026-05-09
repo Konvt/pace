@@ -26,9 +26,7 @@ namespace pace {
       class Segment : public Base {
 #define PACE__UNPAKING( OptionName, MemberName, Operation, Constexpr )                               \
   friend PACE__FORCEINLINE Constexpr void unpack( Segment& self, option::OptionName&& val ) noexcept \
-  {                                                                                                  \
-    self.MemberName = Operation( val.value() );                                                      \
-  }
+  { self.MemberName = Operation( val.value() ); }
         PACE__UNPAKING( Divider, divider_, std::move, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( LeftBorder, l_border_, std::move, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( RightBorder, r_border_, std::move, PACE__CXX20_CNSTXPR )
@@ -75,71 +73,43 @@ namespace pace {
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
         Derived& divider( types::String _divider ) &
-        {
-          PACE__METHOD( Divider, _divider, Derived&, std::move );
-        }
+        { PACE__METHOD( Divider, _divider, Derived&, std::move ); }
         Derived&& divider( types::String _divider ) &&
-        {
-          PACE__METHOD( Divider, _divider, Derived&&, std::move );
-        }
+        { PACE__METHOD( Divider, _divider, Derived&&, std::move ); }
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
         Derived& left_border( types::String _l_border ) &
-        {
-          PACE__METHOD( LeftBorder, _l_border, Derived&, std::move );
-        }
+        { PACE__METHOD( LeftBorder, _l_border, Derived&, std::move ); }
         Derived&& left_border( types::String _l_border ) &&
-        {
-          PACE__METHOD( LeftBorder, _l_border, Derived&&, std::move );
-        }
+        { PACE__METHOD( LeftBorder, _l_border, Derived&&, std::move ); }
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
         Derived& right_border( types::String _r_border ) &
-        {
-          PACE__METHOD( RightBorder, _r_border, Derived&, std::move );
-        }
+        { PACE__METHOD( RightBorder, _r_border, Derived&, std::move ); }
         Derived&& right_border( types::String _r_border ) &&
-        {
-          PACE__METHOD( RightBorder, _r_border, Derived&&, std::move );
-        }
+        { PACE__METHOD( RightBorder, _r_border, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
         Derived& divider( types::LitU8 _divider ) &
-        {
-          PACE__METHOD( Divider, _divider, Derived&, );
-        }
+        { PACE__METHOD( Divider, _divider, Derived&, ); }
         Derived&& divider( types::LitU8 _divider ) &&
-        {
-          PACE__METHOD( Divider, _divider, Derived&&, );
-        }
+        { PACE__METHOD( Divider, _divider, Derived&&, ); }
 
         Derived& left_border( types::LitU8 _l_border ) &
-        {
-          PACE__METHOD( LeftBorder, _l_border, Derived&, );
-        }
+        { PACE__METHOD( LeftBorder, _l_border, Derived&, ); }
         Derived&& left_border( types::LitU8 _l_border ) &&
-        {
-          PACE__METHOD( LeftBorder, _l_border, Derived&&, );
-        }
+        { PACE__METHOD( LeftBorder, _l_border, Derived&&, ); }
 
         Derived& right_border( types::LitU8 _r_border ) &
-        {
-          PACE__METHOD( RightBorder, _r_border, Derived&, );
-        }
+        { PACE__METHOD( RightBorder, _r_border, Derived&, ); }
         Derived&& right_border( types::LitU8 _r_border ) &&
-        {
-          PACE__METHOD( RightBorder, _r_border, Derived&&, );
-        }
+        { PACE__METHOD( RightBorder, _r_border, Derived&&, ); }
 #endif
 
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
         Derived& info_color( console::escodes::RGBColor _info_color ) &
-        {
-          PACE__METHOD( InfoColor, _info_color, Derived&, std::move );
-        }
+        { PACE__METHOD( InfoColor, _info_color, Derived&, std::move ); }
         Derived&& info_color( console::escodes::RGBColor _info_color ) &&
-        {
-          PACE__METHOD( InfoColor, _info_color, Derived&&, std::move );
-        }
+        { PACE__METHOD( InfoColor, _info_color, Derived&&, std::move ); }
 
 #undef PACE__METHOD
 

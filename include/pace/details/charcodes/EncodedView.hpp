@@ -33,9 +33,7 @@ namespace pace {
         EncodedView( const types::Char*, std::nullptr_t, types::Size ) = delete;
 
         PACE__NODISCARD PACE__FORCEINLINE constexpr types::Size size() const noexcept
-        {
-          return static_cast<types::Size>( tail_ - head_ );
-        }
+        { return static_cast<types::Size>( tail_ - head_ ); }
         PACE__NODISCARD PACE__FORCEINLINE constexpr types::Size width() const noexcept { return width_; }
         PACE__NODISCARD PACE__FORCEINLINE constexpr bool empty() const noexcept { return head_ == tail_; }
         PACE__NODISCARD PACE__FORCEINLINE constexpr iterator begin() const noexcept { return head_; }
@@ -43,9 +41,7 @@ namespace pace {
 
 #ifdef __cpp_lib_string_view
         PACE__NODISCARD PACE__FORCEINLINE constexpr types::ROStr as_string_view() const noexcept
-        {
-          return { head_, size() };
-        }
+        { return { head_, size() }; }
         constexpr operator types::ROStr() const noexcept { return as_string_view(); }
 #endif
         explicit constexpr operator bool() const noexcept { return !empty(); }

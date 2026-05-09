@@ -67,9 +67,7 @@ namespace pace {
         PACE__CXX20_CNSTXPR Reactive( Reactive&& rhs )
           noexcept( std::is_nothrow_move_constructible<Base>::value )
           : Base( std::move( rhs ) )
-        {
-          rhs.move_to( *this );
-        }
+        { rhs.move_to( *this ); }
         PACE__CXX20_CNSTXPR Reactive& operator=( Reactive&& rhs ) & noexcept(
           std::is_nothrow_move_assignable<Base>::value )
         { // The thread insecurity here is deliberately designed.
@@ -103,9 +101,7 @@ namespace pace {
                           std::is_constructible<wrappers::UniqueFunction<void()>, F&&>>::value,
             Derived&>::type
 #endif
-        {
-          PACE__METHOD( hook_.on_, Nullary, Derived& );
-        }
+        { PACE__METHOD( hook_.on_, Nullary, Derived& ); }
         template<typename F>
         auto action( F&& fn ) && noexcept(
           std::is_nothrow_constructible<wrappers::UniqueFunction<void()>, F>::value )
@@ -119,9 +115,7 @@ namespace pace {
                           std::is_constructible<wrappers::UniqueFunction<void()>, F&&>>::value,
             Derived&&>::type
 #endif
-        {
-          PACE__METHOD( hook_.on_, Nullary, Derived&& );
-        }
+        { PACE__METHOD( hook_.on_, Nullary, Derived&& ); }
         template<typename F>
         auto action( F&& fn ) & noexcept(
           std::is_nothrow_constructible<wrappers::UniqueFunction<void( Derived& )>, F>::value )
@@ -135,9 +129,7 @@ namespace pace {
                           std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>::value,
             Derived&>::type
 #endif
-        {
-          PACE__METHOD( hook_.on_self_, Unary, Derived& );
-        }
+        { PACE__METHOD( hook_.on_self_, Unary, Derived& ); }
         template<typename F>
         auto action( F&& fn ) && noexcept(
           std::is_nothrow_constructible<wrappers::UniqueFunction<void( Derived& )>, F>::value )
@@ -151,9 +143,7 @@ namespace pace {
                           std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>::value,
             Derived&&>::type
 #endif
-        {
-          PACE__METHOD( hook_.on_self_, Unary, Derived&& );
-        }
+        { PACE__METHOD( hook_.on_self_, Unary, Derived&& ); }
 
 #undef PACE__METHOD
 #define PACE__METHOD( ReturnType )                                          \
@@ -162,13 +152,9 @@ namespace pace {
   return static_cast<ReturnType>( *this )
 
         Derived& action() & noexcept
-        {
-          PACE__METHOD( Derived& );
-        }
+        { PACE__METHOD( Derived& ); }
         Derived&& action() && noexcept
-        {
-          PACE__METHOD( Derived&& );
-        }
+        { PACE__METHOD( Derived&& ); }
 
 #undef PACE__METHOD
 
@@ -185,9 +171,7 @@ namespace pace {
                           std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>>::value>::
             type
 #endif
-        {
-          bar.action( std::forward<F>( fn ) );
-        }
+        { bar.action( std::forward<F>( fn ) ); }
         template<typename F>
         friend PACE__FORCEINLINE auto operator|( Reactive& bar, F&& fn )
 #ifdef __cpp_concepts
@@ -201,9 +185,7 @@ namespace pace {
                             std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>>::value,
             Derived&>::type
 #endif
-        {
-          return bar.action( std::forward<F>( fn ) );
-        }
+        { return bar.action( std::forward<F>( fn ) ); }
         template<typename F>
         friend PACE__FORCEINLINE auto operator|( Reactive&& bar, F&& fn )
 #ifdef __cpp_concepts
@@ -217,22 +199,14 @@ namespace pace {
                             std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>>::value,
             Derived&&>::type
 #endif
-        {
-          return std::move( bar.action( std::forward<F>( fn ) ) );
-        }
+        { return std::move( bar.action( std::forward<F>( fn ) ) ); }
 
         friend PACE__FORCEINLINE void operator|=( Reactive& bar, std::nullptr_t ) noexcept
-        {
-          bar.action();
-        }
+        { bar.action(); }
         friend PACE__FORCEINLINE Derived& operator|( Reactive& bar, std::nullptr_t ) noexcept
-        {
-          return bar.action();
-        }
+        { return bar.action(); }
         friend PACE__FORCEINLINE Derived&& operator|( Reactive&& bar, std::nullptr_t ) noexcept
-        {
-          return std::move( bar.action() );
-        }
+        { return std::move( bar.action() ); }
 
         void swap( Reactive& other ) noexcept
         {

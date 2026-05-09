@@ -36,30 +36,20 @@ namespace pace {
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR iterator begin() const
         noexcept( noexcept( details::utils::begin( *rnge_ ) ) )
-      {
-        return details::utils::begin( *rnge_ );
-      }
+      { return details::utils::begin( *rnge_ ); }
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR sentinel end() const
         noexcept( noexcept( details::utils::end( *rnge_ ) ) )
-      {
-        return details::utils::end( *rnge_ );
-      }
+      { return details::utils::end( *rnge_ ); }
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR details::traits::IterReference_t<iterator> front()
         const
-      {
-        return *begin();
-      }
+      { return *begin(); }
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX17_CNSTXPR details::traits::IterReference_t<iterator> back()
         const
-      {
-        return *std::next( begin(), size() - 1 );
-      }
+      { return *std::next( begin(), size() - 1 ); }
       PACE__NODISCARD PACE__FORCEINLINE constexpr details::types::Size step() const noexcept { return 1; }
       PACE__NODISCARD PACE__FORCEINLINE constexpr details::types::Size size() const
-      {
-        return details::utils::size( *rnge_ );
-      }
+      { return details::utils::size( *rnge_ ); }
       PACE__NODISCARD PACE__FORCEINLINE constexpr bool empty() const noexcept { return rnge_ == nullptr; }
 
       PACE__CXX20_CNSTXPR void swap( SizedSpan& lhs ) noexcept

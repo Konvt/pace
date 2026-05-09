@@ -51,25 +51,17 @@ namespace pace {
 
   namespace config {
     inline void hide_completed( bool flag ) noexcept
-    {
-      Indicator::_hide_completed.store( flag, std::memory_order_relaxed );
-    }
+    { Indicator::_hide_completed.store( flag, std::memory_order_relaxed ); }
     inline bool hide_completed() noexcept
-    {
-      return Indicator::_hide_completed.load( std::memory_order_relaxed );
-    }
+    { return Indicator::_hide_completed.load( std::memory_order_relaxed ); }
     /**
      * Whether to automatically disable the style effect of the configuration object
      * when the output stream is not directed to a terminal.
      */
     inline void auto_style_off( bool flag ) noexcept
-    {
-      Indicator::_auto_style_off.store( flag, std::memory_order_relaxed );
-    }
+    { Indicator::_auto_style_off.store( flag, std::memory_order_relaxed ); }
     inline bool auto_style_off() noexcept
-    {
-      return Indicator::_auto_style_off.load( std::memory_order_relaxed );
-    }
+    { return Indicator::_auto_style_off.load( std::memory_order_relaxed ); }
   } // namespace config
 } // namespace pace
 

@@ -21,9 +21,7 @@ namespace pace {
       class Filler : public Base {
 #define PACE__UNPAKING( OptionName, MemberName, Constexpr )                                         \
   friend PACE__FORCEINLINE Constexpr void unpack( Filler& self, option::OptionName&& val ) noexcept \
-  {                                                                                                 \
-    self.MemberName = std::move( val.value() );                                                     \
-  }
+  { self.MemberName = std::move( val.value() ); }
         PACE__UNPAKING( Filler, filler_, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( FillerColor, filler_col_, )
 #undef PACE__UNPAKING
@@ -53,33 +51,21 @@ namespace pace {
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
         Derived& filler( types::String _filler ) &
-        {
-          PACE__METHOD( Filler, _filler, Derived&, std::move );
-        }
+        { PACE__METHOD( Filler, _filler, Derived&, std::move ); }
         Derived&& filler( types::String _filler ) &&
-        {
-          PACE__METHOD( Filler, _filler, Derived&&, std::move );
-        }
+        { PACE__METHOD( Filler, _filler, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
         Derived& filler( types::LitU8 _filler ) &
-        {
-          PACE__METHOD( Filler, _filler, Derived&, );
-        }
+        { PACE__METHOD( Filler, _filler, Derived&, ); }
         Derived&& filler( types::LitU8 _filler ) &&
-        {
-          PACE__METHOD( Filler, _filler, Derived&&, );
-        }
+        { PACE__METHOD( Filler, _filler, Derived&&, ); }
 #endif
 
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
         Derived& filler_color( console::escodes::RGBColor _filler_color ) &
-        {
-          PACE__METHOD( FillerColor, _filler_color, Derived&, std::move );
-        }
+        { PACE__METHOD( FillerColor, _filler_color, Derived&, std::move ); }
         Derived&& filler_color( console::escodes::RGBColor _filler_color ) &&
-        {
-          PACE__METHOD( FillerColor, _filler_color, Derived&&, std::move );
-        }
+        { PACE__METHOD( FillerColor, _filler_color, Derived&&, std::move ); }
 
 #undef PACE__METHOD
 

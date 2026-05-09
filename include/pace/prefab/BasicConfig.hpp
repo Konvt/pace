@@ -22,9 +22,7 @@ namespace pace {
 #define PACE__METHOD( ParamType, ReturnType )                                  \
   template<template<typename...> class... Facades>                             \
   constexpr ReturnType<Facades...> operator!( ParamType<Facades...> ) noexcept \
-  {                                                                            \
-    return {};                                                                 \
-  }
+  { return {}; }
     PACE__METHOD( Except, Only );
     PACE__METHOD( Only, Except );
 #undef PACE__METHOD
@@ -34,9 +32,7 @@ namespace pace {
     details::traits::Combine_t<details::traits::TemplateSet<F1...>, details::traits::TemplateSet<F2...>>, \
     ParamType>                                                                                            \
     operator|( ParamType<F1...>, ParamType<F2...> ) noexcept                                              \
-  {                                                                                                       \
-    return {};                                                                                            \
-  }
+  { return {}; }
     PACE__METHOD( Only );
     PACE__METHOD( Except );
 #undef PACE__METHOD
@@ -187,9 +183,7 @@ namespace pace {
 #endif
       PACE__CXX23_CNSTXPR BasicConfig( Args... args )
         : BasicConfig( details::traits::TypeSet<typename std::decay<Args>::type...>() )
-      {
-        (void)std::initializer_list<bool> { ( unpack( *this, std::move( args ) ), false )... };
-      }
+      { (void)std::initializer_list<bool> { ( unpack( *this, std::move( args ) ), false )... }; }
 
       BasicConfig( const BasicConfig& other ) noexcept( std::is_nothrow_copy_assignable<Layout>::value )
       {
@@ -411,9 +405,7 @@ namespace pace {
 #else
         -> typename std::enable_if<is_setting<typename std::decay<Option>::type>::value>::type
 #endif
-      {
-        cfg.with( std::forward<Option>( opt ) );
-      }
+      { cfg.with( std::forward<Option>( opt ) ); }
       template<typename Option>
       friend auto operator|( BasicConfig& cfg, Option&& opt )
 #ifdef __cpp_concepts
@@ -422,9 +414,7 @@ namespace pace {
 #else
         -> typename std::enable_if<is_setting<Option>::value, BasicConfig&>::type
 #endif
-      {
-        return cfg.with( std::forward<Option>( opt ) );
-      }
+      { return cfg.with( std::forward<Option>( opt ) ); }
       template<typename Option>
       friend auto operator|( BasicConfig&& cfg, Option&& opt )
 #ifdef __cpp_concepts
@@ -433,9 +423,7 @@ namespace pace {
 #else
         -> typename std::enable_if<is_setting<typename std::decay<Option>::type>::value, BasicConfig&&>::type
 #endif
-      {
-        return std::move( cfg.with( std::forward<Option>( opt ) ) );
-      }
+      { return std::move( cfg.with( std::forward<Option>( opt ) ) ); }
     };
   } // namespace prefab
 

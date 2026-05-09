@@ -83,9 +83,7 @@ namespace pace {
                                                              std::is_nothrow_copy_constructible<EF>>::value )
           : Base( std::is_nothrow_move_constructible<EF>(), std::forward<EF>( rhs.callback() ) )
           , exceptions_on_entry_ { rhs.exceptions_on_entry_ }
-        {
-          rhs.release();
-        }
+        { rhs.release(); }
         ~ScopeFail() noexcept
         {
           if ( exceptions_on_entry_ < uncaught_exceptions() ) {
@@ -95,9 +93,7 @@ namespace pace {
         }
 
         PACE__FORCEINLINE PACE__CXX14_CNSTXPR void release() noexcept
-        {
-          exceptions_on_entry_ = ( std::numeric_limits<int>::max )();
-        }
+        { exceptions_on_entry_ = ( std::numeric_limits<int>::max )(); }
       };
 
 #ifdef __cpp_deduction_guides
@@ -110,9 +106,7 @@ namespace pace {
       template<typename F>
       PACE__NODISCARD ScopeFail<F> make_scope_fail( F&& fn )
         noexcept( std::is_nothrow_constructible<ScopeFail<F>, F&&>::value )
-      {
-        return ScopeFail<F>( std::forward<F>( fn ) );
-      }
+      { return ScopeFail<F>( std::forward<F>( fn ) ); }
     } // namespace utils
   } // namespace details
 } // namespace pace

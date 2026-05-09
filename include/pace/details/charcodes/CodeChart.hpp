@@ -26,9 +26,7 @@ namespace pace {
 
         // Check whether the Unicode code point is within this code chart.
         PACE__NODISCARD constexpr bool contains( types::CodePoint codepoint ) const noexcept
-        {
-          return start_ <= codepoint && codepoint <= end_;
-        }
+        { return start_ <= codepoint && codepoint <= end_; }
         // Return the character width of this Unicode code chart.
         PACE__NODISCARD constexpr types::GlyphWidth width() const noexcept { return width_; }
         // Return the size of this range of Unicode code chart.
@@ -39,33 +37,21 @@ namespace pace {
         PACE__NODISCARD constexpr types::CodePoint tail() const noexcept { return end_; }
 
         PACE__NODISCARD friend constexpr bool operator<( const CodeChart& a, const CodeChart& b ) noexcept
-        {
-          return a.end_ < b.start_;
-        }
+        { return a.end_ < b.start_; }
         PACE__NODISCARD friend constexpr bool operator>( const CodeChart& a, const CodeChart& b ) noexcept
-        {
-          return a.start_ > b.end_;
-        }
+        { return a.start_ > b.end_; }
         PACE__NODISCARD friend constexpr bool operator>( const CodeChart& a,
                                                          const types::CodePoint& b ) noexcept
-        {
-          return a.start_ > b;
-        }
+        { return a.start_ > b; }
         PACE__NODISCARD friend constexpr bool operator<( const CodeChart& a,
                                                          const types::CodePoint& b ) noexcept
-        {
-          return a.end_ < b;
-        }
+        { return a.end_ < b; }
         PACE__NODISCARD friend constexpr bool operator>( const types::CodePoint& a,
                                                          const CodeChart& b ) noexcept
-        {
-          return b < a;
-        }
+        { return b < a; }
         PACE__NODISCARD friend constexpr bool operator<( const types::CodePoint& a,
                                                          const CodeChart& b ) noexcept
-        {
-          return b > a;
-        }
+        { return b > a; }
       };
     } // namespace charcodes
   } // namespace details

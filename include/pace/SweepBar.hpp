@@ -43,9 +43,7 @@ namespace pace {
   template<>
   struct pace::config::ProvideFor<config::Sweep, option::Projection> {
     static option::Projection provide()
-    {
-      return config::Sweep::bake( option::Only<facade::SweepPlot, facade::Elapsed>() );
-    }
+    { return config::Sweep::bake( option::Only<facade::SweepPlot, facade::Elapsed>() ); }
   };
   template<>
   struct pace::config::ProvideFor<config::Sweep, option::Lead> {
