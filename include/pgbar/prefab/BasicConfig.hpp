@@ -199,6 +199,7 @@ namespace pgbar {
       }
       BasicConfig( BasicConfig&& rhs ) noexcept
       {
+        std::lock_guard<details::concurrent::SharedMutex> lock { rhs.rw_mtx_ };
         Layout::operator=( std::move( rhs ) );
         using std::swap;
         swap( projection_, rhs.projection_ );
@@ -217,7 +218,12 @@ namespace pgbar {
         return *this;
       }
       BasicConfig& operator=( BasicConfig&& rhs ) & noexcept
-      {
+      { // To support concurrent modifications of a active progress bar,
+        // we have to lock them during the movement
+        std::lock( this->rw_mtx_, rhs.rw_mtx_ );
+        std::lock_guard<details::concurrent::SharedMutex> lock1 { this->rw_mtx_, std::adopt_lock };
+        std::lock_guard<details::concurrent::SharedMutex> lock2 { rhs.rw_mtx_, std::adopt_lock };
+
         PGBAR__TRUST( this != &rhs );
         using std::swap;
         swap( projection_, rhs.projection_ );
@@ -397,6 +403,10 @@ namespace pgbar {
 
       PGBAR__CXX23_CNSTXPR void swap( BasicConfig& other ) noexcept
       {
+        std::lock( this->rw_mtx_, other.rw_mtx_ );
+        std::lock_guard<details::concurrent::SharedMutex> lock1 { this->rw_mtx_, std::adopt_lock };
+        std::lock_guard<details::concurrent::SharedMutex> lock2 { other.rw_mtx_, std::adopt_lock };
+
         using std::swap;
         swap( projection_, other.projection_ );
         Layout::swap( other );
