@@ -10,17 +10,19 @@ int main()
   another.config()
     .divider( " | " )
     .speed_unit( {
-      "tick/sec",
-      "k tick/sec",
-      "M tick/sec",
-      "G tick/sec",
+      "ticks/sec",
+      "k ticks/sec",
+      "M ticks/sec",
+      "G ticks/sec",
     } )
     .magnitude( 1000 )
     .info_color( 0x39c5bb )
     .colored( true )
     .font_bold( true )
     .font_underline( true )
-    .enable_all();
+    .enable_all()
+    .quota( 2147483647 );
 
-  for ( auto _ : another.iterate( 100000 ) ) {}
+  for ( size_t _ = 0; _ < 2147483647; ++_ )
+    another.tick();
 }

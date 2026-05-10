@@ -11,7 +11,7 @@ namespace pace {
   namespace prefab {
     template<typename Soul,
              Channel Outlet = Channel::Stderr,
-             Policy Mode    = Policy::Sync,
+             Policy Mode    = Policy::Async,
              Region Area    = Region::Fixed>
     class BasicBar
       : public details::traits::LI<details::aspects::EntailLinker_t<Soul>>::
