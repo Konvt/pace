@@ -272,11 +272,15 @@ namespace pace {
 
       /**
        * Since the length of a progress bar is directly related to the way it is rendered,
-       * do not obtain `fixed_width` on a bare configuration type object;
+       * do not obtain `fixed_width()` on a bare configuration type object;
        * instead, access the `fixed_width()` of the internal configuration object
-       * through the `config()`method of a progress bar object.
+       * through the `config()` method of a progress bar object.
        */
-      PACE__NODISCARD virtual std::uint64_t fixed_width() const noexcept { return 0; }
+      PACE__NODISCARD virtual std::uint64_t fixed_width() const noexcept
+      {
+        PACE__TRUST( false );
+        return std::numeric_limits<std::uint64_t>::max();
+      }
 
       BasicConfig& enable_all() & noexcept
       {
