@@ -72,11 +72,10 @@ namespace pace {
           }
             PACE__FALLTHROUGH;
           case Locus::Onstage: {
-            if ( istty )
-              ostream << console::linewipe;
-
             draw_content( at<Pos>() );
 
+            if ( istty )
+              ostream << console::linewipe;
             if ( !at<Pos>().active() ) {
               /**
                * Here are the scenarios where a newline character is output:

@@ -75,11 +75,11 @@ namespace pace {
                 } else
                   items_[i].stage_ = Locus::Offstage;
                 break;
-              } else if ( istty )
-                ostream << console::linewipe;
-
+              }
               ( *items_[i].render_ )( items_[i].target_ );
 
+              if ( istty )
+                ostream << console::linewipe;
               /**
                * When Area is equal to Region::Fixed, the row discard policy is as follows:
                * After eliminating the first k consecutive stopped items in the render queue item_
