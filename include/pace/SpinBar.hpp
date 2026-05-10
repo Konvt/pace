@@ -72,7 +72,11 @@ namespace pace {
           }
           // For SpinBar, we manually remove the divider between the Lead and the Percent.
           this->traits::BaseOf_t<typename Config::Layout, aspects::Prefix>::build( pipeline, params );
-          this->traits::BaseOf_t<typename Config::Layout, facade::SpinPlot>::build( pipeline, params );
+          if ( this->projection_.test( 0 ) ) {
+            // zero is facade::SpinPlot
+            this->traits::BaseOf_t<typename Config::Layout, facade::SpinPlot>::build( pipeline, params );
+            pipeline << ' ';
+          }
 
           this->template render_each<facade::Percentage,
                                      facade::Counter,
@@ -87,6 +91,9 @@ namespace pace {
 
           return this->reset_style( pipeline, params.style_off_ );
         }
+
+        // SpinBar does not contain a progress bar.
+        std::uint64_t fixed_width() const noexcept final { return 0; }
       };
     } // namespace render
   } // namespace details
