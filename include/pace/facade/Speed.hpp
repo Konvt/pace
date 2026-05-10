@@ -47,6 +47,8 @@ namespace pace {
      *   Thrown if any input string fails UTF-8 validation or the array size mismatches.
      */
     struct SpeedUnit : details::wrappers::OptionPacket<std::array<details::charcodes::U8Raw, 4>> {
+      PACE__CXX20_CNSTXPR SpeedUnit() = default;
+
       /**
        * @throw exception::InvalidArgument
        *
@@ -139,7 +141,8 @@ namespace pace {
         else if ( frequency < tier2 ) // "Mega"
           orig = details::utils::format( frequency / tier1, 2 ) + ' ' + units_[2];
         else { // "Giga" or "infinity"
-          const details::types::Float remains = frequency / tier2;
+          const details::types::Float remains =
+            magnitude_ > 0 ? frequency / tier2 : std::numeric_limits<details::types::Float>::max();
           if ( remains > magnitude_ )
             PACE__UNLIKELY orig = _default_speed + units_[3];
           else

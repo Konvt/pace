@@ -81,7 +81,8 @@ namespace pace {
                      if PACE__CXX17_CNSTXPR ( Area == Region::Fixed )
                        ostream << console::resetcursor;
                      else
-                       ostream << console::prevline << console::linestart << console::linewipe;
+                       ostream << console::prevline << console::linestart;
+                     ostream << console::linewipe;
                    }
                    static_cast<MostDerived*>( this )->monologue();
                    ostream << console::nextline;
@@ -92,7 +93,8 @@ namespace pace {
                      if PACE__CXX17_CNSTXPR ( Area == Region::Fixed )
                        ostream << console::resetcursor;
                      else
-                       ostream << console::prevline << console::linestart << console::linewipe;
+                       ostream << console::prevline << console::linestart;
+                     ostream << console::linewipe;
                    }
                    static_cast<MostDerived*>( this )->epilogue();
                    if ( istty && config::hide_completed() )
