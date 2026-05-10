@@ -7,7 +7,7 @@
 namespace pace {
   namespace details {
     namespace assets {
-      template<Channel Outlet, Policy Mode, Region Area>
+      template<Channel Sink, Policy Mode, Region Zone>
       class DynamicLayout final {
         enum Locus : std::uint8_t { Offstage, Onstage, Echo };
         struct Slot final {
@@ -28,16 +28,16 @@ namespace pace {
           Locus stage_ { Locus::Onstage };
 
           template<typename Config>
-          Slot( assets::ManagedBar<Config, Outlet, Mode, Area>* item ) noexcept
-            : render_ { render<prefab::BasicBar<Config, Outlet, Mode, Area>> }, target_ { item }
+          Slot( assets::ManagedBar<Config, Sink, Mode, Zone>* item ) noexcept
+            : render_ { render<prefab::BasicBar<Config, Sink, Mode, Zone>> }, target_ { item }
           {}
         };
 
         std::vector<Slot> items_;
         /**
-         * If Area is equal to Region::Fixed,
+         * If Zone is equal to Region::Fixed,
            the variable represents the number of lines that need to be discarded;
-         * If Area is equal to Region::Relative,
+         * If Zone is equal to Region::Relative,
            the variable represents the number of nextlines output last time.
          */
         std::uint64_t num_modified_lines_ = 0;
@@ -49,8 +49,8 @@ namespace pace {
 
         void do_render() &
         {
-          auto& ostream        = io::OStream<Outlet>::itself();
-          const auto istty     = console::TermContext<Outlet>::itself().connected();
+          auto& ostream        = io::OStream<Sink>::itself();
+          const auto istty     = console::TermContext<Sink>::itself().connected();
           const auto hide_done = config::hide_completed();
 
           for ( types::Size i = 0; i < items_.size(); ++i ) {
@@ -58,7 +58,7 @@ namespace pace {
             case Locus::Echo: {
               if ( istty && !hide_done ) {
                 ostream << console::nextline;
-                if PACE__CXX17_CNSTXPR ( Area == Region::Relative )
+                if PACE__CXX17_CNSTXPR ( Zone == Region::Relative )
                   ++num_modified_lines_;
               } else
                 items_[i].stage_ = Locus::Offstage;
@@ -69,7 +69,7 @@ namespace pace {
                 // being aborted
                 if ( istty && !hide_done ) {
                   ostream << console::nextline;
-                  if PACE__CXX17_CNSTXPR ( Area == Region::Relative )
+                  if PACE__CXX17_CNSTXPR ( Zone == Region::Relative )
                     ++num_modified_lines_;
                   items_[i].stage_ = Locus::Echo;
                 } else
@@ -81,13 +81,13 @@ namespace pace {
               if ( istty )
                 ostream << console::linewipe;
               /**
-               * When Area is equal to Region::Fixed, the row discard policy is as follows:
+               * When Zone is equal to Region::Fixed, the row discard policy is as follows:
                * After eliminating the first k consecutive stopped items in the render queue item_
                * (via the eliminate method), the starting area for rendering is moved down by k rows.
                * Therefore, at this point,
                * all remaining items that have not been removed should trigger a line break for rendering.
 
-               * When Area is equal to Region::Relative, the row discard policy is as follows:
+               * When Zone is equal to Region::Relative, the row discard policy is as follows:
                * During the rendering process,
                * count the number of consecutive line breaks output starting from the first rendered item,
                * denoted as n.
@@ -106,14 +106,14 @@ namespace pace {
                   ostream << console::linestart;
                 else {
                   ostream << console::nextline;
-                  if PACE__CXX17_CNSTXPR ( Area == Region::Relative )
+                  if PACE__CXX17_CNSTXPR ( Zone == Region::Relative )
                     ++num_modified_lines_;
                   if ( istty && !hide_done )
                     items_[i].stage_ = Locus::Echo;
                 }
               } else {
                 ostream << console::nextline;
-                if PACE__CXX17_CNSTXPR ( Area == Region::Relative )
+                if PACE__CXX17_CNSTXPR ( Zone == Region::Relative )
                   ++num_modified_lines_;
               }
               if ( istty && hide_done )
@@ -131,9 +131,9 @@ namespace pace {
           auto itr = std::find_if( items_.cbegin(), items_.cend(), []( const Slot& slot ) noexcept {
             return slot.stage_ == Locus::Onstage && slot.target_ != nullptr;
           } );
-          if PACE__CXX17_CNSTXPR ( Area == Region::Fixed )
+          if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
             num_modified_lines_ += utils::distance( items_.cbegin(), itr );
-          else if PACE__CXX17_CNSTXPR ( Area == Region::Relative ) {
+          else if PACE__CXX17_CNSTXPR ( Zone == Region::Relative ) {
             const auto num_discarded = static_cast<std::uint64_t>(
               std::count_if( items_.cbegin(), itr, []( const Slot& slot ) noexcept {
                 return slot.stage_ != Locus::Offstage;
@@ -158,7 +158,7 @@ namespace pace {
                   items_[i].target_->reset();
               }
             }
-            render::Renderer<Outlet>::itself().dismiss();
+            render::Renderer<Sink>::itself().dismiss();
           }
           state_.store( Phase::Stop, std::memory_order_release );
           items_.clear();
@@ -174,20 +174,20 @@ namespace pace {
         void kill() noexcept { do_shut<true>(); }
 
         template<typename C>
-        void append( assets::ManagedBar<C, Outlet, Mode, Area>* item ) & noexcept( false )
+        void append( assets::ManagedBar<C, Sink, Mode, Zone>* item ) & noexcept( false )
         {
           std::lock_guard<std::mutex> lock1 { sched_mtx_ };
-          auto& executor = render::Renderer<Outlet>::itself();
+          auto& executor = render::Renderer<Sink>::itself();
           concurrent::SharedLock<concurrent::SharedMutex> lock2 { res_mtx_ };
           if ( items_.empty() ) {
             lock2.unlock();
             if ( !executor.try_appoint( [this]() {
-                   auto& ostream        = io::OStream<Outlet>::itself();
-                   const auto istty     = console::TermContext<Outlet>::itself().connected();
+                   auto& ostream        = io::OStream<Sink>::itself();
+                   const auto istty     = console::TermContext<Sink>::itself().connected();
                    const auto hide_done = config::hide_completed();
                    switch ( state_.load( std::memory_order_acquire ) ) {
                    case Phase::Awake: {
-                     if PACE__CXX17_CNSTXPR ( Area == Region::Fixed )
+                     if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                        if ( istty )
                          ostream << console::savecursor;
                      {
@@ -202,7 +202,7 @@ namespace pace {
                      {
                        concurrent::SharedLock<concurrent::SharedMutex> lock { res_mtx_ };
                        if ( istty ) {
-                         if PACE__CXX17_CNSTXPR ( Area == Region::Fixed ) {
+                         if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed ) {
                            ostream << console::resetcursor;
                            if ( !hide_done && num_modified_lines_ > 0 ) {
                              ostream.append( console::nextline, num_modified_lines_ )
@@ -225,7 +225,7 @@ namespace pace {
               PACE__UNLIKELY throw exception::InvalidState(
                 charcodes::make_literal( "pace: another progress bar instance is already running" ) );
 
-            io::OStream<Outlet>::itself() << io::release;
+            io::OStream<Sink>::itself() << io::release;
             num_modified_lines_ = 0;
             state_.store( Phase::Awake, std::memory_order_release );
 
@@ -245,7 +245,7 @@ namespace pace {
         }
         void pop( const Indicator* item, bool forced = false ) noexcept
         {
-          auto& executor = render::Renderer<Outlet>::itself();
+          auto& executor = render::Renderer<Sink>::itself();
           PACE__ASSERT( executor.empty() == false );
           std::lock_guard<std::mutex> lock1 { sched_mtx_ };
           PACE__ASSERT( online_count() != 0 );
@@ -268,7 +268,7 @@ namespace pace {
 
           if ( suspend_flag ) {
             state_.store( Phase::Stop, std::memory_order_release );
-            executor.dismiss_then( []() noexcept { io::OStream<Outlet>::itself().release(); } );
+            executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().release(); } );
           }
         }
 

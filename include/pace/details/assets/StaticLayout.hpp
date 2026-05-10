@@ -12,16 +12,15 @@ namespace pace {
     namespace assets {
       template<typename Seq, typename... Bars>
       class StaticLayout;
-      template<types::Size... Tags, Channel Outlet, Policy Mode, Region Area, typename... Configs>
-      class StaticLayout<traits::IndexSeq<Tags...>, prefab::BasicBar<Configs, Outlet, Mode, Area>...> final
-        : public wrappers::TuplePacket<prefab::BasicBar<Configs, Outlet, Mode, Area>, Tags>... {
+      template<types::Size... Tags, Channel Sink, Policy Mode, Region Zone, typename... Configs>
+      class StaticLayout<traits::IndexSeq<Tags...>, prefab::BasicBar<Configs, Sink, Mode, Zone>...> final
+        : public wrappers::TuplePacket<prefab::BasicBar<Configs, Sink, Mode, Zone>, Tags>... {
         static_assert( sizeof...( Tags ) == sizeof...( Configs ), "unexpected type mismatch" );
         static_assert( sizeof...( Configs ) > 0, "the number of progress bars cannot be zero" );
 
         template<types::Size Pos>
         using ElementAt_t =
-          traits::TypeAt_t<Pos,
-                           wrappers::TuplePacket<prefab::BasicBar<Configs, Outlet, Mode, Area>, Tags>...>;
+          traits::TypeAt_t<Pos, wrappers::TuplePacket<prefab::BasicBar<Configs, Sink, Mode, Zone>, Tags>...>;
 
         std::atomic<types::Size> alive_cnt_;
         mutable std::mutex sched_mtx_;
@@ -44,7 +43,7 @@ namespace pace {
                                                                                  bool hide_done ) &
         {
           PACE__ASSERT( online() );
-          auto& ostream = io::OStream<Outlet>::itself();
+          auto& ostream = io::OStream<Sink>::itself();
           switch ( stages_[Pos] ) {
           case Locus::Echo: {
             if ( !istty || hide_done )
@@ -111,34 +110,34 @@ namespace pace {
           // hence the default arguments from the base class declaration are always used.
           // Any default arguments provided in the derived class are ignored.
           if ( online() ) {
-            auto& executor = render::Renderer<Outlet>::itself();
+            auto& executor = render::Renderer<Sink>::itself();
             PACE__ASSERT( executor.empty() == false );
             std::lock_guard<std::mutex> lock { sched_mtx_ };
             if ( !forced )
               executor.template trigger<Mode>();
             if ( alive_cnt_.fetch_sub( 1, std::memory_order_acq_rel ) == 1 ) {
               state_.store( Phase::Stop, std::memory_order_release );
-              executor.dismiss_then( []() noexcept { io::OStream<Outlet>::itself().release(); } );
+              executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().release(); } );
             }
           }
         }
         void do_boot() & final
         {
           std::lock_guard<std::mutex> lock { sched_mtx_ };
-          auto& executor = render::Renderer<Outlet>::itself();
+          auto& executor = render::Renderer<Sink>::itself();
           if ( state_.load( std::memory_order_acquire ) == Phase::Stop ) {
             if ( !executor.try_appoint( [this]() {
-                   auto& ostream    = io::OStream<Outlet>::itself();
-                   const auto istty = console::TermContext<Outlet>::itself().connected();
+                   auto& ostream    = io::OStream<Sink>::itself();
+                   const auto istty = console::TermContext<Sink>::itself().connected();
                    switch ( state_.load( std::memory_order_acquire ) ) {
                    case Phase::Awake: {
-                     if PACE__CXX17_CNSTXPR ( Area == Region::Fixed )
+                     if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                        if ( istty )
                          ostream << console::savecursor;
                      {
                        std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
                        std::fill( stages_.begin(), stages_.end(), Locus::Offstage );
-                       do_render( console::TermContext<Outlet>::itself().connected(),
+                       do_render( console::TermContext<Sink>::itself().connected(),
                                   config::hide_completed() );
                      }
                      ostream << io::flush;
@@ -150,7 +149,7 @@ namespace pace {
                      {
                        std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
                        if ( istty ) {
-                         if PACE__CXX17_CNSTXPR ( Area == Region::Fixed )
+                         if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                            ostream << console::resetcursor;
                          else
                            ostream
@@ -161,7 +160,7 @@ namespace pace {
                                         []( Locus stage ) noexcept { return stage != Locus::Offstage; } ) )
                              .append( console::linestart );
                        }
-                       do_render( console::TermContext<Outlet>::itself().connected(),
+                       do_render( console::TermContext<Sink>::itself().connected(),
                                   config::hide_completed() );
                      }
                      ostream << io::flush;
@@ -172,7 +171,7 @@ namespace pace {
               PACE__UNLIKELY throw exception::InvalidState(
                 charcodes::make_literal( "pace: another progress bar instance is already running" ) );
 
-            io::OStream<Outlet>::itself() << io::release;
+            io::OStream<Sink>::itself() << io::release;
             state_.store( Phase::Awake, std::memory_order_release );
 
             auto guard = utils::make_scope_fail( [&]() noexcept {
@@ -216,7 +215,7 @@ namespace pace {
         template<typename... Cfgs,
                  typename = typename std::enable_if<
                    traits::TpStartsWith<traits::TypeList<Cfgs...>, Configs...>::value>::type>
-        StaticLayout( prefab::BasicBar<Cfgs, Outlet, Mode, Area>&&... bars )
+        StaticLayout( prefab::BasicBar<Cfgs, Sink, Mode, Zone>&&... bars )
           noexcept( sizeof...( Cfgs ) == sizeof...( Configs ) )
           : StaticLayout( std::forward_as_tuple( std::move( bars )... ),
                           traits::MakeIndexSeq<sizeof...( Cfgs )>() )
@@ -224,7 +223,7 @@ namespace pace {
         StaticLayout( const StaticLayout& )            = delete;
         StaticLayout& operator=( const StaticLayout& ) = delete;
         StaticLayout( StaticLayout&& rhs ) noexcept
-          : wrappers::TuplePacket<prefab::BasicBar<Configs, Outlet, Mode, Area>, Tags>( std::move( rhs ) )...
+          : wrappers::TuplePacket<prefab::BasicBar<Configs, Sink, Mode, Zone>, Tags>( std::move( rhs ) )...
           , alive_cnt_ { 0 }
           , state_ { Phase::Stop }
         { PACE__ASSERT( rhs.online() == false ); }
@@ -236,7 +235,7 @@ namespace pace {
           PACE__ASSERT( online() == false );
           PACE__ASSERT( rhs.online() == false );
           (void)std::initializer_list<bool> { (
-            wrappers::TuplePacket<prefab::BasicBar<Configs, Outlet, Mode, Area>, Tags>::operator=(
+            wrappers::TuplePacket<prefab::BasicBar<Configs, Sink, Mode, Zone>, Tags>::operator=(
               std::move( rhs ) ),
             false )... };
           return *this;
@@ -245,14 +244,14 @@ namespace pace {
 
         void shut()
         {
-          if ( online() && !details::render::Renderer<Outlet>::itself().empty() )
+          if ( online() && !details::render::Renderer<Sink>::itself().empty() )
             (void)std::initializer_list<bool> { ( this->ElementAt_t<Tags>::reset(), false )... };
           PACE__ASSERT( alive_cnt_ == 0 );
           PACE__ASSERT( online() == false );
         }
         void kill() noexcept
         {
-          if ( online() && !details::render::Renderer<Outlet>::itself().empty() )
+          if ( online() && !details::render::Renderer<Sink>::itself().empty() )
             (void)std::initializer_list<bool> { ( this->ElementAt_t<Tags>::abort(), false )... };
           PACE__ASSERT( alive_cnt_ == 0 );
           PACE__ASSERT( online() == false );

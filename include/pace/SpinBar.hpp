@@ -28,8 +28,8 @@ namespace pace {
    * It's structure is shown below:
    * {LeftBorder}{Prefix}{Lead}{Percent}{Counter}{Speed}{Elapsed}{ETA}{Postfix}{RightBorder}
    */
-  template<Channel Outlet = Channel::Stderr, Policy Mode = Policy::Async, Region Area = Region::Fixed>
-  using SpinBar = prefab::BasicBar<config::Spin, Outlet, Mode, Area>;
+  template<Channel Sink = Channel::Stderr, Policy Mode = Policy::Async, Region Zone = Region::Fixed>
+  using SpinBar = prefab::BasicBar<config::Spin, Sink, Mode, Zone>;
 
   PACE__PROVIDE_FOR( config::Spin, option::Colored, true );
   PACE__PROVIDE_FOR( config::Spin, option::FontBold, true );

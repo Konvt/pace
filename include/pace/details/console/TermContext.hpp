@@ -18,7 +18,7 @@
 namespace pace {
   namespace details {
     namespace console {
-      template<Channel Outlet>
+      template<Channel Sink>
       class TermContext {
         std::atomic<bool> cache_;
 
@@ -44,7 +44,7 @@ namespace pace {
             return true;
 #elif PACE__WIN
             HANDLE hConsole;
-            if PACE__CXX17_CNSTXPR ( Outlet == Channel::Stdout )
+            if PACE__CXX17_CNSTXPR ( Sink == Channel::Stdout )
               hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
             else
               hConsole = GetStdHandle( STD_ERROR_HANDLE );
@@ -52,7 +52,7 @@ namespace pace {
               PACE__UNLIKELY return false;
             return GetFileType( hConsole ) == FILE_TYPE_CHAR;
 #else
-            return isatty( static_cast<int>( Outlet ) );
+            return isatty( static_cast<int>( Sink ) );
 #endif
           }();
           cache_.store( value, std::memory_order_release );
@@ -71,7 +71,7 @@ namespace pace {
           static std::once_flag flag;
           std::call_once( flag, []() noexcept {
             HANDLE stream_handle =
-              GetStdHandle( Outlet == Channel::Stderr ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE );
+              GetStdHandle( Sink == Channel::Stderr ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE );
             if ( stream_handle == INVALID_HANDLE_VALUE )
               PACE__UNLIKELY return;
 
@@ -90,7 +90,7 @@ namespace pace {
             return 0;
 #if PACE__WIN
           HANDLE h_con;
-          if PACE__CXX17_CNSTXPR ( Outlet == Channel::Stdout )
+          if PACE__CXX17_CNSTXPR ( Sink == Channel::Stdout )
             h_con = GetStdHandle( STD_OUTPUT_HANDLE );
           else
             h_con = GetStdHandle( STD_ERROR_HANDLE );
@@ -101,7 +101,7 @@ namespace pace {
           }
 #elif PACE__UNIX
           struct winsize ws;
-          auto fd = static_cast<int>( Outlet );
+          auto fd = static_cast<int>( Sink );
           if ( ioctl( fd, TIOCGWINSZ, &ws ) != -1 )
             return ws.ws_col;
 #endif

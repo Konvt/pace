@@ -11,10 +11,10 @@ namespace pace {
       template<typename Base,
                template<typename, Channel, Policy, Region> class Derived,
                typename Soul,
-               Channel Outlet,
+               Channel Sink,
                Policy Mode,
-               Region Area>
-      class Plain<Base, Derived<Soul, Outlet, Mode, Area>> : public Base {
+               Region Zone>
+      class Plain<Base, Derived<Soul, Sink, Mode, Zone>> : public Base {
         template<typename, typename>
         friend class Renderable;
 
@@ -27,11 +27,11 @@ namespace pace {
         PACE__FORCEINLINE void monologue() &
         {
           PACE__ASSERT( this->task_cnt_ <= this->task_end_ );
-          this->config_.build( io::OStream<Outlet>::itself(),
+          this->config_.build( io::OStream<Sink>::itself(),
                                render::Parameter( this->task_end_,
                                                   this->task_cnt_.load( std::memory_order_relaxed ),
                                                   this->zero_point_,
-                                                  !config::intty( Outlet ) && config::auto_style_off() ) );
+                                                  !config::intty( Sink ) && config::auto_style_off() ) );
         }
         PACE__FORCEINLINE void epilogue() &
         {

@@ -27,8 +27,8 @@ namespace pace {
    * It's structure is shown below:
    * {LeftBorder}{Prefix}{Percent}{Starting}{Filler}{Lead}{Remain}{Ending}{Counter}{Speed}{Elapsed}{ETA}{Postfix}{RightBorder}
    */
-  template<Channel Outlet = Channel::Stderr, Policy Mode = Policy::Async, Region Area = Region::Fixed>
-  using ProgressBar = prefab::BasicBar<config::Line, Outlet, Mode, Area>;
+  template<Channel Sink = Channel::Stderr, Policy Mode = Policy::Async, Region Zone = Region::Fixed>
+  using ProgressBar = prefab::BasicBar<config::Line, Sink, Mode, Zone>;
 
   PACE__PROVIDE_FOR( config::Line, option::Colored, true );
   PACE__PROVIDE_FOR( config::Line, option::FontBold, true );

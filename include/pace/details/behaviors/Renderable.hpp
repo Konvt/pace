@@ -19,10 +19,10 @@ namespace pace {
       template<typename Base,
                template<typename, Channel, Policy, Region> class Derived,
                typename Soul,
-               Channel Outlet,
+               Channel Sink,
                Policy Mode,
-               Region Area>
-      class Renderable<Base, Derived<Soul, Outlet, Mode, Area>> : public Base {
+               Region Zone>
+      class Renderable<Base, Derived<Soul, Sink, Mode, Zone>> : public Base {
         static_assert( traits::is_instance_of<Soul, aspects::RenderRule>::value,
                        "the config type must derive from RenderRule" );
         // to call "do_tick()"
@@ -31,7 +31,7 @@ namespace pace {
         // to use "mtx_"
         template<typename, typename>
         friend class Reactive;
-        using MostDerived = Derived<Soul, Outlet, Mode, Area>;
+        using MostDerived = Derived<Soul, Sink, Mode, Zone>;
 
         friend PACE__FORCEINLINE void draw_content( Renderable& self ) { self.draw_content(); }
 
@@ -54,22 +54,22 @@ namespace pace {
 
         virtual void do_halt( bool forced = false ) noexcept
         {
-          auto& executor = render::Renderer<Outlet>::itself();
+          auto& executor = render::Renderer<Sink>::itself();
           PACE__ASSERT( executor.empty() == false );
           if ( !forced )
             executor.template trigger<Mode>();
-          executor.dismiss_then( []() noexcept { io::OStream<Outlet>::itself().release(); } );
+          executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().release(); } );
         }
         virtual void do_boot() & noexcept( false )
         {
-          auto& executor = render::Renderer<Outlet>::itself();
+          auto& executor = render::Renderer<Sink>::itself();
           if ( !executor.try_appoint( [this]() {
                  // No exceptions are caught here, this should be done by the thread manager.
-                 auto& ostream    = io::OStream<Outlet>::itself();
-                 const auto istty = console::TermContext<Outlet>::itself().connected();
+                 auto& ostream    = io::OStream<Sink>::itself();
+                 const auto istty = console::TermContext<Sink>::itself().connected();
                  switch ( state_.load( std::memory_order_acquire ) ) {
                  case Phase::Awake: {
-                   if PACE__CXX17_CNSTXPR ( Area == Region::Fixed )
+                   if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                      if ( istty )
                        ostream << console::savecursor;
 
@@ -82,7 +82,7 @@ namespace pace {
                  } break;
                  case Phase::Refresh: {
                    if ( istty ) {
-                     if PACE__CXX17_CNSTXPR ( Area == Region::Fixed )
+                     if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                        ostream << console::resetcursor;
                      else
                        ostream << console::prevline << console::linestart;
@@ -97,7 +97,7 @@ namespace pace {
                  } break;
                  case Phase::Finish: {
                    if ( istty ) {
-                     if PACE__CXX17_CNSTXPR ( Area == Region::Fixed )
+                     if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                        ostream << console::resetcursor;
                      else
                        ostream << console::prevline << console::linestart;
@@ -120,7 +120,7 @@ namespace pace {
             PACE__UNLIKELY throw exception::InvalidState(
               charcodes::make_literal( "pace: another progress bar instance is already running" ) );
 
-          io::OStream<Outlet>::itself() << io::release; // reset the state.
+          io::OStream<Sink>::itself() << io::release; // reset the state.
           auto guard = utils::make_scope_fail( [&executor]() noexcept { executor.dismiss(); } );
           executor.template activate<Mode>();
         }
@@ -169,7 +169,7 @@ namespace pace {
                 do_reset<false>();
               }
             else
-              render::Renderer<Outlet>::itself().template commit<Mode>();
+              render::Renderer<Sink>::itself().template commit<Mode>();
           } break;
 
           default: utils::unreachable();

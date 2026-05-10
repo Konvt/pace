@@ -27,8 +27,8 @@ namespace pace {
    * It's structure is shown below:
    * {LeftBorder}{Prefix}{Percent}{Starting}{Filler}{Lead}{Filler}{Ending}{Counter}{Speed}{Elapsed}{ETA}{Postfix}{RightBorder}
    */
-  template<Channel Outlet = Channel::Stderr, Policy Mode = Policy::Async, Region Area = Region::Fixed>
-  using FlowBar = prefab::BasicBar<config::Flow, Outlet, Mode, Area>;
+  template<Channel Sink = Channel::Stderr, Policy Mode = Policy::Async, Region Zone = Region::Fixed>
+  using FlowBar = prefab::BasicBar<config::Flow, Sink, Mode, Zone>;
 
   PACE__PROVIDE_FOR( config::Flow, option::Colored, true );
   PACE__PROVIDE_FOR( config::Flow, option::FontBold, true );

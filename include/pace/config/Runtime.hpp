@@ -27,13 +27,13 @@ namespace pace {
     }
 
     // Get the current output interval.
-    template<Channel Outlet>
+    template<Channel Sink>
     PACE__NODISCARD details::types::Tempus refresh_interval() noexcept
-    { return details::render::Renderer<Outlet>::working_interval(); }
+    { return details::render::Renderer<Sink>::working_interval(); }
     // Set the new output interval.
-    template<Channel Outlet>
+    template<Channel Sink>
     void refresh_interval( details::types::Tempus new_rate ) noexcept
-    { details::render::Renderer<Outlet>::working_interval( new_rate ); }
+    { details::render::Renderer<Sink>::working_interval( new_rate ); }
     // Set every channels to the same output interval.
     inline void refresh_interval( details::types::Tempus new_rate ) noexcept
     {

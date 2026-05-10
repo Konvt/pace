@@ -21,13 +21,13 @@
 namespace pace {
   namespace details {
     namespace io {
-      template<Channel Outlet>
+      template<Channel Sink>
       class OStream;
-      template<Channel Outlet>
-      OStream<Outlet>& flush( OStream<Outlet>& stream )
+      template<Channel Sink>
+      OStream<Sink>& flush( OStream<Sink>& stream )
       { return stream.flush(); }
-      template<Channel Outlet>
-      PACE__CXX20_CNSTXPR OStream<Outlet>& release( OStream<Outlet>& stream ) noexcept
+      template<Channel Sink>
+      PACE__CXX20_CNSTXPR OStream<Sink>& release( OStream<Sink>& stream ) noexcept
       {
         stream.release();
         return stream;
@@ -42,7 +42,7 @@ namespace pace {
        * If the local platform is neither `Windows` nor `unix-like`,
        * the class still uses the method `write` of `std::ostream` in standard library.
        */
-      template<Channel Outlet>
+      template<Channel Sink>
       class OStream final : public CharPipeline {
 #if PACE__WIN && !defined( PACE_UTF8 )
         std::vector<WCHAR> wb_buffer_;
@@ -71,7 +71,7 @@ namespace pace {
           do {
             DWORD num_written = 0;
             auto ostream      = []() {
-              if PACE__CXX17_CNSTXPR ( Outlet == Channel::Stdout )
+              if PACE__CXX17_CNSTXPR ( Sink == Channel::Stdout )
                 return GetStdHandle( STD_OUTPUT_HANDLE );
               else
                 return GetStdHandle( STD_ERROR_HANDLE );
@@ -90,7 +90,7 @@ namespace pace {
 #elif PACE__UNIX
           types::Size total_written = 0;
           do {
-            ssize_t num_written = write( utils::to_underlying( Outlet ),
+            ssize_t num_written = write( utils::to_underlying( Sink ),
                                          bytes.data() + total_written,
                                          bytes.size() - total_written );
             if ( errno == EINTR )
@@ -102,7 +102,7 @@ namespace pace {
             total_written += static_cast<types::Size>( num_written );
           } while ( total_written < bytes.size() );
 #else
-          if PACE__CXX17_CNSTXPR ( Outlet == Channel::Stdout )
+          if PACE__CXX17_CNSTXPR ( Sink == Channel::Stdout )
             std::cout.write( bytes.data(), bytes.size() ).flush();
           else
             std::cerr.write( bytes.data(), bytes.size() ).flush();
@@ -138,7 +138,7 @@ namespace pace {
             return *this;
 
 #if PACE__WIN && !defined( PACE_UTF8 )
-          if ( !console::TermContext<Outlet>::itself().connected() ) {
+          if ( !console::TermContext<Sink>::itself().connected() ) {
             writeout( this->buffer_ );
             CharPipeline::clear();
             return *this;

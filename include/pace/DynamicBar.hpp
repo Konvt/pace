@@ -4,9 +4,9 @@
 #include "details/assets/DynamicLayout.hpp"
 
 namespace pace {
-  template<Channel Outlet = Channel::Stderr, Policy Mode = Policy::Async, Region Area = Region::Fixed>
+  template<Channel Sink = Channel::Stderr, Policy Mode = Policy::Async, Region Zone = Region::Fixed>
   class DynamicBar {
-    using Context = details::assets::DynamicLayout<Outlet, Mode, Area>;
+    using Context = details::assets::DynamicLayout<Sink, Mode, Zone>;
 
     std::shared_ptr<Context> core_;
     mutable details::concurrent::SharedMutex mtx_;
@@ -84,16 +84,16 @@ namespace pace {
     }
 
     template<typename Config>
-    PACE__NODISCARD auto insert( prefab::BasicBar<Config, Outlet, Mode, Area>&& bar )
+    PACE__NODISCARD auto insert( prefab::BasicBar<Config, Sink, Mode, Zone>&& bar )
 #ifdef __cpp_concepts
       requires details::traits::is_config<Config>::value
 #else
       -> typename std::enable_if<details::traits::is_config<Config>::value,
-                                 std::unique_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>::type
+                                 std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>::type
 #endif
     {
       setup_if_null();
-      return details::utils::make_unique<details::assets::ManagedBar<Config, Outlet, Mode, Area>>(
+      return details::utils::make_unique<details::assets::ManagedBar<Config, Sink, Mode, Zone>>(
         core_,
         std::move( bar ) );
     }
@@ -103,11 +103,11 @@ namespace pace {
       requires details::traits::is_config<Config>::value
 #else
       -> typename std::enable_if<details::traits::is_config<Config>::value,
-                                 std::unique_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>::type
+                                 std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>::type
 #endif
     {
       setup_if_null();
-      return details::utils::make_unique<details::assets::ManagedBar<Config, Outlet, Mode, Area>>(
+      return details::utils::make_unique<details::assets::ManagedBar<Config, Sink, Mode, Zone>>(
         core_,
         std::move( cfg ) );
     }
@@ -115,21 +115,20 @@ namespace pace {
     template<typename Bar, typename... Options>
     PACE__NODISCARD auto insert( Options&&... options )
 #ifdef __cpp_concepts
-      requires( details::traits::is_bar<Bar>::value && Bar::Channel == Outlet && Bar::Policy == Mode
-                && Bar::Region == Area && std::is_constructible_v<Bar, Options && ...> )
+      requires( details::traits::is_bar<Bar>::value && Bar::sink == Sink && Bar::mode == Mode
+                && Bar::zone == Zone && std::is_constructible_v<Bar, Options && ...> )
 #else
       -> typename std::enable_if<
         details::traits::AllOf<details::traits::is_bar<Bar>,
                                std::is_constructible<Bar, Options&&...>,
-                               details::traits::BoolConstant<( Bar::Channel == Outlet )>,
-                               details::traits::BoolConstant<( Bar::Policy == Mode )>,
-                               details::traits::BoolConstant<( Bar::Region == Area )>>::value,
+                               details::traits::BoolConstant<( Bar::sink == Sink )>,
+                               details::traits::BoolConstant<( Bar::mode == Mode )>,
+                               details::traits::BoolConstant<( Bar::zone == Zone )>>::value,
         std::unique_ptr<Bar>>::type
 #endif
     {
       setup_if_null();
-      return details::utils::make_unique<
-        details::assets::ManagedBar<typename Bar::Config, Outlet, Mode, Area>>(
+      return details::utils::make_unique<details::assets::ManagedBar<typename Bar::Config, Sink, Mode, Zone>>(
         core_,
         std::forward<Options>( options )... );
     }
@@ -140,11 +139,11 @@ namespace pace {
 #else
       -> typename std::enable_if<details::traits::AllOf<details::traits::is_config<Config>,
                                                         std::is_constructible<Config, Options&&...>>::value,
-                                 std::unique_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>::type
+                                 std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>::type
 #endif
     {
       setup_if_null();
-      return details::utils::make_unique<details::assets::ManagedBar<Config, Outlet, Mode, Area>>(
+      return details::utils::make_unique<details::assets::ManagedBar<Config, Sink, Mode, Zone>>(
         core_,
         std::forward<Options>( options )... );
     }
@@ -178,9 +177,9 @@ namespace pace {
     return std::make_tuple( factory.insert( std::move( bar ) ), factory.insert( std::move( bars ) )... );
   }
   // Creates a tuple of unique_ptr pointing to bars using configuration objects.
-  template<Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+  template<Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename Config,
            typename... Configs>
   PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( Config&& cfg, Configs&&... cfgs )
@@ -192,11 +191,11 @@ namespace pace {
       details::traits::AllOf<details::traits::is_config<typename std::decay<Config>::type>,
                              details::traits::is_config<typename std::decay<Configs>::type>...>::value,
       std::tuple<
-        std::unique_ptr<prefab::BasicBar<typename std::decay<Config>::type, Outlet, Mode, Area>>,
-        std::unique_ptr<prefab::BasicBar<typename std::decay<Configs>::type, Outlet, Mode, Area>>...>>::type
+        std::unique_ptr<prefab::BasicBar<typename std::decay<Config>::type, Sink, Mode, Zone>>,
+        std::unique_ptr<prefab::BasicBar<typename std::decay<Configs>::type, Sink, Mode, Zone>>...>>::type
 #endif
   {
-    DynamicBar<Outlet, Mode, Area> factory;
+    DynamicBar<Sink, Mode, Zone> factory;
     return std::make_tuple( factory.insert( std::forward<Config>( cfg ) ),
                             factory.insert( std::forward<Configs>( cfgs ) )... );
   }
@@ -229,9 +228,9 @@ namespace pace {
    * Creates a vector of unique_ptr pointing to bars with a fixed number of BasicBar instances.
    * **All BasicBar instances are initialized using the same configuration.**
    */
-  template<Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+  template<Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename Config>
   PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( Config&& cfg, details::types::Size count )
 #ifdef __cpp_concepts
@@ -240,14 +239,14 @@ namespace pace {
     ->
     typename std::enable_if<details::traits::is_config<typename std::decay<Config>::type>::value,
                             std::vector<std::unique_ptr<
-                              prefab::BasicBar<typename std::decay<Config>::type, Outlet, Mode, Area>>>>::type
+                              prefab::BasicBar<typename std::decay<Config>::type, Sink, Mode, Zone>>>>::type
 #endif
   {
-    std::vector<std::unique_ptr<prefab::BasicBar<typename std::decay<Config>::type, Outlet, Mode, Area>>>
+    std::vector<std::unique_ptr<prefab::BasicBar<typename std::decay<Config>::type, Sink, Mode, Zone>>>
       products;
     if ( count == 0 )
       PACE__UNLIKELY return products;
-    DynamicBar<Outlet, Mode, Area> factory;
+    DynamicBar<Sink, Mode, Zone> factory;
     std::generate_n( std::back_inserter( products ), count - 1, [&factory, &cfg]() {
       return factory.insert( cfg );
     } );
@@ -296,7 +295,7 @@ namespace pace {
         throw exception::InvalidArgument( std::move( message ) );
       }
 
-    DynamicBar<Bar::Channel, Bar::Policy, Bar::Region> factory;
+    DynamicBar<Bar::sink, Bar::mode, Bar::zone> factory;
     (void)std::initializer_list<bool> {
       ( products.emplace_back( factory.insert( std::forward<Objs>( objs ) ) ), false )...
     };
@@ -311,9 +310,9 @@ namespace pace {
    * **An unmatched count and Bars number will cause an exception `pace::exception::InvalidArgument`.**
    */
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename... Configs>
   PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( details::types::Size count, Configs&&... cfgs )
     noexcept( false )
@@ -325,10 +324,10 @@ namespace pace {
         details::traits::AllOf<
           details::traits::is_config<Config>,
           std::is_same<typename std::remove_cv<Config>::type, typename std::decay<Configs>::type>...>::value,
-        std::vector<std::unique_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
+        std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
-    std::vector<std::unique_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>> products;
+    std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>> products;
     if ( count == 0 )
       PACE__UNLIKELY return products;
     else if ( count < sizeof...( Configs ) )
@@ -343,7 +342,7 @@ namespace pace {
         throw exception::InvalidArgument( std::move( message ) );
       }
 
-    DynamicBar<Outlet, Mode, Area> factory;
+    DynamicBar<Sink, Mode, Zone> factory;
     (void)std::initializer_list<bool> {
       ( products.emplace_back( factory.insert( std::forward<Configs>( cfgs ) ) ), false )...
     };
@@ -358,24 +357,24 @@ namespace pace {
    * **An unmatched count and Bars number will cause an exception `pace::exception::InvalidArgument`.**
    */
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename... Configs>
-  PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic(
-    details::types::Size count,
-    prefab::BasicBar<Configs, Outlet, Mode, Area>&&... bars ) noexcept( false )
+  PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( details::types::Size count,
+                                                       prefab::BasicBar<Configs, Sink, Mode, Zone>&&... bars )
+    noexcept( false )
 #ifdef __cpp_concepts
     requires( details::traits::is_config<Config>::value
               && ( std::is_same_v<Config, std::decay_t<Configs>> && ... ) )
 #else
-    -> typename std::enable_if<
-      details::traits::AllOf<details::traits::is_config<Config>,
-                             std::is_same<Config, typename std::decay<Configs>::type>...>::value,
-      std::vector<std::unique_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
+      -> typename std::enable_if<
+        details::traits::AllOf<details::traits::is_config<Config>,
+                               std::is_same<Config, typename std::decay<Configs>::type>...>::value,
+        std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
-    std::vector<std::unique_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>> products;
+    std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>> products;
     if ( count == 0 )
       PACE__UNLIKELY return products;
     else if ( count < sizeof...( Configs ) )
@@ -390,7 +389,7 @@ namespace pace {
         throw exception::InvalidArgument( std::move( message ) );
       }
 
-    DynamicBar<Outlet, Mode, Area> factory;
+    DynamicBar<Sink, Mode, Zone> factory;
     (void)std::initializer_list<bool> { ( products.emplace_back( factory.insert( std::move( bars ) ) ),
                                           false )... };
     std::generate_n( std::back_inserter( products ), count - sizeof...( Configs ) - 1, [&factory]() {

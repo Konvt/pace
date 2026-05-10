@@ -10,20 +10,20 @@
 namespace pace {
   namespace prefab {
     template<typename Soul,
-             Channel Outlet = Channel::Stderr,
-             Policy Mode    = Policy::Async,
-             Region Area    = Region::Fixed>
+             Channel Sink = Channel::Stderr,
+             Policy Mode  = Policy::Async,
+             Region Zone  = Region::Fixed>
     class BasicBar
       : public details::traits::LI<details::aspects::EntailLinker_t<Soul>>::
-          template type<Indicator, BasicBar<Soul, Outlet, Mode, Area>> {
+          template type<Indicator, BasicBar<Soul, Sink, Mode, Zone>> {
       using Base = typename details::traits::LI<
-        details::aspects::EntailLinker_t<Soul>>::template type<Indicator, BasicBar<Soul, Outlet, Mode, Area>>;
+        details::aspects::EntailLinker_t<Soul>>::template type<Indicator, BasicBar<Soul, Sink, Mode, Zone>>;
 
     public:
-      using Config                     = Soul;
-      static constexpr Channel Channel = Outlet;
-      static constexpr Policy Policy   = Mode;
-      static constexpr Region Region   = Area;
+      using Config                  = Soul;
+      static constexpr Channel sink = Sink;
+      static constexpr Policy mode  = Mode;
+      static constexpr Region zone  = Zone;
 
       using Base::Base;
       constexpr BasicBar() = default;
@@ -175,15 +175,15 @@ namespace pace {
       .iterate( startpoint, endpoint, step, std::forward<Proc>( op ) );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename N,
            typename... Options
 #ifdef __cpp_concepts
            >
     requires( std::is_arithmetic_v<N> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -195,33 +195,33 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, N step, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<
-      details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+      details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
                              std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>,
-                         std::shared_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
+                         std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
-    return iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( startpoint,
-                                                                  endpoint,
-                                                                  step,
-                                                                  std::forward<Options>( options )... );
+    return iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( startpoint,
+                                                                endpoint,
+                                                                step,
+                                                                std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename N,
            typename Act,
            typename... Options
 #ifdef __cpp_concepts
            >
     requires( std::is_arithmetic_v<N> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
-              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
+              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
-                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                   | std::declval<Act &&>() )>,
-                prefab::BasicBar<Config, Outlet, Mode, Area>>
+                prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -237,34 +237,34 @@ namespace pace {
 #ifndef __cpp_concepts
     -> typename std::enable_if<
       details::traits::AllOf<
-        details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-        details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-        std::is_same<typename std::remove_reference<
-                       decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
-                                 | std::declval<Act&&>() )>::type,
-                     prefab::BasicBar<Config, Outlet, Mode, Area>>,
+        details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+        details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+        std::is_same<
+          typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
+                                                   | std::declval<Act&&>() )>::type,
+          prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>,
-                         std::shared_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
+                         std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
-    return iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( startpoint,
-                                                                  endpoint,
-                                                                  step,
-                                                                  std::forward<Act>( act ),
-                                                                  std::forward<Options>( options )... );
+    return iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( startpoint,
+                                                                endpoint,
+                                                                step,
+                                                                std::forward<Act>( act ),
+                                                                std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename N,
            typename Proc,
            typename... Options
 #ifdef __cpp_concepts
            >
     requires( std::is_arithmetic_v<N> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_constructible_v<Config, Options && ...>
               && requires( N ele, Proc&& op ) { op( ele ); } )
 #else
@@ -276,21 +276,21 @@ namespace pace {
   PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, N step, Proc&& op, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<details::traits::AllOf<
-      details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+      details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>,
       std::is_void<decltype( std::declval<Proc&&>( std::declval<N>() ), void() )>>::value>::type
 #endif
   {
-    iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( startpoint,
-                                                           endpoint,
-                                                           step,
-                                                           std::forward<Proc>( op ),
-                                                           std::forward<Options>( options )... );
+    iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( startpoint,
+                                                         endpoint,
+                                                         step,
+                                                         std::forward<Proc>( op ),
+                                                         std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename N,
            typename Proc,
            typename Act,
@@ -298,12 +298,12 @@ namespace pace {
 #ifdef __cpp_concepts
            >
     requires( std::is_arithmetic_v<N> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
-              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
+              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
-                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                   | std::declval<Act &&>() )>,
-                prefab::BasicBar<Config, Outlet, Mode, Area>>
+                prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -319,21 +319,21 @@ namespace pace {
                                   Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<details::traits::AllOf<
-      details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-      details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+      details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+      details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
-        typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+        typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                  | std::declval<Act&&>() )>::type,
-        prefab::BasicBar<Config, Outlet, Mode, Area>>,
+        prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>>::value>::type
 #endif
   {
-    iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( startpoint,
-                                                           endpoint,
-                                                           step,
-                                                           std::forward<Proc>( op ),
-                                                           std::forward<Act>( act ),
-                                                           std::forward<Options>( options )... );
+    iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( startpoint,
+                                                         endpoint,
+                                                         step,
+                                                         std::forward<Proc>( op ),
+                                                         std::forward<Act>( act ),
+                                                         std::forward<Options>( options )... );
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -420,15 +420,15 @@ namespace pace {
       .iterate( endpoint, step, std::forward<Proc>( op ) );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename N,
            typename... Options
 #ifdef __cpp_concepts
            >
     requires( std::is_floating_point_v<N> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -441,32 +441,32 @@ namespace pace {
     -> typename std::enable_if<
       details::traits::AllOf<std::is_floating_point<N>,
                              details::traits::is_config<Config>,
-                             details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+                             details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
                              std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>,
-                         std::shared_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
+                         std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
-    return iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( endpoint,
-                                                                  step,
-                                                                  std::forward<Options>( options )... );
+    return iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( endpoint,
+                                                                step,
+                                                                std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename N,
            typename Act,
            typename... Options
 #ifdef __cpp_concepts
            >
     requires( std::is_floating_point_v<N> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
-              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
+              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
-                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                   | std::declval<Act &&>() )>,
-                prefab::BasicBar<Config, Outlet, Mode, Area>>
+                prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -478,33 +478,33 @@ namespace pace {
 #ifndef __cpp_concepts
     -> typename std::enable_if<
       details::traits::AllOf<
-        details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-        details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-        std::is_same<typename std::remove_reference<
-                       decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
-                                 | std::declval<Act&&>() )>::type,
-                     prefab::BasicBar<Config, Outlet, Mode, Area>>,
+        details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+        details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+        std::is_same<
+          typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
+                                                   | std::declval<Act&&>() )>::type,
+          prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>,
-                         std::shared_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
+                         std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
-    return iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( endpoint,
-                                                                  step,
-                                                                  std::forward<Act>( act ),
-                                                                  std::forward<Options>( options )... );
+    return iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( endpoint,
+                                                                step,
+                                                                std::forward<Act>( act ),
+                                                                std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename N,
            typename Proc,
            typename... Options
 #ifdef __cpp_concepts
            >
     requires( std::is_floating_point_v<N> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_constructible_v<Config, Options && ...>
               && requires( N ele, Proc&& op ) { op( ele ); } )
 #else
@@ -516,20 +516,20 @@ namespace pace {
   PACE__FORCEINLINE auto iterate( N endpoint, N step, Proc&& op, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<details::traits::AllOf<
-      details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+      details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>,
       std::is_void<decltype( std::declval<Proc&&>( std::declval<N>() ), void() )>>::value>::type
 #endif
   {
-    iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( endpoint,
-                                                           step,
-                                                           std::forward<Proc>( op ),
-                                                           std::forward<Options>( options )... );
+    iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( endpoint,
+                                                         step,
+                                                         std::forward<Proc>( op ),
+                                                         std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename N,
            typename Proc,
            typename Act,
@@ -537,12 +537,12 @@ namespace pace {
 #ifdef __cpp_concepts
            >
     requires( std::is_floating_point_v<N> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
-              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
+              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
-                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                   | std::declval<Act &&>() )>,
-                prefab::BasicBar<Config, Outlet, Mode, Area>>
+                prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -553,20 +553,20 @@ namespace pace {
   PACE__FORCEINLINE auto iterate( N endpoint, N step, Proc&& op, Act&& act, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<details::traits::AllOf<
-      details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-      details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+      details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+      details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
-        typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+        typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                  | std::declval<Act&&>() )>::type,
-        prefab::BasicBar<Config, Outlet, Mode, Area>>,
+        prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>>::value>::type
 #endif
   {
-    iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( endpoint,
-                                                           step,
-                                                           std::forward<Proc>( op ),
-                                                           std::forward<Act>( act ),
-                                                           std::forward<Options>( options )... );
+    iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( endpoint,
+                                                         step,
+                                                         std::forward<Proc>( op ),
+                                                         std::forward<Act>( act ),
+                                                         std::forward<Options>( options )... );
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -652,15 +652,15 @@ namespace pace {
       .iterate( startpoint, endpoint, std::forward<Proc>( op ) );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename N,
            typename... Options
 #ifdef __cpp_concepts
            >
     requires( std::is_integral_v<N> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -671,32 +671,32 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<
-      details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+      details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
                              std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>,
-                         std::shared_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
+                         std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
-    return iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( startpoint,
-                                                                  endpoint,
-                                                                  std::forward<Options>( options )... );
+    return iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( startpoint,
+                                                                endpoint,
+                                                                std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename N,
            typename Act,
            typename... Options
 #ifdef __cpp_concepts
            >
     requires( std::is_integral_v<N> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
-              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
+              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
-                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                   | std::declval<Act &&>() )>,
-                prefab::BasicBar<Config, Outlet, Mode, Area>>
+                prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -708,33 +708,33 @@ namespace pace {
 #ifndef __cpp_concepts
     -> typename std::enable_if<
       details::traits::AllOf<
-        details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-        details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-        std::is_same<typename std::remove_reference<
-                       decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
-                                 | std::declval<Act&&>() )>::type,
-                     prefab::BasicBar<Config, Outlet, Mode, Area>>,
+        details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+        details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+        std::is_same<
+          typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
+                                                   | std::declval<Act&&>() )>::type,
+          prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>,
-                         std::shared_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
+                         std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
-    return iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( startpoint,
-                                                                  endpoint,
-                                                                  std::forward<Act>( act ),
-                                                                  std::forward<Options>( options )... );
+    return iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( startpoint,
+                                                                endpoint,
+                                                                std::forward<Act>( act ),
+                                                                std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename N,
            typename Proc,
            typename... Options
 #ifdef __cpp_concepts
            >
     requires( std::is_integral_v<N> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_constructible_v<Config, Options && ...>
               && requires( N ele, Proc&& op ) { op( ele ); } )
 #else
@@ -746,20 +746,20 @@ namespace pace {
   PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, Proc&& op, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<details::traits::AllOf<
-      details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+      details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>,
       std::is_void<decltype( std::declval<Proc&&>( std::declval<N>() ), void() )>>::value>::type
 #endif
   {
-    iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( startpoint,
-                                                           endpoint,
-                                                           std::forward<Proc>( op ),
-                                                           std::forward<Options>( options )... );
+    iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( startpoint,
+                                                         endpoint,
+                                                         std::forward<Proc>( op ),
+                                                         std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename N,
            typename Proc,
            typename Act,
@@ -767,12 +767,12 @@ namespace pace {
 #ifdef __cpp_concepts
            >
     requires( std::is_integral_v<N> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
-              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
+              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
-                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                   | std::declval<Act &&>() )>,
-                prefab::BasicBar<Config, Outlet, Mode, Area>>
+                prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -783,20 +783,20 @@ namespace pace {
   PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, Proc&& op, Act&& act, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<details::traits::AllOf<
-      details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-      details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+      details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+      details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
-        typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+        typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                  | std::declval<Act&&>() )>::type,
-        prefab::BasicBar<Config, Outlet, Mode, Area>>,
+        prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>>::value>::type
 #endif
   {
-    iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( startpoint,
-                                                           endpoint,
-                                                           std::forward<Proc>( op ),
-                                                           std::forward<Act>( act ),
-                                                           std::forward<Options>( options )... );
+    iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( startpoint,
+                                                         endpoint,
+                                                         std::forward<Proc>( op ),
+                                                         std::forward<Act>( act ),
+                                                         std::forward<Options>( options )... );
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -876,15 +876,15 @@ namespace pace {
       .iterate( endpoint, std::forward<Proc>( op ) );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename N,
            typename... Options
 #ifdef __cpp_concepts
            >
     requires( std::is_integral_v<N> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -895,31 +895,31 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N endpoint, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<
-      details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+      details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
                              std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>,
-                         std::shared_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
+                         std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
-    return iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( endpoint,
-                                                                  std::forward<Options>( options )... );
+    return iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( endpoint,
+                                                                std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename N,
            typename Act,
            typename... Options
 #ifdef __cpp_concepts
            >
     requires( std::is_integral_v<N> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
-              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
+              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
-                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                   | std::declval<Act &&>() )>,
-                prefab::BasicBar<Config, Outlet, Mode, Area>>
+                prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -931,32 +931,32 @@ namespace pace {
 #ifndef __cpp_concepts
     -> typename std::enable_if<
       details::traits::AllOf<
-        details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-        details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-        std::is_same<typename std::remove_reference<
-                       decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
-                                 | std::declval<Act&&>() )>::type,
-                     prefab::BasicBar<Config, Outlet, Mode, Area>>,
+        details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+        details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+        std::is_same<
+          typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
+                                                   | std::declval<Act&&>() )>::type,
+          prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>,
-                         std::shared_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
+                         std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
-    return iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( endpoint,
-                                                                  std::forward<Act>( act ),
-                                                                  std::forward<Options>( options )... );
+    return iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( endpoint,
+                                                                std::forward<Act>( act ),
+                                                                std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename N,
            typename Proc,
            typename... Options
 #ifdef __cpp_concepts
            >
     requires( std::is_integral_v<N> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_constructible_v<Config, Options && ...>
               && requires( N ele, Proc&& op ) { op( ele ); } )
 #else
@@ -968,19 +968,19 @@ namespace pace {
   PACE__FORCEINLINE auto iterate( N endpoint, Proc&& op, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<details::traits::AllOf<
-      details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+      details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>,
       std::is_void<decltype( std::declval<Proc&&>( std::declval<N>() ), void() )>>::value>::type
 #endif
   {
-    iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( endpoint,
-                                                           std::forward<Proc>( op ),
-                                                           std::forward<Options>( options )... );
+    iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( endpoint,
+                                                         std::forward<Proc>( op ),
+                                                         std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename N,
            typename Proc,
            typename Act,
@@ -988,12 +988,12 @@ namespace pace {
 #ifdef __cpp_concepts
            >
     requires( std::is_integral_v<N> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
-              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
+              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
-                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                   | std::declval<Act &&>() )>,
-                prefab::BasicBar<Config, Outlet, Mode, Area>>
+                prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -1004,19 +1004,19 @@ namespace pace {
   PACE__FORCEINLINE auto iterate( N endpoint, Proc&& op, Act&& act, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<details::traits::AllOf<
-      details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-      details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+      details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+      details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
-        typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+        typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                  | std::declval<Act&&>() )>::type,
-        prefab::BasicBar<Config, Outlet, Mode, Area>>,
+        prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>>::value>::type
 #endif
   {
-    iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( endpoint,
-                                                           std::forward<Proc>( op ),
-                                                           std::forward<Act>( act ),
-                                                           std::forward<Options>( options )... );
+    iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( endpoint,
+                                                         std::forward<Proc>( op ),
+                                                         std::forward<Act>( act ),
+                                                         std::forward<Options>( options )... );
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1112,16 +1112,16 @@ namespace pace {
       .iterate( std::move( startpoint ), std::move( endpoint ), std::forward<Proc>( op ) );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename Itr,
            typename Snt,
            typename... Options
 #ifdef __cpp_concepts
            >
     requires( details::traits::is_sized_cursor<Itr, Snt>::value && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -1132,20 +1132,20 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( Itr startpoint, Snt endpoint, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<
-      details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+      details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
                              std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>,
-                         std::shared_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
+                         std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
-    return iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( std::move( startpoint ),
-                                                                  std::move( endpoint ),
-                                                                  std::forward<Options>( options )... );
+    return iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( std::move( startpoint ),
+                                                                std::move( endpoint ),
+                                                                std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename Itr,
            typename Snt,
            typename Act,
@@ -1153,12 +1153,12 @@ namespace pace {
 #ifdef __cpp_concepts
            >
     requires( details::traits::is_sized_cursor<Itr, Snt>::value && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
-              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
+              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
-                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                   | std::declval<Act &&>() )>,
-                prefab::BasicBar<Config, Outlet, Mode, Area>>
+                prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -1173,26 +1173,26 @@ namespace pace {
 #ifndef __cpp_concepts
     -> typename std::enable_if<
       details::traits::AllOf<
-        details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-        details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-        std::is_same<typename std::remove_reference<
-                       decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
-                                 | std::declval<Act&&>() )>::type,
-                     prefab::BasicBar<Config, Outlet, Mode, Area>>,
+        details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+        details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+        std::is_same<
+          typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
+                                                   | std::declval<Act&&>() )>::type,
+          prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>,
-                         std::shared_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
+                         std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
-    return iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( std::move( startpoint ),
-                                                                  std::move( endpoint ),
-                                                                  std::forward<Act>( act ),
-                                                                  std::forward<Options>( options )... );
+    return iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( std::move( startpoint ),
+                                                                std::move( endpoint ),
+                                                                std::forward<Act>( act ),
+                                                                std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename Itr,
            typename Snt,
            typename Proc,
@@ -1200,7 +1200,7 @@ namespace pace {
 #ifdef __cpp_concepts
            >
     requires( details::traits::is_sized_cursor<Itr, Snt>::value && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_constructible_v<Config, Options && ...>
               && requires( details::traits::IterValue_t<Itr> ele, Proc&& op ) { op( ele ); } )
 #else
@@ -1212,21 +1212,21 @@ namespace pace {
   PACE__FORCEINLINE auto iterate( Itr startpoint, Snt endpoint, Proc&& op, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<details::traits::AllOf<
-      details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+      details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>,
       std::is_void<decltype( std::declval<Proc&&>( std::declval<details::traits::IterValue_t<Itr>>() ),
                              void() )>>::value>::type
 #endif
   {
-    iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( std::move( startpoint ),
-                                                           std::move( endpoint ),
-                                                           std::forward<Proc>( op ),
-                                                           std::forward<Options>( options )... );
+    iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( std::move( startpoint ),
+                                                         std::move( endpoint ),
+                                                         std::forward<Proc>( op ),
+                                                         std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            typename Itr,
            typename Snt,
            typename Proc,
@@ -1235,12 +1235,12 @@ namespace pace {
 #ifdef __cpp_concepts
            >
     requires( details::traits::is_sized_cursor<Itr, Snt>::value && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
-              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
+              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
-                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                   | std::declval<Act &&>() )>,
-                prefab::BasicBar<Config, Outlet, Mode, Area>>
+                prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -1251,20 +1251,20 @@ namespace pace {
   PACE__FORCEINLINE auto iterate( Itr startpoint, Snt endpoint, Proc&& op, Act&& act, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<details::traits::AllOf<
-      details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-      details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+      details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+      details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
-        typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+        typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                  | std::declval<Act&&>() )>::type,
-        prefab::BasicBar<Config, Outlet, Mode, Area>>,
+        prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>>::value>::type
 #endif
   {
-    iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( std::move( startpoint ),
-                                                           std::move( endpoint ),
-                                                           std::forward<Proc>( op ),
-                                                           std::forward<Act>( act ),
-                                                           std::forward<Options>( options )... );
+    iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( std::move( startpoint ),
+                                                         std::move( endpoint ),
+                                                         std::forward<Proc>( op ),
+                                                         std::forward<Act>( act ),
+                                                         std::forward<Options>( options )... );
   }
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1376,16 +1376,16 @@ namespace pace {
       .iterate( std::forward<R>( range ), std::forward<Proc>( op ) );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            class R,
            typename... Options
 #ifdef __cpp_concepts
            >
     requires( details::traits::is_sized_range<R>::value
               && !std::ranges::view<std::remove_reference_t<R>> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -1396,19 +1396,19 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( R&& range, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<
-      details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+      details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
                              std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
-                         std::shared_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
+                         std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
-    return iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( std::forward<R>( range ),
-                                                                  std::forward<Options>( options )... );
+    return iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( std::forward<R>( range ),
+                                                                std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            class R,
            typename Act,
            typename... Options
@@ -1416,12 +1416,12 @@ namespace pace {
            >
     requires( details::traits::is_sized_range<R>::value
               && !std::ranges::view<std::remove_reference_t<R>> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
-              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
+              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
-                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                   | std::declval<Act &&>() )>,
-                prefab::BasicBar<Config, Outlet, Mode, Area>>
+                prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -1433,77 +1433,77 @@ namespace pace {
 #ifndef __cpp_concepts
     -> typename std::enable_if<
       details::traits::AllOf<
-        details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-        details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-        std::is_same<typename std::remove_reference<
-                       decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
-                                 | std::declval<Act&&>() )>::type,
-                     prefab::BasicBar<Config, Outlet, Mode, Area>>,
+        details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+        details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+        std::is_same<
+          typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
+                                                   | std::declval<Act&&>() )>::type,
+          prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
-                         std::shared_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>>::type
+                         std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
-    return iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( std::forward<R>( range ),
-                                                                  std::forward<Act>( act ),
-                                                                  std::forward<Options>( options )... );
+    return iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( std::forward<R>( range ),
+                                                                std::forward<Act>( act ),
+                                                                std::forward<Options>( options )... );
   }
 #ifdef __cpp_concepts
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            class R,
            typename... Options>
     requires( details::traits::is_sized_range<R>::value
               && std::ranges::view<R> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_constructible_v<Config, Options && ...> )
   PACE__NODISCARD PACE__FORCEINLINE
-    slice::TrackedSpan<R, std::shared_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>> iterate(
+    slice::TrackedSpan<R, std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>> iterate(
       R view,
       Options&&... options )
   {
     return { std::move( view ),
-             std::make_shared<prefab::BasicBar<Config, Outlet, Mode, Area>>(
+             std::make_shared<prefab::BasicBar<Config, Sink, Mode, Zone>>(
                std::forward<Options>( options )... ) };
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            class R,
            typename Act,
            typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE
-    slice::TrackedSpan<R, std::shared_ptr<prefab::BasicBar<Config, Outlet, Mode, Area>>>
+    slice::TrackedSpan<R, std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>
     iterate( R view, Act&& act, Options&&... options )
     requires( details::traits::is_sized_range<R>::value
               && std::ranges::view<R> && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
-              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
+              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
-                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                   | std::forward<Act>( act ) )>,
-                prefab::BasicBar<Config, Outlet, Mode, Area>>
+                prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
   {
     return { std::move( view ),
-             std::make_shared<prefab::BasicBar<Config, Outlet, Mode, Area>>(
+             std::make_shared<prefab::BasicBar<Config, Sink, Mode, Zone>>(
                Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) ) };
   }
 #endif
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            class R,
            typename Proc,
            typename... Options
 #ifdef __cpp_concepts
            >
     requires( details::traits::is_sized_range<R>::value && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_constructible_v<Config, Options && ...>
               && requires( details::traits::IterValue_t<details::traits::IteratorOf_t<R>> ele,
                            Proc&& op ) { op( ele ); } )
@@ -1516,21 +1516,21 @@ namespace pace {
   PACE__FORCEINLINE auto iterate( R&& range, Proc&& op, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<details::traits::AllOf<
-      details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+      details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>,
       std::is_void<decltype( std::declval<Proc&&>( std::declval<details::traits::IterValue_t<
                                                      details::traits::IteratorOf_t<R>>>() ),
                              void() )>>::value>::type
 #endif
   {
-    iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( std::forward<R>( range ),
-                                                           std::forward<Proc>( op ),
-                                                           std::forward<Options>( options )... );
+    iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( std::forward<R>( range ),
+                                                         std::forward<Proc>( op ),
+                                                         std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Outlet = Channel::Stderr,
-           Policy Mode    = Policy::Async,
-           Region Area    = Region::Fixed,
+           Channel Sink = Channel::Stderr,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
            class R,
            typename Proc,
            typename Act,
@@ -1538,12 +1538,12 @@ namespace pace {
 #ifdef __cpp_concepts
            >
     requires( details::traits::is_sized_range<R>::value && details::traits::is_config<Config>::value
-              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
-              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>::value
+              && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
+              && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
-                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+                std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                   | std::declval<Act &&>() )>,
-                prefab::BasicBar<Config, Outlet, Mode, Area>>
+                prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
@@ -1554,19 +1554,19 @@ namespace pace {
   PACE__FORCEINLINE auto iterate( R&& range, Proc&& op, Act&& act, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<details::traits::AllOf<
-      details::traits::is_iterable_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
-      details::traits::is_reactive_bar<prefab::BasicBar<Config, Outlet, Mode, Area>>,
+      details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+      details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
-        typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Outlet, Mode, Area>>()
+        typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
                                                  | std::declval<Act&&>() )>::type,
-        prefab::BasicBar<Config, Outlet, Mode, Area>>,
+        prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>>::value>::type
 #endif
   {
-    iterate<prefab::BasicBar<Config, Outlet, Mode, Area>>( std::forward<R>( range ),
-                                                           std::forward<Proc>( op ),
-                                                           std::forward<Act>( act ),
-                                                           std::forward<Options>( options )... );
+    iterate<prefab::BasicBar<Config, Sink, Mode, Zone>>( std::forward<R>( range ),
+                                                         std::forward<Proc>( op ),
+                                                         std::forward<Act>( act ),
+                                                         std::forward<Options>( options )... );
   }
 } // namespace pace
 
