@@ -17,7 +17,7 @@ namespace pace {
     struct RightBorder : PACE__DERIVING_OPTION2( RightBorder, details::charcodes::U8Raw, _r_border );
 
     // A wrapper that stores the color of the whole infomation indicator.
-    struct InfoColor : PACE__DERIVING_OPTION1( InfoColor, details::console::escodes::RGBColor, _info_color );
+    struct InfoColor : PACE__DERIVING_OPTION1( InfoColor, details::console::RGBColor, _info_color );
   } // namespace option
 
   namespace details {
@@ -36,7 +36,7 @@ namespace pace {
       protected:
         charcodes::U8Raw divider_;
         charcodes::U8Raw l_border_, r_border_;
-        console::escodes::RGBColor info_col_;
+        console::RGBColor info_col_;
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length(
           types::Size num_column ) const noexcept
@@ -106,9 +106,9 @@ namespace pace {
 #endif
 
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
-        Derived& info_color( console::escodes::RGBColor _info_color ) &
+        Derived& info_color( console::RGBColor _info_color ) &
         { PACE__METHOD( InfoColor, _info_color, Derived&, std::move ); }
-        Derived&& info_color( console::escodes::RGBColor _info_color ) &&
+        Derived&& info_color( console::RGBColor _info_color ) &&
         { PACE__METHOD( InfoColor, _info_color, Derived&&, std::move ); }
 
 #undef PACE__METHOD

@@ -58,7 +58,7 @@ namespace pace {
             switch ( items_[i].stage_ ) {
             case Locus::Echo: {
               if ( istty && !hide_done ) {
-                ostream << console::escodes::nextline;
+                ostream << console::nextline;
                 if PACE__CXX17_CNSTXPR ( Area == Region::Relative )
                   ++num_modified_lines_;
               } else
@@ -69,7 +69,7 @@ namespace pace {
               if ( items_[i].target_ == nullptr ) {
                 // being aborted
                 if ( istty && !hide_done ) {
-                  ostream << console::escodes::nextline;
+                  ostream << console::nextline;
                   if PACE__CXX17_CNSTXPR ( Area == Region::Relative )
                     ++num_modified_lines_;
                   items_[i].stage_ = Locus::Echo;
@@ -77,7 +77,7 @@ namespace pace {
                   items_[i].stage_ = Locus::Offstage;
                 break;
               } else if ( istty )
-                ostream << console::escodes::linewipe;
+                ostream << console::linewipe;
 
               ( *items_[i].render_ )( items_[i].target_ );
 
@@ -104,21 +104,21 @@ namespace pace {
                 // Mark it as nullptr to prevent it from being found during append (re-insert).
                 std::tie( items_[i].target_, items_[i].stage_ ) = std::make_pair( nullptr, Locus::Offstage );
                 if ( istty && hide_done )
-                  ostream << console::escodes::linestart;
+                  ostream << console::linestart;
                 else {
-                  ostream << console::escodes::nextline;
+                  ostream << console::nextline;
                   if PACE__CXX17_CNSTXPR ( Area == Region::Relative )
                     ++num_modified_lines_;
                   if ( istty && !hide_done )
                     items_[i].stage_ = Locus::Echo;
                 }
               } else {
-                ostream << console::escodes::nextline;
+                ostream << console::nextline;
                 if PACE__CXX17_CNSTXPR ( Area == Region::Relative )
                   ++num_modified_lines_;
               }
               if ( istty && hide_done )
-                ostream << console::escodes::linewipe;
+                ostream << console::linewipe;
             } break;
 
             default: break;
@@ -190,7 +190,7 @@ namespace pace {
                    case Phase::Awake: {
                      if PACE__CXX17_CNSTXPR ( Area == Region::Fixed )
                        if ( istty )
-                         ostream << console::escodes::savecursor;
+                         ostream << console::savecursor;
                      {
                        concurrent::SharedLock<concurrent::SharedMutex> lock { res_mtx_ };
                        do_render();
@@ -204,15 +204,15 @@ namespace pace {
                        concurrent::SharedLock<concurrent::SharedMutex> lock { res_mtx_ };
                        if ( istty ) {
                          if PACE__CXX17_CNSTXPR ( Area == Region::Fixed ) {
-                           ostream << console::escodes::resetcursor;
+                           ostream << console::resetcursor;
                            if ( !hide_done && num_modified_lines_ > 0 ) {
-                             ostream.append( console::escodes::nextline, num_modified_lines_ )
-                               .append( console::escodes::savecursor );
+                             ostream.append( console::nextline, num_modified_lines_ )
+                               .append( console::savecursor );
                              num_modified_lines_ = 0;
                            }
                          } else {
-                           ostream.append( console::escodes::prevline, num_modified_lines_ )
-                             .append( console::escodes::linestart );
+                           ostream.append( console::prevline, num_modified_lines_ )
+                             .append( console::linestart );
                            num_modified_lines_ = 0;
                          }
                        }

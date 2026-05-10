@@ -31,7 +31,7 @@ namespace pace {
   using ProgressBar = prefab::BasicBar<config::Line, Outlet, Mode, Area>;
 
   PACE__PROVIDE_FOR( config::Line, option::Colored, true );
-  PACE__PROVIDE_FOR( config::Line, option::Bolded, true );
+  PACE__PROVIDE_FOR( config::Line, option::FontBold, true );
   PACE__PROVIDE_FOR( config::Line, option::Reversed, false );
   PACE__PROVIDE_FOR( config::Line, option::Shift, -2 );
   PACE__PROVIDE_FOR( config::Line, option::BarWidth, 30 );

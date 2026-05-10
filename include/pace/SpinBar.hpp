@@ -32,7 +32,7 @@ namespace pace {
   using SpinBar = prefab::BasicBar<config::Spin, Outlet, Mode, Area>;
 
   PACE__PROVIDE_FOR( config::Spin, option::Colored, true );
-  PACE__PROVIDE_FOR( config::Spin, option::Bolded, true );
+  PACE__PROVIDE_FOR( config::Spin, option::FontBold, true );
   PACE__PROVIDE_FOR( config::Spin, option::Shift, -3 );
   PACE__PROVIDE_FOR( config::Spin, option::Magnitude, 1000 );
   PACE__PROVIDE_FOR( config::Spin, option::Divider, u8" | " );
@@ -65,8 +65,10 @@ namespace pace {
         io::CharPipeline& build( io::CharPipeline& pipeline, Parameter params ) const
         {
           concurrent::SharedLock<concurrent::SharedMutex> lock { this->rw_mtx_ };
+          this->font_effect( pipeline, params.style_off_ );
+
           if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() ) {
-            pipeline << this->with_style( this->info_col_, params.style_off_ ) << this->l_border_;
+            pipeline << this->with_dye( this->info_col_, params.style_off_ ) << this->l_border_;
           }
           // For SpinBar, we manually remove the divider between the Lead and the Percent.
           this->traits::BaseOf_t<typename Config::Layout, aspects::Prefix>::build( pipeline, params );
@@ -80,9 +82,10 @@ namespace pace {
 
           this->traits::BaseOf_t<typename Config::Layout, aspects::Postfix>::build( pipeline, params );
           if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() ) {
-            pipeline << this->reset_then_style( this->info_col_, params.style_off_ ) << this->r_border_;
+            pipeline << this->clear_then_dye( this->info_col_, params.style_off_ ) << this->r_border_;
           }
-          return pipeline << this->with_reset( params.style_off_ );
+
+          return this->reset_style( pipeline, params.style_off_ );
         }
       };
     } // namespace render

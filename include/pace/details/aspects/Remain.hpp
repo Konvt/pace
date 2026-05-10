@@ -10,8 +10,7 @@ namespace pace {
     struct Remain : PACE__DERIVING_OPTION2( Remain, details::charcodes::U8Raw, _remain );
 
     // A wrapper that stores the color of the remain in the bar indicator.
-    struct RemainColor
-      : PACE__DERIVING_OPTION1( RemainColor, details::console::escodes::RGBColor, _remain_color );
+    struct RemainColor : PACE__DERIVING_OPTION1( RemainColor, details::console::RGBColor, _remain_color );
   }
 
   namespace details {
@@ -27,7 +26,7 @@ namespace pace {
 
       protected:
         charcodes::U8Raw remain_;
-        console::escodes::RGBColor remain_col_;
+        console::RGBColor remain_col_;
 
         template<typename... Options>
         PACE__CXX20_CNSTXPR Remain( traits::TypeSet<Options...> tag ) : Base( tag )
@@ -49,9 +48,9 @@ namespace pace {
   return static_cast<ReturnType>( *this )
 
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
-        Derived& remain_color( console::escodes::RGBColor _remain_color ) &
+        Derived& remain_color( console::RGBColor _remain_color ) &
         { PACE__METHOD( RemainColor, _remain_color, Derived&, std::move ); }
-        Derived&& remain_color( console::escodes::RGBColor _remain_color ) &&
+        Derived&& remain_color( console::RGBColor _remain_color ) &&
         { PACE__METHOD( RemainColor, _remain_color, Derived&&, std::move ); }
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.

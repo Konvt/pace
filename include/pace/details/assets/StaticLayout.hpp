@@ -50,7 +50,7 @@ namespace pace {
             if ( !istty || hide_done )
               stages_[Pos] = Locus::Offstage;
             else if ( !at<Pos>().active() ) {
-              ostream << console::escodes::nextline;
+              ostream << console::nextline;
               break;
             }
           }
@@ -73,7 +73,7 @@ namespace pace {
             PACE__FALLTHROUGH;
           case Locus::Onstage: {
             if ( istty )
-              ostream << console::escodes::linewipe;
+              ostream << console::linewipe;
 
             draw_content( at<Pos>() );
 
@@ -88,17 +88,17 @@ namespace pace {
                *    it should be output whenever Pos-th has just been rendered.
                */
               if ( istty && hide_done )
-                ostream << console::escodes::linestart;
+                ostream << console::linestart;
               else
-                ostream << console::escodes::nextline;
+                ostream << console::nextline;
               if ( istty && !hide_done )
                 stages_[Pos] = Locus::Echo;
               else
                 stages_[Pos] = Locus::Offstage;
             } else
-              ostream << console::escodes::nextline;
+              ostream << console::nextline;
             if ( istty && hide_done )
-              ostream << console::escodes::linewipe;
+              ostream << console::linewipe;
           } break;
 
           default: utils::unreachable();
@@ -135,7 +135,7 @@ namespace pace {
                    case Phase::Awake: {
                      if PACE__CXX17_CNSTXPR ( Area == Region::Fixed )
                        if ( istty )
-                         ostream << console::escodes::savecursor;
+                         ostream << console::savecursor;
                      {
                        std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
                        std::fill( stages_.begin(), stages_.end(), Locus::Offstage );
@@ -152,15 +152,15 @@ namespace pace {
                        std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
                        if ( istty ) {
                          if PACE__CXX17_CNSTXPR ( Area == Region::Fixed )
-                           ostream << console::escodes::resetcursor;
+                           ostream << console::resetcursor;
                          else
                            ostream
-                             .append( console::escodes::prevline,
+                             .append( console::prevline,
                                       std::count_if(
                                         stages_.cbegin(),
                                         stages_.cend(),
                                         []( Locus stage ) noexcept { return stage != Locus::Offstage; } ) )
-                             .append( console::escodes::linestart );
+                             .append( console::linestart );
                        }
                        do_render( console::TermContext<Outlet>::itself().connected(),
                                   config::hide_completed() );

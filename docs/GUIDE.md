@@ -19,7 +19,7 @@
     - [Element composition](#element-composition-1)
     - [Variable bar width](#variable-bar-width-1)
   - [SpinBar](#spinbar)
-    - [Element Composition](#element-composition-2)
+    - [Element composition](#element-composition-2)
   - [SweepBar](#sweepbar)
     - [Element composition](#element-composition-3)
     - [Variable bar width](#variable-bar-width-2)
@@ -456,8 +456,14 @@ The customizable parts are: `LeftBorder`, `Prefix`, `Starting`, `Filler`, `Lead`
 These elements can be directly found as corresponding wrapper types in `pace::option`:
 
 ```cxx
-pace::option::Colored; // Toggle color effect
-pace::option::Bolded;  // Toggle bold text effect
+pace::option::Colored;       // Color effect
+pace::option::FontBold;      // Bold font
+pace::option::FontFaint;     // Faint font
+pace::option::FontItalic;    // Italic effect
+pace::option::FontUnderline; // Underlined font
+pace::option::FontInverse;   // Inverse font display
+pace::option::FontHidden;    // Hidden font
+pace::option::FontCrossed;   // Strikethrough
 
 pace::option::LeftBorder;  // Modify the left starting border of the entire progress bar
 pace::option::RightBorder; // Modify the right ending border of the entire progress bar
@@ -534,8 +540,14 @@ Among them, the customizable parts are: `LeftBorder`, `Prefix`, `Starting`, `Lea
 These elements can be found directly in `pace::option` as corresponding wrapper types:
 
 ```cxx
-pace::option::Colored; // Toggle color effects
-pace::option::Bolded;  // Toggle bold text effects
+pace::option::Colored;       // Color effect
+pace::option::FontBold;      // Bold font
+pace::option::FontFaint;     // Faint font
+pace::option::FontItalic;    // Italic effect
+pace::option::FontUnderline; // Underlined font
+pace::option::FontInverse;   // Inverse font display
+pace::option::FontHidden;    // Hidden font
+pace::option::FontCrossed;   // Strikethrough
 
 pace::option::LeftBorder;  // Modify the starting border on the left side of the entire progress bar
 pace::option::RightBorder; // Modify the ending border on the right side of the entire progress bar
@@ -576,7 +588,7 @@ This behavior of `pace::BlockBar` is consistent with `pace::ProgressBar`; refer 
 ## SpinBar
 At runtime, `pace::SpinBar` does not always require a configured task count. Instead, it can begin running immediately by directly invoking `tick`.
 
-### Element Composition
+### Element composition
 `SpinBar` consists of the following elements:
 
 ```text
@@ -588,8 +600,14 @@ Among them, the customizable parts are: `LeftBorder`, `Prefix`, `Lead`, `Speed`,
 These elements can be found directly in `pace::option` as corresponding wrapper types:
 
 ```cxx
-pace::option::Colored; // Toggle color effects
-pace::option::Bolded;  // Toggle bold text effects
+pace::option::Colored;       // Color effect
+pace::option::FontBold;      // Bold font
+pace::option::FontFaint;     // Faint font
+pace::option::FontItalic;    // Italic effect
+pace::option::FontUnderline; // Underlined font
+pace::option::FontInverse;   // Inverse font display
+pace::option::FontHidden;    // Hidden font
+pace::option::FontCrossed;   // Strikethrough
 
 pace::option::LeftBorder;  // Modify the starting border on the left side of the entire progress bar
 pace::option::RightBorder; // Modify the ending border on the right side of the entire progress bar
@@ -630,8 +648,14 @@ Among them, the customizable parts are: `LeftBorder`, `Prefix`, `Starting`, `Fil
 These elements can be found directly as corresponding wrapper types under `pace::option`:
 
 ```cxx
-pace::option::Colored; // Enable or disable color effects
-pace::option::Bolded;  // Enable or disable bold text effects
+pace::option::Colored;       // Color effect
+pace::option::FontBold;      // Bold font
+pace::option::FontFaint;     // Faint font
+pace::option::FontItalic;    // Italic effect
+pace::option::FontUnderline; // Underlined font
+pace::option::FontInverse;   // Inverse font display
+pace::option::FontHidden;    // Hidden font
+pace::option::FontCrossed;   // Strikethrough
 
 pace::option::LeftBorder;  // Modify the starting border on the left side of the entire progress bar
 pace::option::RightBorder; // Modify the ending border on the right side of the entire progress bar
@@ -681,8 +705,14 @@ Among them, the customizable parts are: `LeftBorder`, `Prefix`, `Starting`, `Fil
 These elements can be found directly as corresponding wrapper types under `pace::option`:
 
 ```cxx
-pace::option::Colored; // Enable or disable color effects
-pace::option::Bolded;  // Enable or disable bold text effects
+pace::option::Colored;       // Color effect
+pace::option::FontBold;      // Bold font
+pace::option::FontFaint;     // Faint font
+pace::option::FontItalic;    // Italic effect
+pace::option::FontUnderline; // Underlined font
+pace::option::FontInverse;   // Inverse font display
+pace::option::FontHidden;    // Hidden font
+pace::option::FontCrossed;   // Strikethrough
 
 pace::option::LeftBorder;  // Modify the starting border on the left side of the entire progress bar
 pace::option::RightBorder; // Modify the ending border on the right side of the entire progress bar
@@ -1270,7 +1300,7 @@ struct ClockColor {
   pace::details::console::escodes::RGBColor color_;
 
   ClockColor() = default;
-  ClockColor( pace::details::console::escodes::RGBColor color ) noexcept : color_ { color } {}
+  ClockColor( pace::details::console::RGBColor color ) noexcept : color_ { color } {}
 };
 
 template<typename Base, typename Derived>
@@ -1278,7 +1308,7 @@ class Clock : public Base {
   friend void unpack( Clock& self, TimeFormat&& format ) noexcept { self.format_ = format.data_; }
   friend void unpack( Clock& self, ClockColor&& color ) noexcept { self.color_ = color.color_; }
 
-  pace::details::console::escodes::RGBColor color_;
+  pace::details::console::RGBColor color_;
   // true means 12-hour system
   // false means 24-hour system
   bool format_;
@@ -1295,7 +1325,7 @@ protected:
     auto hours = time_of_day.hours().count();
 
     // embed styling before rendering the clock
-    pipeline << this->reset_then_style( color_, params.style_off_ );
+    pipeline << this->clear_then_dye( color_, params.style_off_ );
 
     if ( format_ ) {
       // 12 hour
@@ -1358,7 +1388,7 @@ auto pace::config::ProvideFor_v<AnotherConfig, pace::option::Divider> =
   []() { return pace::option::Divider( " | " ); };
 template<>
 auto pace::config::ProvideFor_v<AnotherConfig, ClockColor> =
-  []() -> pace::details::console::escodes::RGBColor { return { 0xFF8899 }; };
+  []() -> pace::details::console::RGBColor { return { 0xFF8899 }; };
 template<>
 auto pace::config::ProvideFor_v<AnotherConfig, TimeFormat> = []() -> TimeFormat { return { true }; };
 template<>

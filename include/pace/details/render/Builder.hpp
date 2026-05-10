@@ -24,8 +24,10 @@ namespace pace {
         io::CharPipeline& build( io::CharPipeline& pipeline, Parameter params ) const
         {
           concurrent::SharedLock<concurrent::SharedMutex> lock { this->rw_mtx_ };
+          this->font_effect( pipeline, params.style_off_ );
+
           if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() ) {
-            pipeline << this->with_style( this->info_col_, params.style_off_ ) << this->l_border_;
+            pipeline << this->with_dye( this->info_col_, params.style_off_ ) << this->l_border_;
           }
           this->traits::BaseOf_t<typename Config::Layout, aspects::Prefix>::build( pipeline, params );
 
@@ -33,10 +35,10 @@ namespace pace {
 
           this->traits::BaseOf_t<typename Config::Layout, aspects::Postfix>::build( pipeline, params );
           if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() ) {
-            pipeline << this->reset_then_style( this->info_col_, params.style_off_ ) << this->r_border_;
+            pipeline << this->clear_then_dye( this->info_col_, params.style_off_ ) << this->r_border_;
           }
-          pipeline << this->with_reset( params.style_off_ );
-          return pipeline;
+
+          return this->reset_style( pipeline, params.style_off_ );
         }
       };
     } // namespace render

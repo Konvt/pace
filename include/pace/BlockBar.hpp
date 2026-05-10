@@ -31,7 +31,7 @@ namespace pace {
   using BlockBar = prefab::BasicBar<config::Block, Outlet, Mode, Area>;
 
   PACE__PROVIDE_FOR( config::Block, option::Colored, true );
-  PACE__PROVIDE_FOR( config::Block, option::Bolded, true );
+  PACE__PROVIDE_FOR( config::Block, option::FontBold, true );
   PACE__PROVIDE_FOR( config::Block, option::Reversed, false );
   PACE__PROVIDE_FOR( config::Block, option::BarWidth, 30 );
   PACE__PROVIDE_FOR( config::Block, option::Magnitude, 1000 );

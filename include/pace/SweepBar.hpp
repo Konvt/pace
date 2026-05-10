@@ -31,7 +31,7 @@ namespace pace {
   using SweepBar = prefab::BasicBar<config::Sweep, Outlet, Mode, Area>;
 
   PACE__PROVIDE_FOR( config::Sweep, option::Colored, true );
-  PACE__PROVIDE_FOR( config::Sweep, option::Bolded, true );
+  PACE__PROVIDE_FOR( config::Sweep, option::FontBold, true );
   PACE__PROVIDE_FOR( config::Sweep, option::Shift, -3 );
   PACE__PROVIDE_FOR( config::Sweep, option::BarWidth, 30 );
   PACE__PROVIDE_FOR( config::Sweep, option::Magnitude, 1000 );

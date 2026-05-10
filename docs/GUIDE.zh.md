@@ -444,8 +444,14 @@ pace 允许自动隐藏已经完成的进度条字符串。当函数 `pace::conf
 这些元素可以直接在 `pace::option` 中找到对应的包装类型：
 
 ```cxx
-pace::option::Colored; // 开关颜色效果
-pace::option::Bolded;  // 开关字体加粗效果
+pace::option::Colored;       // 颜色效果
+pace::option::FontBold;      // 字体加粗
+pace::option::FontFaint;     // 字体暗淡
+pace::option::FontItalic;    // 斜体效果
+pace::option::FontUnderline; // 字体下划线
+pace::option::FontInverse;   // 字体反显
+pace::option::FontHidden;    // 隐藏字体
+pace::option::FontCrossed;   // 删除线
 
 pace::option::LeftBorder;  // 修改整个进度条左侧的起始边框
 pace::option::RightBorder; // 修改整个进度条右侧的终止边框
@@ -522,8 +528,14 @@ bar.config().bar_width( pace::config::terminal_width( pace::Channel::Stdout )
 这些元素可以直接在 `pace::option` 中找到对应的包装类型：
 
 ```cxx
-pace::option::Colored; // 开关颜色效果
-pace::option::Bolded;  // 开关字体加粗效果
+pace::option::Colored;       // 颜色效果
+pace::option::FontBold;      // 字体加粗
+pace::option::FontFaint;     // 字体暗淡
+pace::option::FontItalic;    // 斜体效果
+pace::option::FontUnderline; // 字体下划线
+pace::option::FontInverse;   // 字体反显
+pace::option::FontHidden;    // 隐藏字体
+pace::option::FontCrossed;   // 删除线
 
 pace::option::LeftBorder;  // 修改整个进度条左侧的起始边框
 pace::option::RightBorder; // 修改整个进度条右侧的终止边框
@@ -575,8 +587,14 @@ pace::option::InfoColor;    // 修改 Divider、Percent、Counter、Speed、Elap
 这些元素可以直接在 `pace::option` 中找到对应的包装类型：
 
 ```cxx
-pace::option::Colored; // 开关颜色效果
-pace::option::Bolded;  // 开关字体加粗效果
+pace::option::Colored;       // 颜色效果
+pace::option::FontBold;      // 字体加粗
+pace::option::FontFaint;     // 字体暗淡
+pace::option::FontItalic;    // 斜体效果
+pace::option::FontUnderline; // 字体下划线
+pace::option::FontInverse;   // 字体反显
+pace::option::FontHidden;    // 隐藏字体
+pace::option::FontCrossed;   // 删除线
 
 pace::option::LeftBorder;  // 修改整个进度条左侧的起始边框
 pace::option::RightBorder; // 修改整个进度条右侧的终止边框
@@ -617,8 +635,14 @@ pace::option::InfoColor;    // 修改 Divider、Percent、Counter、Speed、Elap
 这些元素可以直接在 `pace::option` 中找到对应的包装类型：
 
 ```cxx
-pace::option::Colored; // 开关颜色效果
-pace::option::Bolded;  // 开关字体加粗效果
+pace::option::Colored;       // 颜色效果
+pace::option::FontBold;      // 字体加粗
+pace::option::FontFaint;     // 字体暗淡
+pace::option::FontItalic;    // 斜体效果
+pace::option::FontUnderline; // 字体下划线
+pace::option::FontInverse;   // 字体反显
+pace::option::FontHidden;    // 隐藏字体
+pace::option::FontCrossed;   // 删除线
 
 pace::option::LeftBorder;  // 修改整个进度条左侧的起始边框
 pace::option::RightBorder; // 修改整个进度条右侧的终止边框
@@ -668,8 +692,14 @@ pace::option::InfoColor;    // 修改 Divider、Percent、Counter、Speed、Elap
 这些元素可以直接在 `pace::option` 中找到对应的包装类型：
 
 ```cxx
-pace::option::Colored; // 开关颜色效果
-pace::option::Bolded;  // 开关字体加粗效果
+pace::option::Colored;       // 颜色效果
+pace::option::FontBold;      // 字体加粗
+pace::option::FontFaint;     // 字体暗淡
+pace::option::FontItalic;    // 斜体效果
+pace::option::FontUnderline; // 字体下划线
+pace::option::FontInverse;   // 字体反显
+pace::option::FontHidden;    // 隐藏字体
+pace::option::FontCrossed;   // 删除线
 
 pace::option::LeftBorder;  // 修改整个进度条左侧的起始边框
 pace::option::RightBorder; // 修改整个进度条右侧的终止边框
@@ -1245,10 +1275,10 @@ struct TimeFormat {
 };
 
 struct ClockColor {
-  pace::details::console::escodes::RGBColor color_;
+  pace::details::console::RGBColor color_;
 
   ClockColor() = default;
-  ClockColor( pace::details::console::escodes::RGBColor color ) noexcept : color_ { color } {}
+  ClockColor( pace::details::console::RGBColor color ) noexcept : color_ { color } {}
 };
 
 template<typename Base, typename Derived>
@@ -1256,7 +1286,7 @@ class Clock : public Base {
   friend void unpack( Clock& self, TimeFormat&& format ) noexcept { self.format_ = format.data_; }
   friend void unpack( Clock& self, ClockColor&& color ) noexcept { self.color_ = color.color_; }
 
-  pace::details::console::escodes::RGBColor color_;
+  pace::details::console::RGBColor color_;
   // true means 12-hour system
   // false means 24-hour system
   bool format_;
@@ -1273,7 +1303,7 @@ protected:
     auto hours = time_of_day.hours().count();
 
     // 在渲染时钟之前先嵌入着色效果
-    pipeline << this->reset_then_style( color_, params.style_off_ );
+    pipeline << this->clear_then_dye( color_, params.style_off_ );
 
     if ( format_ ) {
       // 12 hour
@@ -1336,7 +1366,7 @@ auto pace::config::ProvideFor_v<AnotherConfig, pace::option::Divider> =
   []() { return pace::option::Divider( " | " ); };
 template<>
 auto pace::config::ProvideFor_v<AnotherConfig, ClockColor> =
-  []() -> pace::details::console::escodes::RGBColor { return { 0xFF8899 }; };
+  []() -> pace::details::console::RGBColor { return { 0xFF8899 }; };
 template<>
 auto pace::config::ProvideFor_v<AnotherConfig, TimeFormat> = []() -> TimeFormat { return { true }; };
 template<>

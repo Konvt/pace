@@ -11,8 +11,7 @@ namespace pace {
     struct Filler : PACE__DERIVING_OPTION2( Filler, details::charcodes::U8Raw, _filler );
 
     // A wrapper that stores the color of the filler in the bar indicator.
-    struct FillerColor
-      : PACE__DERIVING_OPTION1( FillerColor, details::console::escodes::RGBColor, _filler_color );
+    struct FillerColor : PACE__DERIVING_OPTION1( FillerColor, details::console::RGBColor, _filler_color );
   }
 
   namespace details {
@@ -28,7 +27,7 @@ namespace pace {
 
       protected:
         charcodes::U8Raw filler_;
-        console::escodes::RGBColor filler_col_;
+        console::RGBColor filler_col_;
 
         template<typename... Options>
         PACE__CXX20_CNSTXPR Filler( traits::TypeSet<Options...> tag ) : Base( tag )
@@ -62,9 +61,9 @@ namespace pace {
 #endif
 
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
-        Derived& filler_color( console::escodes::RGBColor _filler_color ) &
+        Derived& filler_color( console::RGBColor _filler_color ) &
         { PACE__METHOD( FillerColor, _filler_color, Derived&, std::move ); }
-        Derived&& filler_color( console::escodes::RGBColor _filler_color ) &&
+        Derived&& filler_color( console::RGBColor _filler_color ) &&
         { PACE__METHOD( FillerColor, _filler_color, Derived&&, std::move ); }
 
 #undef PACE__METHOD

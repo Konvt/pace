@@ -3,7 +3,7 @@
 
 #include "../../Indicator.hpp"
 #include "../behaviors/Incremental.hpp"
-#include "../console/escodes/Escodes.hpp"
+#include "../console/Escode.hpp"
 #include "../io/OStream.hpp"
 #include "../render/Builder.hpp"
 #include "../render/Renderer.hpp"
@@ -71,36 +71,34 @@ namespace pace {
                  case Phase::Awake: {
                    if PACE__CXX17_CNSTXPR ( Area == Region::Fixed )
                      if ( istty )
-                       ostream << console::escodes::savecursor;
+                       ostream << console::savecursor;
                    static_cast<MostDerived*>( this )->prologue();
-                   ostream << console::escodes::nextline;
+                   ostream << console::nextline;
                    ostream << io::flush;
                  } break;
                  case Phase::Refresh: {
                    if ( istty ) {
                      if PACE__CXX17_CNSTXPR ( Area == Region::Fixed )
-                       ostream << console::escodes::resetcursor;
+                       ostream << console::resetcursor;
                      else
-                       ostream << console::escodes::prevline << console::escodes::linestart
-                               << console::escodes::linewipe;
+                       ostream << console::prevline << console::linestart << console::linewipe;
                    }
                    static_cast<MostDerived*>( this )->monologue();
-                   ostream << console::escodes::nextline;
+                   ostream << console::nextline;
                    ostream << io::flush;
                  } break;
                  case Phase::Finish: {
                    if ( istty ) {
                      if PACE__CXX17_CNSTXPR ( Area == Region::Fixed )
-                       ostream << console::escodes::resetcursor;
+                       ostream << console::resetcursor;
                      else
-                       ostream << console::escodes::prevline << console::escodes::linestart
-                               << console::escodes::linewipe;
+                       ostream << console::prevline << console::linestart << console::linewipe;
                    }
                    static_cast<MostDerived*>( this )->epilogue();
                    if ( istty && config::hide_completed() )
-                     ostream << console::escodes::linestart << console::escodes::linewipe;
+                     ostream << console::linestart << console::linewipe;
                    else
-                     ostream << console::escodes::nextline;
+                     ostream << console::nextline;
                    ostream << io::flush;
                  } break;
                  default: return;

@@ -33,21 +33,21 @@ namespace pace {
         PACE__ASSERT( incomplete_block <= this->lead_.size() );
         details::types::Size len_vacancy = this->bar_width_ - len_finished;
 
-        pipeline << this->reset_then_dye( this->start_col_, params.style_off_ ) << this->starting_;
+        pipeline << this->clear_then_dye( this->start_col_, params.style_off_ ) << this->starting_;
 
         if ( !this->reversed_ ) {
-          pipeline << this->reset_then_dye( this->filler_col_, params.style_off_ );
+          pipeline << this->clear_then_dye( this->filler_col_, params.style_off_ );
           pipeline.append( this->filler_, len_finished / this->filler_.width() )
             .append( ' ', len_finished % this->filler_.width() );
 
           if ( this->bar_width_ != len_finished && !this->lead_.empty()
                && this->lead_[incomplete_block].width() <= len_vacancy ) {
-            pipeline << this->reset_then_dye( this->lead_col_, params.style_off_ );
+            pipeline << this->clear_then_dye( this->lead_col_, params.style_off_ );
             pipeline.append( this->lead_[incomplete_block] );
             len_vacancy -= this->lead_[incomplete_block].width();
           }
 
-          pipeline << this->reset_then_dye( this->remain_col_, params.style_off_ );
+          pipeline << this->clear_then_dye( this->remain_col_, params.style_off_ );
           pipeline.append( ' ', len_vacancy % this->remain_.width() )
             .append( this->remain_, len_vacancy / this->remain_.width() );
         } else {
@@ -56,21 +56,21 @@ namespace pace {
           if ( flag )
             len_vacancy -= this->lead_[incomplete_block].width();
 
-          pipeline << this->reset_then_dye( this->remain_col_, params.style_off_ );
+          pipeline << this->clear_then_dye( this->remain_col_, params.style_off_ );
           pipeline.append( this->remain_, len_vacancy / this->remain_.width() )
             .append( ' ', len_vacancy % this->remain_.width() );
 
           if ( flag ) {
-            pipeline << this->reset_then_dye( this->lead_col_, params.style_off_ );
+            pipeline << this->clear_then_dye( this->lead_col_, params.style_off_ );
             pipeline.append( this->lead_[incomplete_block] );
           }
 
-          pipeline << this->reset_then_dye( this->filler_col_, params.style_off_ );
+          pipeline << this->clear_then_dye( this->filler_col_, params.style_off_ );
           pipeline.append( ' ', len_finished % this->filler_.width() )
             .append( this->filler_, len_finished / this->filler_.width() );
         }
 
-        return pipeline << this->reset_then_dye( this->end_col_, params.style_off_ ) << this->ending_;
+        return pipeline << this->clear_then_dye( this->end_col_, params.style_off_ ) << this->ending_;
       }
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR details::types::Size fixed_length() const noexcept

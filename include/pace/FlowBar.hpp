@@ -31,7 +31,7 @@ namespace pace {
   using FlowBar = prefab::BasicBar<config::Flow, Outlet, Mode, Area>;
 
   PACE__PROVIDE_FOR( config::Flow, option::Colored, true );
-  PACE__PROVIDE_FOR( config::Flow, option::Bolded, true );
+  PACE__PROVIDE_FOR( config::Flow, option::FontBold, true );
   PACE__PROVIDE_FOR( config::Flow, option::Reversed, false );
   PACE__PROVIDE_FOR( config::Flow, option::Shift, -3 );
   PACE__PROVIDE_FOR( config::Flow, option::BarWidth, 30 );

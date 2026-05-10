@@ -22,7 +22,7 @@ namespace pace {
         frame_cnt %= this->lead_.size();
         PACE__ASSERT( this->len_longest_lead_ >= this->lead_[frame_cnt].width() );
 
-        return pipeline << this->reset_then_dye( this->lead_col_, params.style_off_ )
+        return pipeline << this->clear_then_dye( this->lead_col_, params.style_off_ )
                         << details::utils::format<details::utils::TxtLayout::Left>( this->len_longest_lead_,
                                                                                     this->lead_[frame_cnt] );
       }

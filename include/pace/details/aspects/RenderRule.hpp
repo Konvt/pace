@@ -4,7 +4,8 @@
 #include "../../config/Provider.hpp"
 #include "../concurrent/SharedLock.hpp"
 #include "../concurrent/SharedMutex.hpp"
-#include "../console/escodes/Escodes.hpp"
+#include "../console/Escode.hpp"
+#include "../console/RGBColor.hpp"
 #include "../wrappers/Brush.hpp"
 #include "../wrappers/OptionPacket.hpp"
 #include <bitset>
@@ -15,28 +16,99 @@ namespace pace {
     // A wrapper that stores the value of the color effect setting.
     struct Colored : PACE__DERIVING_OPTION1( Colored, bool, _enable );
 
-    // A wrapper that stores the value of the font boldness setting.
-    struct Bolded : PACE__DERIVING_OPTION1( Bolded, bool, _enable );
+    // A wrapper that stores the value of the font effect boldness setting.
+    struct FontBold : PACE__DERIVING_OPTION1( FontBold, bool, _enable );
+
+    // A wrapper that stores the value of the font effect faint setting.
+    struct FontFaint : PACE__DERIVING_OPTION1( FontFaint, bool, _enable );
+
+    // A wrapper that stores the value of the font effect italic setting.
+    struct FontItalic : PACE__DERIVING_OPTION1( FontItalic, bool, _enable );
+
+    // A wrapper that stores the value of the font effect underline setting.
+    struct FontUnderline : PACE__DERIVING_OPTION1( FontUnderline, bool, _enable );
+
+    // A wrapper that stores the value of the font effect inverse setting.
+    struct FontInverse : PACE__DERIVING_OPTION1( FontInverse, bool, _enable );
+
+    // A wrapper that stores the value of the font effect hidden setting.
+    struct FontHidden : PACE__DERIVING_OPTION1( FontHidden, bool, _enable );
+
+    // A wrapper that stores the value of the font effect  setting.
+    struct FontCrossed : PACE__DERIVING_OPTION1( FontCrossed, bool, _enable );
   } // namespace option
 
   namespace details {
     namespace aspects {
       template<typename Base, typename Derived>
       class RenderRule : public Base {
-#define PACE__UNPAKING( OptionName, MemberName )                                                \
+#define PACE__UNPAKING( OptionName, EnumName, MemberName )                                      \
   friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR void unpack( RenderRule& self,                   \
                                                             option::OptionName&& val ) noexcept \
-  { self.rules_[utils::to_underlying( Chroma::OptionName )] = val.value(); }
-        PACE__UNPAKING( Colored, colored_ )
-        PACE__UNPAKING( Bolded, bolded_ )
+  { self.rules_[utils::to_underlying( Chroma::EnumName )] = val.value(); }
+        PACE__UNPAKING( Colored, Colored, colored_ )
+        PACE__UNPAKING( FontBold, Bold, bold_ )
+        PACE__UNPAKING( FontFaint, Faint, faint_ )
+        PACE__UNPAKING( FontItalic, Italic, italic_ )
+        PACE__UNPAKING( FontUnderline, Underline, underline_ )
+        PACE__UNPAKING( FontInverse, Inverse, inverse_ )
+        PACE__UNPAKING( FontHidden, Hidden, hidden_ )
+        PACE__UNPAKING( FontCrossed, Crossed, crossed_ )
 #undef PACE__UNPAKING
 
-        enum class Chroma : std::uint8_t { Colored = 0, Bolded };
-        std::bitset<2> rules_;
+        enum class Chroma : std::uint8_t {
+          Colored = 0,
+          Bold,
+          Faint,
+          Italic,
+          Underline,
+          Inverse,
+          Hidden,
+          Crossed
+        };
+        std::bitset<8> rules_;
 
       protected:
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR wrappers::Brush<console::escodes::RGBColor>
-          with_dye( const console::escodes::RGBColor& rgb, bool style_off ) const
+        PACE__FORCEINLINE PACE__CXX20_CNSTXPR io::CharPipeline& font_effect( io::CharPipeline& pipeline,
+                                                                             bool style_off ) const
+        { // This method should only be called by the rendering engine
+#ifdef PACE_NOSTYLE
+          (void)style_off;
+#else
+          if ( style_off )
+            return pipeline;
+          if ( rules_[utils::to_underlying( Chroma::Bold )] )
+            pipeline << console::fontbold;
+          if ( rules_[utils::to_underlying( Chroma::Faint )] )
+            pipeline << console::fontfaint;
+          if ( rules_[utils::to_underlying( Chroma::Italic )] )
+            pipeline << console::fontitalic;
+          if ( rules_[utils::to_underlying( Chroma::Underline )] )
+            pipeline << console::fontunderline;
+          if ( rules_[utils::to_underlying( Chroma::Inverse )] )
+            pipeline << console::fontinverse;
+          if ( rules_[utils::to_underlying( Chroma::Hidden )] )
+            pipeline << console::fonthidden;
+          if ( rules_[utils::to_underlying( Chroma::Crossed )] )
+            pipeline << console::fontcrossed;
+#endif
+          return pipeline;
+        }
+        PACE__FORCEINLINE PACE__CXX20_CNSTXPR io::CharPipeline& reset_style( io::CharPipeline& pipeline,
+                                                                             bool style_off ) const
+        { // This method should only be called by the rendering engine
+#ifdef PACE_NOSTYLE
+          (void)style_off;
+#else
+          if ( !style_off && rules_.any() )
+            pipeline << console::stylereset;
+#endif
+          return pipeline;
+        }
+
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR wrappers::Brush<console::RGBColor> with_dye(
+          const console::RGBColor& rgb,
+          bool style_off ) const
         {
 #ifdef PACE_NOSTYLE
           (void)rgb;
@@ -47,58 +119,38 @@ namespace pace {
 #endif
           return { nullptr };
         }
+
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
-          wrappers::Brush<console::escodes::RGBColor,
-                          wrappers::Brush_t<decltype( console::escodes::fontbold )>>
-          with_style( const console::escodes::RGBColor& rgb, bool style_off ) const
+          wrappers::Brush<console::Escode, wrappers::Brush<console::Escode>>
+          with_clear( bool style_off ) const
         {
 #ifdef PACE_NOSTYLE
-          (void)rgb;
           (void)style_off;
-          return { nullptr, { nullptr } };
 #else
-          // The types::LitU8 changes between different C++ standard,
-          // thus we need a decltype to generate the correct wrapper.
-          if ( !style_off && rules_[utils::to_underlying( Chroma::Bolded )] )
-            return { with_dye( rgb, style_off ).effect_, &console::escodes::fontbold };
-          return { with_dye( rgb, style_off ).effect_, { nullptr } };
+          if ( !style_off && rules_[utils::to_underlying( Chroma::Colored )] )
+            return { &console::fgcolorrest, { &console::bgcolorrest } };
 #endif
+          return { nullptr, { nullptr } };
         }
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
-          wrappers::Brush_t<decltype( console::escodes::fontbold )>
-          with_reset( bool style_off ) const
+          wrappers::Brush<console::Escode,
+                          wrappers::Brush<console::Escode, wrappers::Brush<console::RGBColor>>>
+          clear_then_dye( const console::RGBColor& rgb, bool style_off ) const
         {
-#ifdef PACE_NOSTYLE
-          (void)style_off;
-#else
-          if ( !style_off && rules_.any() )
-            return { &console::escodes::fontreset };
-#endif
-          return { nullptr };
-        }
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
-          wrappers::Brush_t<decltype( console::escodes::fontbold ),
-                            wrappers::Brush<console::escodes::RGBColor>>
-          reset_then_dye( const console::escodes::RGBColor& rgb, bool style_off ) const
-        {
+          auto action = with_clear( style_off );
 #ifndef PACE_NOSTYLE
-          if ( !style_off && rules_.any() )
-            return { &console::escodes::fontreset, with_dye( rgb, style_off ) };
+          if ( !style_off && rules_[utils::to_underlying( Chroma::Colored )] )
+            return {
+              action.effect_,
+              { action.next_.effect_,
+                        with_dye( rgb, style_off ) }
+            };
 #endif
-          return { nullptr, with_dye( rgb, style_off ) };
-        }
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
-          wrappers::Brush_t<decltype( console::escodes::fontbold ),
-                            wrappers::Brush<console::escodes::RGBColor,
-                                            wrappers::Brush_t<decltype( console::escodes::fontbold )>>>
-          reset_then_style( const console::escodes::RGBColor& rgb, bool style_off ) const
-        {
-#ifndef PACE_NOSTYLE
-          if ( rules_.any() )
-            return { &console::escodes::fontreset, with_style( rgb, style_off ) };
-#endif
-          return { nullptr, with_style( rgb, style_off ) };
+          return {
+            nullptr,
+            { nullptr, with_dye( rgb, style_off ) }
+          };
         }
 
         template<typename... Options>
@@ -107,8 +159,8 @@ namespace pace {
           using OptionSet = traits::TypeSet<Options...>;
           if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Colored>::value )
             unpack( *this, config::provide_for<Derived, option::Colored>() );
-          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Bolded>::value )
-            unpack( *this, config::provide_for<Derived, option::Bolded>() );
+          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::FontBold>::value )
+            unpack( *this, config::provide_for<Derived, option::FontBold>() );
         }
 
         PACE__SPECIAL_MEMBERS( RenderRule );
@@ -125,10 +177,40 @@ namespace pace {
         Derived&& colored( bool _enable ) && noexcept
         { PACE__METHOD( Colored, Derived&& ); }
         // Enable or disable the bold effect.
-        Derived& bolded( bool _enable ) & noexcept
-        { PACE__METHOD( Bolded, Derived& ); }
-        Derived&& bolded( bool _enable ) && noexcept
-        { PACE__METHOD( Bolded, Derived&& ); }
+        Derived& font_bold( bool _enable ) & noexcept
+        { PACE__METHOD( FontBold, Derived& ); }
+        Derived&& font_bold( bool _enable ) && noexcept
+        { PACE__METHOD( FontBold, Derived&& ); }
+        // Enable or disable the faint effect.
+        Derived& font_faint( bool _enable ) & noexcept
+        { PACE__METHOD( FontFaint, Derived& ); }
+        Derived&& font_faint( bool _enable ) && noexcept
+        { PACE__METHOD( FontFaint, Derived&& ); }
+        // Enable or disable the italic effect.
+        Derived& font_italic( bool _enable ) & noexcept
+        { PACE__METHOD( FontItalic, Derived& ); }
+        Derived&& font_( bool _enable ) && noexcept
+        { PACE__METHOD( FontItalic, Derived&& ); }
+        // Enable or disable the underline effect.
+        Derived& font_underline( bool _enable ) & noexcept
+        { PACE__METHOD( FontUnderline, Derived& ); }
+        Derived&& font_underline( bool _enable ) && noexcept
+        { PACE__METHOD( FontUnderline, Derived&& ); }
+        // Enable or disable the inverse effect.
+        Derived& font_inverse( bool _enable ) & noexcept
+        { PACE__METHOD( FontInverse, Derived& ); }
+        Derived&& font_inverse( bool _enable ) && noexcept
+        { PACE__METHOD( FontInverse, Derived&& ); }
+        // Enable or disable the hidden effect.
+        Derived& font_hidden( bool _enable ) & noexcept
+        { PACE__METHOD( FontHidden, Derived& ); }
+        Derived&& font_hidden( bool _enable ) && noexcept
+        { PACE__METHOD( FontHidden, Derived&& ); }
+        // Enable or disable the crossed effect.
+        Derived& font_crossed( bool _enable ) & noexcept
+        { PACE__METHOD( FontCrossed, Derived& ); }
+        Derived&& font_crossed( bool _enable ) && noexcept
+        { PACE__METHOD( FontCrossed, Derived&& ); }
 
 #undef PACE__METHOD
 #define PACE__METHOD( Offset )                                            \
@@ -139,8 +221,26 @@ namespace pace {
         PACE__NODISCARD bool colored() const noexcept
         { PACE__METHOD( Colored ); }
         // Check whether the bold effect is enabled.
-        PACE__NODISCARD bool bolded() const noexcept
-        { PACE__METHOD( Bolded ); }
+        PACE__NODISCARD bool font_bold() const noexcept
+        { PACE__METHOD( Bold ); }
+        // Check whether the faint effect is enabled.
+        PACE__NODISCARD bool font_faint() const noexcept
+        { PACE__METHOD( Faint ); }
+        // Check whether the italic effect is enabled.
+        PACE__NODISCARD bool font_italic() const noexcept
+        { PACE__METHOD( Italic ); }
+        // Check whether the underline effect is enabled.
+        PACE__NODISCARD bool font_underline() const noexcept
+        { PACE__METHOD( Underline ); }
+        // Check whether the inverse effect is enabled.
+        PACE__NODISCARD bool font_inverse() const noexcept
+        { PACE__METHOD( Inverse ); }
+        // Check whether the hidden effect is enabled.
+        PACE__NODISCARD bool font_hidden() const noexcept
+        { PACE__METHOD( Hidden ); }
+        // Check whether the crossed effect is enabled.
+        PACE__NODISCARD bool font_crossed() const noexcept
+        { PACE__METHOD( Crossed ); }
 
 #undef PACE__METHOD
 
@@ -149,7 +249,7 @@ namespace pace {
       };
     } // namespace aspects
 
-    PACE__OPTION_REGISTER( aspects::RenderRule, option::Colored, option::Bolded );
+    PACE__OPTION_REGISTER( aspects::RenderRule, option::Colored, option::FontBold );
   } // namespace details
 } // namespace pace
 

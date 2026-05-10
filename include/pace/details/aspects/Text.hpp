@@ -16,12 +16,10 @@ namespace pace {
     struct Postfix : PACE__DERIVING_OPTION2( Postfix, details::charcodes::U8Raw, _postfix );
 
     // A wrapper that stores the prefix text color.
-    struct PrefixColor
-      : PACE__DERIVING_OPTION1( PrefixColor, details::console::escodes::RGBColor, _prfx_color );
+    struct PrefixColor : PACE__DERIVING_OPTION1( PrefixColor, details::console::RGBColor, _prfx_color );
 
     // A wrapper that stores the postfix text color.
-    struct PostfixColor
-      : PACE__DERIVING_OPTION1( PostfixColor, details::console::escodes::RGBColor, _pstfx_color );
+    struct PostfixColor : PACE__DERIVING_OPTION1( PostfixColor, details::console::RGBColor, _pstfx_color );
   } // namespace option
 
   namespace details {
@@ -37,13 +35,13 @@ namespace pace {
 
       protected:
         charcodes::U8Raw prefix_;
-        console::escodes::RGBColor prfx_col_;
+        console::RGBColor prfx_col_;
 
         io::CharPipeline& build( io::CharPipeline& pipeline, const render::Parameter& params ) const
         {
           if ( prefix_.empty() )
             return pipeline;
-          return pipeline << this->reset_then_style( prfx_col_, params.style_off_ ) << prefix_ << ' ';
+          return pipeline << this->clear_then_dye( prfx_col_, params.style_off_ ) << prefix_ << ' ';
         }
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length() const noexcept
@@ -82,9 +80,9 @@ namespace pace {
 #endif
 
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
-        Derived& prefix_color( console::escodes::RGBColor _prfx_color ) &
+        Derived& prefix_color( console::RGBColor _prfx_color ) &
         { PACE__METHOD( PrefixColor, _prfx_color, Derived&, std::move ); }
-        Derived&& prefix_color( console::escodes::RGBColor _prfx_color ) &&
+        Derived&& prefix_color( console::RGBColor _prfx_color ) &&
         { PACE__METHOD( PrefixColor, _prfx_color, Derived&&, std::move ); }
 
 #undef PACE__METHOD
@@ -108,13 +106,13 @@ namespace pace {
 
       protected:
         charcodes::U8Raw postfix_;
-        console::escodes::RGBColor pstfx_col_;
+        console::RGBColor pstfx_col_;
 
         io::CharPipeline& build( io::CharPipeline& pipeline, const render::Parameter& params ) const
         {
           if ( postfix_.empty() )
             return pipeline;
-          return pipeline << this->reset_then_style( pstfx_col_, params.style_off_ ) << ' ' << postfix_;
+          return pipeline << this->clear_then_dye( pstfx_col_, params.style_off_ ) << ' ' << postfix_;
         }
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length() const noexcept
@@ -151,9 +149,9 @@ namespace pace {
 #endif
 
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
-        Derived& postfix_color( console::escodes::RGBColor _pstfx_color ) &
+        Derived& postfix_color( console::RGBColor _pstfx_color ) &
         { PACE__METHOD( PostfixColor, _pstfx_color, Derived&, std::move ); }
-        Derived&& postfix_color( console::escodes::RGBColor _pstfx_color ) &&
+        Derived&& postfix_color( console::RGBColor _pstfx_color ) &&
         { PACE__METHOD( PostfixColor, _pstfx_color, Derived&&, std::move ); }
 
 #undef PACE__METHOD
