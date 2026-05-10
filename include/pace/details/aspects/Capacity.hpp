@@ -10,7 +10,7 @@
 namespace pace {
   namespace option {
     // A wrapper that stores the number of quota.
-    struct Quota : PACE__DERIVING_OPTION1( Quota, std::uint64_t, _num_quota );
+    struct Quota : PACE__DERIVING_OPTION2( Quota, std::uint64_t, _num_quota );
   }
 
   namespace details {

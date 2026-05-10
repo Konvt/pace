@@ -10,16 +10,24 @@
 namespace pace {
   namespace option {
     // A wrapper that stores the prefix text.
-    struct Prefix : PACE__DERIVING_OPTION2( Prefix, details::charcodes::U8Raw, _prefix );
+    struct Prefix : PACE__DERIVING_OPTION3( Prefix, details::charcodes::U8Raw, _prefix );
 
     // A wrapper that stores the postfix text.
-    struct Postfix : PACE__DERIVING_OPTION2( Postfix, details::charcodes::U8Raw, _postfix );
+    struct Postfix : PACE__DERIVING_OPTION3( Postfix, details::charcodes::U8Raw, _postfix );
 
     // A wrapper that stores the prefix text color.
-    struct PrefixColor : PACE__DERIVING_OPTION1( PrefixColor, details::console::RGBColor, _prfx_color );
+    struct PrefixColor
+      : PACE__DERIVING_OPTION1( PrefixColor,
+                                details::console::TrueColor,
+                                details::wrappers::RGBValue,
+                                _prfx_color );
 
     // A wrapper that stores the postfix text color.
-    struct PostfixColor : PACE__DERIVING_OPTION1( PostfixColor, details::console::RGBColor, _pstfx_color );
+    struct PostfixColor
+      : PACE__DERIVING_OPTION1( PostfixColor,
+                                details::console::TrueColor,
+                                details::wrappers::RGBValue,
+                                _pstfx_color );
   } // namespace option
 
   namespace details {
@@ -35,7 +43,7 @@ namespace pace {
 
       protected:
         charcodes::U8Raw prefix_;
-        console::RGBColor prfx_col_;
+        console::TrueColor prfx_col_;
 
         io::CharPipeline& build( io::CharPipeline& pipeline, const render::Parameter& params ) const
         {
@@ -80,9 +88,9 @@ namespace pace {
 #endif
 
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
-        Derived& prefix_color( console::RGBColor _prfx_color ) &
+        Derived& prefix_color( wrappers::RGBValue _prfx_color ) &
         { PACE__METHOD( PrefixColor, _prfx_color, Derived&, std::move ); }
-        Derived&& prefix_color( console::RGBColor _prfx_color ) &&
+        Derived&& prefix_color( wrappers::RGBValue _prfx_color ) &&
         { PACE__METHOD( PrefixColor, _prfx_color, Derived&&, std::move ); }
 
 #undef PACE__METHOD
@@ -106,7 +114,7 @@ namespace pace {
 
       protected:
         charcodes::U8Raw postfix_;
-        console::RGBColor pstfx_col_;
+        console::TrueColor pstfx_col_;
 
         io::CharPipeline& build( io::CharPipeline& pipeline, const render::Parameter& params ) const
         {
@@ -149,9 +157,9 @@ namespace pace {
 #endif
 
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
-        Derived& postfix_color( console::RGBColor _pstfx_color ) &
+        Derived& postfix_color( wrappers::RGBValue _pstfx_color ) &
         { PACE__METHOD( PostfixColor, _pstfx_color, Derived&, std::move ); }
-        Derived&& postfix_color( console::RGBColor _pstfx_color ) &&
+        Derived&& postfix_color( wrappers::RGBValue _pstfx_color ) &&
         { PACE__METHOD( PostfixColor, _pstfx_color, Derived&&, std::move ); }
 
 #undef PACE__METHOD

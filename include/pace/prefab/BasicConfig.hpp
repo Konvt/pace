@@ -11,7 +11,7 @@ namespace pace {
      * A special type, only used to construct the default value of BasicConfig.
      * Please do not manually create this type; instead, use the type below for static inference.
      */
-    struct Projection : PACE__DERIVING_OPTION1( Projection, std::vector<bool>, projection );
+    struct Projection : PACE__DERIVING_OPTION2( Projection, std::vector<bool>, projection );
 
     template<template<typename...> class... Facades>
     // If there is an error here, it indicates that there are duplicate types involved.

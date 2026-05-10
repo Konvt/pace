@@ -5,7 +5,7 @@
 #include "../concurrent/SharedLock.hpp"
 #include "../concurrent/SharedMutex.hpp"
 #include "../console/Escode.hpp"
-#include "../console/RGBColor.hpp"
+#include "../console/TrueColor.hpp"
 #include "../wrappers/Brush.hpp"
 #include "../wrappers/OptionPacket.hpp"
 #include <bitset>
@@ -14,28 +14,28 @@
 namespace pace {
   namespace option {
     // A wrapper that stores the value of the color effect setting.
-    struct Colored : PACE__DERIVING_OPTION1( Colored, bool, _enable );
+    struct Colored : PACE__DERIVING_OPTION2( Colored, bool, _enable );
 
     // A wrapper that stores the value of the font effect boldness setting.
-    struct FontBold : PACE__DERIVING_OPTION1( FontBold, bool, _enable );
+    struct FontBold : PACE__DERIVING_OPTION2( FontBold, bool, _enable );
 
     // A wrapper that stores the value of the font effect faint setting.
-    struct FontFaint : PACE__DERIVING_OPTION1( FontFaint, bool, _enable );
+    struct FontFaint : PACE__DERIVING_OPTION2( FontFaint, bool, _enable );
 
     // A wrapper that stores the value of the font effect italic setting.
-    struct FontItalic : PACE__DERIVING_OPTION1( FontItalic, bool, _enable );
+    struct FontItalic : PACE__DERIVING_OPTION2( FontItalic, bool, _enable );
 
     // A wrapper that stores the value of the font effect underline setting.
-    struct FontUnderline : PACE__DERIVING_OPTION1( FontUnderline, bool, _enable );
+    struct FontUnderline : PACE__DERIVING_OPTION2( FontUnderline, bool, _enable );
 
     // A wrapper that stores the value of the font effect inverse setting.
-    struct FontInverse : PACE__DERIVING_OPTION1( FontInverse, bool, _enable );
+    struct FontInverse : PACE__DERIVING_OPTION2( FontInverse, bool, _enable );
 
     // A wrapper that stores the value of the font effect hidden setting.
-    struct FontHidden : PACE__DERIVING_OPTION1( FontHidden, bool, _enable );
+    struct FontHidden : PACE__DERIVING_OPTION2( FontHidden, bool, _enable );
 
     // A wrapper that stores the value of the font effect  setting.
-    struct FontCrossed : PACE__DERIVING_OPTION1( FontCrossed, bool, _enable );
+    struct FontCrossed : PACE__DERIVING_OPTION2( FontCrossed, bool, _enable );
   } // namespace option
 
   namespace details {
@@ -106,8 +106,8 @@ namespace pace {
           return pipeline;
         }
 
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR wrappers::Brush<console::RGBColor> with_dye(
-          const console::RGBColor& rgb,
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR wrappers::Brush<console::TrueColor> with_dye(
+          const console::TrueColor& rgb,
           bool style_off ) const
         {
 #ifdef PACE_NOSTYLE
@@ -135,11 +135,11 @@ namespace pace {
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
           wrappers::Brush<console::Escode,
-                          wrappers::Brush<console::Escode, wrappers::Brush<console::RGBColor>>>
-          clear_then_dye( const console::RGBColor& rgb, bool style_off ) const
+                          wrappers::Brush<console::Escode, wrappers::Brush<console::TrueColor>>>
+          clear_then_dye( const console::TrueColor& rgb, bool style_off ) const
         {
-          auto action = with_clear( style_off );
 #ifndef PACE_NOSTYLE
+          auto action = with_clear( style_off );
           if ( !style_off && rules_[utils::to_underlying( Chroma::Colored )] )
             return {
               action.effect_,

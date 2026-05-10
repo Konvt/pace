@@ -50,7 +50,11 @@ namespace pace {
     };
 
     // A wrapper that stores the color of the lead in the bar indicator.
-    struct LeadColor : PACE__DERIVING_OPTION1( LeadColor, details::console::RGBColor, _lead_color );
+    struct LeadColor
+      : PACE__DERIVING_OPTION1( LeadColor,
+                                details::console::TrueColor,
+                                details::wrappers::RGBValue,
+                                _lead_color );
   } // namespace option
 
   namespace details {
@@ -81,7 +85,7 @@ namespace pace {
       protected:
         types::Size len_longest_lead_;
         std::vector<charcodes::U8Text> lead_;
-        console::RGBColor lead_col_;
+        console::TrueColor lead_col_;
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length() const noexcept
         { return len_longest_lead_; }
@@ -128,9 +132,9 @@ namespace pace {
 
         /// @brief Set the color of the component `lead`.
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
-        Derived& lead_color( console::RGBColor _lead_color ) &
+        Derived& lead_color( wrappers::RGBValue _lead_color ) &
         { PACE__METHOD( LeadColor, _lead_color, Derived&, std::move ); }
-        Derived&& lead_color( console::RGBColor _lead_color ) &&
+        Derived&& lead_color( wrappers::RGBValue _lead_color ) &&
         { PACE__METHOD( LeadColor, _lead_color, Derived&&, std::move ); }
 
 #undef PACE__METHOD

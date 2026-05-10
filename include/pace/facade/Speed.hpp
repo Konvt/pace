@@ -25,7 +25,7 @@ namespace pace {
      *
      * - Typical usage: 1000 (decimal) or 1024 (binary) scaling.
      */
-    struct Magnitude : PACE__DERIVING_OPTION1( Magnitude, std::uint16_t, _magnitude );
+    struct Magnitude : PACE__DERIVING_OPTION2( Magnitude, std::uint16_t, _magnitude );
 
     /**
      * A wrapper that stores ordered units for information rate formatting (e.g. B/s, kB/s).

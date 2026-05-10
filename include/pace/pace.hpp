@@ -15,6 +15,7 @@
 # include "DynamicBar.hpp"
 # include "MultiBar.hpp"
 
+# undef PACE__DERIVING_OPTION3
 # undef PACE__DERIVING_OPTION2
 # undef PACE__DERIVING_OPTION1
 
@@ -47,16 +48,6 @@
 # undef PACE__UNLIKELY
 # undef PACE__CXX14
 # undef PACE__CXX14_CNSTXPR
-
-# undef PACE__BLACK
-# undef PACE__RED
-# undef PACE__GREEN
-# undef PACE__YELLOW
-# undef PACE__BLUE
-# undef PACE__MAGENTA
-# undef PACE__CYAN
-# undef PACE__WHITE
-# undef PACE__DEFAULT
 
 # undef PACE__ASSERT
 

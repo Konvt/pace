@@ -68,18 +68,21 @@ namespace pace {
   } // namespace details
 } // namespace pace
 
-#define PACE__DERIVING_OPTION1( StructName, ValueType, ParamName )                 \
+#define PACE__DERIVING_OPTION1( StructName, ValueType, ParamType, ParamName )      \
   pace::details::wrappers::OptionPacket<ValueType>                                 \
   {                                                                                \
   public:                                                                          \
     StructName() = default;                                                        \
-    StructName( ValueType ParamName ) noexcept                                     \
+    StructName( ParamType ParamName ) noexcept                                     \
       : pace::details::wrappers::OptionPacket<ValueType>( std::move( ParamName ) ) \
     {}                                                                             \
   }
 
+#define PACE__DERIVING_OPTION2( StructName, ValueType, ParamName ) \
+  PACE__DERIVING_OPTION1( StructName, ValueType, ValueType, ParamName )
+
 #ifdef __cpp_lib_char8_t
-# define PACE__DERIVING_OPTION2( StructName, ValueType, ParamName )                              \
+# define PACE__DERIVING_OPTION3( StructName, ValueType, ParamName )                              \
    pace::details::wrappers::OptionPacket<ValueType>                                              \
    {                                                                                             \
    public:                                                                                       \
@@ -92,7 +95,7 @@ namespace pace {
      {}                                                                                          \
    }
 #else
-# define PACE__DERIVING_OPTION2( StructName, ValueType, ParamName )                              \
+# define PACE__DERIVING_OPTION3( StructName, ValueType, ParamName )                              \
    pace::details::wrappers::OptionPacket<ValueType>                                              \
    {                                                                                             \
      static_assert( std::is_default_constructible<ValueType>::value,                             \

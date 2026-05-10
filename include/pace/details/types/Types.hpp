@@ -50,26 +50,15 @@ namespace pace {
   enum class Policy : std::uint8_t { Async, Signal, Sync };
   enum class Region : bool { Fixed, Relative };
 
-#define PACE__DEFAULT 0xC105EA11 // C1O5E -> ClOSE, A11 -> All
-#define PACE__BLACK   0x000000
-#define PACE__RED     0xFF0000
-#define PACE__GREEN   0x00FF00
-#define PACE__BLUE    0x0000FF
-#define PACE__YELLOW  0xFFFF00
-#define PACE__MAGENTA 0x800080
-#define PACE__CYAN    0x00FFFF
-#define PACE__WHITE   0xFFFFFF
-
-  enum class Color : std::uint32_t {
-    None    = PACE__DEFAULT,
-    Black   = PACE__BLACK,
-    Red     = PACE__RED,
-    Green   = PACE__GREEN,
-    Blue    = PACE__BLUE,
-    Yellow  = PACE__YELLOW,
-    Magenta = PACE__MAGENTA,
-    Cyan    = PACE__CYAN,
-    White   = PACE__WHITE,
+  enum class Color : std::uint8_t {
+    Black = 30,
+    Red,
+    Green,
+    Blue,
+    Yellow,
+    Magenta,
+    Cyan,
+    White,
   };
 } // namespace pace
 

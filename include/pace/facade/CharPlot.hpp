@@ -13,8 +13,6 @@
 #include "../details/io/CharPipeline.hpp"
 #include "../details/render/Parameter.hpp"
 
-#include <iostream>
-
 namespace pace {
   namespace facade {
     template<typename Base, typename Derived>

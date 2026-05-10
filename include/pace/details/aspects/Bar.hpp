@@ -7,19 +7,27 @@
 namespace pace {
   namespace option {
     // A wrapper that stores the width of the bar indicator, in the character unit.
-    struct BarWidth : PACE__DERIVING_OPTION1( BarWidth, std::uint16_t, _num_char );
+    struct BarWidth : PACE__DERIVING_OPTION2( BarWidth, std::uint16_t, _num_char );
 
     // A wrapper that stores characters located to the left of the bar indicator.
-    struct Starting : PACE__DERIVING_OPTION2( Starting, details::charcodes::U8Raw, _starting );
+    struct Starting : PACE__DERIVING_OPTION3( Starting, details::charcodes::U8Raw, _starting );
 
     // A wrapper that stores characters located to the right of the bar indicator.
-    struct Ending : PACE__DERIVING_OPTION2( Ending, details::charcodes::U8Raw, _ending );
+    struct Ending : PACE__DERIVING_OPTION3( Ending, details::charcodes::U8Raw, _ending );
 
     // A wrapper that stores the color of component located to the left of the bar indicator.
-    struct StartColor : PACE__DERIVING_OPTION1( StartColor, details::console::RGBColor, _start_color );
+    struct StartColor
+      : PACE__DERIVING_OPTION1( StartColor,
+                                details::console::TrueColor,
+                                details::wrappers::RGBValue,
+                                _start_color );
 
     // A wrapper that stores the color of component located to the right of the bar indicator.
-    struct EndColor : PACE__DERIVING_OPTION1( EndColor, details::console::RGBColor, _end_color );
+    struct EndColor
+      : PACE__DERIVING_OPTION1( EndColor,
+                                details::console::TrueColor,
+                                details::wrappers::RGBValue,
+                                _end_color );
   } // namespace option
 
   namespace details {
@@ -38,7 +46,7 @@ namespace pace {
 
       protected:
         charcodes::U8Raw starting_, ending_;
-        console::RGBColor start_col_, end_col_;
+        console::TrueColor start_col_, end_col_;
         std::uint16_t bar_width_;
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length() const noexcept
@@ -91,14 +99,14 @@ namespace pace {
 #endif
 
         /// @throw exception::InvalidArgument  If the passed parameters is not a valid RGB color string.
-        Derived& start_color( console::RGBColor _start_color ) &
+        Derived& start_color( wrappers::RGBValue _start_color ) &
         { PACE__METHOD( StartColor, _start_color, Derived&, std::move ); }
-        Derived&& start_color( console::RGBColor _start_color ) &&
+        Derived&& start_color( wrappers::RGBValue _start_color ) &&
         { PACE__METHOD( StartColor, _start_color, Derived&&, std::move ); }
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
-        Derived& end_color( console::RGBColor _end_color ) &
+        Derived& end_color( wrappers::RGBValue _end_color ) &
         { PACE__METHOD( EndColor, _end_color, Derived&, std::move ); }
-        Derived&& end_color( console::RGBColor _end_color ) &&
+        Derived&& end_color( wrappers::RGBValue _end_color ) &&
         { PACE__METHOD( EndColor, _end_color, Derived&&, std::move ); }
 
         // Set the width of the bar indicator.

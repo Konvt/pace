@@ -1275,10 +1275,10 @@ struct TimeFormat {
 };
 
 struct ClockColor {
-  pace::details::console::RGBColor color_;
+  pace::details::console::TrueColor color_;
 
   ClockColor() = default;
-  ClockColor( pace::details::console::RGBColor color ) noexcept : color_ { color } {}
+  ClockColor( pace::details::console::TrueColor color ) noexcept : color_ { color } {}
 };
 
 template<typename Base, typename Derived>
@@ -1286,7 +1286,7 @@ class Clock : public Base {
   friend void unpack( Clock& self, TimeFormat&& format ) noexcept { self.format_ = format.data_; }
   friend void unpack( Clock& self, ClockColor&& color ) noexcept { self.color_ = color.color_; }
 
-  pace::details::console::RGBColor color_;
+  pace::details::console::TrueColor color_;
   // true means 12-hour system
   // false means 24-hour system
   bool format_;
@@ -1366,7 +1366,7 @@ auto pace::config::ProvideFor_v<AnotherConfig, pace::option::Divider> =
   []() { return pace::option::Divider( " | " ); };
 template<>
 auto pace::config::ProvideFor_v<AnotherConfig, ClockColor> =
-  []() -> pace::details::console::RGBColor { return { 0xFF8899 }; };
+  []() -> pace::details::console::TrueColor { return { 0xFF8899 }; };
 template<>
 auto pace::config::ProvideFor_v<AnotherConfig, TimeFormat> = []() -> TimeFormat { return { true }; };
 template<>

@@ -8,16 +8,20 @@
 namespace pace {
   namespace option {
     // A wrapper that stores the separator component used to separate different infomation.
-    struct Divider : PACE__DERIVING_OPTION2( Divider, details::charcodes::U8Raw, _divider );
+    struct Divider : PACE__DERIVING_OPTION3( Divider, details::charcodes::U8Raw, _divider );
 
     // A wrapper that stores the border component located to the left of the whole indicator.
-    struct LeftBorder : PACE__DERIVING_OPTION2( LeftBorder, details::charcodes::U8Raw, _l_border );
+    struct LeftBorder : PACE__DERIVING_OPTION3( LeftBorder, details::charcodes::U8Raw, _l_border );
 
     // A wrapper that stores the border component located to the right of the whole indicator.
-    struct RightBorder : PACE__DERIVING_OPTION2( RightBorder, details::charcodes::U8Raw, _r_border );
+    struct RightBorder : PACE__DERIVING_OPTION3( RightBorder, details::charcodes::U8Raw, _r_border );
 
     // A wrapper that stores the color of the whole infomation indicator.
-    struct InfoColor : PACE__DERIVING_OPTION1( InfoColor, details::console::RGBColor, _info_color );
+    struct InfoColor
+      : PACE__DERIVING_OPTION1( InfoColor,
+                                details::console::TrueColor,
+                                details::wrappers::RGBValue,
+                                _info_color );
   } // namespace option
 
   namespace details {
@@ -36,7 +40,7 @@ namespace pace {
       protected:
         charcodes::U8Raw divider_;
         charcodes::U8Raw l_border_, r_border_;
-        console::RGBColor info_col_;
+        console::TrueColor info_col_;
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length(
           types::Size num_column ) const noexcept
@@ -106,9 +110,9 @@ namespace pace {
 #endif
 
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
-        Derived& info_color( console::RGBColor _info_color ) &
+        Derived& info_color( wrappers::RGBValue _info_color ) &
         { PACE__METHOD( InfoColor, _info_color, Derived&, std::move ); }
-        Derived&& info_color( console::RGBColor _info_color ) &&
+        Derived&& info_color( wrappers::RGBValue _info_color ) &&
         { PACE__METHOD( InfoColor, _info_color, Derived&&, std::move ); }
 
 #undef PACE__METHOD

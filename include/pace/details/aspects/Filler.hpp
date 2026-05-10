@@ -8,10 +8,14 @@
 namespace pace {
   namespace option {
     // A wrapper that stores the characters of the filler in the bar indicator.
-    struct Filler : PACE__DERIVING_OPTION2( Filler, details::charcodes::U8Raw, _filler );
+    struct Filler : PACE__DERIVING_OPTION3( Filler, details::charcodes::U8Raw, _filler );
 
     // A wrapper that stores the color of the filler in the bar indicator.
-    struct FillerColor : PACE__DERIVING_OPTION1( FillerColor, details::console::RGBColor, _filler_color );
+    struct FillerColor
+      : PACE__DERIVING_OPTION1( FillerColor,
+                                details::console::TrueColor,
+                                details::wrappers::RGBValue,
+                                _filler_color );
   }
 
   namespace details {
@@ -27,7 +31,7 @@ namespace pace {
 
       protected:
         charcodes::U8Raw filler_;
-        console::RGBColor filler_col_;
+        console::TrueColor filler_col_;
 
         template<typename... Options>
         PACE__CXX20_CNSTXPR Filler( traits::TypeSet<Options...> tag ) : Base( tag )
@@ -61,9 +65,9 @@ namespace pace {
 #endif
 
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
-        Derived& filler_color( console::RGBColor _filler_color ) &
+        Derived& filler_color( wrappers::RGBValue _filler_color ) &
         { PACE__METHOD( FillerColor, _filler_color, Derived&, std::move ); }
-        Derived&& filler_color( console::RGBColor _filler_color ) &&
+        Derived&& filler_color( wrappers::RGBValue _filler_color ) &&
         { PACE__METHOD( FillerColor, _filler_color, Derived&&, std::move ); }
 
 #undef PACE__METHOD

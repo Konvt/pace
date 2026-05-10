@@ -10,7 +10,7 @@
 namespace pace {
   namespace option {
     // A wrapper that stores the flag of direction.
-    struct Reversed : PACE__DERIVING_OPTION1( Reversed, bool, _enable );
+    struct Reversed : PACE__DERIVING_OPTION2( Reversed, bool, _enable );
   }
 
   namespace details {

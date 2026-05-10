@@ -9,8 +9,10 @@ namespace pace {
   namespace details {
     namespace console {
       class Escode {
+#ifndef PACE_NOSTYLE
         std::array<types::Char, 2> sequences_ {};
         std::uint8_t length_;
+#endif
 
       public:
         template<types::Size N>

@@ -21,7 +21,7 @@ namespace pace {
      *
      * The effective range is between -128 (slowest) and 127 (fastest).
      */
-    struct Shift : PACE__DERIVING_OPTION1( Shift, std::int8_t, _shift_factor );
+    struct Shift : PACE__DERIVING_OPTION2( Shift, std::int8_t, _shift_factor );
   }
 
   namespace details {
