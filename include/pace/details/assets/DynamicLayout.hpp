@@ -3,7 +3,6 @@
 
 #include "../io/OStream.hpp"
 #include "ManagedBar.hpp"
-#include <deque>
 
 namespace pace {
   namespace details {
@@ -34,7 +33,7 @@ namespace pace {
           {}
         };
 
-        std::deque<Slot> items_;
+        std::vector<Slot> items_;
         /**
          * If Area is equal to Region::Fixed,
            the variable represents the number of lines that need to be discarded;
