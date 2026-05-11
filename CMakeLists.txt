@@ -12,7 +12,7 @@ set(PACE_PROJECT
     pace
     VERSION ${PACE_VERSION}
     LANGUAGES CXX
-    DESCRIPTION "A lightweight progress bar for Modern C++.")
+    DESCRIPTION "A high-performance and modular terminal progress bar for Modern C++.")
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.12")
   list(APPEND PACE_PROJECT HOMEPAGE_URL "https://github.com/Konvt/pace")
 endif()
@@ -70,8 +70,7 @@ if(PACE_INSTALL)
           ${CMAKE_CURRENT_BINARY_DIR}/paceConfigVersion.cmake
           DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
   install(DIRECTORY include/
-          DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-          PATTERN "Makefile" EXCLUDE)
+          DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
   install(DIRECTORY docs/
           DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/docs/${PROJECT_NAME})
 endif()
@@ -105,6 +104,10 @@ if(PACE_PACKAGE)
   add_custom_command(
     OUTPUT "${PACE_PKG_ROOT}/${PACE_ADJT_STAMP}"
     DEPENDS "${PACE_PKG_ROOT}/${PACE_INS_STAMP}"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/module"
+            "${PACE_PKG_DIR}/module"
 
     COMMAND ${CMAKE_COMMAND} -DDIR="${PACE_PKG_ROOT}/${PROJECT_NAME}/${CMAKE_INSTALL_DATAROOTDIR}/docs/${PROJECT_NAME}" -P ${PACE_MOVEUP}
     COMMAND ${CMAKE_COMMAND} -E remove_directory "${PACE_PKG_ROOT}/${PROJECT_NAME}/${CMAKE_INSTALL_DATAROOTDIR}/docs/${PROJECT_NAME}"

@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-05-11
+### Added
+- Added several internal components
+- Added a new example file: demo/custom.cpp
+
+### Changed
+- Renamed the library from pgbar to pace
+- Rewrote prefabs/BasicConfig.hpp and prefabs/BasicBar.hpp; they are now generated entirely at compile time
+- Refactored the rendering system; the rendering engine is now generated entirely at compile time
+- Reimplemented the rendering logic of `MultiBar` and `DynamicBar` using a state machine
+- Changed the semantics of `auto_style_off`
+- Split the components of assets/TUI.hpp and assets/Driver.hpp
+- Renamed _details to details
+- Moved module interface files into the standalone module/ directory
+
+### Fixed
+- Fixed an issue where `MultiBar` and `DynamicBar` could not correctly remove completed progress bars in certain cases
+- Fixed a division-by-zero error in floating-point scenarios
+
+### Removed
+- Removed option/Option.hpp
+- Removed several internal types and redundant assertion messages
+
+- - -
+
 ## [1.0.0-alpha.4] - 2026-02-05
 ### Added
 - Added rvalue overloads for some methods to allow config types and bar types to call these methods and return rvalue references when in rvalue form
