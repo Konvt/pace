@@ -1,3 +1,5 @@
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Konvt/pace)
+
 ## 特点
 - **Header-only**: 所有功能全部定义在 `include/pace/`。
 - **低运行时开销**: 纳秒级别的调用开销[^1]。

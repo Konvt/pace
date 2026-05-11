@@ -1,5 +1,7 @@
 [中文文档见此](docs/README.zh.md)。
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Konvt/pace)
+
 ## Features
 - **Header-only design**: All functions are defined in `include/pace/`.
 - **Low-overhead updates**: Nanosecond level cost per call.[^1]
