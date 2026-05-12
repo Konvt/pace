@@ -212,8 +212,8 @@ pace::config::Line config1 {
   pace::option::Quota( 100 ),
   pace::option::SpeedUnit( { "B/s", "kiB/s", "MiB/s", "GiB/s" } ),
   pace::option::Magnitude( 1024 ),
-  pace::option::InfoColor( "#39C5BB" )
-  // pace::option::InfoColor(0x39C5BB) Don't do that!
+  pace::option::InfoForecolor( "#39C5BB" )
+  // pace::option::InfoForecolor(0x39C5BB) Don't do that!
 };
 // Note: passing multiple identical wrapper types will cause a compilation error
 
@@ -224,7 +224,7 @@ config2.quota( 100 )
   .info_color( "#39C5BB" );
 
 auto config3 = config2; // variadic template parameters can still be used after construction
-config3.with( pace::option::Prefix( "Do something" ), pace::option::PrefixColor( 0xFFE211 ) );
+config3.with( pace::option::Prefix( "Do something" ), pace::option::PrefixForecolor( 0xFFE211 ) );
 
 // The configuration type overloads operator| and operator|=,
 // allowing parameters to be passed in a pipeline-like manner
@@ -1190,14 +1190,14 @@ pace::iterate<pace::config::Line>(
  -2.0,
  -0.01,
  []( int ) { std::this_thread::sleep_for( 100ms ); },
- pace::option::InfoColor( "#FFDD88" ),
+ pace::option::InfoForecolor( "#FFDD88" ),
  pace::option::Prefix( "Iterating..." ) );
 
 // Iteration range: [100, 0), step: 1
 pace::iterate<pace::ProgressBar<>>(
  100,
  []( int ) { std::this_thread::sleep_for( 100ms ); },
- pace::config::Line( pace::option::InfoColor( "#FF8899" ),
+ pace::config::Line( pace::option::InfoForecolor( "#FF8899" ),
                      pace::option::SpeedUnit( { "files/s", "k files/s", "M files/s", "G files/s" } ) ) );
 
 int arr1[] { 100, 99, 98, 97, 96, 95, 94, 93, 92, 91 };
