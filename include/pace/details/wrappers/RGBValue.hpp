@@ -2,23 +2,19 @@
 #define PACE_RGB_VALUE
 
 #include "../../exception/Error.hpp"
+#include "../render/Paint.hpp"
 
 namespace pace {
   namespace details {
     namespace wrappers {
       class RGBValue {
-      public:
-        enum Tonality : std::uint8_t { None, Fixed, Hex };
-
-      private:
-        union Tint {
+        union Ink {
           types::HexRGB hex_;
-          Color enum_;
+          Color ansi_;
 
-          constexpr Tint() noexcept : hex_ {} {}
-        };
-        Tint value_;
-        Tonality ton_;
+          constexpr Ink() noexcept : hex_ {} {}
+        } value_;
+        render::Paint encoding_;
 
         PACE__CXX20_CNSTXPR void from_str( const types::Char* hex_str, types::Size length ) &
         {
@@ -35,9 +31,9 @@ namespace pace {
           }
 
 #ifdef PACE_NOSTYLE
-          ton_ = Tonality::None;
+          encoding_ = Palette::None;
 #else
-          ton_        = Tonality::Hex;
+          encoding_   = render::Paint::Xterm24bit;
           value_.hex_ = 0;
           if ( length == 4 ) {
             for ( types::Size i = 1; i < length; ++i ) {
@@ -66,12 +62,13 @@ namespace pace {
         }
 
       public:
-        constexpr RGBValue() noexcept : ton_ { Tonality::None } {}
+        constexpr RGBValue() noexcept : encoding_ { render::Paint::None } {}
 
-        PACE__CXX14_CNSTXPR RGBValue( types::HexRGB hex_val ) noexcept : ton_ { Tonality::Hex }
+        PACE__CXX14_CNSTXPR RGBValue( types::HexRGB hex_val ) noexcept
+          : encoding_ { render::Paint::Xterm24bit }
         { value_.hex_ = hex_val; }
         PACE__CXX14_CNSTXPR
-        RGBValue( Color enum_val ) noexcept : ton_ { Tonality::Fixed } { value_.enum_ = enum_val; }
+        RGBValue( Color enum_val ) noexcept : encoding_ { render::Paint::Csi8 } { value_.ansi_ = enum_val; }
         PACE__CXX20_CNSTXPR RGBValue( types::ROStr hex_str ) : RGBValue()
         { from_str( hex_str.data(), hex_str.size() ); }
         template<types::Size N>
@@ -88,8 +85,8 @@ namespace pace {
         }
         PACE__CXX14_CNSTXPR RGBValue& operator=( Color enum_val ) & noexcept
         {
-          ton_         = Tonality::Fixed;
-          value_.enum_ = enum_val;
+          encoding_    = render::Paint::Csi8;
+          value_.ansi_ = enum_val;
           return *this;
         }
         PACE__CXX20_CNSTXPR RGBValue& operator=( types::ROStr hex_str ) &
@@ -104,13 +101,13 @@ namespace pace {
           return *this;
         }
 
-        PACE__NODISCARD constexpr Tonality tonality() const noexcept { return ton_; }
+        PACE__NODISCARD constexpr render::Paint encoding() const noexcept { return encoding_; }
 
         PACE__NODISCARD constexpr std::uint8_t r() const noexcept { return ( value_.hex_ >> 16 ) & 0xFF; }
         PACE__NODISCARD constexpr std::uint8_t g() const noexcept { return ( value_.hex_ >> 8 ) & 0xFF; }
         PACE__NODISCARD constexpr std::uint8_t b() const noexcept { return value_.hex_ & 0xFF; }
 
-        PACE__NODISCARD constexpr Color color() const noexcept { return value_.enum_; }
+        PACE__NODISCARD constexpr Color color() const noexcept { return value_.ansi_; }
 
         PACE__CXX20_CNSTXPR void swap( RGBValue& other ) noexcept
         {

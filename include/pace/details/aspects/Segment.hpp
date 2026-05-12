@@ -16,12 +16,19 @@ namespace pace {
     // A wrapper that stores the border component located to the right of the whole indicator.
     struct RightBorder : PACE__DERIVING_OPTION3( RightBorder, details::charcodes::U8Raw, _r_border );
 
-    // A wrapper that stores the color of the whole infomation indicator.
-    struct InfoColor
-      : PACE__DERIVING_OPTION1( InfoColor,
+    // A wrapper that stores the foreground color of the whole infomation indicator.
+    struct InfoForecolor
+      : PACE__DERIVING_OPTION1( InfoForecolor,
                                 details::console::TrueColor,
                                 details::wrappers::RGBValue,
-                                _info_color );
+                                _info_forecolor );
+
+    // A wrapper that stores the background color of the whole infomation indicator.
+    struct InfoBackcolor
+      : PACE__DERIVING_OPTION1( InfoBackcolor,
+                                details::console::TrueColor,
+                                details::wrappers::RGBValue,
+                                _info_backcolor );
   } // namespace option
 
   namespace details {
@@ -34,13 +41,14 @@ namespace pace {
         PACE__UNPAKING( Divider, divider_, std::move, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( LeftBorder, l_border_, std::move, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( RightBorder, r_border_, std::move, PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( InfoColor, info_col_, std::move, )
+        PACE__UNPAKING( InfoForecolor, info_forecolor_, , PACE__CXX20_CNSTXPR )
+        PACE__UNPAKING( InfoBackcolor, info_backcolor_, , PACE__CXX20_CNSTXPR )
 #undef PACE__UNPAKING
 
       protected:
         charcodes::U8Raw divider_;
         charcodes::U8Raw l_border_, r_border_;
-        console::TrueColor info_col_;
+        console::TrueColor info_forecolor_, info_backcolor_;
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length(
           types::Size num_column ) const noexcept
@@ -62,8 +70,10 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::LeftBorder>() );
           if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::RightBorder>::value )
             unpack( *this, config::provide_for<Derived, option::RightBorder>() );
-          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::InfoColor>::value )
-            unpack( *this, config::provide_for<Derived, option::InfoColor>() );
+          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::InfoForecolor>::value )
+            unpack( *this, config::provide_for<Derived, option::InfoForecolor>() );
+          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::InfoBackcolor>::value )
+            unpack( *this, config::provide_for<Derived, option::InfoBackcolor>() );
         }
 
         PACE__CXX20_CNSTXPR Segment() = default;
@@ -110,19 +120,26 @@ namespace pace {
 #endif
 
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
-        Derived& info_color( wrappers::RGBValue _info_color ) &
-        { PACE__METHOD( InfoColor, _info_color, Derived&, std::move ); }
-        Derived&& info_color( wrappers::RGBValue _info_color ) &&
-        { PACE__METHOD( InfoColor, _info_color, Derived&&, std::move ); }
+        Derived& info_forecolor( wrappers::RGBValue _info_forecolor ) &
+        { PACE__METHOD( InfoForecolor, _info_forecolor, Derived&, ); }
+        Derived&& info_forecolor( wrappers::RGBValue _info_forecolor ) &&
+        { PACE__METHOD( InfoForecolor, _info_forecolor, Derived&&, ); }
+
+        /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
+        Derived& info_backcolor( wrappers::RGBValue _info_backcolor ) &
+        { PACE__METHOD( InfoBackcolor, _info_backcolor, Derived&, ); }
+        Derived&& info_backcolor( wrappers::RGBValue _info_backcolor ) &&
+        { PACE__METHOD( InfoBackcolor, _info_backcolor, Derived&&, ); }
 
 #undef PACE__METHOD
 
         PACE__CXX20_CNSTXPR void swap( Segment& other ) & noexcept
         {
-          info_col_.swap( other.info_col_ );
           divider_.swap( other.divider_ );
           l_border_.swap( other.l_border_ );
           r_border_.swap( other.r_border_ );
+          info_forecolor_.swap( other.info_forecolor_ );
+          info_backcolor_.swap( other.info_backcolor_ );
           Base::swap( other );
         }
       };
@@ -134,7 +151,8 @@ namespace pace {
                            option::Divider,
                            option::LeftBorder,
                            option::RightBorder,
-                           option::InfoColor );
+                           option::InfoForecolor,
+                           option::InfoBackcolor );
   } // namespace details
 } // namespace pace
 

@@ -38,10 +38,15 @@ namespace pace {
         {
           // Before the first element and the last element, we do not set a divider.
           if ( this->projection_.test( traits::IndexIn<Element, Facades...>::value ) ) {
-            pipeline << this->clear_then_dye( this->info_col_, params.style_off_ );
+            pipeline << this->clear_then_dye(
+              console::Dualcolor( this->info_forecolor_, this->info_backcolor_ ),
+              params.style_off_ );
             this->traits::BaseOf_t<typename Base::Layout, Element>::build( pipeline, params );
             if ( any_more<Elements...>() )
-              pipeline << this->clear_then_dye( this->info_col_, params.style_off_ ) << this->divider_;
+              pipeline << this->clear_then_dye(
+                console::Dualcolor( this->info_forecolor_, this->info_backcolor_ ),
+                params.style_off_ )
+                       << this->divider_;
           }
           render_each<Elements...>( pipeline, params );
         }

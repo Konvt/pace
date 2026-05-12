@@ -8,26 +8,26 @@ using namespace std;
 
 int main()
 {
-  auto mbar = pace::make_multi(
-    pace::config::Flow( pace::option::Except<>(),
-                         pace::option::Filler( "━" ),
-                         pace::option::FillerColor( pace::Color::Red ),
-                         pace::option::Lead( "━━" ),
-                         pace::option::LeadColor( pace::Color::White ),
-                         pace::option::InfoColor( "#F5B0B6" ),
-                         pace::option::Starting(),
-                         pace::option::Ending() ),
-    pace::config::Block( pace::option::Lead( { " ", "▁", "▂", "▃", "▄", "▅", "▆", "▇" } ),
-                          pace::option::InfoColor( "#F7A699" ) ),
-    pace::config::Block( pace::option::Filler( "⠿" ),
-                          pace::option::Lead( { " ", "⠄", "⠆", "⠇", "⠧", "⠷" } ),
-                          pace::option::InfoColor( "#7DD4DF" ) ),
-    pace::config::Block( pace::option::Lead( { " ", "▖", "▞", "▛" } ),
-                          pace::option::InfoColor( "#8AB7EB" ) ) );
+  auto mbar =
+    pace::make_multi( pace::config::Flow( pace::option::Except<>(),
+                                          pace::option::Filler( "━" ),
+                                          pace::option::FillerForecolor( pace::Color::Red ),
+                                          pace::option::Lead( "━━" ),
+                                          pace::option::LeadForecolor( pace::Color::White ),
+                                          pace::option::InfoForecolor( "#F5B0B6" ),
+                                          pace::option::Starting(),
+                                          pace::option::Ending() ),
+                      pace::config::Block( pace::option::Lead( { " ", "▁", "▂", "▃", "▄", "▅", "▆", "▇" } ),
+                                           pace::option::InfoForecolor( "#F7A699" ) ),
+                      pace::config::Block( pace::option::Filler( "⠿" ),
+                                           pace::option::Lead( { " ", "⠄", "⠆", "⠇", "⠧", "⠷" } ),
+                                           pace::option::InfoForecolor( "#7DD4DF" ) ),
+                      pace::config::Block( pace::option::Lead( { " ", "▖", "▞", "▛" } ),
+                                           pace::option::InfoForecolor( "#8AB7EB" ) ) );
   mbar.config<0>().quota( ( tuple_size<decltype( mbar )>::value - 1 ) * 2 );
   // Bind a callback that will be executed at the end of the iteration below.
   mbar.at<0>() |=
-    [&]( pace::FlowBar<>& self ) { self.config().filler_color( pace::Color::Green ).lead( "" ); };
+    [&]( pace::FlowBar<>& self ) { self.config().filler_forecolor( pace::Color::Green ).lead( "" ); };
   // Bind a callback to mark that the current bar has been compeleted.
   mbar.at<1>() |= [&]() { mbar.tick<0>(); };
   mbar.at<2>() |= [&]() { mbar.tick<0>(); };

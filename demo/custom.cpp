@@ -16,7 +16,7 @@ int main()
       "G ticks/sec",
     } )
     .magnitude( 1000 )
-    .info_color( 0x39c5bb )
+    .info_forecolor( 0x39c5bb )
     .colored( true )
     .font_bold( true )
     .font_underline( true )

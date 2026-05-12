@@ -9,7 +9,6 @@ namespace pace {
     namespace console {
       class TrueColor {
 #ifndef PACE_NOSTYLE
-        using Tonality = wrappers::RGBValue::Tonality;
         static constexpr auto& _digits =
           "0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 "
           "32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 "
@@ -21,27 +20,32 @@ namespace pace {
           "19819920020120220320420520620720820921021121221321421521621721821922022122222322422522622722822923"
           "0231232233234235236237238239240241242243244245246247248249250251252253254255";
 
-        std::array<std::uint8_t, 3> sgr_;
-        Tonality ton_;
+        union SGR {
+          Color ansi_;
+          std::array<std::uint8_t, 3> rgb_;
+
+          PACE__CXX20_CNSTXPR SGR() noexcept : rgb_ {} {}
+        } sgr_;
+        render::Paint encoding_;
 #endif
 
       public:
 #ifdef PACE_NOSTYLE
         constexpr TrueColor() = default;
 #else
-        PACE__CXX20_CNSTXPR TrueColor() noexcept : ton_ { Tonality::None } {}
+        PACE__CXX20_CNSTXPR TrueColor() noexcept : encoding_ { render::Paint::None } {}
 #endif
 
         PACE__CXX20_CNSTXPR TrueColor( wrappers::RGBValue rgb ) noexcept
 #ifdef PACE_NOSTYLE
         { (void)rgb; }
 #else
-          : ton_ { rgb.tonality() }
+          : encoding_ { rgb.encoding() }
         {
-          switch ( rgb.tonality() ) {
-          case Tonality::Fixed: sgr_.front() = utils::to_underlying( rgb.color() ); break;
-          case Tonality::Hex:   sgr_ = { rgb.r(), rgb.g(), rgb.b() }; break;
-          default:              break;
+          switch ( rgb.encoding() ) {
+          case render::Paint::Csi8:       sgr_.ansi_ = rgb.color(); break;
+          case render::Paint::Xterm24bit: sgr_.rgb_ = { rgb.r(), rgb.g(), rgb.b() }; break;
+          default:                        break;
           }
         }
 #endif
@@ -54,8 +58,8 @@ namespace pace {
 #ifdef PACE_NOSTYLE
           (void)rgb;
 #else
-          sgr_ = { rgb.r(), rgb.g(), rgb.b() };
-          ton_ = Tonality::Hex;
+          sgr_.rgb_ = { rgb.r(), rgb.g(), rgb.b() };
+          encoding_ = render::Paint::Xterm24bit;
 #endif
           return *this;
         }
@@ -63,9 +67,38 @@ namespace pace {
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR void clear() noexcept
         {
 #ifndef PACE_NOSTYLE
-          ton_ = Tonality::None;
+          encoding_ = render::Paint::None;
 #endif
         }
+
+        PACE__FORCEINLINE void emit( io::CharPipeline& pipeline ) const
+        {
+#ifndef PACE_NOSTYLE
+          // only output the digit string
+          switch ( encoding_ ) {
+          case render::Paint::Csi8: {
+            const auto str = _digits + ( utils::to_underlying( sgr_.ansi_ ) * 3 );
+            PACE__ASSERT( col.sgr_.front() >= 10 && col.sgr_.front() < 100 );
+            pipeline << str[0] << str[1];
+          } break;
+          case render::Paint::Xterm24bit: {
+            for ( auto offset : sgr_.rgb_ ) {
+              pipeline << ';';
+              const auto str = _digits + ( offset * 3 );
+              pipeline << str[0];
+              if ( offset >= 10 )
+                pipeline << str[1];
+              if ( offset >= 100 )
+                pipeline << str[2];
+            }
+          } break;
+
+          default: utils::unreachable();
+          }
+#endif
+        }
+
+        PACE__NODISCARD PACE__CXX20_CNSTXPR render::Paint encoding() const noexcept { return encoding_; }
 
         PACE__CXX20_CNSTXPR void swap( TrueColor& other ) noexcept
         {
@@ -76,38 +109,6 @@ namespace pace {
 #endif
         }
         friend PACE__CXX20_CNSTXPR void swap( TrueColor& a, TrueColor& b ) noexcept { a.swap( b ); }
-
-        friend PACE__FORCEINLINE io::CharPipeline& operator<<( io::CharPipeline& pipeline,
-                                                               const TrueColor& col )
-        {
-#ifdef PACE_NOSTYLE
-          (void)col;
-#else
-          switch ( col.ton_ ) {
-          case Tonality::Fixed: {
-            pipeline << '\x1B' << '[';
-            const auto str = _digits + ( col.sgr_.front() * 3 );
-            PACE__ASSERT( col.sgr_.front() >= 10 && col.sgr_.front() < 100 );
-            pipeline << str[0] << str[1] << 'm';
-          } break;
-          case Tonality::Hex: {
-            pipeline << '\x1B' << '[' << '3' << '8' << ';' << '2';
-            for ( auto offset : col.sgr_ ) {
-              pipeline << ';';
-              const auto str = _digits + ( offset * 3 );
-              pipeline << str[0];
-              if ( offset >= 10 )
-                pipeline << str[1];
-              if ( offset >= 100 )
-                pipeline << str[2];
-            }
-            pipeline << 'm';
-          } break;
-          default: break;
-          }
-#endif
-          return pipeline;
-        }
       };
     } // namespace console
   } // namespace details

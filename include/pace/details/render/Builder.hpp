@@ -27,7 +27,9 @@ namespace pace {
           this->font_effect( pipeline, params.style_off_ );
 
           if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() ) {
-            pipeline << this->with_dye( this->info_col_, params.style_off_ ) << this->l_border_;
+            pipeline << this->with_dye( console::Dualcolor( this->info_forecolor_, this->info_backcolor_ ),
+                                        params.style_off_ )
+                     << this->l_border_;
           }
           this->traits::BaseOf_t<typename Config::Layout, aspects::Prefix>::build( pipeline, params );
 
@@ -35,7 +37,10 @@ namespace pace {
 
           this->traits::BaseOf_t<typename Config::Layout, aspects::Postfix>::build( pipeline, params );
           if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() ) {
-            pipeline << this->clear_then_dye( this->info_col_, params.style_off_ ) << this->r_border_;
+            pipeline << this->clear_then_dye(
+              console::Dualcolor( this->info_forecolor_, this->info_backcolor_ ),
+              params.style_off_ )
+                     << this->r_border_;
           }
 
           return this->reset_style( pipeline, params.style_off_ );

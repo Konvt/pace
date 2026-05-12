@@ -4,8 +4,8 @@
 #include "../../config/Provider.hpp"
 #include "../concurrent/SharedLock.hpp"
 #include "../concurrent/SharedMutex.hpp"
+#include "../console/Colorize.hpp"
 #include "../console/Escode.hpp"
-#include "../console/TrueColor.hpp"
 #include "../wrappers/Brush.hpp"
 #include "../wrappers/OptionPacket.hpp"
 #include <bitset>
@@ -106,51 +106,53 @@ namespace pace {
           return pipeline;
         }
 
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR wrappers::Brush<console::TrueColor> with_dye(
-          const console::TrueColor& rgb,
-          bool style_off ) const
+        template<typename Op>
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
+          typename std::enable_if<traits::AnyOf<std::is_same<Op, console::Forecolor>,
+                                                std::is_same<Op, console::Backcolor>,
+                                                std::is_same<Op, console::Dualcolor>>::value,
+                                  wrappers::Brush<Op>>::type
+          with_dye( Op rgb, bool style_off ) const
         {
 #ifdef PACE_NOSTYLE
           (void)rgb;
           (void)style_off;
 #else
           if ( !style_off && rules_[utils::to_underlying( Chroma::Colored )] )
-            return { &rgb };
+            return { std::move( rgb ) };
 #endif
-          return { nullptr };
+          return {};
         }
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
-          wrappers::Brush<console::Escode, wrappers::Brush<console::Escode>>
+          wrappers::Brush<std::reference_wrapper<const console::Escode>,
+                          wrappers::Brush<std::reference_wrapper<const console::Escode>>>
           with_clear( bool style_off ) const
         {
 #ifdef PACE_NOSTYLE
           (void)style_off;
 #else
           if ( !style_off && rules_[utils::to_underlying( Chroma::Colored )] )
-            return { &console::fgcolorrest, { &console::bgcolorrest } };
+            return { std::cref( console::fgcolorrest ), { std::cref( console::bgcolorrest ) } };
 #endif
-          return { nullptr, { nullptr } };
+          return { {} };
         }
 
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
-          wrappers::Brush<console::Escode,
-                          wrappers::Brush<console::Escode, wrappers::Brush<console::TrueColor>>>
-          clear_then_dye( const console::TrueColor& rgb, bool style_off ) const
+        template<typename Op>
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR typename std::enable_if<
+          traits::AnyOf<std::is_same<Op, console::Forecolor>,
+                        std::is_same<Op, console::Backcolor>,
+                        std::is_same<Op, console::Dualcolor>>::value,
+          wrappers::Brush<
+            std::reference_wrapper<const console::Escode>,
+            wrappers::Brush<std::reference_wrapper<const console::Escode>, wrappers::Brush<Op>>>>::type
+          clear_then_dye( Op rgb, bool style_off ) const
         {
 #ifndef PACE_NOSTYLE
-          auto action = with_clear( style_off );
           if ( !style_off && rules_[utils::to_underlying( Chroma::Colored )] )
-            return {
-              action.effect_,
-              { action.next_.effect_,
-                        with_dye( rgb, style_off ) }
-            };
+            return with_clear( style_off ).append( std::move( rgb ) );
 #endif
-          return {
-            nullptr,
-            { nullptr, with_dye( rgb, style_off ) }
-          };
+          return { { {} } };
         }
 
         template<typename... Options>

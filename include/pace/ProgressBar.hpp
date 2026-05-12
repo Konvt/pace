@@ -41,7 +41,7 @@ namespace pace {
   PACE__PROVIDE_FOR( config::Line, option::Remain, u8" " );
   PACE__PROVIDE_FOR( config::Line, option::Filler, u8"=" );
   PACE__PROVIDE_FOR( config::Line, option::Divider, u8" | " );
-  PACE__PROVIDE_FOR( config::Line, option::InfoColor, Color::Cyan );
+  PACE__PROVIDE_FOR( config::Line, option::InfoForecolor, Color::Cyan );
   template<>
   struct pace::config::ProvideFor<config::Line, option::Projection> {
     static option::Projection provide() { return config::Line::bake( option::Except<>() ); }

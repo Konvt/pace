@@ -15,38 +15,55 @@ namespace pace {
     // A wrapper that stores characters located to the right of the bar indicator.
     struct Ending : PACE__DERIVING_OPTION3( Ending, details::charcodes::U8Raw, _ending );
 
-    // A wrapper that stores the color of component located to the left of the bar indicator.
-    struct StartColor
-      : PACE__DERIVING_OPTION1( StartColor,
+    // A wrapper that stores the foreground color of component located to the left of the bar indicator.
+    struct StartForecolor
+      : PACE__DERIVING_OPTION1( StartForecolor,
                                 details::console::TrueColor,
                                 details::wrappers::RGBValue,
-                                _start_color );
+                                _start_forecolor );
 
-    // A wrapper that stores the color of component located to the right of the bar indicator.
-    struct EndColor
-      : PACE__DERIVING_OPTION1( EndColor,
+    // A wrapper that stores the foreground color of component located to the left of the bar indicator.
+    struct StartBackcolor
+      : PACE__DERIVING_OPTION1( StartBackcolor,
                                 details::console::TrueColor,
                                 details::wrappers::RGBValue,
-                                _end_color );
+                                _start_backcolor );
+
+    // A wrapper that stores the foreground color of component located to the right of the bar indicator.
+    struct EndForecolor
+      : PACE__DERIVING_OPTION1( EndForecolor,
+                                details::console::TrueColor,
+                                details::wrappers::RGBValue,
+                                _end_forecolor );
+
+    // A wrapper that stores the foreground color of component located to the right of the bar indicator.
+    struct EndBackcolor
+      : PACE__DERIVING_OPTION1( EndBackcolor,
+                                details::console::TrueColor,
+                                details::wrappers::RGBValue,
+                                _end_backcolor );
   } // namespace option
 
   namespace details {
     namespace aspects {
       template<typename Base, typename Derived>
       class Bar : public Base {
-#define PACE__UNPAKING( OptionName, MemberName, Constexpr )                                      \
+#define PACE__UNPAKING( OptionName, MemberName, Operation, Constexpr )                           \
   friend PACE__FORCEINLINE Constexpr void unpack( Bar& self, option::OptionName&& val ) noexcept \
-  { self.MemberName = std::move( val.value() ); }
-        PACE__UNPAKING( Starting, starting_, PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( Ending, ending_, PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( BarWidth, bar_width_, PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( StartColor, start_col_, )
-        PACE__UNPAKING( EndColor, end_col_, )
+  { self.MemberName = Operation( val.value() ); }
+        PACE__UNPAKING( Starting, starting_, std::move, PACE__CXX20_CNSTXPR )
+        PACE__UNPAKING( Ending, ending_, std::move, PACE__CXX20_CNSTXPR )
+        PACE__UNPAKING( BarWidth, bar_width_, , PACE__CXX20_CNSTXPR )
+        PACE__UNPAKING( StartForecolor, start_forecolor_, , PACE__CXX20_CNSTXPR )
+        PACE__UNPAKING( StartBackcolor, start_backcolor_, , PACE__CXX20_CNSTXPR )
+        PACE__UNPAKING( EndForecolor, end_forecolor_, , PACE__CXX20_CNSTXPR )
+        PACE__UNPAKING( EndBackcolor, end_backcolor_, , PACE__CXX20_CNSTXPR )
 #undef PACE__UNPAKING
 
       protected:
         charcodes::U8Raw starting_, ending_;
-        console::TrueColor start_col_, end_col_;
+        console::TrueColor start_forecolor_, start_backcolor_;
+        console::TrueColor end_forecolor_, end_backcolor_;
         std::uint16_t bar_width_;
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length() const noexcept
@@ -62,10 +79,14 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::Ending>() );
           if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::BarWidth>::value )
             unpack( *this, config::provide_for<Derived, option::BarWidth>() );
-          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::StartColor>::value )
-            unpack( *this, config::provide_for<Derived, option::StartColor>() );
-          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::EndColor>::value )
-            unpack( *this, config::provide_for<Derived, option::EndColor>() );
+          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::StartForecolor>::value )
+            unpack( *this, config::provide_for<Derived, option::StartForecolor>() );
+          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::StartBackcolor>::value )
+            unpack( *this, config::provide_for<Derived, option::StartBackcolor>() );
+          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::EndForecolor>::value )
+            unpack( *this, config::provide_for<Derived, option::EndForecolor>() );
+          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::EndBackcolor>::value )
+            unpack( *this, config::provide_for<Derived, option::EndBackcolor>() );
         }
 
         PACE__CXX20_CNSTXPR Bar() = default;
@@ -99,15 +120,28 @@ namespace pace {
 #endif
 
         /// @throw exception::InvalidArgument  If the passed parameters is not a valid RGB color string.
-        Derived& start_color( wrappers::RGBValue _start_color ) &
-        { PACE__METHOD( StartColor, _start_color, Derived&, std::move ); }
-        Derived&& start_color( wrappers::RGBValue _start_color ) &&
-        { PACE__METHOD( StartColor, _start_color, Derived&&, std::move ); }
+        Derived& start_forecolor( wrappers::RGBValue _start_forecolor ) &
+        { PACE__METHOD( StartForecolor, _start_forecolor, Derived&, ); }
+        Derived&& start_forecolor( wrappers::RGBValue _start_forecolor ) &&
+        { PACE__METHOD( StartForecolor, _start_forecolor, Derived&&, ); }
+
+        /// @throw exception::InvalidArgument  If the passed parameters is not a valid RGB color string.
+        Derived& start_backcolor( wrappers::RGBValue _start_backcolor ) &
+        { PACE__METHOD( StartBackcolor, _start_backcolor, Derived&, ); }
+        Derived&& start_backcolor( wrappers::RGBValue _start_backcolor ) &&
+        { PACE__METHOD( StartBackcolor, _start_backcolor, Derived&&, ); }
+
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
-        Derived& end_color( wrappers::RGBValue _end_color ) &
-        { PACE__METHOD( EndColor, _end_color, Derived&, std::move ); }
-        Derived&& end_color( wrappers::RGBValue _end_color ) &&
-        { PACE__METHOD( EndColor, _end_color, Derived&&, std::move ); }
+        Derived& end_forecolor( wrappers::RGBValue _end_forecolor ) &
+        { PACE__METHOD( EndForecolor, _end_forecolor, Derived&, ); }
+        Derived&& end_forecolor( wrappers::RGBValue _end_forecolor ) &&
+        { PACE__METHOD( EndForecolor, _end_forecolor, Derived&&, ); }
+
+        /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
+        Derived& end_backcolor( wrappers::RGBValue _end_backcolor ) &
+        { PACE__METHOD( EndBackcolor, _end_backcolor, Derived&, ); }
+        Derived&& end_backcolor( wrappers::RGBValue _end_backcolor ) &&
+        { PACE__METHOD( EndBackcolor, _end_backcolor, Derived&&, ); }
 
         // Set the width of the bar indicator.
         Derived& bar_width( std::uint16_t _width ) & noexcept
@@ -125,11 +159,13 @@ namespace pace {
 
         PACE__CXX20_CNSTXPR void swap( Bar& other ) noexcept
         {
-          std::swap( bar_width_, other.bar_width_ );
           starting_.swap( other.starting_ );
           ending_.swap( other.ending_ );
-          start_col_.swap( other.start_col_ );
-          end_col_.swap( other.end_col_ );
+          start_forecolor_.swap( other.start_forecolor_ );
+          start_backcolor_.swap( other.start_backcolor_ );
+          end_forecolor_.swap( other.end_forecolor_ );
+          end_backcolor_.swap( other.end_backcolor_ );
+          std::swap( bar_width_, other.bar_width_ );
           Base::swap( other );
         }
       };
@@ -138,11 +174,13 @@ namespace pace {
     PACE__INHERIT_REGISTER( aspects::Bar, aspects::RenderRule );
 
     PACE__OPTION_REGISTER( aspects::Bar,
+                           option::BarWidth,
                            option::Starting,
                            option::Ending,
-                           option::StartColor,
-                           option::EndColor,
-                           option::BarWidth );
+                           option::StartForecolor,
+                           option::StartBackcolor,
+                           option::EndForecolor,
+                           option::EndBackcolor );
   } // namespace details
 } // namespace pace
 

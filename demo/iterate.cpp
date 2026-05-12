@@ -13,16 +13,16 @@ int main()
       [&]( int ) {
         this_thread::sleep_for( chrono::microseconds( uniform_int_distribution<int>( 1, 1200 )( rd ) ) );
       },
-      []( pace::BlockBar<>& self ) { self.config().filler_color( pace::Color::Green ); },
+      []( pace::BlockBar<>& self ) { self.config().filler_forecolor( pace::Color::Green ); },
       pace::option::Lead( { " ", "▁", "▂", "▃", "▄", "▅", "▆", "▇" } ),
-      pace::option::InfoColor( "#FFD200" ) );
+      pace::option::InfoForecolor( "#FFD200" ) );
   }
   {
     for ( auto _ : pace::iterate<pace::config::Block>(
             10000,
-            []( pace::BlockBar<>& self ) { self.config().filler_color( pace::Color::Green ); },
+            []( pace::BlockBar<>& self ) { self.config().filler_forecolor( pace::Color::Green ); },
             pace::option::Lead( { " ", " ", "░", "░", "▒", "▒", "▓", "▓" } ),
-            pace::option::InfoColor( "#00BBFF" ) ) ) {
+            pace::option::InfoForecolor( "#00BBFF" ) ) ) {
       this_thread::sleep_for( chrono::microseconds( uniform_int_distribution<int>( 1, 1200 )( rd ) ) );
     }
   }

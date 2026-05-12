@@ -40,7 +40,7 @@ namespace pace {
   PACE__PROVIDE_FOR( config::Flow, option::Ending, u8"]" );
   PACE__PROVIDE_FOR( config::Flow, option::Filler, u8" " );
   PACE__PROVIDE_FOR( config::Flow, option::Divider, u8" | " );
-  PACE__PROVIDE_FOR( config::Flow, option::InfoColor, Color::Cyan );
+  PACE__PROVIDE_FOR( config::Flow, option::InfoForecolor, Color::Cyan );
   template<>
   struct pace::config::ProvideFor<config::Flow, option::Projection> {
     static option::Projection provide()

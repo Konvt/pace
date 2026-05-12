@@ -23,7 +23,10 @@ namespace pace {
 
         const auto frame_cnt = static_cast<std::uint64_t>( params.frame_count_ * this->shift_factor_ );
 
-        pipeline << this->clear_then_dye( this->start_col_, params.style_off_ ) << this->starting_;
+        pipeline << this->clear_then_dye(
+          details::console::Dualcolor( this->start_forecolor_, this->start_backcolor_ ),
+          params.style_off_ )
+                 << this->starting_;
 
         if ( !this->lead_.empty() ) {
           const auto& current_lead = this->lead_[frame_cnt % this->lead_.size()];
@@ -49,12 +52,19 @@ namespace pace {
             const auto len_right_fill = this->bar_width_ - ( len_left_fill + current_lead.width() );
             PACE__ASSERT( len_left_fill + len_right_fill + current_lead.width() == this->bar_width_ );
 
-            pipeline << this->clear_then_dye( this->filler_col_, params.style_off_ );
+            pipeline << this->clear_then_dye(
+              details::console::Dualcolor( this->filler_forecolor_, this->filler_backcolor_ ),
+              params.style_off_ );
             pipeline.append( this->filler_, len_left_fill / this->filler_.width() )
               .append( ' ', len_left_fill % this->filler_.width() );
 
-            pipeline << this->clear_then_dye( this->lead_col_, params.style_off_ ) << current_lead
-                     << this->clear_then_dye( this->filler_col_, params.style_off_ );
+            pipeline << this->clear_then_dye(
+              details::console::Dualcolor( this->lead_forecolor_, this->lead_backcolor_ ),
+              params.style_off_ )
+                     << current_lead
+                     << this->clear_then_dye(
+                          details::console::Dualcolor( this->filler_forecolor_, this->filler_backcolor_ ),
+                          params.style_off_ );
             pipeline.append( ' ', len_right_fill % this->filler_.width() )
               .append( this->filler_, len_right_fill / this->filler_.width() );
           } else
@@ -62,12 +72,17 @@ namespace pace {
         } else if ( this->filler_.empty() )
           pipeline.append( ' ', this->bar_width_ );
         else {
-          pipeline << this->clear_then_dye( this->filler_col_, params.style_off_ );
+          pipeline << this->clear_then_dye(
+            details::console::Dualcolor( this->filler_forecolor_, this->filler_backcolor_ ),
+            params.style_off_ );
           pipeline.append( this->filler_, this->bar_width_ / this->filler_.width() )
             .append( ' ', this->bar_width_ % this->filler_.width() );
         }
 
-        return pipeline << this->clear_then_dye( this->end_col_, params.style_off_ ) << this->ending_;
+        return pipeline << this->clear_then_dye(
+                 details::console::Dualcolor( this->end_forecolor_, this->end_backcolor_ ),
+                 params.style_off_ )
+                        << this->ending_;
       }
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR details::types::Size fixed_length() const noexcept

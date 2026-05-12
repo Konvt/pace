@@ -49,20 +49,25 @@ namespace pace {
 #endif
     };
 
-    // A wrapper that stores the color of the lead in the bar indicator.
-    struct LeadColor
-      : PACE__DERIVING_OPTION1( LeadColor,
+    // A wrapper that stores the foreground color of the lead in the bar indicator.
+    struct LeadForecolor
+      : PACE__DERIVING_OPTION1( LeadForecolor,
                                 details::console::TrueColor,
                                 details::wrappers::RGBValue,
-                                _lead_color );
+                                _lead_forecolor );
+
+    // A wrapper that stores the background color of the lead in the bar indicator.
+    struct LeadBackcolor
+      : PACE__DERIVING_OPTION1( LeadBackcolor,
+                                details::console::TrueColor,
+                                details::wrappers::RGBValue,
+                                _lead_backcolor );
   } // namespace option
 
   namespace details {
     namespace aspects {
       template<typename Base, typename Derived>
       class Frame : public Base {
-        friend PACE__FORCEINLINE void unpack( Frame& self, option::LeadColor&& val ) noexcept
-        { self.lead_col_ = val.value(); }
         friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Frame& self, option::Lead&& val ) noexcept
         {
           if ( std::all_of( val.value().cbegin(),
@@ -81,11 +86,17 @@ namespace pace {
                 ->width();
           }
         }
+        friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Frame& self,
+                                                                  option::LeadForecolor&& val ) noexcept
+        { self.lead_forecolor_ = val.value(); }
+        friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Frame& self,
+                                                                  option::LeadBackcolor&& val ) noexcept
+        { self.lead_backcolor_ = val.value(); }
 
       protected:
-        types::Size len_longest_lead_;
         std::vector<charcodes::U8Text> lead_;
-        console::TrueColor lead_col_;
+        types::Size len_longest_lead_;
+        console::TrueColor lead_forecolor_, lead_backcolor_;
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length() const noexcept
         { return len_longest_lead_; }
@@ -96,8 +107,10 @@ namespace pace {
           using OptionSet = traits::TypeSet<Options...>;
           if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Lead>::value )
             unpack( *this, config::provide_for<Derived, option::Lead>() );
-          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::LeadColor>::value )
-            unpack( *this, config::provide_for<Derived, option::LeadColor>() );
+          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::LeadForecolor>::value )
+            unpack( *this, config::provide_for<Derived, option::LeadForecolor>() );
+          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::LeadBackcolor>::value )
+            unpack( *this, config::provide_for<Derived, option::LeadBackcolor>() );
         }
 
         PACE__CXX20_CNSTXPR Frame() = default;
@@ -130,21 +143,28 @@ namespace pace {
         { PACE__METHOD( Lead, _lead, Derived&&, ); }
 #endif
 
-        /// @brief Set the color of the component `lead`.
+        /// @brief Set the foreground color of the component `lead`.
         /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
-        Derived& lead_color( wrappers::RGBValue _lead_color ) &
-        { PACE__METHOD( LeadColor, _lead_color, Derived&, std::move ); }
-        Derived&& lead_color( wrappers::RGBValue _lead_color ) &&
-        { PACE__METHOD( LeadColor, _lead_color, Derived&&, std::move ); }
+        Derived& lead_forecolor( wrappers::RGBValue _lead_forecolor ) &
+        { PACE__METHOD( LeadForecolor, _lead_forecolor, Derived&, ); }
+        Derived&& lead_forecolor( wrappers::RGBValue _lead_forecolor ) &&
+        { PACE__METHOD( LeadForecolor, _lead_forecolor, Derived&&, ); }
+
+        /// @brief Set the background color of the component `lead`.
+        /// @throw exception::InvalidArgument If the passed parameters is not a valid RGB color string.
+        Derived& lead_backcolor( wrappers::RGBValue _lead_backcolor ) &
+        { PACE__METHOD( LeadBackcolor, _lead_backcolor, Derived&, ); }
+        Derived&& lead_backcolor( wrappers::RGBValue _lead_backcolor ) &&
+        { PACE__METHOD( LeadBackcolor, _lead_backcolor, Derived&&, ); }
 
 #undef PACE__METHOD
 
         PACE__CXX20_CNSTXPR void swap( Frame& other ) noexcept
         {
-          using std::swap;
-          lead_col_.swap( other.lead_col_ );
           lead_.swap( other.lead_ );
-          swap( len_longest_lead_, other.len_longest_lead_ );
+          std::swap( len_longest_lead_, other.len_longest_lead_ );
+          lead_forecolor_.swap( other.lead_forecolor_ );
+          lead_backcolor_.swap( other.lead_backcolor_ );
           Base::swap( other );
         }
       };
@@ -152,7 +172,7 @@ namespace pace {
 
     PACE__INHERIT_REGISTER( aspects::Frame, aspects::Animation, aspects::RenderRule );
 
-    PACE__OPTION_REGISTER( aspects::Frame, option::Lead, option::LeadColor );
+    PACE__OPTION_REGISTER( aspects::Frame, option::Lead, option::LeadForecolor, option::LeadBackcolor );
   } // namespace details
 } // namespace pace
 
