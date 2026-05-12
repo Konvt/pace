@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-05-12
+### Added
+- Added the support of foreground and background colors
+
+### Changed
+- Renamed all components related to color
+- Updated documents
+
+### Fixed
+- Fixed the missing option registry of Postfix
+
+### Removed
+- None
+
+- - -
+
 ## [1.0.0] - 2026-05-11
 ### Added
 - Added several internal components
