@@ -73,7 +73,9 @@ namespace pace {
 
         PACE__FORCEINLINE void emit( io::CharPipeline& pipeline ) const
         {
-#ifndef PACE_NOSTYLE
+#ifdef PACE_NOSTYLE
+          (void)pipeline;
+#else
           // only output the digit string
           switch ( encoding_ ) {
           case render::Paint::Csi8: {
@@ -98,7 +100,14 @@ namespace pace {
 #endif
         }
 
-        PACE__NODISCARD PACE__CXX20_CNSTXPR render::Paint encoding() const noexcept { return encoding_; }
+        PACE__NODISCARD PACE__CXX20_CNSTXPR render::Paint encoding() const noexcept
+        {
+#ifdef PACE_NOSTYLE
+          return render::Paint::None;
+#else
+          return encoding_;
+#endif
+        }
 
         PACE__CXX20_CNSTXPR void swap( TrueColor& other ) noexcept
         {

@@ -474,14 +474,22 @@ pace::option::Magnitude; // 调整 Speed 部分的进位倍率
 pace::option::Quota;   // 调整任务数量
 pace::option::Divider; // 修改位于两个元素之间的间隔符
 
-pace::option::PrefixColor;  // 修改 Prefix 的颜色
-pace::option::PostfixColor; // 修改 Postfix 的颜色
-pace::option::StartColor;   // 修改 Starting 的颜色
-pace::option::EndColor;     // 修改 Ending 的颜色
-pace::option::FillerColor;  // 修改 Filler 的颜色
-pace::option::RemainColor;  // 修改 Remain 的颜色
-pace::option::LeadColor;    // 修改 Lead 的颜色
-pace::option::InfoColor;    // 修改 Divider、Percent、Counter、Speed、Elapsed 和 ETA 的颜色
+pace::option::PrefixForecolor;  // 修改 Prefix 的前景色
+pace::option::PrefixBackcolor;  // 修改 Prefix 的背景色
+pace::option::PostfixForecolor; // 修改 Postfix 的前景色
+pace::option::PostfixBackcolor; // 修改 Postfix 的背景色
+pace::option::StartForecolor;   // 修改 Starting 的前景色
+pace::option::StartBackcolor;   // 修改 Starting 的背景色
+pace::option::EndForecolor;     // 修改 Ending 的前景色
+pace::option::EndBackcolor;     // 修改 Ending 的背景色
+pace::option::FillerForecolor;  // 修改 Filler 的前景色
+pace::option::FillerBackcolor;  // 修改 Filler 的背景色
+pace::option::RemainForecolor;  // 修改 Remain 的前景色
+pace::option::RemainBackcolor;  // 修改 Remain 的背景色
+pace::option::LeadForecolor;    // 修改 Lead 的前景色
+pace::option::LeadBackcolor;    // 修改 Lead 的背景色
+pace::option::InfoForecolor;    // 修改 Divider、Percent、Counter、Speed、Elapsed 和 ETA 的前景色
+pace::option::InfoBackcolor;    // 修改 Divider、Percent、Counter、Speed、Elapsed 和 ETA 的背景色
 ```
 
 且配置类型具有同名但命名风格不同的方法。
@@ -557,14 +565,22 @@ pace::option::Magnitude; // 调整 Speed 部分的进位倍率
 pace::option::Quota;   // 调整任务数量
 pace::option::Divider; // 修改位于两个元素之间的间隔符
 
-pace::option::PrefixColor;  // 修改 Prefix 的颜色
-pace::option::PostfixColor; // 修改 Postfix 的颜色
-pace::option::StartColor;   // 修改 Starting 的颜色
-pace::option::EndColor;     // 修改 Ending 的颜色
-pace::option::FillerColor;  // 修改 Filler 的颜色
-pace::option::RemainColor; // 修改 Remain 的颜色
-pace::option::LeadColor;    // 修改 Lead 的颜色
-pace::option::InfoColor;    // 修改 Divider、Percent、Counter、Speed、Elapsed 和 ETA 的颜色
+pace::option::PrefixForecolor;  // 修改 Prefix 的前景色
+pace::option::PrefixBackcolor;  // 修改 Prefix 的背景色
+pace::option::PostfixForecolor; // 修改 Postfix 的前景色
+pace::option::PostfixBackcolor; // 修改 Postfix 的背景色
+pace::option::StartForecolor;   // 修改 Starting 的前景色
+pace::option::StartBackcolor;   // 修改 Starting 的背景色
+pace::option::EndForecolor;     // 修改 Ending 的前景色
+pace::option::EndBackcolor;     // 修改 Ending 的背景色
+pace::option::FillerForecolor;  // 修改 Filler 的前景色
+pace::option::FillerBackcolor;  // 修改 Filler 的背景色
+pace::option::RemainForecolor;  // 修改 Remain 的前景色
+pace::option::RemainBackcolor;  // 修改 Remain 的背景色
+pace::option::LeadForecolor;    // 修改 Lead 的前景色
+pace::option::LeadBackcolor;    // 修改 Lead 的背景色
+pace::option::InfoForecolor;    // 修改 Divider、Percent、Counter、Speed、Elapsed 和 ETA 的前景色
+pace::option::InfoBackcolor;    // 修改 Divider、Percent、Counter、Speed、Elapsed 和 ETA 的背景色
 ```
 
 且配置类型具有同名但命名风格不同的方法。
@@ -611,10 +627,14 @@ pace::option::Magnitude; // 调整 Speed 部分的进位倍率
 pace::option::Quota;   // 调整任务数量
 pace::option::Divider; // 修改位于两个元素之间的间隔符
 
-pace::option::PrefixColor;  // 修改 Prefix 的颜色
-pace::option::PostfixColor; // 修改 Postfix 的颜色
-pace::option::LeadColor;    // 修改 Lead 的颜色
-pace::option::InfoColor;    // 修改 Divider、Percent、Counter、Speed、Elapsed 和 ETA 的颜色
+pace::option::PrefixForecolor;  // 修改 Prefix 的前景色
+pace::option::PrefixBackcolor;  // 修改 Prefix 的背景色
+pace::option::PostfixForecolor; // 修改 Postfix 的前景色
+pace::option::PostfixBackcolor; // 修改 Postfix 的背景色
+pace::option::LeadForecolor;    // 修改 Lead 的前景色
+pace::option::LeadBackcolor;    // 修改 Lead 的背景色
+pace::option::InfoForecolor;    // 修改 Divider、Percent、Counter、Speed、Elapsed 和 ETA 的前景色
+pace::option::InfoBackcolor;    // 修改 Divider、Percent、Counter、Speed、Elapsed 和 ETA 的背景色
 ```
 
 且配置类型具有同名但命名风格不同的方法。
@@ -663,13 +683,20 @@ pace::option::Magnitude; // 调整 Speed 部分的进位倍率
 pace::option::Quota;   // 调整任务数量
 pace::option::Divider; // 修改位于两个元素之间的间隔符
 
-pace::option::PrefixColor;  // 修改 Prefix 的颜色
-pace::option::PostfixColor; // 修改 Postfix 的颜色
-pace::option::StartColor;   // 修改 Starting 的颜色
-pace::option::EndColor;     // 修改 Ending 的颜色
-pace::option::FillerColor;  // 修改 Filler 的颜色
-pace::option::LeadColor;    // 修改 Lead 的颜色
-pace::option::InfoColor;    // 修改 Divider、Percent、Counter、Speed、Elapsed 和 ETA 的颜色
+pace::option::PrefixForecolor;  // 修改 Prefix 的前景色
+pace::option::PrefixBackcolor;  // 修改 Prefix 的背景色
+pace::option::PostfixForecolor; // 修改 Postfix 的前景色
+pace::option::PostfixBackcolor; // 修改 Postfix 的背景色
+pace::option::StartForecolor;   // 修改 Starting 的前景色
+pace::option::StartBackcolor;   // 修改 Starting 的背景色
+pace::option::EndForecolor;     // 修改 Ending 的前景色
+pace::option::EndBackcolor;     // 修改 Ending 的背景色
+pace::option::FillerForecolor;  // 修改 Filler 的前景色
+pace::option::FillerBackcolor;  // 修改 Filler 的背景色
+pace::option::LeadForecolor;    // 修改 Lead 的前景色
+pace::option::LeadBackcolor;    // 修改 Lead 的背景色
+pace::option::InfoForecolor;    // 修改 Divider、Percent、Counter、Speed、Elapsed 和 ETA 的前景色
+pace::option::InfoBackcolor;    // 修改 Divider、Percent、Counter、Speed、Elapsed 和 ETA 的背景色
 ```
 
 且配置类型具有同名但命名风格不同的方法。
@@ -720,13 +747,20 @@ pace::option::Magnitude; // 调整 Speed 部分的进位倍率
 pace::option::Quota;   // 调整任务数量
 pace::option::Divider; // 修改位于两个元素之间的间隔符
 
-pace::option::PrefixColor;  // 修改 Prefix 的颜色
-pace::option::PostfixColor; // 修改 Postfix 的颜色
-pace::option::StartColor;   // 修改 Starting 的颜色
-pace::option::EndColor;     // 修改 Ending 的颜色
-pace::option::FillerColor;  // 修改 Filler 的颜色
-pace::option::LeadColor;    // 修改 Lead 的颜色
-pace::option::InfoColor;    // 修改 Divider、Percent、Counter、Speed、Elapsed 和 ETA 的颜色
+pace::option::PrefixForecolor;  // 修改 Prefix 的前景色
+pace::option::PrefixBackcolor;  // 修改 Prefix 的背景色
+pace::option::PostfixForecolor; // 修改 Postfix 的前景色
+pace::option::PostfixBackcolor; // 修改 Postfix 的背景色
+pace::option::StartForecolor;   // 修改 Starting 的前景色
+pace::option::StartBackcolor;   // 修改 Starting 的背景色
+pace::option::EndForecolor;     // 修改 Ending 的前景色
+pace::option::EndBackcolor;     // 修改 Ending 的背景色
+pace::option::FillerForecolor;  // 修改 Filler 的前景色
+pace::option::FillerBackcolor;  // 修改 Filler 的背景色
+pace::option::LeadForecolor;    // 修改 Lead 的前景色
+pace::option::LeadBackcolor;    // 修改 Lead 的背景色
+pace::option::InfoForecolor;    // 修改 Divider、Percent、Counter、Speed、Elapsed 和 ETA 的前景色
+pace::option::InfoBackcolor;    // 修改 Divider、Percent、Counter、Speed、Elapsed 和 ETA 的背景色
 ```
 
 且配置类型具有同名但命名风格不同的方法。

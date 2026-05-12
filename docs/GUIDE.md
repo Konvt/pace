@@ -486,14 +486,22 @@ pace::option::Magnitude; // Adjust the carry ratio used in the Speed section
 pace::option::Quota;   // Adjust the task count
 pace::option::Divider; // Modify the separator between two elements
 
-pace::option::PrefixColor;  // Modify the color of Prefix
-pace::option::PostfixColor; // Modify the color of Postfix
-pace::option::StartColor;   // Modify the color of Starting
-pace::option::EndColor;     // Modify the color of Ending
-pace::option::FillerColor;  // Modify the color of Filler
-pace::option::RemainColor;  // Modify the color of Remain
-pace::option::LeadColor;    // Modify the color of Lead
-pace::option::InfoColor;    // Modify the color of Divider, Percent, Counter, Speed, Elapsed, and ETA
+pace::option::PrefixForecolor;  // Modify the foreground color of Prefix
+pace::option::PrefixBackcolor;  // Modify the background color of Prefix
+pace::option::PostfixForecolor; // Modify the foreground color of Postfix
+pace::option::PostfixBackcolor; // Modify the background color of Postfix
+pace::option::StartForecolor;   // Modify the foreground color of Starting
+pace::option::StartBackcolor;   // Modify the background color of Starting
+pace::option::EndForecolor;     // Modify the foreground color of Ending
+pace::option::EndBackcolor;     // Modify the background color of Ending
+pace::option::FillerForecolor;  // Modify the foreground color of Filler
+pace::option::FillerBackcolor;  // Modify the background color of Filler
+pace::option::RemainForecolor;  // Modify the foreground color of Remain
+pace::option::RemainBackcolor;  // Modify the background color of Remain
+pace::option::LeadForecolor;    // Modify the foreground color of Lead
+pace::option::LeadBackcolor;    // Modify the background color of Lead
+pace::option::InfoForecolor;    // Modify the foreground color of Divider, Percent, Counter, Speed, Elapsed, and ETA
+pace::option::InfoBackcolor;    // Modify the background color of Divider, Percent, Counter, Speed, Elapsed, and ETA
 ```
 
 The configuration type also provides methods with the same names but different naming styles.
@@ -569,14 +577,22 @@ pace::option::Magnitude; // Adjust the carry ratio used in the Speed section
 pace::option::Quota;   // Adjust the task count
 pace::option::Divider; // Modify the separator placed between two elements
 
-pace::option::PrefixColor;  // Modify the color of Prefix
-pace::option::PostfixColor; // Modify the color of Postfix
-pace::option::StartColor;   // Modify the color of Starting
-pace::option::EndColor;     // Modify the color of Ending
-pace::option::FillerColor;  // Modify the color of Filler
-pace::option::RemainColor;  // Modify the color of Remain
-pace::option::LeadColor;    // Modify the color of Lead
-pace::option::InfoColor;    // Modify the color of Divider, Percent, Counter, Speed, Elapsed, and ETA
+pace::option::PrefixForecolor;  // Modify the foreground color of Prefix
+pace::option::PrefixBackcolor;  // Modify the background color of Prefix
+pace::option::PostfixForecolor; // Modify the foreground color of Postfix
+pace::option::PostfixBackcolor; // Modify the background color of Postfix
+pace::option::StartForecolor;   // Modify the foreground color of Starting
+pace::option::StartBackcolor;   // Modify the background color of Starting
+pace::option::EndForecolor;     // Modify the foreground color of Ending
+pace::option::EndBackcolor;     // Modify the background color of Ending
+pace::option::FillerForecolor;  // Modify the foreground color of Filler
+pace::option::FillerBackcolor;  // Modify the background color of Filler
+pace::option::RemainForecolor;  // Modify the foreground color of Remain
+pace::option::RemainBackcolor;  // Modify the background color of Remain
+pace::option::LeadForecolor;    // Modify the foreground color of Lead
+pace::option::LeadBackcolor;    // Modify the background color of Lead
+pace::option::InfoForecolor;    // Modify the foreground color of Divider, Percent, Counter, Speed, Elapsed, and ETA
+pace::option::InfoBackcolor;    // Modify the background color of Divider, Percent, Counter, Speed, Elapsed, and ETA
 ```
 
 The configuration type also provides methods with the same names but different naming styles.
@@ -624,10 +640,14 @@ pace::option::Magnitude; // Adjust the carry ratio used in the Speed section
 pace::option::Quota;   // Adjust the task count
 pace::option::Divider; // Modify the separator placed between two elements
 
-pace::option::PrefixColor;  // Modify the color of Prefix
-pace::option::PostfixColor; // Modify the color of Postfix
-pace::option::LeadColor;    // Modify the color of Lead
-pace::option::InfoColor;    // Modify the color of Divider, Percent, Counter, Speed, Elapsed, and ETA
+pace::option::PrefixForecolor;  // Modify the foreground color of Prefix
+pace::option::PrefixBackcolor;  // Modify the background color of Prefix
+pace::option::PostfixForecolor; // Modify the foreground color of Postfix
+pace::option::PostfixBackcolor; // Modify the background color of Postfix
+pace::option::LeadForecolor;    // Modify the foreground color of Lead
+pace::option::LeadBackcolor;    // Modify the background color of Lead
+pace::option::InfoForecolor;    // Modify the foreground color of Divider, Percent, Counter, Speed, Elapsed, and ETA
+pace::option::InfoBackcolor;    // Modify the background color of Divider, Percent, Counter, Speed, Elapsed, and ETA
 ```
 
 The configuration type also provides methods with the same names but different naming styles.
@@ -676,13 +696,20 @@ pace::option::Magnitude; // Adjust the carry multiplier used in the Speed sectio
 pace::option::Quota;   // Adjust the task count
 pace::option::Divider; // Modify the separator placed between two elements
 
-pace::option::PrefixColor;  // Modify the color of Prefix
-pace::option::PostfixColor; // Modify the color of Postfix
-pace::option::StartColor;   // Modify the color of Starting
-pace::option::EndColor;     // Modify the color of Ending
-pace::option::FillerColor;  // Modify the color of Filler
-pace::option::LeadColor;    // Modify the color of Lead
-pace::option::InfoColor;    // Modify the color of Divider, Percent, Counter, Speed, Elapsed, and ETA
+pace::option::PrefixForecolor;  // Modify the foreground color of Prefix
+pace::option::PrefixBackcolor;  // Modify the background color of Prefix
+pace::option::PostfixForecolor; // Modify the foreground color of Postfix
+pace::option::PostfixBackcolor; // Modify the background color of Postfix
+pace::option::StartForecolor;   // Modify the foreground color of Starting
+pace::option::StartBackcolor;   // Modify the background color of Starting
+pace::option::EndForecolor;     // Modify the foreground color of Ending
+pace::option::EndBackcolor;     // Modify the background color of Ending
+pace::option::FillerForecolor;  // Modify the foreground color of Filler
+pace::option::FillerBackcolor;  // Modify the background color of Filler
+pace::option::LeadForecolor;    // Modify the foreground color of Lead
+pace::option::LeadBackcolor;    // Modify the background color of Lead
+pace::option::InfoForecolor;    // Modify the foreground color of Divider, Percent, Counter, Speed, Elapsed, and ETA
+pace::option::InfoBackcolor;    // Modify the background color of Divider, Percent, Counter, Speed, Elapsed, and ETA
 ```
 
 In addition, configuration types provide methods with the same names but in different naming styles.
@@ -733,13 +760,20 @@ pace::option::Magnitude; // Adjust the carry multiplier used in the Speed sectio
 pace::option::Quota;   // Adjust the task count
 pace::option::Divider; // Modify the separator placed between two elements
 
-pace::option::PrefixColor;  // Modify the color of Prefix
-pace::option::PostfixColor; // Modify the color of Postfix
-pace::option::StartColor;   // Modify the color of Starting
-pace::option::EndColor;     // Modify the color of Ending
-pace::option::FillerColor;  // Modify the color of Filler
-pace::option::LeadColor;    // Modify the color of Lead
-pace::option::InfoColor;    // Modify the color of Divider, Percent, Counter, Speed, Elapsed, and ETA
+pace::option::PrefixForecolor;  // Modify the foreground color of Prefix
+pace::option::PrefixBackcolor;  // Modify the background color of Prefix
+pace::option::PostfixForecolor; // Modify the foreground color of Postfix
+pace::option::PostfixBackcolor; // Modify the background color of Postfix
+pace::option::StartForecolor;   // Modify the foreground color of Starting
+pace::option::StartBackcolor;   // Modify the background color of Starting
+pace::option::EndForecolor;     // Modify the foreground color of Ending
+pace::option::EndBackcolor;     // Modify the background color of Ending
+pace::option::FillerForecolor;  // Modify the foreground color of Filler
+pace::option::FillerBackcolor;  // Modify the background color of Filler
+pace::option::LeadForecolor;    // Modify the foreground color of Lead
+pace::option::LeadBackcolor;    // Modify the background color of Lead
+pace::option::InfoForecolor;    // Modify the foreground color of Divider, Percent, Counter, Speed, Elapsed, and ETA
+pace::option::InfoBackcolor;    // Modify the background color of Divider, Percent, Counter, Speed, Elapsed, and ETA
 ```
 
 In addition, configuration types provide methods with the same names but in different naming styles.

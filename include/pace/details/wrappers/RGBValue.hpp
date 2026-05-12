@@ -31,7 +31,7 @@ namespace pace {
           }
 
 #ifdef PACE_NOSTYLE
-          encoding_ = Palette::None;
+          encoding_ = render::Paint::None;
 #else
           encoding_   = render::Paint::Xterm24bit;
           value_.hex_ = 0;

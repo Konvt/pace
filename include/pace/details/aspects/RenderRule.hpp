@@ -148,7 +148,10 @@ namespace pace {
             wrappers::Brush<std::reference_wrapper<const console::Escode>, wrappers::Brush<Op>>>>::type
           clear_then_dye( Op rgb, bool style_off ) const
         {
-#ifndef PACE_NOSTYLE
+#ifdef PACE_NOSTYLE
+          (void)rgb;
+          (void)style_off;
+#else
           if ( !style_off && rules_[utils::to_underlying( Chroma::Colored )] )
             return with_clear( style_off ).append( std::move( rgb ) );
 #endif
