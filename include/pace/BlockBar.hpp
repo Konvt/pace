@@ -33,11 +33,12 @@ namespace pace {
   PACE__PROVIDE_FOR( config::Block, option::Colored, true );
   PACE__PROVIDE_FOR( config::Block, option::FontBold, true );
   PACE__PROVIDE_FOR( config::Block, option::Reversed, false );
+  PACE__PROVIDE_FOR( config::Block, option::ShowQuota, true );
   PACE__PROVIDE_FOR( config::Block, option::BarWidth, 30 );
   PACE__PROVIDE_FOR( config::Block, option::Magnitude, 1000 );
   PACE__PROVIDE_FOR( config::Block, option::Filler, u8"\u2588" );
-  PACE__PROVIDE_FOR( config::Block, option::Remain, u8" " );
-  PACE__PROVIDE_FOR( config::Block, option::Divider, u8" | " );
+  PACE__PROVIDE_FOR( config::Block, option::Remain, " " );
+  PACE__PROVIDE_FOR( config::Block, option::Divider, " | " );
   PACE__PROVIDE_FOR( config::Block, option::InfoForecolor, Color::Cyan );
   template<>
   struct pace::config::ProvideFor<config::Block, option::Projection> {
@@ -56,7 +57,7 @@ namespace pace {
   };
   template<>
   struct pace::config::ProvideFor<config::Block, option::SpeedUnit> {
-    static option::SpeedUnit provide() { return option::SpeedUnit( { u8"Hz", u8"kHz", u8"MHz", u8"GHz" } ); }
+    static option::SpeedUnit provide() { return option::SpeedUnit( { "Hz", "kHz", "MHz", "GHz" } ); }
   };
 
 } // namespace pace

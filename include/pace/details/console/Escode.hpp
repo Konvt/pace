@@ -57,10 +57,10 @@ namespace pace {
       PACE__CXX17_INLINE const auto fonthidden    = Escode( "8" );
       PACE__CXX17_INLINE const auto fontcrossed   = Escode( "9" );
 
-      PACE__CXX17_INLINE constexpr auto& savecursor      = u8"\x1B[s";
-      PACE__CXX17_INLINE constexpr auto& resetcursor     = u8"\x1B[u";
-      PACE__CXX17_INLINE constexpr auto& linewipe        = u8"\x1B[K";
-      PACE__CXX17_INLINE constexpr auto& prevline        = u8"\x1B[A";
+      PACE__CXX17_INLINE constexpr auto& savecursor      = "\x1B[s";
+      PACE__CXX17_INLINE constexpr auto& resetcursor     = "\x1B[u";
+      PACE__CXX17_INLINE constexpr auto& linewipe        = "\x1B[K";
+      PACE__CXX17_INLINE constexpr auto& prevline        = "\x1B[A";
       PACE__CXX17_INLINE constexpr types::Char nextline  = '\n';
       PACE__CXX17_INLINE constexpr types::Char linestart = '\r';
     } // namespace console

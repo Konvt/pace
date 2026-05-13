@@ -30,14 +30,18 @@ int main()
     } while ( bar2->active() );
   } );
   pool.emplace_back( [&dbar]() {
-    auto bar =
-      dbar.insert<pace::config::Line>( pace::option::Prefix( "No.3" ), pace::option::Quota( 1000 ) );
+    auto bar = dbar.insert<pace::config::Line>( pace::option::Prefix( "No.3" ), pace::option::Quota( 1000 ) );
     // Do some ticks, then reset the current bar before completing.
     for ( int i = 0; i < 500; ++i ) {
       bar->tick();
       this_thread::sleep_for( chrono::milliseconds( 5 ) );
     }
     bar->reset();
+
+    // passing an empty argument to delete the color
+    bar->config().info_forecolor( {} );
+    // an empty string is also fine
+    bar->config().info_forecolor( "" );
 
     // Restart a new iteration, and the "No.3" bar will reappear at the bottom of the terminal.
     for ( int i = 0; i < 400; ++i ) {

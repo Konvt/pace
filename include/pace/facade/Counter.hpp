@@ -11,34 +11,75 @@
 #include "../details/traits/C3.hpp"
 
 namespace pace {
+  namespace option {
+    // Decide whether to display the total number of tasks in the counter.
+    struct ShowQuota : PACE__DERIVING_OPTION2( ShowQuota, bool, _enable );
+  }
+
   namespace facade {
     template<typename Base, typename Derived>
     class Counter : public Base {
+      friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR void unpack( Counter& self,
+                                                                option::ShowQuota&& val ) noexcept
+      { self.show_quota_ = val.value(); }
+
+      bool show_quota_;
+
     protected:
       details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
                                         const details::render::Parameter& params ) const
       {
-        if ( params.task_quota_ == 0 )
-          pipeline << "-/-";
-
-        return pipeline << details::utils::format<details::utils::TxtLayout::Right>(
-                 details::utils::count_digits( params.task_quota_ ),
-                 details::utils::format( params.tasks_completed_ ) )
-                        << '/' << details::utils::format( params.task_quota_ );
+        if ( params.task_quota_ == 0 ) {
+          pipeline << '-';
+          if ( show_quota_ )
+            pipeline << '/' << '-';
+        } else {
+          pipeline << details::utils::format<details::utils::TxtLayout::Right>(
+            details::utils::count_digits( params.task_quota_ ),
+            details::utils::format( params.tasks_completed_ ) );
+          if ( show_quota_ )
+            pipeline << '/' << details::utils::format( params.task_quota_ );
+        }
+        return pipeline;
       }
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR std::uint32_t fixed_length() const noexcept
-      { return details::utils::count_digits( this->task_quota_ ) * 2 + 1; }
+      {
+        const auto num_digits = details::utils::count_digits( this->task_quota_ );
+        return show_quota_ ? num_digits * 2 + 1 : num_digits;
+      }
 
       template<typename... Options>
       constexpr Counter( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
       {}
 
       PACE__SPECIAL_MEMBERS( Counter );
+
+    public:
+#define PACE__METHOD( OptionName, ReturnType )                              \
+  std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ }; \
+  unpack( *this, option::OptionName( _enable ) );                           \
+  return static_cast<ReturnType>( *this )
+
+      // Decide whether to display the total number of tasks in the counter.
+      Derived& show_quota( bool _enable ) & noexcept
+      { PACE__METHOD( ShowQuota, Derived& ); }
+      Derived&& show_quota( bool _enable ) && noexcept
+      { PACE__METHOD( ShowQuota, Derived&& ); }
+
+#undef PACE__METHOD
+
+      PACE__NODISCARD bool show_quota() const noexcept
+      {
+        details::concurrent::SharedLock<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
+        return show_quota_;
+      }
     };
   } // namespace facade
 
   PACE__INHERIT_REGISTER( facade::Counter, details::aspects::Capacity );
+
+  PACE__OPTION_REGISTER( facade::Counter, option::ShowQuota );
 
   PACE__ENTAIL_REGISTER( facade::Counter,
                          details::behaviors::Indeterminate,

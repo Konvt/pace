@@ -512,7 +512,7 @@ Each progress bar has a default initial width of 30 characters. If the progress 
 
 If the progress bar should exactly occupy an entire terminal line, the progress bar type provided by pace exposes the width of all parts except the progress indicator through the `config().fixed_width()` method.
 
-> Do not directly call the `fixed_width()` method of the configuration object. Refer to the code comments for the specific reason.
+> Do not directly call the `fixed_width()` method of the configuration object. Refer to the code comments ([BasicConfig.hpp](../include/pace/prefab/BasicConfig.hpp)) for the specific reason.
 
 ```cxx
 pace::ProgressBar<> bar;

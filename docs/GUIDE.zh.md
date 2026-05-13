@@ -500,7 +500,7 @@ pace::option::InfoBackcolor;    // 修改 Divider、Percent、Counter、Speed、
 
 如果希望进度条能够恰好占满一整个终端行，pace 的进度条类型提供了 `config().fixed_width()` 方法提供除了进度指示器之外部分的宽度。
 
-> 请不要直接调用配置对象的 `fixed_width()` 方法，具体原因请参照代码注释。
+> 请不要直接调用配置对象的 `fixed_width()` 方法，具体原因请参照代码注释（[BasicConfig.hpp](../include/pace/prefab/BasicConfig.hpp)）。
 
 ```cxx
 pace::ProgressBar<> bar;

@@ -18,7 +18,10 @@ namespace pace {
 
         PACE__CXX20_CNSTXPR void from_str( const types::Char* hex_str, types::Size length ) &
         {
-          if ( ( length != 7 && length != 4 ) || *hex_str != '#' )
+          if ( length == 0 ) {
+            encoding_ = render::Paint::None;
+            return;
+          } else if ( ( length != 7 && length != 4 ) || *hex_str != '#' )
             throw exception::InvalidArgument( charcodes::make_literal( "pace: invalid hex color format" ) );
 
           for ( types::Size i = 1; i < length; i++ ) {

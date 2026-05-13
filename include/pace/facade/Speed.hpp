@@ -30,8 +30,8 @@ namespace pace {
     /**
      * A wrapper that stores ordered units for information rate formatting (e.g. B/s, kB/s).
      *
-     * Encapsulates four consecutive scaling units where each unit is scaled by the
-     * configured magnitude factor (default 1,000x if no `option::Magnitude` is explicitly set).
+     * Encapsulates various consecutive scaling units where each unit is scaled
+     * by the configured magnitude factor.
      *
      * Unit order MUST be ascending: [base_unit, scaled_unit_1, scaled_unit_2, scaled_unit_3].
      *
@@ -46,7 +46,7 @@ namespace pace {
      * @throw exception::InvalidArgument
      *   Thrown if any input string fails UTF-8 validation or the array size mismatches.
      */
-    struct SpeedUnit : details::wrappers::OptionPacket<std::array<details::charcodes::U8Raw, 4>> {
+    struct SpeedUnit : details::wrappers::OptionPacket<std::vector<details::charcodes::U8Raw>> {
       PACE__CXX20_CNSTXPR SpeedUnit() = default;
 
       /**
@@ -58,12 +58,13 @@ namespace pace {
        * The given each unit will be treated as 1,000 times greater than the previous one
        * (from left to right).
        */
-      PACE__CXX20_CNSTXPR SpeedUnit( std::array<details::types::String, 4> _units )
+      PACE__CXX20_CNSTXPR SpeedUnit( std::vector<details::types::String> _units )
       {
+        data_.reserve( _units.size() );
         std::transform(
           std::make_move_iterator( _units.begin() ),
           std::make_move_iterator( _units.end() ),
-          data_.begin(),
+          std::back_inserter( data_ ),
           []( details::types::String&& ele ) { return details::charcodes::U8Raw( std::move( ele ) ); } );
       }
 #ifdef __cpp_lib_char8_t
@@ -72,11 +73,12 @@ namespace pace {
        * The given each unit will be treated as 1,000 times greater than the previous one
        * (from left to right).
        */
-      PACE__CXX20_CNSTXPR SpeedUnit( std::array<details::types::LitU8, 4> _units )
+      PACE__CXX20_CNSTXPR SpeedUnit( const std::vector<details::types::LitU8>& _units )
       {
+        data_.reserve( _units.size() );
         std::transform( _units.cbegin(),
                         _units.cend(),
-                        data_.begin(),
+                        std::back_inserter( data_ ),
                         []( const details::types::LitU8& ele ) { return details::charcodes::U8Raw( ele ); } );
       }
 #endif
@@ -86,30 +88,33 @@ namespace pace {
   namespace facade {
     template<typename Base, typename Derived>
     class Speed : public Base {
-      friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Speed& self,
-                                                                option::Magnitude&& val ) noexcept
-      { self.magnitude_ = val.value(); }
-      friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Speed& self,
-                                                                option::SpeedUnit&& val ) noexcept
+      friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Speed& self, option::Magnitude&& val )
       {
-        self.units_            = std::move( val.value() );
-        self.nth_longest_unit_ = static_cast<std::uint8_t>(
-          details::utils::distance( self.units_.cbegin(),
-                                    std::max_element( self.units_.cbegin(),
-                                                      self.units_.cend(),
-                                                      []( const details::charcodes::U8Raw& a,
-                                                          const details::charcodes::U8Raw& b ) noexcept {
-                                                        return a.width() < b.width();
-                                                      } ) ) );
+        if ( val.value() <= 1 )
+          PACE__UNLIKELY throw exception::InvalidArgument( "speed magnitude must be greater than 1" );
+        self.magnitude_ = val.value();
+      }
+      friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Speed& self, option::SpeedUnit&& val )
+      {
+        if ( val.value().empty() )
+          PACE__UNLIKELY throw exception::InvalidArgument( "a speed with no units is meaningless" );
+        self.units_        = std::move( val.value() );
+        self.widest_width_ = std::max_element( self.units_.cbegin(),
+                                               self.units_.cend(),
+                                               []( const details::charcodes::U8Raw& a,
+                                                   const details::charcodes::U8Raw& b ) noexcept {
+                                                 return a.width() < b.width();
+                                               } )
+                               ->width();
       }
 
       // The width prepared for "999.99 "
-      static constexpr auto& _default_speed = u8"   inf ";
+      static constexpr auto& _default_speed = "   inf ";
 
     protected:
-      std::array<details::charcodes::U8Raw, 4> units_;
+      std::vector<details::charcodes::U8Raw> units_;
+      details::types::Size widest_width_;
       std::uint16_t magnitude_;
-      std::uint8_t nth_longest_unit_;
 
       details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
                                         const details::render::Parameter& params ) const
@@ -117,44 +122,46 @@ namespace pace {
         if ( params.task_quota_ == 0 )
           PACE__UNLIKELY return pipeline
             << details::utils::format<details::utils::TxtLayout::Right>( fixed_length(),
-                                                                         u8"-- " + units_.front() );
-
-        /* Since the cube of the maximum value of std::uint16_t does not exceed
-         * the representable range of std::uint64_t,
-         * we choose to use std::uint16_t to represent the scaling magnitude. */
-        const std::uint64_t tier1 = magnitude_ * magnitude_;
-        const std::uint64_t tier2 = tier1 * magnitude_;
-        // tier0 is magnitude_ itself
+                                                                         "-- " + units_.front() );
 
         const auto seconds_passed =
           std::chrono::duration<details::types::Float>( params.elapsed_time_ ).count();
-        // zero or negetive is invalid
         const details::types::Float frequency = seconds_passed <= 0.0
                                                 ? ( std::numeric_limits<details::types::Float>::max )()
                                                 : params.tasks_completed_ / seconds_passed;
 
-        details::types::String orig;
-        if ( frequency < magnitude_ )
-          orig = details::utils::format( frequency, 2 ) + ' ' + units_[0];
-        else if ( frequency < tier1 ) // "kilo"
-          orig = details::utils::format( frequency / magnitude_, 2 ) + ' ' + units_[1];
-        else if ( frequency < tier2 ) // "Mega"
-          orig = details::utils::format( frequency / tier1, 2 ) + ' ' + units_[2];
-        else { // "Giga" or "infinity"
-          const details::types::Float remains =
-            magnitude_ > 0 ? frequency / tier2 : std::numeric_limits<details::types::Float>::max();
-          if ( remains > magnitude_ )
-            PACE__UNLIKELY orig = _default_speed + units_[3];
+        bool overflow                    = false;
+        details::types::Size num_powered = 0;
+        /* Since the cube of the maximum value of std::uint16_t does not exceed
+         * the representable range of std::uint64_t,
+         * we choose to use std::uint16_t to represent the scaling magnitude. */
+        std::uint64_t tier               = 1;
+        PACE__ASSERT( magnitude_ > 1 );
+        while ( !overflow && frequency >= static_cast<details::types::Float>( tier ) * magnitude_ ) {
+          ++num_powered;
+          const auto next_tier = tier * magnitude_;
+          PACE__ASSERT( tier != next_tier );
+          if ( tier < next_tier )
+            tier = next_tier;
           else
-            orig = details::utils::format( remains, 2 ) + ' ' + units_[3];
+            overflow = true;
         }
+
+        PACE__ASSERT( units_.empty() == false );
+        num_powered = std::min( num_powered, units_.size() - 1 );
+        details::types::String orig;
+        if ( overflow )
+          orig = _default_speed;
+        else
+          orig = details::utils::format( frequency / tier, 2 ) + ' ';
+        orig += units_[num_powered];
 
         return pipeline << details::utils::format<details::utils::TxtLayout::Right>( fixed_length(),
                                                                                      std::move( orig ) );
       }
 
       PACE__NODISCARD PACE__FORCEINLINE constexpr details::types::Size fixed_length() const noexcept
-      { return sizeof( _default_speed ) - 1 + units_[nth_longest_unit_].width(); }
+      { return sizeof( _default_speed ) - 1 + widest_width_; }
 
       template<typename... Options>
       PACE__CXX20_CNSTXPR Speed( details::traits::TypeSet<Options...> tag ) : Base( tag )
@@ -170,9 +177,9 @@ namespace pace {
       PACE__SPECIAL_MEMBERS_CX( Speed, PACE__CXX20_CNSTXPR );
 
     public:
-#define PACE__METHOD( OptionName, ParamName, ReturnType )                   \
+#define PACE__METHOD( OptionName, ParamName, Operation, ReturnType )        \
   std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ }; \
-  unpack( *this, option::OptionName( std::move( ParamName ) ) );            \
+  unpack( *this, option::OptionName( Operation( ParamName ) ) );            \
   return static_cast<ReturnType>( *this )
 
       /**
@@ -184,20 +191,20 @@ namespace pace {
        * The given each unit will be treated as 1,000 times greater than the previous one
        * (from left to right).
        */
-      Derived& speed_unit( std::array<details::types::String, 4> _units ) &
-      { PACE__METHOD( SpeedUnit, _units, Derived& ); }
-      Derived&& speed_unit( std::array<details::types::String, 4> _units ) &&
-      { PACE__METHOD( SpeedUnit, _units, Derived&& ); }
+      Derived& speed_unit( std::vector<details::types::String> _units ) &
+      { PACE__METHOD( SpeedUnit, _units, std::move, Derived& ); }
+      Derived&& speed_unit( std::vector<details::types::String> _units ) &&
+      { PACE__METHOD( SpeedUnit, _units, std::move, Derived&& ); }
 #ifdef __cpp_lib_char8_t
       /**
        * @param _units
        * The given each unit will be treated as 1,000 times greater than the previous one
        * (from left to right).
        */
-      Derived& speed_unit( std::array<details::types::LitU8, 4> _units ) &
-      { PACE__METHOD( SpeedUnit, _units, Derived& ); }
-      Derived&& speed_unit( std::array<details::types::LitU8, 4> _units ) &&
-      { PACE__METHOD( SpeedUnit, _units, Derived&& ); }
+      Derived& speed_unit( const std::vector<details::types::LitU8>& _units ) &
+      { PACE__METHOD( SpeedUnit, _units, , Derived& ); }
+      Derived&& speed_unit( const std::vector<details::types::LitU8>& _units ) &&
+      { PACE__METHOD( SpeedUnit, _units, , Derived&& ); }
 #endif
 
       /**
@@ -208,16 +215,17 @@ namespace pace {
        * (e.g. 1000 -> "1k", 1000000 -> "1M").
        */
       Derived& magnitude( std::uint16_t _magnitude ) & noexcept
-      { PACE__METHOD( Magnitude, _magnitude, Derived& ); }
+      { PACE__METHOD( Magnitude, _magnitude, , Derived& ); }
       Derived&& magnitude( std::uint16_t _magnitude ) && noexcept
-      { PACE__METHOD( Magnitude, _magnitude, Derived&& ); }
+      { PACE__METHOD( Magnitude, _magnitude, , Derived&& ); }
 
 #undef PACE__METHOD
 
       PACE__CXX20_CNSTXPR void swap( Speed& other ) & noexcept
       {
         units_.swap( other.units_ );
-        std::swap( nth_longest_unit_, other.nth_longest_unit_ );
+        std::swap( widest_width_, other.widest_width_ );
+        std::swap( magnitude_, other.magnitude_ );
         Base::swap( other );
       }
     };

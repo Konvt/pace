@@ -33,14 +33,15 @@ namespace pace {
   PACE__PROVIDE_FOR( config::Line, option::Colored, true );
   PACE__PROVIDE_FOR( config::Line, option::FontBold, true );
   PACE__PROVIDE_FOR( config::Line, option::Reversed, false );
+  PACE__PROVIDE_FOR( config::Line, option::ShowQuota, true );
   PACE__PROVIDE_FOR( config::Line, option::Shift, -2 );
   PACE__PROVIDE_FOR( config::Line, option::BarWidth, 30 );
   PACE__PROVIDE_FOR( config::Line, option::Magnitude, 1000 );
-  PACE__PROVIDE_FOR( config::Line, option::Starting, u8"[" );
-  PACE__PROVIDE_FOR( config::Line, option::Ending, u8"]" );
-  PACE__PROVIDE_FOR( config::Line, option::Remain, u8" " );
-  PACE__PROVIDE_FOR( config::Line, option::Filler, u8"=" );
-  PACE__PROVIDE_FOR( config::Line, option::Divider, u8" | " );
+  PACE__PROVIDE_FOR( config::Line, option::Starting, "[" );
+  PACE__PROVIDE_FOR( config::Line, option::Ending, "]" );
+  PACE__PROVIDE_FOR( config::Line, option::Remain, " " );
+  PACE__PROVIDE_FOR( config::Line, option::Filler, "=" );
+  PACE__PROVIDE_FOR( config::Line, option::Divider, " | " );
   PACE__PROVIDE_FOR( config::Line, option::InfoForecolor, Color::Cyan );
   template<>
   struct pace::config::ProvideFor<config::Line, option::Projection> {
@@ -52,7 +53,7 @@ namespace pace {
   };
   template<>
   struct pace::config::ProvideFor<config::Line, option::SpeedUnit> {
-    static option::SpeedUnit provide() { return option::SpeedUnit( { u8"Hz", u8"kHz", u8"MHz", u8"GHz" } ); }
+    static option::SpeedUnit provide() { return option::SpeedUnit( { "Hz", "kHz", "MHz", "GHz" } ); }
   };
 } // namespace pace
 

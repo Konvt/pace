@@ -14,7 +14,7 @@ namespace pace {
   namespace facade {
     template<typename Base, typename Derived>
     class Percentage : public Base {
-      static constexpr auto& _default_percent = u8" --.--%";
+      static constexpr auto& _default_percent = " --.--%";
 
     protected:
       details::io::CharPipeline& build( details::io::CharPipeline& pipeline,

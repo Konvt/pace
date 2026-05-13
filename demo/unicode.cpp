@@ -14,7 +14,8 @@ int main()
                       pace::option::Lead( u8"🚀" ),
                       pace::option::Filler( u8"急" ),
                       pace::option::Postfix( u8"한국어" ),
-                      pace::option::Quota( iteration ) );
+                      pace::option::Quota( iteration ),
+                      pace::option::ShowQuota( false ) );
 
   auto start = chrono::high_resolution_clock::now();
   for ( size_t i = 0; i < iteration; ++i )

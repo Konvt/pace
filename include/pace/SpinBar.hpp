@@ -33,9 +33,10 @@ namespace pace {
 
   PACE__PROVIDE_FOR( config::Spin, option::Colored, true );
   PACE__PROVIDE_FOR( config::Spin, option::FontBold, true );
+  PACE__PROVIDE_FOR( config::Spin, option::ShowQuota, true );
   PACE__PROVIDE_FOR( config::Spin, option::Shift, -3 );
   PACE__PROVIDE_FOR( config::Spin, option::Magnitude, 1000 );
-  PACE__PROVIDE_FOR( config::Spin, option::Divider, u8" | " );
+  PACE__PROVIDE_FOR( config::Spin, option::Divider, " | " );
   PACE__PROVIDE_FOR( config::Spin, option::InfoForecolor, Color::Cyan );
   template<>
   struct pace::config::ProvideFor<config::Spin, option::Projection> {
@@ -44,11 +45,11 @@ namespace pace {
   };
   template<>
   struct pace::config::ProvideFor<config::Spin, option::Lead> {
-    static option::Lead provide() { return option::Lead( { u8"/", u8"-", u8"\\", u8"|" } ); }
+    static option::Lead provide() { return option::Lead( { "/", "-", "\\", "|" } ); }
   };
   template<>
   struct pace::config::ProvideFor<config::Spin, option::SpeedUnit> {
-    static option::SpeedUnit provide() { return option::SpeedUnit( { u8"Hz", u8"kHz", u8"MHz", u8"GHz" } ); }
+    static option::SpeedUnit provide() { return option::SpeedUnit( { "Hz", "kHz", "MHz", "GHz" } ); }
   };
 
   namespace details {
@@ -98,7 +99,8 @@ namespace pace {
         }
 
         // SpinBar does not contain a progress bar.
-        std::uint64_t fixed_width() const noexcept final { return 0; }
+        std::uint64_t fixed_width() const noexcept final
+        { return Base::fixed_width() + this->projection_.test( 0 ); }
       };
     } // namespace render
   } // namespace details

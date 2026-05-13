@@ -10,9 +10,9 @@ namespace pace {
       template<typename Base, typename Derived>
       class Timer : public Base {
       protected:
-        static constexpr auto& _default_timer       = u8"??:??:??";
+        static constexpr auto& _default_timer       = "??:??:??";
         static constexpr types::Char _overflow_char = '#';
-        static constexpr auto& _default_overflow    = u8"##:##:##";
+        static constexpr auto& _default_overflow    = "##:##:##";
 
         PACE__NODISCARD PACE__FORCEINLINE io::CharPipeline& to_hms( io::CharPipeline& pipeline,
                                                                     details::types::Tempus duration ) const
