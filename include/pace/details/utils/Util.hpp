@@ -127,41 +127,43 @@ namespace pace {
         return formatted;
       }
 
-      enum class TxtLayout { Left, Right, Center }; // text layout
+      enum class TxtAlign { Left, Right, Center }; // text layout
       // Format the `str`.
-      template<TxtLayout Style, typename Str>
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR auto format( types::Size width, Str&& str )
+      template<TxtAlign Alignment, typename String>
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR auto format_as( String&& str,
+                                                                            types::Size width,
+                                                                            types::Char align_ch = ' ' )
         noexcept( false ) ->
-        typename std::enable_if<std::is_same<typename std::decay<Str>::type, types::String>::value,
+        typename std::enable_if<std::is_same<typename std::decay<String>::type, types::String>::value,
                                 types::String>::type
       {
         if ( width == 0 )
           PACE__UNLIKELY return {};
         if ( str.size() >= width )
           return str;
-        if PACE__CXX17_CNSTXPR ( Style == TxtLayout::Right )
-          return types::String( width - str.size(), ' ' ) + std::forward<Str>( str );
-        else if PACE__CXX17_CNSTXPR ( Style == TxtLayout::Left ) {
+        if PACE__CXX17_CNSTXPR ( Alignment == TxtAlign::Right )
+          return types::String( width - str.size(), align_ch ) + std::forward<String>( str );
+        else if PACE__CXX17_CNSTXPR ( Alignment == TxtAlign::Left ) {
 #if PACE__CXX17
-          if PACE__CXX17_CNSTXPR ( std::is_rvalue_reference_v<Str&&> && !std::is_const_v<Str> ) {
-            str.append( width - str.size(), ' ' );
+          if PACE__CXX17_CNSTXPR ( std::is_rvalue_reference_v<String&&> && !std::is_const_v<String> ) {
+            str.append( width - str.size(), align_ch );
             return str;
           } else
 #endif
-            return std::forward<Str>( str ) + types::String( width - str.size(), ' ' );
+            return std::forward<String>( str ) + types::String( width - str.size(), align_ch );
         } else {
           width -= str.size();
-          const types::Size l_blank = width / 2;
-          return types::String( l_blank, ' ' ) + std::forward<Str>( str )
-               + types::String( width - l_blank, ' ' );
+          const types::Size left_align = width / 2;
+          return types::String( left_align, align_ch ) + std::forward<String>( str )
+               + types::String( width - left_align, align_ch );
         }
       }
 #ifdef __cpp_lib_string_view
-      template<TxtLayout Style>
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String format( types::Size width,
-                                                                                  types::ROStr str )
-        noexcept( false )
-      { return format<Style>( width, types::String( str ) ); }
+      template<TxtAlign Alignment>
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
+        types::String format_as( types::ROStr str, types::Size width, types::Char align_ch = ' ' )
+          noexcept( false )
+      { return format_as<Alignment>( types::String( str ), width, align_ch ); }
 #endif
     } // namespace utils
   } // namespace details

@@ -25,8 +25,9 @@ namespace pace {
         return pipeline << this->clear_then_dye(
                  details::console::Dualcolor( this->lead_forecolor_, this->lead_backcolor_ ),
                  params.style_off_ )
-                        << details::utils::format<details::utils::TxtLayout::Left>( this->len_longest_lead_,
-                                                                                    this->lead_[frame_cnt] );
+                        << details::utils::format_as<details::utils::TxtAlign::Left>(
+                             this->lead_[frame_cnt],
+                             this->len_longest_lead_ );
       }
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR details::types::Size fixed_length() const noexcept

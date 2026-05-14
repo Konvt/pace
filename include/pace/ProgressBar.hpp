@@ -42,6 +42,8 @@ namespace pace {
   PACE__PROVIDE_FOR( config::Line, option::Remain, " " );
   PACE__PROVIDE_FOR( config::Line, option::Filler, "=" );
   PACE__PROVIDE_FOR( config::Line, option::Divider, " | " );
+  PACE__PROVIDE_FOR( config::Line, option::ElapsedFormat, "+%H:%M:%S" );
+  PACE__PROVIDE_FOR( config::Line, option::ETAFormat, "-%H:%M:%S" );
   PACE__PROVIDE_FOR( config::Line, option::InfoForecolor, Color::Cyan );
   template<>
   struct pace::config::ProvideFor<config::Line, option::Projection> {

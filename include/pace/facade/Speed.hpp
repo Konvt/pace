@@ -96,8 +96,6 @@ namespace pace {
       }
       friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Speed& self, option::SpeedUnit&& val )
       {
-        if ( val.value().empty() )
-          PACE__UNLIKELY throw exception::InvalidArgument( "a speed with no units is meaningless" );
         self.units_        = std::move( val.value() );
         self.widest_width_ = std::max_element( self.units_.cbegin(),
                                                self.units_.cend(),
@@ -111,18 +109,18 @@ namespace pace {
       // The width prepared for "999.99 "
       static constexpr auto& _default_speed = "   inf ";
 
-    protected:
       std::vector<details::charcodes::U8Raw> units_;
       details::types::Size widest_width_;
       std::uint16_t magnitude_;
 
+    protected:
       details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
                                         const details::render::Parameter& params ) const
       {
         if ( params.task_quota_ == 0 )
           PACE__UNLIKELY return pipeline
-            << details::utils::format<details::utils::TxtLayout::Right>( fixed_length(),
-                                                                         "-- " + units_.front() );
+            << details::utils::format_as<details::utils::TxtAlign::Right>( "-- " + units_.front(),
+                                                                           fixed_length() );
 
         const auto seconds_passed =
           std::chrono::duration<details::types::Float>( params.elapsed_time_ ).count();
@@ -147,17 +145,17 @@ namespace pace {
             overflow = true;
         }
 
-        PACE__ASSERT( units_.empty() == false );
         num_powered = std::min( num_powered, units_.size() - 1 );
         details::types::String orig;
         if ( overflow )
           orig = _default_speed;
         else
           orig = details::utils::format( frequency / tier, 2 ) + ' ';
-        orig += units_[num_powered];
+        if ( !units_.empty() )
+          orig += units_[num_powered];
 
-        return pipeline << details::utils::format<details::utils::TxtLayout::Right>( fixed_length(),
-                                                                                     std::move( orig ) );
+        return pipeline << details::utils::format_as<details::utils::TxtAlign::Right>( std::move( orig ),
+                                                                                       fixed_length() );
       }
 
       PACE__NODISCARD PACE__FORCEINLINE constexpr details::types::Size fixed_length() const noexcept

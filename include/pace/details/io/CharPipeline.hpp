@@ -67,6 +67,13 @@ namespace pace {
             append( info.data(), info.data() + info.size() );
           return *this;
         }
+        PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& append( const charcodes::U8Char& info,
+                                                                    types::Size num = 1 ) &
+        {
+          while ( num-- )
+            append( info.as_bytes(), info.as_bytes() + info.size() );
+          return *this;
+        }
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& append( const charcodes::U8Raw& info,
                                                                     types::Size num = 1 ) &
         { return append( info.str(), num ); }
@@ -87,6 +94,7 @@ namespace pace {
         friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR typename std::enable_if<
           traits::AnyOf<std::is_same<typename std::decay<T>::type, types::Char>,
                         std::is_same<typename std::decay<T>::type, types::String>,
+                        std::is_same<typename std::decay<T>::type, charcodes::U8Char>,
                         std::is_same<typename std::decay<T>::type, charcodes::U8Raw>,
                         std::is_same<typename std::decay<T>::type, charcodes::EncodedView>>::value,
           CharPipeline&>::type

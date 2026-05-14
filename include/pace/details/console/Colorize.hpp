@@ -1,8 +1,8 @@
 #ifndef PACE_COLORIZE
 #define PACE_COLORIZE
 
+#include "../core/Core.hpp"
 #include "TrueColor.hpp"
-#include "pace/details/core/Core.hpp"
 
 namespace pace {
   namespace details {

@@ -25,8 +25,8 @@ namespace pace {
 
         auto orig = details::utils::format( params.progress_ratio_ * 100.0, 2 );
         orig.push_back( '%' );
-        return pipeline << details::utils::format<details::utils::TxtLayout::Right>( fixed_length(),
-                                                                                     std::move( orig ) );
+        return pipeline << details::utils::format_as<details::utils::TxtAlign::Right>( std::move( orig ),
+                                                                                       fixed_length() );
       }
 
       PACE__NODISCARD static PACE__FORCEINLINE PACE__CNSTEVAL details::types::Size fixed_length() noexcept

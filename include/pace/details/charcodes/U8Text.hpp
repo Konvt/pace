@@ -23,8 +23,8 @@ namespace pace {
           for ( types::Size i = 0; i < str_length; ) {
             const auto startpoint = raw_u8_str + i;
             PACE__TRUST( startpoint >= raw_u8_str );
-            auto resolved = U8Raw::next_codepoint( startpoint, str_length - i );
-            characters.emplace_back( i, U8Raw::glyph_width( resolved.first ) );
+            auto resolved = U8Char::next_codepoint( startpoint, str_length - i );
+            characters.emplace_back( i, U8Char::glyph_width( resolved.first ) );
             i += resolved.second;
           }
           return characters;

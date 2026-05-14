@@ -40,6 +40,8 @@ namespace pace {
   PACE__PROVIDE_FOR( config::Sweep, option::Ending, "]" );
   PACE__PROVIDE_FOR( config::Sweep, option::Filler, "-" );
   PACE__PROVIDE_FOR( config::Sweep, option::Divider, " | " );
+  PACE__PROVIDE_FOR( config::Sweep, option::ElapsedFormat, "+%H:%M:%S" );
+  PACE__PROVIDE_FOR( config::Sweep, option::ETAFormat, "-%H:%M:%S" );
   PACE__PROVIDE_FOR( config::Sweep, option::InfoForecolor, Color::Cyan );
   template<>
   struct pace::config::ProvideFor<config::Sweep, option::Projection> {

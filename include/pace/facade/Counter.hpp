@@ -34,9 +34,9 @@ namespace pace {
           if ( show_quota_ )
             pipeline << '/' << '-';
         } else {
-          pipeline << details::utils::format<details::utils::TxtLayout::Right>(
-            details::utils::count_digits( params.task_quota_ ),
-            details::utils::format( params.tasks_completed_ ) );
+          pipeline << details::utils::format_as<details::utils::TxtAlign::Right>(
+            details::utils::format( params.tasks_completed_ ),
+            details::utils::count_digits( params.task_quota_ ) );
           if ( show_quota_ )
             pipeline << '/' << details::utils::format( params.task_quota_ );
         }
@@ -50,8 +50,12 @@ namespace pace {
       }
 
       template<typename... Options>
-      constexpr Counter( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
-      {}
+      PACE__CXX14_CNSTXPR Counter( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
+      {
+        if PACE__CXX17_CNSTXPR ( !details::traits::TpContain<details::traits::TypeSet<Options...>,
+                                                             option::ShowQuota>::value )
+          unpack( *this, config::provide_for<Derived, option::ShowQuota>() );
+      }
 
       PACE__SPECIAL_MEMBERS( Counter );
 

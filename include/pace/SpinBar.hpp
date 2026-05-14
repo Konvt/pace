@@ -37,6 +37,8 @@ namespace pace {
   PACE__PROVIDE_FOR( config::Spin, option::Shift, -3 );
   PACE__PROVIDE_FOR( config::Spin, option::Magnitude, 1000 );
   PACE__PROVIDE_FOR( config::Spin, option::Divider, " | " );
+  PACE__PROVIDE_FOR( config::Spin, option::ElapsedFormat, "+%H:%M:%S" );
+  PACE__PROVIDE_FOR( config::Spin, option::ETAFormat, "-%H:%M:%S" );
   PACE__PROVIDE_FOR( config::Spin, option::InfoForecolor, Color::Cyan );
   template<>
   struct pace::config::ProvideFor<config::Spin, option::Projection> {

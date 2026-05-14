@@ -42,7 +42,7 @@ namespace pace {
           noexcept( std::is_nothrow_move_constructible<Effect>::value )
           : Brush()
         {
-          new ( &effect_ ) Effect( std::move( effect ) );
+          utils::construct_at<Effect>( &effect_, std::move( effect ) );
           existed_ = true;
         }
 
@@ -53,9 +53,10 @@ namespace pace {
             if PACE__CXX17_CNSTXPR ( std::is_trivially_move_constructible<Effect>::value )
               std::copy( rhs.effect_, rhs.effect_ + sizeof( Effect ), effect_ );
             else
-              new ( &effect_ ) Effect( std::move( *utils::launder_as<Effect>( &rhs.effect_ ) ) );
+              utils::construct_at<Effect>( &effect_,
+                                           std::move( *utils::launder_as<Effect>( &rhs.effect_ ) ) );
             if PACE__CXX17_CNSTXPR ( !std::is_trivially_destructible<Effect>::value )
-              utils::launder_as<Effect>( &rhs.effect_ )->~Effect();
+              utils::destroy_at( utils::launder_as<Effect>( &rhs.effect_ ) );
             std::swap( existed_, rhs.existed_ );
           }
         }
@@ -79,9 +80,9 @@ namespace pace {
             else if ( to.existed_ )
               *utils::launder_as<Effect>( to.effect_ ) = std::move( *utils::launder_as<Effect>( effect_ ) );
             else
-              new ( &to.effect_ ) Effect( std::move( *utils::launder_as<Effect>( &effect_ ) ) );
+              utils::construct_at<Effect>( &to.effect_, std::move( *utils::launder_as<Effect>( &effect_ ) ) );
             if PACE__CXX17_CNSTXPR ( !std::is_trivially_destructible<Effect>::value )
-              utils::launder_as<Effect>( &effect_ )->~Effect();
+              utils::destroy_at( utils::launder_as<Effect>( &effect_ ) );
             existed_    = false;
             to.existed_ = true;
           }
@@ -104,7 +105,7 @@ namespace pace {
         PACE__CXX20_CNSTXPR ~Brush() noexcept
         {
           if ( existed_ )
-            utils::launder_as<Effect>( effect_ )->~Effect();
+            utils::destroy_at( utils::launder_as<Effect>( &effect_ ) );
         }
 
         friend PACE__FORCEINLINE io::CharPipeline& operator<<( io::CharPipeline& pipeline,
