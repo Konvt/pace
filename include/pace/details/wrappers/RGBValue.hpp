@@ -2,6 +2,7 @@
 #define PACE_RGB_VALUE
 
 #include "../../exception/Error.hpp"
+#include "../charcodes/StringView.hpp"
 #include "../render/Paint.hpp"
 
 namespace pace {
@@ -16,15 +17,15 @@ namespace pace {
         } value_;
         render::Paint encoding_;
 
-        PACE__CXX20_CNSTXPR void from_str( const types::Char* hex_str, types::Size length ) &
+        PACE__CXX20_CNSTXPR void from_str( charcodes::StringView hex_str ) &
         {
-          if ( length == 0 ) {
+          if ( hex_str.empty() ) {
             encoding_ = render::Paint::None;
             return;
-          } else if ( ( length != 7 && length != 4 ) || *hex_str != '#' )
+          } else if ( ( hex_str.size() != 7 && hex_str.size() != 4 ) || hex_str.front() != '#' )
             throw exception::InvalidArgument( charcodes::make_literal( "pace: invalid hex color format" ) );
 
-          for ( types::Size i = 1; i < length; i++ ) {
+          for ( types::Size i = 1; i < hex_str.size(); i++ ) {
             if ( ( hex_str[i] < '0' || hex_str[i] > '9' ) && ( hex_str[i] < 'A' || hex_str[i] > 'F' )
                  && ( hex_str[i] < 'a' || hex_str[i] > 'f' ) ) {
               charcodes::CoWString message = charcodes::make_literal( "pace: invalid hexadecimal letter (" );
@@ -38,8 +39,8 @@ namespace pace {
 #else
           encoding_   = render::Paint::Xterm24bit;
           value_.hex_ = 0;
-          if ( length == 4 ) {
-            for ( types::Size i = 1; i < length; ++i ) {
+          if ( hex_str.size() == 4 ) {
+            for ( types::Size i = 1; i < hex_str.size(); ++i ) {
               value_.hex_ <<= 4;
               if ( hex_str[i] >= '0' && hex_str[i] <= '9' )
                 value_.hex_ = ( ( value_.hex_ | ( hex_str[i] - '0' ) ) << 4 ) | ( hex_str[i] - '0' );
@@ -51,7 +52,7 @@ namespace pace {
                   ( ( value_.hex_ | ( hex_str[i] - 'a' + 10 ) ) << 4 ) | ( hex_str[i] - 'a' + 10 );
             }
           } else {
-            for ( types::Size i = 1; i < length; ++i ) {
+            for ( types::Size i = 1; i < hex_str.size(); ++i ) {
               value_.hex_ <<= 4;
               if ( hex_str[i] >= '0' && hex_str[i] <= '9' )
                 value_.hex_ |= hex_str[i] - '0';
@@ -72,11 +73,11 @@ namespace pace {
         { value_.hex_ = hex_val; }
         PACE__CXX14_CNSTXPR
         RGBValue( Color enum_val ) noexcept : encoding_ { render::Paint::Csi8 } { value_.ansi_ = enum_val; }
-        PACE__CXX20_CNSTXPR RGBValue( types::ROStr hex_str ) : RGBValue()
-        { from_str( hex_str.data(), hex_str.size() ); }
-        template<types::Size N>
-        PACE__CXX20_CNSTXPR RGBValue( const types::Char ( &hex_str )[N] ) : RGBValue()
-        { from_str( hex_str, N - 1 ); }
+        template<
+          typename SV,
+          typename = typename std::enable_if<std::is_convertible<SV, charcodes::StringView>::value>::type>
+        PACE__CXX20_CNSTXPR RGBValue( SV&& hex_str ) : RGBValue()
+        { from_str( std::forward<SV>( hex_str ) ); }
 
         constexpr RGBValue( const RGBValue& other )                        = default;
         PACE__CXX14_CNSTXPR RGBValue& operator=( const RGBValue& other ) & = default;
@@ -92,15 +93,12 @@ namespace pace {
           value_.ansi_ = enum_val;
           return *this;
         }
-        PACE__CXX20_CNSTXPR RGBValue& operator=( types::ROStr hex_str ) &
+        template<typename SV>
+        PACE__CXX20_CNSTXPR
+          typename std::enable_if<std::is_convertible<SV, charcodes::StringView>::value, RGBValue&>::type
+          operator=( SV&& hex_str ) &
         {
-          from_str( hex_str.data(), hex_str.size() );
-          return *this;
-        }
-        template<types::Size N>
-        PACE__CXX20_CNSTXPR RGBValue& operator=( const types::Char ( &hex_str )[N] ) &
-        {
-          from_str( hex_str, N - 1 );
+          from_str( std::forward<SV>( hex_str ) );
           return *this;
         }
 

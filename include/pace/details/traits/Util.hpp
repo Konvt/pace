@@ -2,6 +2,7 @@
 #define PACE_TRAITS_UTIL
 
 #include "ConceptTraits.hpp"
+#include "Identity.hpp"
 #include "TypeList.hpp"
 
 namespace pace {
@@ -13,9 +14,7 @@ namespace pace {
         template<typename List>
         struct Helper;
         template<typename... Elements>
-        struct Helper<TypeList<Elements...>> {
-          using type = Template<Elements...>;
-        };
+        struct Helper<TypeList<Elements...>> : Identity<Template<Elements...>> {};
 
       public:
         using type = typename Helper<TpFill_t<T, N>>::type;
@@ -32,9 +31,7 @@ namespace pace {
       using PointeeOf_t = typename PointeeOf<T>::type;
 
       template<typename P>
-      struct PointeeOf<P*> {
-        using type = P;
-      };
+      struct PointeeOf<P*> : Identity<P> {};
 
       template<typename Src, typename Dst>
       using CopyConst_t = typename std::conditional<std::is_const<Src>::value, const Dst, Dst>::type;

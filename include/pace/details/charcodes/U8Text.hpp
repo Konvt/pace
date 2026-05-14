@@ -15,15 +15,11 @@ namespace pace {
         std::vector<Font> chars_;
 
       public:
-        PACE__NODISCARD static PACE__CXX23_CNSTXPR std::vector<Font> parse_glyph(
-          const types::Char* raw_u8_str,
-          types::Size str_length )
+        PACE__NODISCARD static PACE__CXX23_CNSTXPR std::vector<Font> parse_glyph( StringView raw_u8_str )
         {
           std::vector<Font> characters;
-          for ( types::Size i = 0; i < str_length; ) {
-            const auto startpoint = raw_u8_str + i;
-            PACE__TRUST( startpoint >= raw_u8_str );
-            auto resolved = U8Char::next_codepoint( startpoint, str_length - i );
+          for ( types::Size i = 0; i < raw_u8_str.size(); ) {
+            auto resolved = U8Char::next_codepoint( raw_u8_str.substr( i ) );
             characters.emplace_back( i, U8Char::glyph_width( resolved.first ) );
             i += resolved.second;
           }
@@ -33,7 +29,7 @@ namespace pace {
         PACE__CXX20_CNSTXPR U8Text() = default;
         explicit PACE__CXX23_CNSTXPR U8Text( types::String u8_bytes )
         {
-          chars_ = parse_glyph( u8_bytes.data(), u8_bytes.size() );
+          chars_ = parse_glyph( u8_bytes );
           width_ = std::accumulate( chars_.cbegin(),
                                     chars_.cend(),
                                     types::Size {},
@@ -48,9 +44,9 @@ namespace pace {
         PACE__CXX20_CNSTXPR U8Text& operator=( U8Text&& ) &      = default;
         PACE__CXX20_CNSTXPR ~U8Text()                            = default;
 
-        PACE__CXX23_CNSTXPR U8Text& operator=( types::ROStr u8_bytes ) &
+        PACE__CXX23_CNSTXPR U8Text& operator=( charcodes::StringView u8_bytes ) &
         {
-          auto new_chars = parse_glyph( u8_bytes.data(), u8_bytes.size() );
+          auto new_chars = parse_glyph( u8_bytes );
           auto new_bytes = types::String( u8_bytes );
           chars_.swap( new_chars );
           width_ = std::accumulate( chars_.cbegin(),
@@ -64,7 +60,7 @@ namespace pace {
         }
         PACE__CXX23_CNSTXPR U8Text& operator=( types::String u8_bytes ) &
         {
-          auto new_chars = parse_glyph( u8_bytes.data(), u8_bytes.size() );
+          auto new_chars = parse_glyph( u8_bytes );
           chars_.swap( new_chars );
           width_ = std::accumulate( chars_.cbegin(),
                                     chars_.cend(),
@@ -121,11 +117,11 @@ namespace pace {
         friend PACE__CXX20_CNSTXPR void swap( U8Text& a, U8Text& b ) noexcept { a.swap( b ); }
 
 #ifdef __cpp_lib_char8_t
-        explicit PACE__CXX23_CNSTXPR U8Text( types::LitU8 u8_sv ) : U8Text()
+        explicit PACE__CXX23_CNSTXPR U8Text( charcodes::U8StringView u8_sv ) : U8Text()
         {
           auto new_bytes = types::String( u8_sv.size(), '\0' );
           std::copy( u8_sv.cbegin(), u8_sv.cend(), new_bytes.begin() );
-          chars_ = parse_glyph( new_bytes.data(), new_bytes.size() );
+          chars_ = parse_glyph( new_bytes );
           width_ = std::accumulate( chars_.cbegin(),
                                     chars_.cend(),
                                     types::Size {},

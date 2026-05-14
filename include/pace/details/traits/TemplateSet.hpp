@@ -2,6 +2,7 @@
 #define PACE_TEMPLATE_SET
 
 #include "Algorithm.hpp"
+#include "Identity.hpp"
 #include "TemplateList.hpp"
 
 namespace pace {
@@ -19,13 +20,9 @@ namespace pace {
         template<bool Cond, template<typename...> class NewOne>
         struct _select;
         template<template<typename...> class NewOne>
-        struct _select<true, NewOne> {
-          using type = TemplateSet<Es...>;
-        };
+        struct _select<true, NewOne> : Identity<TemplateSet<Es...>> {};
         template<template<typename...> class NewOne>
-        struct _select<false, NewOne> {
-          using type = TemplateSet<NewOne, Es...>;
-        };
+        struct _select<false, NewOne> : Identity<TemplateSet<NewOne, Es...>> {};
 
       public:
         using type = typename _select<TmpContain<TemplateSet<Es...>, T>::value, T>::type;
@@ -37,22 +34,16 @@ namespace pace {
         template<bool Cond, template<typename...> class NewOne>
         struct _select;
         template<template<typename...> class NewOne>
-        struct _select<true, NewOne> {
-          using type = TemplateSet<Es...>;
-        };
+        struct _select<true, NewOne> : Identity<TemplateSet<Es...>> {};
         template<template<typename...> class NewOne>
-        struct _select<false, NewOne> {
-          using type = TemplateSet<Es..., NewOne>;
-        };
+        struct _select<false, NewOne> : Identity<TemplateSet<Es..., NewOne>> {};
 
       public:
         using type = typename _select<TmpContain<TemplateSet<Es...>, T>::value, T>::type;
       };
 
       template<template<typename...> class... Es, template<template<typename...> class...> class Collection>
-      struct Combine<TemplateSet<Es...>, Collection<>> {
-        using type = TemplateSet<Es...>;
-      };
+      struct Combine<TemplateSet<Es...>, Collection<>> : Identity<TemplateSet<Es...>> {};
       template<template<typename...> class... Es,
                template<template<typename...> class...> class Collection,
                template<typename...> class T,

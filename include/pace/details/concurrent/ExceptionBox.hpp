@@ -60,7 +60,7 @@ namespace pace {
         }
 
         // Rethrow the exception pointed if it isn't null.
-        void rethrow() noexcept( false )
+        void rethrow()
         {
           std::lock_guard<SharedMutex> lock { rw_mtx_ };
           if ( exception_ ) {

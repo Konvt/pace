@@ -68,9 +68,9 @@ namespace pace {
         Derived&& filler( types::String _filler ) &&
         { PACE__METHOD( Filler, _filler, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
-        Derived& filler( types::LitU8 _filler ) &
+        Derived& filler( charcodes::U8StringView _filler ) &
         { PACE__METHOD( Filler, _filler, Derived&, ); }
-        Derived&& filler( types::LitU8 _filler ) &&
+        Derived&& filler( charcodes::U8StringView _filler ) &&
         { PACE__METHOD( Filler, _filler, Derived&&, ); }
 #endif
 

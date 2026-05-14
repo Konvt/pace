@@ -23,7 +23,7 @@ namespace pace {
 
       PACE__CXX20_CNSTXPR ETAFormat( details::types::String _fmt ) noexcept : Base( std::move( _fmt ) ) {}
 #ifdef __cpp_lib_char8_t
-      ETAFormat( details::types::LitU8 _fmt )
+      ETAFormat( details::charcodes::U8StringView _fmt )
         : Base( { reinterpret_cast<const details::types::Char*>( _fmt.data() ), _fmt.size() } )
       {}
 #endif
@@ -151,23 +151,45 @@ namespace pace {
       PACE__SPECIAL_MEMBERS( ETA );
 
     public:
-#define PACE__METHOD( OptionName, ParamName, Operation, ReturnType )        \
-  std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ }; \
-  unpack( *this, option::OptionName( Operation( ParamName ) ) );            \
+#define PACE__METHOD( ParamName, ReturnType )                                           \
+  std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };             \
+  fmt_ir_ = Base::parse_timer_fmt( ParamName );                                         \
+  std::for_each( fmt_ir_.cbegin(), fmt_ir_.cend(), [&]( const Field& field ) noexcept { \
+    switch ( field.token() ) {                                                          \
+    case Token::Hour:   show_hour_ = true; break;                                       \
+    case Token::Minute: show_minute_ = true; break;                                     \
+    default:            break;                                                                     \
+    }                                                                                   \
+  } );                                                                                  \
   return static_cast<ReturnType>( *this )
 
-      Derived& eta_format( details::types::String _fmt_str ) &
-      { PACE__METHOD( ETAFormat, _fmt_str, std::move, Derived& ); }
-      Derived&& eta_format( details::types::String _fmt_str ) &&
-      { PACE__METHOD( ETAFormat, _fmt_str, std::move, Derived&& ); }
-#ifdef __cpp_lib_char8_t
-      Derived& eta_format( details::types::LitU8 _fmt_str ) &
-      { PACE__METHOD( ETAFormat, _fmt_str, , Derived& ); }
-      Derived&& eta_format( details::types::LitU8 _fmt_str ) &&
-      { PACE__METHOD( ETAFormat, _fmt_str, , Derived&& ); }
-#endif
+      Derived& eta_format( details::charcodes::StringView _fmt_str ) &
+      { PACE__METHOD( _fmt_str, Derived& ); }
+      Derived&& eta_format( details::charcodes::StringView _fmt_str ) &&
+      { PACE__METHOD( _fmt_str, Derived&& ); }
 
 #undef PACE__METHOD
+#ifdef __cpp_lib_char8_t
+# define PACE__METHOD( ParamName, ReturnType )                                                  \
+   std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };                    \
+   fmt_ir_ = Base::parse_timer_fmt(                                                             \
+     { reinterpret_cast<const details::types::Char*>( ParamName.data() ), ParamName.size() } ); \
+   std::for_each( fmt_ir_.cbegin(), fmt_ir_.cend(), [&]( const Field& field ) noexcept {        \
+    switch ( field.token() ) {                                                                  \
+    case Token::Hour:   show_hour_ = true; break;                                               \
+    case Token::Minute: show_minute_ = true; break;                                             \
+    default:            break;                                                                             \
+    }                                                                                           \
+   } );                                                                                         \
+   return static_cast<ReturnType>( *this )
+
+      Derived& eta_format( details::charcodes::U8StringView _fmt_str ) &
+      { PACE__METHOD( _fmt_str, Derived& ); }
+      Derived&& eta_format( details::charcodes::U8StringView _fmt_str ) &&
+      { PACE__METHOD( _fmt_str, Derived&& ); }
+
+# undef PACE__METHOD
+#endif
 
       PACE__CXX20_CNSTXPR void swap( ETA& other ) & noexcept
       {

@@ -22,14 +22,11 @@ namespace pace {
          *
          * @return Returns the render width of the given string.
          */
-        PACE__NODISCARD static PACE__CXX20_CNSTXPR types::Size text_width( const types::Char* first,
-                                                                           types::Size length )
+        PACE__NODISCARD static PACE__CXX20_CNSTXPR types::Size text_width( StringView text )
         {
-          PACE__TRUST( first != nullptr );
           types::Size width = 0;
-          for ( types::Size i = 0; i < length; ) {
-            const auto startpoint = first + i;
-            auto parsed           = U8Char::next_codepoint( startpoint, length - i );
+          for ( types::Size i = 0; i < text.size(); ) {
+            auto parsed = U8Char::next_codepoint( text.substr( i ) );
             width += static_cast<types::Size>( U8Char::glyph_width( parsed.first ) );
             i += parsed.second;
           }
@@ -41,7 +38,7 @@ namespace pace {
         {}
         explicit PACE__CXX20_CNSTXPR U8Raw( types::String u8_bytes ) : U8Raw()
         {
-          width_ = text_width( u8_bytes.c_str(), u8_bytes.size() );
+          width_ = text_width( u8_bytes );
           bytes_ = std::move( u8_bytes );
         }
         PACE__CXX20_CNSTXPR U8Raw( const U8Raw& )              = default;
@@ -50,9 +47,9 @@ namespace pace {
         PACE__CXX20_CNSTXPR U8Raw& operator=( U8Raw&& ) &      = default;
         PACE__CXX20_CNSTXPR ~U8Raw()                           = default;
 
-        PACE__CXX20_CNSTXPR U8Raw& operator=( types::ROStr u8_bytes ) &
+        PACE__CXX20_CNSTXPR U8Raw& operator=( charcodes::StringView u8_bytes ) &
         {
-          const auto new_width = text_width( u8_bytes.data(), u8_bytes.size() );
+          const auto new_width = text_width( u8_bytes );
           auto new_bytes       = types::String( u8_bytes );
           bytes_.swap( new_bytes );
           width_ = new_width;
@@ -60,7 +57,7 @@ namespace pace {
         }
         PACE__CXX20_CNSTXPR U8Raw& operator=( types::String&& u8_bytes ) &
         {
-          width_ = text_width( u8_bytes.c_str(), u8_bytes.size() );
+          width_ = text_width( u8_bytes );
           bytes_.swap( u8_bytes );
           return *this;
         }
@@ -70,8 +67,8 @@ namespace pace {
         PACE__NODISCARD PACE__CXX20_CNSTXPR types::Size width() const noexcept { return width_; }
 
         PACE__CXX20_CNSTXPR const types::Char* data() const noexcept { return bytes_.data(); }
-        PACE__CXX20_CNSTXPR types::ROStr str() & noexcept { return bytes_; }
-        PACE__CXX20_CNSTXPR types::ROStr str() const& noexcept { return bytes_; }
+        PACE__CXX20_CNSTXPR charcodes::StringView str() & noexcept { return bytes_; }
+        PACE__CXX20_CNSTXPR charcodes::StringView str() const& noexcept { return bytes_; }
         PACE__CXX20_CNSTXPR types::String&& str() && noexcept { return std::move( bytes_ ); }
 
         PACE__CXX20_CNSTXPR void clear() noexcept( noexcept( bytes_.clear() ) )
@@ -96,7 +93,7 @@ namespace pace {
         explicit PACE__CXX20_CNSTXPR operator types::String() & { return bytes_; }
         explicit PACE__CXX20_CNSTXPR operator types::String() const& { return bytes_; }
         explicit PACE__CXX20_CNSTXPR operator types::String&&() && noexcept { return std::move( bytes_ ); }
-        PACE__CXX20_CNSTXPR operator types::ROStr() const noexcept { return str(); }
+        PACE__CXX20_CNSTXPR operator charcodes::StringView() const noexcept { return str(); }
 
         PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( U8Raw&& a,
                                                                                               const U8Raw& b )
@@ -116,25 +113,28 @@ namespace pace {
         PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( const char* a,
                                                                                               const U8Raw& b )
         { return a + b.bytes_; }
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( types::ROStr a,
-                                                                                              const U8Raw& b )
+        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+(
+          charcodes::StringView a,
+          const U8Raw& b )
         { return types::String( a ) + b; }
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( U8Raw&& a,
-                                                                                              types::ROStr b )
+        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+(
+          U8Raw&& a,
+          charcodes::StringView b )
         {
-          a.bytes_.append( b );
+          a.bytes_.append( b.data(), b.size() );
           return std::move( a.bytes_ );
         }
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( const U8Raw& a,
-                                                                                              types::ROStr b )
+        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+(
+          const U8Raw& a,
+          charcodes::StringView b )
         { return a.bytes_ + types::String( b ); }
 
 #ifdef __cpp_lib_char8_t
-        explicit PACE__CXX20_CNSTXPR U8Raw( types::LitU8 u8_sv ) : U8Raw()
+        explicit PACE__CXX20_CNSTXPR U8Raw( charcodes::U8StringView u8_sv ) : U8Raw()
         {
           auto new_bytes = types::String( u8_sv.size(), '\0' );
           std::copy( u8_sv.cbegin(), u8_sv.cend(), new_bytes.begin() );
-          width_ = text_width( new_bytes.c_str(), new_bytes.size() );
+          width_ = text_width( new_bytes );
           bytes_ = std::move( new_bytes );
         }
 
@@ -146,23 +146,26 @@ namespace pace {
           return ret;
         }
 
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( types::LitU8 a,
-                                                                                              const U8Raw& b )
+        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+(
+          charcodes::U8StringView a,
+          const U8Raw& b )
         {
           types::String tmp;
           tmp.reserve( a.size() );
           std::copy( a.cbegin(), a.cend(), std::back_inserter( tmp ) );
           return std::move( tmp ) + b.bytes_;
         }
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( U8Raw&& a,
-                                                                                              types::LitU8 b )
+        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+(
+          U8Raw&& a,
+          charcodes::U8StringView b )
         {
           a.bytes_.reserve( a.bytes_.size() + b.size() );
           std::copy( b.cbegin(), b.cend(), std::back_inserter( a.bytes_ ) );
           return std::move( a.bytes_ );
         }
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( const U8Raw& a,
-                                                                                              types::LitU8 b )
+        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+(
+          const U8Raw& a,
+          charcodes::U8StringView b )
         {
           auto tmp = a.bytes_;
           tmp.reserve( a.bytes_.size() + b.size() );

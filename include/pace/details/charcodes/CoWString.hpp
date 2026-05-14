@@ -2,6 +2,7 @@
 #define PACE_COW_STRING
 
 #include "../traits/Backport.hpp"
+#include "../traits/ConceptTraits.hpp"
 #include "../traits/Util.hpp"
 #include "../utils/Backport.hpp"
 #include <algorithm>
@@ -290,19 +291,6 @@ namespace pace {
           std::is_convertible<decltype( std::declval<const InputIt&>() != std::declval<const InputIt&>() ),
                               bool>>;
 #endif
-#ifdef __cpp_lib_three_way_comparison
-        template<typename Trait>
-        struct ComparisonCategory {
-        private:
-          template<typename T>
-          static constexpr auto check( int ) -> typename T::comparison_category;
-          template<typename>
-          static constexpr std::weak_ordering check( ... );
-
-        public:
-          using type = decltype( check<Trait>( 0 ) );
-        };
-#endif
 
       public:
         using value_type      = Char;
@@ -333,7 +321,7 @@ namespace pace {
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
         class unsafe_iterator {
-          const Char* cursor_;
+          const_pointer cursor_;
 
         public:
 #if PACE__CXX20
@@ -347,7 +335,7 @@ namespace pace {
           using reference       = const value_type&;
 
           constexpr unsafe_iterator() noexcept : cursor_ { nullptr } {}
-          constexpr unsafe_iterator( const Char* cursor ) noexcept : cursor_ { cursor } {}
+          constexpr unsafe_iterator( const_pointer cursor ) noexcept : cursor_ { cursor } {}
           constexpr unsafe_iterator( const_iterator itr ) noexcept
             : cursor_ { itr.owner()->data() + itr.offset() }
           {}
@@ -430,15 +418,15 @@ namespace pace {
           PACE__CXX20_CNSTXPR ~CoWBlock() = default;
 
           // it's extremely surprising that the type alias `pointer` of the allocator can be a fancy pointer
-          PACE__FORCEINLINE constexpr Char* str() const noexcept { return utils::to_address( ptr_ ); }
+          PACE__FORCEINLINE constexpr pointer str() const noexcept { return utils::to_address( ptr_ ); }
         };
         union Payload {
           Char _; // this memeber is only used to control alignment
-          const Char* literal_;
+          const_pointer literal_;
           CoWBlock remote_;
 
           constexpr Payload() noexcept : literal_ { nullptr } {}
-          constexpr Payload( const Char* lit ) noexcept : literal_ { lit } {}
+          constexpr Payload( const_pointer lit ) noexcept : literal_ { lit } {}
         };
         enum class Kind : std::uint8_t { Literal, Inline, Dynamic };
 
@@ -457,10 +445,10 @@ namespace pace {
         /// @param suffix_len Length of the remaining suffix before insertion
         /// @param cstr Pointer to the characters to insert
         /// @param count Number of characters to insert
-        static PACE__FORCEINLINE PACE__CXX14_CNSTXPR void embed( Char* suffix,
+        static PACE__FORCEINLINE PACE__CXX14_CNSTXPR void embed( pointer suffix,
                                                                  size_type num_wiped,
                                                                  size_type suffix_len,
-                                                                 const Char* cstr,
+                                                                 const_pointer cstr,
                                                                  size_type count ) noexcept
         {
           PACE__TRUST( suffix != cstr );
@@ -476,7 +464,7 @@ namespace pace {
         /// @param suffix_len Length of the remaining suffix before insertion
         /// @param count Number of characters to insert
         /// @param ch Character to be inserted repeatedly
-        static PACE__FORCEINLINE PACE__CXX14_CNSTXPR void embed( Char* suffix,
+        static PACE__FORCEINLINE PACE__CXX14_CNSTXPR void embed( pointer suffix,
                                                                  size_type num_wiped,
                                                                  size_type suffix_len,
                                                                  size_type count,
@@ -491,12 +479,12 @@ namespace pace {
 
         // Concatenate the data into a different destination buffer composed of `prefix + inserted + suffix`
         // This function **does not** add a terminator at the end
-        static PACE__FORCEINLINE PACE__CXX14_CNSTXPR void assemble( Char* dest,
-                                                                    const Char* prefix,
+        static PACE__FORCEINLINE PACE__CXX14_CNSTXPR void assemble( pointer dest,
+                                                                    const_pointer prefix,
                                                                     size_type prefix_len,
-                                                                    const Char* suffix,
+                                                                    const_pointer suffix,
                                                                     size_type suffix_len,
-                                                                    const Char* inserted,
+                                                                    const_pointer inserted,
                                                                     size_type count ) noexcept
         {
           PACE__TRUST( dest != prefix );
@@ -514,7 +502,6 @@ namespace pace {
         { return std::allocator_traits<Alloc>::allocate( this->allocator(), cap ); }
 
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR void throw_if_exceed( size_type expected_size ) const
-          noexcept( false )
         {
           if ( expected_size > max_size() )
             PACE__UNLIKELY throw std::length_error( "pace: CoW string size would exceed max_size()" );
@@ -535,7 +522,7 @@ namespace pace {
             throw;
           }
         }
-        PACE__NODISCARD PACE__CXX20_CNSTXPR CoWBlock make_cow( const Char* first,
+        PACE__NODISCARD PACE__CXX20_CNSTXPR CoWBlock make_cow( const_pointer first,
                                                                size_type count,
                                                                size_type capacity )
         {
@@ -588,11 +575,11 @@ namespace pace {
         }
         // Transfers the string storage state to a specified state using a character range
         template<Kind Next>
-        PACE__CXX20_CNSTXPR void transfer_to( const Char* first, size_type count, size_type cap )
+        PACE__CXX20_CNSTXPR void transfer_to( const_pointer first, size_type count, size_type cap )
           noexcept( Next == Kind::Inline )
         {
           PACE__TRUST( cap > count );
-          transfer_to<Next>( cap, [&]( Char* dest, size_type new_cap ) noexcept {
+          transfer_to<Next>( cap, [&]( pointer dest, size_type new_cap ) noexcept {
             PACE__TRUST( count <= new_cap );
             (void)new_cap;
             Traits::copy( dest, first, count );
@@ -605,7 +592,7 @@ namespace pace {
           noexcept( Next == Kind::Inline )
         {
           PACE__TRUST( cap > count );
-          transfer_to<Next>( cap, [&]( Char* dest, size_type new_cap ) noexcept {
+          transfer_to<Next>( cap, [&]( pointer dest, size_type new_cap ) noexcept {
             PACE__TRUST( count <= new_cap );
             (void)new_cap;
             Traits::assign( dest, count, ch );
@@ -615,18 +602,18 @@ namespace pace {
         // Transfers the string storage state to a specified state
         // while inserting data between prefix and suffix
         template<Kind Next>
-        PACE__CXX20_CNSTXPR void transfer_to( const Char* prefix,
+        PACE__CXX20_CNSTXPR void transfer_to( const_pointer prefix,
                                               size_type prefix_len,
-                                              const Char* suffix,
+                                              const_pointer suffix,
                                               size_type suffix_len,
-                                              const Char* inserted,
+                                              const_pointer inserted,
                                               size_type count ) noexcept( Next == Kind::Inline )
         {
           if PACE__CXX17_CNSTXPR ( Next == Kind::Inline )
             PACE__TRUST( tag_ != Kind::Inline );
           const auto total_length = prefix_len + suffix_len + count;
           transfer_to<Next>( (std::max)( total_length, dynamic_capacity( small_capacity() ) ) + 1,
-                             [&]( Char* dest, size_type new_cap ) noexcept {
+                             [&]( pointer dest, size_type new_cap ) noexcept {
                                (void)new_cap;
                                assemble( dest, prefix, prefix_len, suffix, suffix_len, inserted, count );
                                return total_length;
@@ -635,9 +622,9 @@ namespace pace {
         // Transfers the string storage state to a specified state
         // while inserting repeated characters between prefix and suffix
         template<Kind Next>
-        PACE__CXX20_CNSTXPR void transfer_to( const Char* prefix,
+        PACE__CXX20_CNSTXPR void transfer_to( const_pointer prefix,
                                               size_type prefix_len,
-                                              const Char* suffix,
+                                              const_pointer suffix,
                                               size_type suffix_len,
                                               size_type count,
                                               Char inserted ) noexcept( Next == Kind::Inline )
@@ -646,7 +633,7 @@ namespace pace {
             PACE__TRUST( tag_ != Kind::Inline );
           const auto total_length = prefix_len + suffix_len + count;
           transfer_to<Next>( (std::max)( total_length, dynamic_capacity( small_capacity() ) ) + 1,
-                             [&]( Char* dest, size_type new_cap ) noexcept {
+                             [&]( pointer dest, size_type new_cap ) noexcept {
                                PACE__TRUST( total_length <= new_cap );
                                (void)new_cap;
                                Traits::copy( dest, prefix, prefix_len );
@@ -674,10 +661,10 @@ namespace pace {
           }
         }
         // Duplicates the shared CoW buffer into a unique one containing the given data
-        PACE__CXX20_CNSTXPR void duplicate_from( const Char* first, size_type count, size_type cap )
+        PACE__CXX20_CNSTXPR void duplicate_from( const_pointer first, size_type count, size_type cap )
         {
           PACE__TRUST( cap > count );
-          duplicate_from( cap, [&]( Char* dest, size_type new_cap ) noexcept {
+          duplicate_from( cap, [&]( pointer dest, size_type new_cap ) noexcept {
             PACE__TRUST( count <= new_cap );
             (void)new_cap;
             Traits::copy( dest, first, count );
@@ -685,16 +672,16 @@ namespace pace {
           } );
         }
         // Duplicates the shared CoW buffer into a unique one while inserting data
-        PACE__CXX20_CNSTXPR void duplicate_from( const Char* prefix,
+        PACE__CXX20_CNSTXPR void duplicate_from( const_pointer prefix,
                                                  size_type prefix_len,
-                                                 const Char* suffix,
+                                                 const_pointer suffix,
                                                  size_type suffix_len,
-                                                 const Char* inserted,
+                                                 const_pointer inserted,
                                                  size_type count )
         {
           const auto total_length = prefix_len + suffix_len + count;
           duplicate_from( (std::max)( total_length, dynamic_capacity( as_.remote_.capacity_ - 1 ) ) + 1,
-                          [&]( Char* dest, size_type new_cap ) noexcept {
+                          [&]( pointer dest, size_type new_cap ) noexcept {
                             PACE__TRUST( count <= new_cap );
                             (void)new_cap;
                             assemble( dest, prefix, prefix_len, suffix, suffix_len, inserted, count );
@@ -702,16 +689,16 @@ namespace pace {
                           } );
         }
         // Duplicates the shared CoW buffer into a unique one while inserting repeated characters
-        PACE__CXX20_CNSTXPR void duplicate_from( const Char* prefix,
+        PACE__CXX20_CNSTXPR void duplicate_from( const_pointer prefix,
                                                  size_type prefix_len,
-                                                 const Char* suffix,
+                                                 const_pointer suffix,
                                                  size_type suffix_len,
                                                  size_type count,
                                                  Char inserted )
         {
           const auto total_length = prefix_len + suffix_len + count;
           duplicate_from( (std::max)( total_length, dynamic_capacity( as_.remote_.capacity_ - 1 ) ) + 1,
-                          [&]( Char* dest, size_type new_cap ) noexcept {
+                          [&]( pointer dest, size_type new_cap ) noexcept {
                             PACE__TRUST( count <= new_cap );
                             (void)new_cap;
                             Traits::copy( dest, prefix, prefix_len );
@@ -740,10 +727,10 @@ namespace pace {
           std::tie( as_.remote_.ptr_, as_.remote_.capacity_ ) = std::make_pair( std::move( str ), cap );
         }
         // Reallocates the unique CoW buffer to a larger capacity and copies data into it
-        PACE__CXX20_CNSTXPR void expand_with( const Char* first, size_type count, size_type cap )
+        PACE__CXX20_CNSTXPR void expand_with( const_pointer first, size_type count, size_type cap )
         {
           PACE__ASSERT( cap > count );
-          expand_with( cap, [&]( Char* dest, size_type new_cap ) noexcept {
+          expand_with( cap, [&]( pointer dest, size_type new_cap ) noexcept {
             PACE__TRUST( count <= new_cap );
             (void)new_cap;
             Traits::copy( dest, first, count );
@@ -751,15 +738,15 @@ namespace pace {
           } );
         }
         // Reallocates and expands the unique CoW buffer while inserting data between prefix and suffix
-        PACE__CXX20_CNSTXPR void expand_with( const Char* prefix,
+        PACE__CXX20_CNSTXPR void expand_with( const_pointer prefix,
                                               size_type prefix_len,
-                                              const Char* suffix,
+                                              const_pointer suffix,
                                               size_type suffix_len,
-                                              const Char* inserted,
+                                              const_pointer inserted,
                                               size_type count )
         {
           expand_with( dynamic_capacity( as_.remote_.capacity_ - 1 ) + 1,
-                       [&]( Char* dest, size_type new_cap ) noexcept {
+                       [&]( pointer dest, size_type new_cap ) noexcept {
                          const auto total_length = prefix_len + suffix_len + count;
                          PACE__TRUST( total_length <= new_cap );
                          (void)new_cap;
@@ -768,15 +755,15 @@ namespace pace {
                        } );
         }
         // Reallocates and expands the unique CoW buffer while inserting repeated characters
-        PACE__CXX20_CNSTXPR void expand_with( const Char* prefix,
+        PACE__CXX20_CNSTXPR void expand_with( const_pointer prefix,
                                               size_type prefix_len,
-                                              const Char* suffix,
+                                              const_pointer suffix,
                                               size_type suffix_len,
                                               size_type count,
                                               Char inserted )
         {
           expand_with( dynamic_capacity( as_.remote_.capacity_ - 1 ) + 1,
-                       [&]( Char* dest, size_type new_cap ) noexcept {
+                       [&]( pointer dest, size_type new_cap ) noexcept {
                          const auto total_length = prefix_len + suffix_len + count;
                          PACE__TRUST( total_length <= new_cap );
                          (void)new_cap;
@@ -971,73 +958,79 @@ namespace pace {
         }
 
         template<typename A>
-        PACE__NODISCARD friend constexpr bool operator==(
+        PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator==(
           const BasicCoWString& a,
           const std::basic_string<Char, Traits, A>& b ) noexcept
         { return a.compare( 0, a.length_, b.data(), b.size() ) == 0; }
         template<typename A>
-        PACE__NODISCARD friend constexpr bool operator==( const std::basic_string<Char, Traits, A>& a,
-                                                          const BasicCoWString& b ) noexcept
+        PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator==(
+          const std::basic_string<Char, Traits, A>& a,
+          const BasicCoWString& b ) noexcept
         { return b == a; }
         template<typename A>
-        PACE__NODISCARD friend constexpr bool operator!=(
+        PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator!=(
           const BasicCoWString& a,
           const std::basic_string<Char, Traits, A>& b ) noexcept
         { return !( a == b ); }
         template<typename A>
-        PACE__NODISCARD friend constexpr bool operator!=( const std::basic_string<Char, Traits, A>& a,
-                                                          const BasicCoWString& b ) noexcept
+        PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator!=(
+          const std::basic_string<Char, Traits, A>& a,
+          const BasicCoWString& b ) noexcept
         { return b != a; }
 #ifdef __cpp_lib_three_way_comparison
         template<typename A>
-        PACE__NODISCARD friend constexpr auto operator<=>(
+        PACE__NODISCARD friend PACE__CXX17_CNSTXPR auto operator<=>(
           const BasicCoWString& a,
           const std::basic_string<Char, Traits, A>& b ) noexcept
         {
-          return static_cast<typename ComparisonCategory<Traits>::type>(
+          return static_cast<traits::ComparisonCategory_t<Traits>>(
             a.compare( 0, a.length_, b.data(), b.size() ) <=> 0 );
         }
 #else
         template<typename A>
-        PACE__NODISCARD friend constexpr bool operator<( const BasicCoWString& a,
-                                                         const std::basic_string<Char, Traits, A>& b )
+        PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator<(
+          const BasicCoWString& a,
+          const std::basic_string<Char, Traits, A>& b )
         { return a.compare( 0, a.length_, b.data(), b.size() ) < 0; }
         template<typename A>
-        PACE__NODISCARD friend constexpr bool operator<=( const BasicCoWString& a,
-                                                          const std::basic_string<Char, Traits, A>& b )
+        PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator<=(
+          const BasicCoWString& a,
+          const std::basic_string<Char, Traits, A>& b )
         { return a.compare( 0, a.length_, b.data(), b.size() ) <= 0; }
         template<typename A>
-        PACE__NODISCARD friend constexpr bool operator>( const BasicCoWString& a,
-                                                         const std::basic_string<Char, Traits, A>& b )
+        PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator>(
+          const BasicCoWString& a,
+          const std::basic_string<Char, Traits, A>& b )
         { return a.compare( 0, a.length_, b.data(), b.size() ) > 0; }
         template<typename A>
-        PACE__NODISCARD friend constexpr bool operator>=( const BasicCoWString& a,
-                                                          const std::basic_string<Char, Traits, A>& b )
+        PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator>=(
+          const BasicCoWString& a,
+          const std::basic_string<Char, Traits, A>& b )
         { return a.compare( 0, a.length_, b.data(), b.size() ) >= 0; }
         template<typename A>
-        PACE__NODISCARD friend constexpr bool operator<( const std::basic_string<Char, Traits, A>& a,
-                                                         const BasicCoWString& b )
+        PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator<(
+          const std::basic_string<Char, Traits, A>& a,
+          const BasicCoWString& b )
         { return !( b >= a ); }
         template<typename A>
-        PACE__NODISCARD friend constexpr bool operator<=( const std::basic_string<Char, Traits, A>& a,
-                                                          const BasicCoWString& b )
+        PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator<=(
+          const std::basic_string<Char, Traits, A>& a,
+          const BasicCoWString& b )
         { return !( b > a ); }
         template<typename A>
-        PACE__NODISCARD friend constexpr bool operator>( const std::basic_string<Char, Traits, A>& a,
-                                                         const BasicCoWString& b )
+        PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator>(
+          const std::basic_string<Char, Traits, A>& a,
+          const BasicCoWString& b )
         { return !( b <= a ); }
         template<typename A>
-        PACE__NODISCARD friend constexpr bool operator>=( const std::basic_string<Char, Traits, A>& a,
-                                                          const BasicCoWString& b )
+        PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator>=(
+          const std::basic_string<Char, Traits, A>& a,
+          const BasicCoWString& b )
         { return !( b < a ); }
 #endif
 
-        PACE__NODISCARD explicit constexpr operator std::basic_string<Char, Traits, Alloc>() const
+        PACE__NODISCARD explicit PACE__CXX20_CNSTXPR operator std::basic_string<Char, Traits, Alloc>() const
         { return { data(), length_ }; }
-#ifdef __cpp_lib_string_view
-        PACE__NODISCARD constexpr operator std::basic_string_view<Char, Traits>() const noexcept
-        { return { data(), length_ }; }
-#endif
 
         PACE__CXX14_CNSTXPR BasicCoWString() noexcept( noexcept( Alloc() ) ) : BasicCoWString( Alloc() ) {}
         explicit PACE__CXX14_CNSTXPR BasicCoWString( const Alloc& alloc )
@@ -1126,14 +1119,14 @@ namespace pace {
           const auto length = static_cast<size_type>( utils::distance( first, last ) );
           if ( length > small_capacity() ) {
             transfer_to<Kind::Dynamic>( (std::max)( length, dynamic_capacity( small_capacity() ) ) + 1,
-                                        [&]( Char* dest, size_type new_cap ) {
+                                        [&]( pointer dest, size_type new_cap ) {
                                           PACE__TRUST( length <= new_cap );
                                           (void)new_cap;
                                           std::copy( first, last, dest );
                                           return length;
                                         } );
           } else {
-            transfer_to<Kind::Inline>( 0, [&]( Char* dest, size_type ) {
+            transfer_to<Kind::Inline>( 0, [&]( pointer dest, size_type ) {
               std::copy( first, last, dest );
               return length;
             } );
@@ -1155,14 +1148,14 @@ namespace pace {
           const auto length = static_cast<size_type>( utils::size( rg ) );
           if ( length > small_capacity() ) {
             transfer_to<Kind::Dynamic>( (std::max)( length, dynamic_capacity( small_capacity() ) ) + 1,
-                                        [&]( Char* dest, size_type new_cap ) {
+                                        [&]( pointer dest, size_type new_cap ) {
                                           PACE__TRUST( length <= new_cap );
                                           (void)new_cap;
                                           std::ranges::copy( std::forward<R>( rg ), dest );
                                           return length;
                                         } );
           } else {
-            transfer_to<Kind::Inline>( 0, [&]( Char* dest, size_type ) {
+            transfer_to<Kind::Inline>( 0, [&]( pointer dest, size_type ) {
               std::ranges::copy( std::forward<R>( rg ), dest );
               return length;
             } );
@@ -1170,10 +1163,12 @@ namespace pace {
           length_ = length;
         }
 #endif
-        PACE__CXX20_CNSTXPR BasicCoWString( const Char* cstr, size_type count, const Alloc& alloc = Alloc() )
+        PACE__CXX20_CNSTXPR BasicCoWString( const_pointer cstr,
+                                            size_type count,
+                                            const Alloc& alloc = Alloc() )
           : BasicCoWString( alloc )
         { assign( cstr, count ); }
-        constexpr BasicCoWString( const Char* cstr, const Alloc& alloc = Alloc() )
+        constexpr BasicCoWString( const_pointer cstr, const Alloc& alloc = Alloc() )
           : BasicCoWString( cstr, Traits::length( cstr ), alloc )
         {}
         BasicCoWString( std::nullptr_t ) = delete;
@@ -1382,7 +1377,7 @@ namespace pace {
           traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_move_assignment,
                         typename std::allocator_traits<Alloc>::is_always_equal>::value )
         { return assign( std::move( rhs ) ); }
-        PACE__CXX20_CNSTXPR BasicCoWString& operator=( const Char* cstr ) & { return assign( cstr ); }
+        PACE__CXX20_CNSTXPR BasicCoWString& operator=( const_pointer cstr ) & { return assign( cstr ); }
         PACE__CXX20_CNSTXPR BasicCoWString& operator=( Char ch ) & noexcept( small_capacity() >= 1 )
         { return assign( 1, ch ); }
         // BasicCoWString& operator=( std::initializer_list<Char> ) = delete;
@@ -1447,7 +1442,7 @@ namespace pace {
           length_ = count;
           return *this;
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& assign( const Char* cstr, size_type count ) &
+        PACE__CXX20_CNSTXPR BasicCoWString& assign( const_pointer cstr, size_type count ) &
         {
           PACE__TRUST( cstr != nullptr );
           switch ( tag_ ) {
@@ -1475,7 +1470,7 @@ namespace pace {
           length_ = count;
           return *this;
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& assign( const Char* cstr ) &
+        PACE__CXX20_CNSTXPR BasicCoWString& assign( const_pointer cstr ) &
         {
           PACE__TRUST( cstr != nullptr );
           return assign( cstr, Traits::length( cstr ) );
@@ -1581,7 +1576,7 @@ namespace pace {
 
         constexpr allocator_type get_allocator() const { return this->allocator(); }
 
-        PACE__NODISCARD PACE__CXX20_CNSTXPR Char* data() &
+        PACE__NODISCARD PACE__CXX20_CNSTXPR pointer data() &
         {
           switch ( tag_ ) {
           case Kind::Literal: {
@@ -1600,7 +1595,7 @@ namespace pace {
           default: utils::unreachable();
           }
         }
-        PACE__CXX14_CNSTXPR const Char* data() const& noexcept
+        PACE__CXX14_CNSTXPR const_pointer data() const& noexcept
         {
           switch ( tag_ ) {
           case Kind::Literal: return as_.literal_;
@@ -1609,8 +1604,8 @@ namespace pace {
           default:            utils::unreachable();
           }
         }
-        constexpr const Char* data() const&& noexcept { return data(); }
-        constexpr const Char* c_str() const noexcept { return data(); }
+        constexpr const_pointer data() const&& noexcept { return data(); }
+        constexpr const_pointer c_str() const noexcept { return data(); }
 
         PACE__NODISCARD PACE__CXX14_CNSTXPR Char& operator[]( size_type pos ) &
         {
@@ -1744,7 +1739,7 @@ namespace pace {
           length_ = 0;
         }
 
-        PACE__CXX20_CNSTXPR BasicCoWString& insert( size_type index, const Char* cstr, size_type count )
+        PACE__CXX20_CNSTXPR BasicCoWString& insert( size_type index, const_pointer cstr, size_type count )
         {
           if ( index > length_ )
             PACE__UNLIKELY throw std::out_of_range( "pace: insert c-style string at an invalid position" );
@@ -1818,7 +1813,7 @@ namespace pace {
           length_ = total_length;
           return *this;
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& insert( size_type index, const Char* cstr )
+        PACE__CXX20_CNSTXPR BasicCoWString& insert( size_type index, const_pointer cstr )
         { return insert( index, cstr, Traits::length( cstr ) ); }
         PACE__CXX20_CNSTXPR BasicCoWString& insert( size_type index,
                                                     const BasicCoWString& other,
@@ -2010,7 +2005,7 @@ namespace pace {
         PACE__CXX20_CNSTXPR void push_back( Char ch ) & { append( 1, ch ); }
         PACE__CXX20_CNSTXPR void pop_back() noexcept { erase( cend() - 1 ); }
 
-        PACE__CXX20_CNSTXPR BasicCoWString& append( const Char* cstr, size_type count )
+        PACE__CXX20_CNSTXPR BasicCoWString& append( const_pointer cstr, size_type count )
         {
           const auto total_length = count + length_;
           switch ( tag_ ) {
@@ -2042,7 +2037,7 @@ namespace pace {
           length_ = total_length;
           return *this;
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& append( const Char* cstr )
+        PACE__CXX20_CNSTXPR BasicCoWString& append( const_pointer cstr )
         { return append( cstr, Traits::length( cstr ) ); }
         PACE__CXX20_CNSTXPR BasicCoWString& append( size_type count, Char ch )
         {
@@ -2050,8 +2045,8 @@ namespace pace {
           switch ( tag_ ) {
           case Kind::Literal: PACE__FALLTHROUGH;
           case Kind::Inline:  {
-            const Char* src = tag_ == Kind::Literal ? as_.literal_ : utils::launder_as<Char>( &as_ );
-            Char* dest      = nullptr;
+            const_pointer src = tag_ == Kind::Literal ? as_.literal_ : utils::launder_as<Char>( &as_ );
+            pointer dest      = nullptr;
             if ( total_length > small_capacity() ) {
               transfer_to<Kind::Dynamic>( src,
                                           length_,
@@ -2067,7 +2062,7 @@ namespace pace {
             Traits::assign( dest[total_length], Char() );
           } break;
           case Kind::Dynamic: {
-            auto append_to = [&]( Char* dest, size_type new_cap ) noexcept {
+            auto append_to = [&]( pointer dest, size_type new_cap ) noexcept {
               PACE__TRUST( total_length <= new_cap );
               (void)new_cap;
               Traits::copy( dest, as_.remote_.str(), length_ );
@@ -2142,7 +2137,7 @@ namespace pace {
 
         PACE__CXX20_CNSTXPR BasicCoWString& replace( size_type pos,
                                                      size_type count,
-                                                     const Char* cstr,
+                                                     const_pointer cstr,
                                                      size_type cstr_count )
         {
           if ( pos == length_ )
@@ -2259,11 +2254,11 @@ namespace pace {
           length_ = total_length;
           return *this;
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& replace( size_type pos, size_type count, const Char* cstr )
+        PACE__CXX20_CNSTXPR BasicCoWString& replace( size_type pos, size_type count, const_pointer cstr )
         { return replace( pos, count, cstr, Traits::length( cstr ) ); }
         PACE__CXX20_CNSTXPR BasicCoWString& replace( const_iterator first,
                                                      const_iterator last,
-                                                     const Char* cstr,
+                                                     const_pointer cstr,
                                                      size_type cstr_count )
         {
           PACE__ASSERT( this == first.owner() );
@@ -2273,7 +2268,7 @@ namespace pace {
         }
         PACE__CXX20_CNSTXPR BasicCoWString& replace( const_iterator first,
                                                      const_iterator last,
-                                                     const Char* cstr )
+                                                     const_pointer cstr )
         {
           PACE__ASSERT( this == first.owner() );
           PACE__ASSERT( this == last.owner() );
@@ -2449,7 +2444,7 @@ namespace pace {
         }
 #endif
 
-        PACE__CXX20_CNSTXPR size_type copy( Char* dest, size_type count, size_type pos = 0 ) const
+        PACE__CXX20_CNSTXPR size_type copy( pointer dest, size_type count, size_type pos = 0 ) const
         {
           if ( pos > length_ )
             PACE__UNLIKELY throw std::out_of_range(
@@ -2464,14 +2459,14 @@ namespace pace {
         template<typename Operation>
         PACE__CXX20_CNSTXPR void resize_and_overwrite( size_type count, Operation op ) &
         {
-          Char* dest = nullptr;
+          pointer dest = nullptr;
           switch ( tag_ ) {
           case Kind::Literal: PACE__FALLTHROUGH;
           case Kind::Inline:  {
             const auto src = tag_ == Kind::Literal ? as_.literal_ : utils::launder_as<Char>( &as_ );
             if ( count > small_capacity() ) {
               transfer_to<Kind::Dynamic>( (std::max)( count, dynamic_capacity( small_capacity() ) ) + 1,
-                                          [&]( Char* dest, size_type new_cap ) {
+                                          [&]( pointer dest, size_type new_cap ) {
                                             Traits::copy( dest, src, (std::min)( length_, count ) );
                                             length_ = std::move( op )( dest, new_cap );
                                             return length_;
@@ -2485,13 +2480,13 @@ namespace pace {
           } break;
           case Kind::Dynamic: {
             if ( as_.remote_.refs_->load( std::memory_order_acquire ) > 1 )
-              duplicate_from( count + 1, [&]( Char* dest, size_type new_cap ) {
+              duplicate_from( count + 1, [&]( pointer dest, size_type new_cap ) {
                 Traits::copy( dest, as_.remote_.str(), (std::min)( length_, count ) );
                 length_ = std::move( op )( dest, new_cap );
                 return length_;
               } );
             else if ( count <= as_.remote_.capacity_ )
-              expand_with( count + 1, [&]( Char* dest, size_type new_cap ) {
+              expand_with( count + 1, [&]( pointer dest, size_type new_cap ) {
                 Traits::copy( dest, as_.remote_.str(), (std::min)( length_, count ) );
                 length_ = std::move( op )( dest, new_cap );
                 return length_;
@@ -2505,7 +2500,7 @@ namespace pace {
 
         PACE__CXX20_CNSTXPR void resize( size_type count, Char ch ) &
         {
-          resize_and_overwrite( count, [&]( Char* buffer, size_type buffer_len ) noexcept {
+          resize_and_overwrite( count, [&]( pointer buffer, size_type buffer_len ) noexcept {
             if ( buffer_len > length_ )
               Traits::assign( buffer + length_, buffer_len - length_, ch );
             return buffer_len;
@@ -2513,9 +2508,17 @@ namespace pace {
         }
         PACE__CXX20_CNSTXPR void resize( size_type count ) & { resize( count, Char() ); }
 
+        PACE__NODISCARD PACE__CXX20_CNSTXPR size_type find( Char ch, size_type pos = 0 ) const noexcept
+        {
+          auto result = Traits::find( data() + pos, size() - pos, ch );
+          if ( result == nullptr )
+            return npos;
+          return result - data();
+        }
+
         PACE__NODISCARD PACE__CXX20_CNSTXPR int compare( size_type pos,
                                                          size_type count,
-                                                         const Char* cstr,
+                                                         const_pointer cstr,
                                                          size_type cstr_count ) const
         {
           if ( pos > length_ )
@@ -2525,10 +2528,10 @@ namespace pace {
           const auto result = Traits::compare( data() + pos, cstr, (std::min)( count, cstr_count ) );
           return result != 0 ? result : ( count < cstr_count ? -1 : ( count > cstr_count ? 1 : 0 ) );
         }
-        PACE__NODISCARD PACE__CXX20_CNSTXPR int compare( const Char* cstr,
+        PACE__NODISCARD PACE__CXX20_CNSTXPR int compare( const_pointer cstr,
                                                          size_type cstr_count ) const noexcept
         { return compare( 0, npos, cstr, cstr_count ); }
-        PACE__NODISCARD PACE__CXX20_CNSTXPR int compare( const Char* cstr ) const noexcept
+        PACE__NODISCARD PACE__CXX20_CNSTXPR int compare( const_pointer cstr ) const noexcept
         { return compare( cstr, Traits::length( cstr ) ); }
         PACE__NODISCARD PACE__CXX20_CNSTXPR int compare( size_type pos,
                                                          size_type count,
@@ -2645,7 +2648,7 @@ namespace pace {
 
         PACE__CXX20_CNSTXPR BasicCoWString& operator+=( const BasicCoWString& str ) { return append( str ); }
         PACE__CXX20_CNSTXPR BasicCoWString& operator+=( Char ch ) { return append( 1, ch ); }
-        PACE__CXX20_CNSTXPR BasicCoWString& operator+=( const Char* cstr ) { return append( cstr ); }
+        PACE__CXX20_CNSTXPR BasicCoWString& operator+=( const_pointer cstr ) { return append( cstr ); }
         // BasicCoWString& operator+=( std::initializer_list<Char> ) = delete;
 #ifdef __cpp_lib_string_view
         template<typename StringViewLike>
@@ -2683,19 +2686,19 @@ namespace pace {
           return std::move( b );
         }
         PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( const BasicCoWString& a,
-                                                                             const Char* b )
+                                                                             const_pointer b )
         {
           auto ret = a;
           ret.append( b );
           return ret;
         }
         PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( BasicCoWString&& a,
-                                                                             const Char* b )
+                                                                             const_pointer b )
         {
           a.append( b );
           return std::move( a );
         }
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( const Char* a,
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( const_pointer a,
                                                                              const BasicCoWString& b )
         {
           auto ret = BasicCoWString(
@@ -2704,7 +2707,7 @@ namespace pace {
           ret.append( b );
           return ret;
         }
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( const Char* a,
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( const_pointer a,
                                                                              BasicCoWString&& b )
         {
           b.insert( 0, a );
@@ -2768,24 +2771,24 @@ namespace pace {
         PACE__NODISCARD friend constexpr bool operator==( const BasicCoWString& a,
                                                           const BasicCoWString& b ) noexcept
         { return a.compare( b ) == 0; }
-        PACE__NODISCARD friend constexpr bool operator==( const BasicCoWString& a, const Char* b )
+        PACE__NODISCARD friend constexpr bool operator==( const BasicCoWString& a, const_pointer b )
         { return a.compare( b ) == 0; }
-        PACE__NODISCARD friend constexpr bool operator==( const Char* a, const BasicCoWString& b )
+        PACE__NODISCARD friend constexpr bool operator==( const_pointer a, const BasicCoWString& b )
         { return b == a; }
         PACE__NODISCARD friend constexpr bool operator!=( const BasicCoWString& a,
                                                           const BasicCoWString& b ) noexcept
         { return a.compare( b ) != 0; }
-        PACE__NODISCARD friend constexpr bool operator!=( const BasicCoWString& a, const Char* b )
+        PACE__NODISCARD friend constexpr bool operator!=( const BasicCoWString& a, const_pointer b )
         { return a.compare( b ) != 0; }
-        PACE__NODISCARD friend constexpr bool operator!=( const Char* a, const BasicCoWString& b )
+        PACE__NODISCARD friend constexpr bool operator!=( const_pointer a, const BasicCoWString& b )
         { return b != a; }
 
 #ifdef __cpp_lib_three_way_comparison
         PACE__NODISCARD friend constexpr auto operator<=>( const BasicCoWString& a,
                                                            const BasicCoWString& b ) noexcept
-        { return static_cast<typename ComparisonCategory<Traits>::type>( a.compare( b ) <=> 0 ); }
-        PACE__NODISCARD friend constexpr auto operator<=>( const BasicCoWString& a, const Char* b )
-        { return static_cast<typename ComparisonCategory<Traits>::type>( a.compare( b ) <=> 0 ); }
+        { return static_cast<traits::ComparisonCategory_t<Traits>>( a.compare( b ) <=> 0 ); }
+        PACE__NODISCARD friend constexpr auto operator<=>( const BasicCoWString& a, const_pointer b )
+        { return static_cast<traits::ComparisonCategory_t<Traits>>( a.compare( b ) <=> 0 ); }
 #else
         PACE__NODISCARD friend constexpr bool operator<( const BasicCoWString& a,
                                                          const BasicCoWString& b ) noexcept
@@ -2799,21 +2802,21 @@ namespace pace {
         PACE__NODISCARD friend constexpr bool operator>=( const BasicCoWString& a,
                                                           const BasicCoWString& b ) noexcept
         { return a.compare( b ) >= 0; }
-        PACE__NODISCARD friend constexpr bool operator<( const BasicCoWString& a, const Char* b )
+        PACE__NODISCARD friend constexpr bool operator<( const BasicCoWString& a, const_pointer b )
         { return a.compare( b ) < 0; }
-        PACE__NODISCARD friend constexpr bool operator<=( const BasicCoWString& a, const Char* b )
+        PACE__NODISCARD friend constexpr bool operator<=( const BasicCoWString& a, const_pointer b )
         { return a.compare( b ) <= 0; }
-        PACE__NODISCARD friend constexpr bool operator>( const BasicCoWString& a, const Char* b )
+        PACE__NODISCARD friend constexpr bool operator>( const BasicCoWString& a, const_pointer b )
         { return a.compare( b ) > 0; }
-        PACE__NODISCARD friend constexpr bool operator>=( const BasicCoWString& a, const Char* b )
+        PACE__NODISCARD friend constexpr bool operator>=( const BasicCoWString& a, const_pointer b )
         { return a.compare( b ) >= 0; }
-        PACE__NODISCARD friend constexpr bool operator<( const Char* a, const BasicCoWString& b )
+        PACE__NODISCARD friend constexpr bool operator<( const_pointer a, const BasicCoWString& b )
         { return !( b >= a ); }
-        PACE__NODISCARD friend constexpr bool operator<=( const Char* a, const BasicCoWString& b )
+        PACE__NODISCARD friend constexpr bool operator<=( const_pointer a, const BasicCoWString& b )
         { return !( b > a ); }
-        PACE__NODISCARD friend constexpr bool operator>( const Char* a, const BasicCoWString& b )
+        PACE__NODISCARD friend constexpr bool operator>( const_pointer a, const BasicCoWString& b )
         { return !( b <= a ); }
-        PACE__NODISCARD friend constexpr bool operator>=( const Char* a, const BasicCoWString& b )
+        PACE__NODISCARD friend constexpr bool operator>=( const_pointer a, const BasicCoWString& b )
         { return !( b < a ); }
 #endif
       };

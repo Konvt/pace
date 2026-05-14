@@ -147,7 +147,7 @@ namespace pace {
        * If the `startpoint` is greater than `endpoint` while `step` is positive,
        * or the `startpoint` is less than `endpoint` while `step` is negative.
        */
-      PACE__CXX20_CNSTXPR NumericSpan( N startpoint, N endpoint, N step ) noexcept( false ) : NumericSpan()
+      PACE__CXX20_CNSTXPR NumericSpan( N startpoint, N endpoint, N step ) : NumericSpan()
       {
         if ( step > 0 && startpoint > endpoint )
           PACE__UNLIKELY

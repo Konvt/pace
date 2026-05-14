@@ -60,7 +60,7 @@ namespace pace {
             executor.template trigger<Mode>();
           executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().release(); } );
         }
-        virtual void do_boot() & noexcept( false )
+        virtual void do_boot() &
         {
           auto& executor = render::Renderer<Sink>::itself();
           if ( !executor.try_appoint( [this]() {
@@ -141,7 +141,7 @@ namespace pace {
             state_.store( Phase::Stop, std::memory_order_release );
         }
         template<typename F>
-        void do_tick( F&& ticker ) & noexcept( false )
+        void do_tick( F&& ticker ) &
         {
           switch ( state_.load( std::memory_order_acquire ) ) {
           case Phase::Stop:  PACE__FALLTHROUGH;

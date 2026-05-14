@@ -73,13 +73,14 @@ namespace pace {
        * The given each unit will be treated as 1,000 times greater than the previous one
        * (from left to right).
        */
-      PACE__CXX20_CNSTXPR SpeedUnit( const std::vector<details::types::LitU8>& _units )
+      PACE__CXX20_CNSTXPR SpeedUnit( const std::vector<details::charcodes::U8StringView>& _units )
       {
         data_.reserve( _units.size() );
-        std::transform( _units.cbegin(),
-                        _units.cend(),
-                        std::back_inserter( data_ ),
-                        []( const details::types::LitU8& ele ) { return details::charcodes::U8Raw( ele ); } );
+        std::transform(
+          _units.cbegin(),
+          _units.cend(),
+          std::back_inserter( data_ ),
+          []( const details::charcodes::U8StringView& ele ) { return details::charcodes::U8Raw( ele ); } );
       }
 #endif
     };
@@ -152,7 +153,7 @@ namespace pace {
         else
           orig = details::utils::format( frequency / tier, 2 ) + ' ';
         if ( !units_.empty() )
-          orig += units_[num_powered];
+          orig.append( units_[num_powered].data(), units_[num_powered].size() );
 
         return pipeline << details::utils::format_as<details::utils::TxtAlign::Right>( std::move( orig ),
                                                                                        fixed_length() );
@@ -199,9 +200,9 @@ namespace pace {
        * The given each unit will be treated as 1,000 times greater than the previous one
        * (from left to right).
        */
-      Derived& speed_unit( const std::vector<details::types::LitU8>& _units ) &
+      Derived& speed_unit( const std::vector<details::charcodes::U8StringView>& _units ) &
       { PACE__METHOD( SpeedUnit, _units, , Derived& ); }
-      Derived&& speed_unit( const std::vector<details::types::LitU8>& _units ) &&
+      Derived&& speed_unit( const std::vector<details::charcodes::U8StringView>& _units ) &&
       { PACE__METHOD( SpeedUnit, _units, , Derived&& ); }
 #endif
 

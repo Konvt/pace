@@ -174,7 +174,7 @@ namespace pace {
         void kill() noexcept { do_shut<true>(); }
 
         template<typename C>
-        void append( assets::ManagedBar<C, Sink, Mode, Zone>* item ) & noexcept( false )
+        void append( assets::ManagedBar<C, Sink, Mode, Zone>* item ) &
         {
           std::lock_guard<std::mutex> lock1 { sched_mtx_ };
           auto& executor = render::Renderer<Sink>::itself();

@@ -51,7 +51,7 @@ namespace pace {
         enum class Phase : std::uint8_t { Dead, Asleep, Dormant, Warmup, Loop, Primed, Pulse, Shot, Idle };
         std::atomic<Phase> state_ = { Phase::Dead };
 
-        void launch() & noexcept( false )
+        void launch() &
         {
           console::TermContext<Tag>::itself().virtual_term();
           PACE__ASSERT( runner_.get_id() == std::thread::id() );
@@ -185,7 +185,7 @@ namespace pace {
 
         // `activate` guarantees to perform the render task at least once.
         template<Policy Mode>
-        void activate() & noexcept( false )
+        void activate() &
         {
           if ( state_.load( std::memory_order_acquire ) == Phase::Dead ) {
             std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
@@ -345,7 +345,7 @@ namespace pace {
           shutdown();
         }
 
-        PACE__NODISCARD bool try_appoint( wrappers::UniqueFunction<void()>&& task ) & noexcept( false )
+        PACE__NODISCARD bool try_appoint( wrappers::UniqueFunction<void()>&& task ) &
         {
           std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
           if ( task_ != nullptr )

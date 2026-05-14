@@ -38,19 +38,16 @@ namespace pace {
       // The return value of this config-function will serve as both the return value
       // and the entry parameter of C3.
       template<template<typename...> class Node>
-      struct InheritOrder {
-        using type = C3Container<Node>;
-      };
+      struct InheritOrder : Identity<C3Container<Node>> {};
       // Gets the inheritance order of the template class `Node`.
       template<template<typename...> class Node>
       using InheritOrder_t = typename InheritOrder<Node>::type;
 
 // A helper macro to register the inheritance structure of a template class.
-#define PACE__INHERIT_REGISTER( Node, ... )                                    \
-  template<>                                                                   \
-  struct pace::details::traits::InheritOrder<Node> {                           \
-    using type = pace::details::traits::TmpPrepend_t<C3_t<__VA_ARGS__>, Node>; \
-  }
+#define PACE__INHERIT_REGISTER( Node, ... )        \
+  template<>                                       \
+  struct pace::details::traits::InheritOrder<Node> \
+    : pace::details::traits::Identity<pace::details::traits::TmpPrepend_t<C3_t<__VA_ARGS__>, Node>> {}
 
       // The implementation of the "merge" function in the C3 algorithm.
       template<typename... VBLists>
@@ -119,13 +116,10 @@ namespace pace {
         using DropCandidate_t = typename DropCandidate<Candidate, List>::type;
 
         template<template<typename...> class Candidate, template<typename...> class... Rests>
-        struct DropCandidate<Candidate, C3Container<Candidate, Rests...>> {
-          using type = C3Container<Rests...>;
-        };
+        struct DropCandidate<Candidate, C3Container<Candidate, Rests...>>
+          : Identity<C3Container<Rests...>> {};
         template<template<typename...> class Candidate, template<typename...> class... Rests>
-        struct DropCandidate<Candidate, C3Container<Rests...>> {
-          using type = C3Container<Rests...>;
-        };
+        struct DropCandidate<Candidate, C3Container<Rests...>> : Identity<C3Container<Rests...>> {};
 
         //////////////////////////////////////////////////
 
@@ -145,9 +139,7 @@ namespace pace {
         using Linearize_t = typename Linearize<Sorted, MergedLists...>::type;
 
         template<typename Sorted>
-        struct Linearize<Sorted> {
-          using type = Sorted;
-        };
+        struct Linearize<Sorted> : Identity<Sorted> {};
         template<typename Sorted, typename... OtherLists>
         struct Linearize<Sorted, C3Container<>, OtherLists...> : Linearize<Sorted, OtherLists...> {};
         template<typename Sorted, typename... OtherLists>
@@ -192,16 +184,13 @@ namespace pace {
         using Helper_t = typename Helper<Linearized, RBC, Args...>::type;
 
         template<typename RBC, typename... Args>
-        struct Helper<C3Container<>, RBC, Args...> {
-          using type = RBC;
-        };
+        struct Helper<C3Container<>, RBC, Args...> : Identity<RBC> {};
         template<template<typename...> class Head,
                  template<typename...> class... Tail,
                  typename RBC,
                  typename... Args>
-        struct Helper<C3Container<Head, Tail...>, RBC, Args...> {
-          using type = Head<Helper_t<C3Container<Tail...>, RBC, Args...>, Args...>;
-        };
+        struct Helper<C3Container<Head, Tail...>, RBC, Args...>
+          : Identity<Head<Helper_t<C3Container<Tail...>, RBC, Args...>, Args...>> {};
 
       public:
         // RBC: Root Base Class.
@@ -221,16 +210,12 @@ namespace pace {
       using BaseOf_t = typename BaseOf<Linearized, Target>::type;
 
       template<template<typename...> class Target, typename Base, typename... Rest>
-      struct BaseOf<Target<Base, Rest...>, Target> {
-        using type = Target<Base, Rest...>;
-      };
+      struct BaseOf<Target<Base, Rest...>, Target> : Identity<Target<Base, Rest...>> {};
       template<template<typename...> class Linearized,
                typename Base,
                typename... Rest,
                template<typename...> class Target>
-      struct BaseOf<Linearized<Base, Rest...>, Target> {
-        using type = BaseOf_t<Base, Target>;
-      };
+      struct BaseOf<Linearized<Base, Rest...>, Target> : Identity<BaseOf_t<Base, Target>> {};
     } // namespace traits
   } // namespace details
 } // namespace pace

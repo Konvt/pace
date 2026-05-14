@@ -4,44 +4,28 @@
 #include <chrono>
 #include <cstddef>
 #include <string>
-#ifdef __cpp_lib_string_view
-# include <string_view>
-#else
-# include <type_traits>
-#endif
 
 namespace pace {
   namespace details {
     namespace types {
-      using Size   = std::size_t;
-      using String = std::string;
-      using Char   = char;
-#ifdef __cpp_lib_string_view
-      using ROStr  = std::string_view;
-      using LitStr = ROStr; // literal strings
-#else
-      using ROStr  = typename std::add_lvalue_reference<typename std::add_const<String>::type>::type;
-      using LitStr = typename std::add_pointer<typename std::add_const<Char>::type>::type;
-#endif
-#ifdef __cpp_lib_char8_t
-      using LitU8 = std::u8string_view;
-#else
-      using LitU8 = LitStr;
-#endif
+      using Char      = char;
+      using CodePoint = char32_t; // Unicode code point
+
+      using Size  = std::size_t;
+      using Float = double;
+
+      using Byte =
 #ifdef __cpp_lib_byte
-      using Byte = std::byte; // addressable Byte type
+        std::byte; // addressable Byte type
 #else
-      using Byte = unsigned char;
+        unsigned char;
 #endif
+      using Bit8   = std::uint8_t; // a computable and addressable Byte type
+      using String = std::basic_string<Char>;
+      using Tempus = std::chrono::nanoseconds;
+
       using HexRGB     = std::uint32_t;
-      using CodePoint  = char32_t; // Unicode code point
-      using Float      = double;
-      using Bit8       = std::uint8_t; // a computable and addressable Byte type
       using GlyphWidth = std::uint8_t; // value is between [0, 3]
-      using Tempus     = std::chrono::nanoseconds;
-      // ETA requires nanosecond resolution;
-      // microseconds may introduce significant precision loss
-      // for fast-updating progress bars.
     } // namespace types
   } // namespace details
 

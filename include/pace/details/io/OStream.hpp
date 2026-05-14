@@ -1,6 +1,7 @@
 #ifndef PACE_OSTREAM
 #define PACE_OSTREAM
 
+#include "../../exception/Error.hpp"
 #include "CharPipeline.hpp"
 #include <cerrno>
 #ifdef __cpp_lib_span

@@ -1,6 +1,7 @@
 #ifndef PACE_BAR
 #define PACE_BAR
 
+#include "../charcodes/U8Raw.hpp"
 #include "../traits/C3.hpp"
 #include "RenderRule.hpp"
 
@@ -109,13 +110,13 @@ namespace pace {
         Derived&& ending( types::String _ending ) &&
         { PACE__METHOD( Ending, _ending, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
-        Derived& starting( types::LitU8 _starting ) &
+        Derived& starting( charcodes::U8StringView _starting ) &
         { PACE__METHOD( Starting, _starting, Derived&, ); }
-        Derived&& starting( types::LitU8 _starting ) &&
+        Derived&& starting( charcodes::U8StringView _starting ) &&
         { PACE__METHOD( Starting, _starting, Derived&&, ); }
-        Derived& ending( types::LitU8 _ending ) &
+        Derived& ending( charcodes::U8StringView _ending ) &
         { PACE__METHOD( Ending, _ending, Derived&, ); }
-        Derived&& ending( types::LitU8 _ending ) &&
+        Derived&& ending( charcodes::U8StringView _ending ) &&
         { PACE__METHOD( Ending, _ending, Derived&&, ); }
 #endif
 

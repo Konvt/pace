@@ -1,6 +1,7 @@
 #ifndef PACE_SEGMENT
 #define PACE_SEGMENT
 
+#include "../charcodes/U8Raw.hpp"
 #include "../traits/C3.hpp"
 #include "../wrappers/OptionPacket.hpp"
 #include "RenderRule.hpp"
@@ -103,19 +104,19 @@ namespace pace {
         Derived&& right_border( types::String _r_border ) &&
         { PACE__METHOD( RightBorder, _r_border, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
-        Derived& divider( types::LitU8 _divider ) &
+        Derived& divider( charcodes::U8StringView _divider ) &
         { PACE__METHOD( Divider, _divider, Derived&, ); }
-        Derived&& divider( types::LitU8 _divider ) &&
+        Derived&& divider( charcodes::U8StringView _divider ) &&
         { PACE__METHOD( Divider, _divider, Derived&&, ); }
 
-        Derived& left_border( types::LitU8 _l_border ) &
+        Derived& left_border( charcodes::U8StringView _l_border ) &
         { PACE__METHOD( LeftBorder, _l_border, Derived&, ); }
-        Derived&& left_border( types::LitU8 _l_border ) &&
+        Derived&& left_border( charcodes::U8StringView _l_border ) &&
         { PACE__METHOD( LeftBorder, _l_border, Derived&&, ); }
 
-        Derived& right_border( types::LitU8 _r_border ) &
+        Derived& right_border( charcodes::U8StringView _r_border ) &
         { PACE__METHOD( RightBorder, _r_border, Derived&, ); }
-        Derived&& right_border( types::LitU8 _r_border ) &&
+        Derived&& right_border( charcodes::U8StringView _r_border ) &&
         { PACE__METHOD( RightBorder, _r_border, Derived&&, ); }
 #endif
 

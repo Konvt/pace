@@ -2,6 +2,7 @@
 #define PACE_TYPE_SET
 
 #include "Algorithm.hpp"
+#include "Identity.hpp"
 #include "TypeList.hpp"
 
 namespace pace {
@@ -23,26 +24,18 @@ namespace pace {
         template<bool Cond, typename NewOne>
         struct _select;
         template<typename NewOne>
-        struct _select<true, NewOne> {
-          using type = TypeSet<Es...>;
-        };
+        struct _select<true, NewOne> : Identity<TypeSet<Es...>> {};
         template<typename NewOne>
-        struct _select<false, NewOne> {
-          using type = TypeSet<Es..., NewOne>;
-        };
+        struct _select<false, NewOne> : Identity<TypeSet<Es..., NewOne>> {};
 
       public:
         using type = typename _select<TpContain<TypeSet<Es...>, T>::value, T>::type;
       };
 
       template<typename Element>
-      struct TpRemove<TypeSet<>, Element> {
-        using type = TypeSet<>;
-      };
+      struct TpRemove<TypeSet<>, Element> : Identity<TypeSet<>> {};
       template<typename... Tail, typename Element>
-      struct TpRemove<TypeSet<Element, Tail...>, Element> {
-        using type = TypeSet<Tail...>;
-      };
+      struct TpRemove<TypeSet<Element, Tail...>, Element> : Identity<TypeSet<Tail...>> {};
 #if PACE__FAST_TYPEAT
       template<typename... Es, typename Element>
       struct TpRemove<TypeSet<Es...>, Element> {
@@ -50,9 +43,7 @@ namespace pace {
         template<typename Removed, typename Another>
         struct Helper;
         template<typename... Head, typename... Tail>
-        struct Helper<TypeSet<Head...>, TypeSet<Tail...>> {
-          using type = TypeSet<Head..., Tail...>;
-        };
+        struct Helper<TypeSet<Head...>, TypeSet<Tail...>> : Identity<TypeSet<Head..., Tail...>> {};
 
         using Left  = Split_l<TypeSet<Es...>>;
         using Right = Split_r<TypeSet<Es...>>;
@@ -64,15 +55,12 @@ namespace pace {
       };
 #else
       template<typename Head, typename... Tail, typename Element>
-      struct TpRemove<TypeSet<Head, Tail...>, Element> {
-        using type = TpPrepend_t<TpRemove_t<TypeSet<Tail...>, Element>, Head>;
-      };
+      struct TpRemove<TypeSet<Head, Tail...>, Element>
+        : Identity<TpPrepend_t<TpRemove_t<TypeSet<Tail...>, Element>, Head>> {};
 #endif
 
       template<typename... Es, template<typename...> class Collection>
-      struct Combine<TypeSet<Es...>, Collection<>> {
-        using type = TypeSet<Es...>;
-      };
+      struct Combine<TypeSet<Es...>, Collection<>> : Identity<TypeSet<Es...>> {};
       template<typename... Es, template<typename...> class Collection, typename T, typename... Ts>
       struct Combine<TypeSet<Es...>, Collection<T, Ts...>>
         : Combine<TpAppend_t<TypeSet<Es...>, T>, Collection<Ts...>> {};

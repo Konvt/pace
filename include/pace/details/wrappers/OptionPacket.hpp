@@ -44,17 +44,14 @@ namespace pace {
 
     namespace traits {
       template<template<typename...> class Component>
-      struct OptionOf {
-        using type = TypeSet<>;
-      };
+      struct OptionOf : Identity<TypeSet<>> {};
       template<template<typename...> class Component>
       using OptionOf_t = typename OptionOf<Component>::type;
 
-#define PACE__OPTION_REGISTER( Component, ... )               \
-  template<>                                                  \
-  struct pace::details::traits::OptionOf<Component> {         \
-    using type = pace::details::traits::TypeSet<__VA_ARGS__>; \
-  }
+#define PACE__OPTION_REGISTER( Component, ... )     \
+  template<>                                        \
+  struct pace::details::traits::OptionOf<Component> \
+    : pace::details::traits::Identity<pace::details::traits::TypeSet<__VA_ARGS__>> {}
 
       // Resolves and links option declarations into a list.
       template<typename ComponentList>
@@ -90,7 +87,7 @@ namespace pace {
      PACE__CXX20_CNSTXPR StructName( pace::details::types::String ParamName )                    \
        : pace::details::wrappers::OptionPacket<ValueType>( ValueType( std::move( ParamName ) ) ) \
      {}                                                                                          \
-     PACE__CXX20_CNSTXPR StructName( pace::details::types::LitU8 ParamName )                     \
+     PACE__CXX20_CNSTXPR StructName( pace::details::charcodes::U8StringView ParamName )          \
        : pace::details::wrappers::OptionPacket<ValueType>( ValueType( std::move( ParamName ) ) ) \
      {}                                                                                          \
    }

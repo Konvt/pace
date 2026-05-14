@@ -2,6 +2,7 @@
 #define PACE_ALGORITHM
 
 #include "Backport.hpp"
+#include "Identity.hpp"
 #include <tuple>
 
 namespace pace {
@@ -53,9 +54,7 @@ namespace pace {
       template<template<template<typename...> class...> class From,
                template<typename...> class... Tmps,
                template<template<typename...> class...> class To>
-      struct TmpNominalCast<From<Tmps...>, To> {
-        using type = To<Tmps...>;
-      };
+      struct TmpNominalCast<From<Tmps...>, To> : Identity<To<Tmps...>> {};
 
       template<typename Collection>
       struct Split;
@@ -143,9 +142,7 @@ namespace pace {
                                      Split_r<std::tuple<TailCollections...>>>::type;
 #else
         template<typename First, typename... Rests>
-        struct Helper {
-          using type = First;
-        };
+        struct Helper : Identity<First> {};
         template<typename First, typename Second, typename... Tail>
         struct Helper<First, Second, Tail...> : Merge<Combine_t<First, Second>, Tail...> {};
 
@@ -157,9 +154,7 @@ namespace pace {
       using Merge_t = typename Merge<FirstCollection, TailCollections...>::type;
 
       template<typename Collection>
-      struct Merge<Collection> {
-        using type = Collection;
-      };
+      struct Merge<Collection> : Identity<Collection> {};
       template<typename Head, typename Tail>
       struct Merge<Head, Tail> : Combine<Head, Tail> {};
     } // namespace traits

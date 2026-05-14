@@ -154,6 +154,22 @@ namespace pace {
       template<typename T>
       using is_sized_range = _impl_is_sized_range<T>;
 #endif
+
+#ifdef __cpp_lib_three_way_comparison
+      template<typename Trait>
+      struct ComparisonCategory {
+      private:
+        template<typename T>
+        static constexpr auto check( int ) -> typename T::comparison_category;
+        template<typename>
+        static constexpr std::weak_ordering check( ... );
+
+      public:
+        using type = decltype( check<Trait>( 0 ) );
+      };
+      template<typename Trait>
+      using ComparisonCategory_t = typename ComparisonCategory<Trait>::type;
+#endif
     } // namespace traits
   } // namespace details
 } // namespace pace

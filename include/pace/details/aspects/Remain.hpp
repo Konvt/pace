@@ -67,9 +67,9 @@ namespace pace {
         Derived&& remain( types::String _remain ) &&
         { PACE__METHOD( Remain, _remain, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
-        Derived& remain( types::LitU8 _remain ) &
+        Derived& remain( charcodes::U8StringView _remain ) &
         { PACE__METHOD( Remain, _remain, Derived&, ); }
-        Derived&& remain( types::LitU8 _remain ) &&
+        Derived&& remain( charcodes::U8StringView _remain ) &&
         { PACE__METHOD( Remain, _remain, Derived&&, ); }
 #endif
 

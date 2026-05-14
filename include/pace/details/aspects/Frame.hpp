@@ -37,15 +37,16 @@ namespace pace {
        */
       Lead( details::types::String _lead ) : Base( { details::charcodes::U8Text( std::move( _lead ) ) } ) {}
 #ifdef __cpp_lib_char8_t
-      Lead( const std::vector<details::types::LitU8>& _leads )
+      Lead( const std::vector<details::charcodes::U8StringView>& _leads )
       {
         std::transform(
           _leads.cbegin(),
           _leads.cend(),
           std::back_inserter( data_ ),
-          []( const details::types::LitU8& ele ) { return details::charcodes::U8Text( ele ); } );
+          []( const details::charcodes::U8StringView& ele ) { return details::charcodes::U8Text( ele ); } );
       }
-      Lead( const details::types::LitU8& _lead ) : Base( { details::charcodes::U8Text( _lead ) } ) {}
+      Lead( const details::charcodes::U8StringView& _lead ) : Base( { details::charcodes::U8Text( _lead ) } )
+      {}
 #endif
     };
 
@@ -133,13 +134,13 @@ namespace pace {
         Derived&& lead( types::String _lead ) &&
         { PACE__METHOD( Lead, _lead, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
-        Derived& lead( const std::vector<types::LitU8>& _leads ) &
+        Derived& lead( const std::vector<charcodes::U8StringView>& _leads ) &
         { PACE__METHOD( Lead, _leads, Derived&, ); }
-        Derived&& lead( const std::vector<types::LitU8>& _leads ) &&
+        Derived&& lead( const std::vector<charcodes::U8StringView>& _leads ) &&
         { PACE__METHOD( Lead, _leads, Derived&&, ); }
-        Derived& lead( types::LitU8 _lead ) &
+        Derived& lead( charcodes::U8StringView _lead ) &
         { PACE__METHOD( Lead, _lead, Derived&, ); }
-        Derived&& lead( types::LitU8 _lead ) &&
+        Derived&& lead( charcodes::U8StringView _lead ) &&
         { PACE__METHOD( Lead, _lead, Derived&&, ); }
 #endif
 

@@ -261,23 +261,22 @@ namespace pace {
    */
   template<typename Bar, typename... Objs>
   PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( details::types::Size count, Objs&&... objs )
-    noexcept( false )
 #ifdef __cpp_concepts
     requires( details::traits::is_bar<Bar>::value
               && ( ( ( std::is_same_v<std::remove_cv_t<Bar>, std::remove_cv_t<Objs>> && ... )
                      && !( std::is_lvalue_reference_v<Objs &&> || ... ) )
                    || ( std::is_same<typename Bar::Config, std::decay_t<Objs>>::value && ... ) ) )
 #else
-      -> typename std::enable_if<
-        details::traits::AllOf<
-          details::traits::is_bar<Bar>,
-          details::traits::AnyOf<
-            details::traits::AllOf<
-              std::is_same<typename std::remove_cv<Bar>::type, typename std::remove_cv<Objs>::type>...,
-              details::traits::Not<details::traits::AnyOf<std::is_lvalue_reference<Objs&&>...>>>,
-            details::traits::AllOf<std::is_same<typename Bar::Config, typename std::decay<Objs>::type>...>>>::
-          value,
-        std::vector<std::unique_ptr<Bar>>>::type
+    -> typename std::enable_if<
+      details::traits::AllOf<
+        details::traits::is_bar<Bar>,
+        details::traits::AnyOf<
+          details::traits::AllOf<
+            std::is_same<typename std::remove_cv<Bar>::type, typename std::remove_cv<Objs>::type>...,
+            details::traits::Not<details::traits::AnyOf<std::is_lvalue_reference<Objs&&>...>>>,
+          details::traits::AllOf<std::is_same<typename Bar::Config, typename std::decay<Objs>::type>...>>>::
+        value,
+      std::vector<std::unique_ptr<Bar>>>::type
 #endif
   {
     std::vector<std::unique_ptr<Bar>> products;
@@ -315,16 +314,15 @@ namespace pace {
            Region Zone  = Region::Fixed,
            typename... Configs>
   PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( details::types::Size count, Configs&&... cfgs )
-    noexcept( false )
 #ifdef __cpp_concepts
     requires( details::traits::is_config<Config>::value
               && ( std::is_same_v<std::remove_cv_t<Config>, std::decay_t<Configs>> && ... ) )
 #else
-      -> typename std::enable_if<
-        details::traits::AllOf<
-          details::traits::is_config<Config>,
-          std::is_same<typename std::remove_cv<Config>::type, typename std::decay<Configs>::type>...>::value,
-        std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
+    -> typename std::enable_if<
+      details::traits::AllOf<
+        details::traits::is_config<Config>,
+        std::is_same<typename std::remove_cv<Config>::type, typename std::decay<Configs>::type>...>::value,
+      std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
     std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>> products;
@@ -363,15 +361,14 @@ namespace pace {
            typename... Configs>
   PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( details::types::Size count,
                                                        prefab::BasicBar<Configs, Sink, Mode, Zone>&&... bars )
-    noexcept( false )
 #ifdef __cpp_concepts
     requires( details::traits::is_config<Config>::value
               && ( std::is_same_v<Config, std::decay_t<Configs>> && ... ) )
 #else
-      -> typename std::enable_if<
-        details::traits::AllOf<details::traits::is_config<Config>,
-                               std::is_same<Config, typename std::decay<Configs>::type>...>::value,
-        std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
+    -> typename std::enable_if<
+      details::traits::AllOf<details::traits::is_config<Config>,
+                             std::is_same<Config, typename std::decay<Configs>::type>...>::value,
+      std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
     std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>> products;

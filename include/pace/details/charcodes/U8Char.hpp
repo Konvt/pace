@@ -3,6 +3,7 @@
 
 #include "../../exception/Error.hpp"
 #include "CodeChart.hpp"
+#include "StringView.hpp"
 #include <algorithm>
 #include <array>
 
@@ -17,13 +18,12 @@ namespace pace {
       public:
         /// @return The utf codepoint and the number of byte of the utf-8 character.
         static PACE__CXX23_CNSTXPR std::pair<types::CodePoint, std::uint8_t> next_codepoint(
-          const types::Char* raw_u8_str,
-          types::Size str_length )
+          charcodes::StringView raw_u8_str )
         {
           // After RFC 3629, the maximum length of each standard UTF-8 character is 4 bytes.
-          const auto first_byte = *raw_u8_str;
+          const auto first_byte = raw_u8_str.front();
           auto validator        = [=]( types::Size expected_len ) -> types::CodePoint {
-            if ( expected_len > str_length )
+            if ( expected_len > raw_u8_str.size() )
               PACE__UNLIKELY throw exception::InvalidArgument( "pace: incomplete UTF-8 sequence"_cow );
             for ( types::Size i = 1; i < expected_len; ++i ) {
               if ( ( raw_u8_str[i] & 0xC0 ) != 0x80 )
@@ -109,13 +109,12 @@ namespace pace {
           return 1; // Default fallback
         }
 
-        PACE__NODISCARD static PACE__CXX20_CNSTXPR U8Char from_bytes( const types::Char* bytes,
-                                                                      types::Size str_length )
+        PACE__NODISCARD static PACE__CXX20_CNSTXPR U8Char from_bytes( charcodes::StringView bytes )
         {
-          auto parsed = next_codepoint( bytes, str_length );
+          auto parsed = next_codepoint( bytes );
           U8Char ret;
           ret.width_ = glyph_width( parsed.first );
-          std::copy( bytes, bytes + parsed.second, ret.byte_.begin() );
+          std::copy( bytes.data(), bytes.data() + parsed.second, ret.byte_.begin() );
           ret.length_ = static_cast<std::uint8_t>( parsed.second );
           return ret;
         }
@@ -135,6 +134,8 @@ namespace pace {
         PACE__NODISCARD constexpr std::uint8_t width() const noexcept { return width_; }
 
         PACE__NODISCARD constexpr bool empty() const noexcept { return length_ == 0; }
+
+        PACE__NODISCARD constexpr operator StringView() const noexcept { return { byte_.data(), length_ }; }
 
         PACE__CXX20_CNSTXPR void swap( U8Char& other ) noexcept
         {

@@ -101,9 +101,9 @@ namespace pace {
         { PACE__METHOD( Prefix, _prefix, Derived&&, std::move ); }
 
 #ifdef __cpp_lib_char8_t
-        Derived& prefix( types::LitU8 _prefix ) &
+        Derived& prefix( charcodes::U8StringView _prefix ) &
         { PACE__METHOD( Prefix, _prefix, Derived&, ); }
-        Derived&& prefix( types::LitU8 _prefix ) &&
+        Derived&& prefix( charcodes::U8StringView _prefix ) &&
         { PACE__METHOD( Prefix, _prefix, Derived&&, ); }
 #endif
 
@@ -183,9 +183,9 @@ namespace pace {
         Derived&& postfix( types::String _postfix ) &&
         { PACE__METHOD( Postfix, _postfix, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
-        Derived& postfix( types::LitU8 _postfix ) &
+        Derived& postfix( charcodes::U8StringView _postfix ) &
         { PACE__METHOD( Postfix, _postfix, Derived&, ); }
-        Derived&& postfix( types::LitU8 _postfix ) &&
+        Derived&& postfix( charcodes::U8StringView _postfix ) &&
         { PACE__METHOD( Postfix, _postfix, Derived&&, ); }
 #endif
 

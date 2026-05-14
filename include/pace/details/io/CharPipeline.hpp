@@ -1,7 +1,7 @@
 #ifndef PACE_CHAR_PIPELINE
 #define PACE_CHAR_PIPELINE
 
-#include "../charcodes/EncodedView.hpp"
+#include "../charcodes/StringView.hpp"
 #include "../traits/Backport.hpp"
 #include <vector>
 
@@ -48,12 +48,11 @@ namespace pace {
           buffer_.insert( buffer_.end(), first, last );
           return *this;
         }
-        template<types::Size N>
-        PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& append( const types::Char ( &info )[N],
+        PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& append( charcodes::StringView info,
                                                                     types::Size num = 1 ) &
         {
           while ( num-- )
-            append( info, info + N - 1 );
+            append( info.data(), info.data() + info.size() );
           return *this;
         }
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& append( types::Char info, types::Size num = 1 ) &
@@ -61,48 +60,14 @@ namespace pace {
           buffer_.insert( buffer_.end(), num, info );
           return *this;
         }
-        PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& append( types::ROStr info, types::Size num = 1 ) &
-        {
-          while ( num-- )
-            append( info.data(), info.data() + info.size() );
-          return *this;
-        }
-        PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& append( const charcodes::U8Char& info,
-                                                                    types::Size num = 1 ) &
-        {
-          while ( num-- )
-            append( info.as_bytes(), info.as_bytes() + info.size() );
-          return *this;
-        }
-        PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& append( const charcodes::U8Raw& info,
-                                                                    types::Size num = 1 ) &
-        { return append( info.str(), num ); }
-        PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& append( const charcodes::EncodedView& info,
-                                                                    types::Size num = 1 ) &
-        {
-          if ( info )
-            while ( num-- )
-              append( info.begin(), info.end() );
-          return *this;
-        }
 
-        template<typename Char, types::Size N>
-        friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& operator<<( CharPipeline& stream,
-                                                                               const Char ( &info )[N] )
-        { return stream.append( info ); }
         template<typename T>
         friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR typename std::enable_if<
-          traits::AnyOf<std::is_same<typename std::decay<T>::type, types::Char>,
-                        std::is_same<typename std::decay<T>::type, types::String>,
-                        std::is_same<typename std::decay<T>::type, charcodes::U8Char>,
-                        std::is_same<typename std::decay<T>::type, charcodes::U8Raw>,
-                        std::is_same<typename std::decay<T>::type, charcodes::EncodedView>>::value,
+          traits::AnyOf<std::is_convertible<T, charcodes::StringView>,
+                        std::is_same<typename std::decay<T>::type, types::Char>>::value,
           CharPipeline&>::type
           operator<<( CharPipeline& stream, T&& info )
         { return stream.append( std::forward<T>( info ) ); }
-        friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& operator<<( CharPipeline& stream,
-                                                                               types::ROStr info )
-        { return stream.append( info ); }
 
         PACE__CXX20_CNSTXPR void swap( CharPipeline& other ) noexcept
         {
@@ -112,14 +77,15 @@ namespace pace {
         friend PACE__CXX20_CNSTXPR void swap( CharPipeline& a, CharPipeline& b ) noexcept { a.swap( b ); }
 
 #ifdef __cpp_lib_char8_t
-        PACE__FORCEINLINE CharPipeline& append( types::LitU8 info, types::Size num = 1 ) &
+        PACE__FORCEINLINE CharPipeline& append( charcodes::U8StringView info, types::Size num = 1 ) &
         {
           while ( num-- )
             append( reinterpret_cast<const types::Char*>( info.data() ),
                     reinterpret_cast<const types::Char*>( info.data() ) + info.size() );
           return *this;
         }
-        friend PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& stream, types::LitU8 info )
+        friend PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& stream,
+                                                           charcodes::U8StringView info )
         { return stream.append( info ); }
 #endif
       };

@@ -70,7 +70,7 @@ namespace pace {
       // Format a finite floating point number.
       template<typename Floating>
       PACE__NODISCARD typename std::enable_if<std::is_floating_point<Floating>::value, types::String>::type
-        format( Floating val, int precision = 3 ) noexcept( false )
+        format( Floating val, int precision = 3 )
       {
         /* Unlike the integer version,
          * the std::to_string in the standard library does not provide a precision limit
@@ -130,12 +130,10 @@ namespace pace {
       enum class TxtAlign { Left, Right, Center }; // text layout
       // Format the `str`.
       template<TxtAlign Alignment, typename String>
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR auto format_as( String&& str,
-                                                                            types::Size width,
-                                                                            types::Char align_ch = ' ' )
-        noexcept( false ) ->
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
         typename std::enable_if<std::is_same<typename std::decay<String>::type, types::String>::value,
                                 types::String>::type
+        format_as( String&& str, types::Size width, types::Char align_ch = ' ' )
       {
         if ( width == 0 )
           PACE__UNLIKELY return {};
@@ -158,13 +156,6 @@ namespace pace {
                + types::String( width - left_align, align_ch );
         }
       }
-#ifdef __cpp_lib_string_view
-      template<TxtAlign Alignment>
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
-        types::String format_as( types::ROStr str, types::Size width, types::Char align_ch = ' ' )
-          noexcept( false )
-      { return format_as<Alignment>( types::String( str ), width, align_ch ); }
-#endif
     } // namespace utils
   } // namespace details
 } // namespace pace

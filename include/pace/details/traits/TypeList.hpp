@@ -3,7 +3,7 @@
 
 #include "Algorithm.hpp"
 #include "Backport.hpp"
-#include <type_traits>
+#include "Identity.hpp"
 
 namespace pace {
   namespace details {
@@ -18,23 +18,16 @@ namespace pace {
       struct TypeList {};
 
       template<typename... Es, typename Element>
-      struct TpPrepend<TypeList<Es...>, Element> {
-        using type = TypeList<Element, Es...>;
-      };
+      struct TpPrepend<TypeList<Es...>, Element> : Identity<TypeList<Element, Es...>> {};
 
       template<typename... Es, typename Element>
-      struct TpAppend<TypeList<Es...>, Element> {
-        using type = TypeList<Es..., Element>;
-      };
+      struct TpAppend<TypeList<Es...>, Element> : Identity<TypeList<Es..., Element>> {};
 
       template<typename Element>
-      struct TpRemove<TypeList<>, Element> {
-        using type = TypeList<>;
-      };
+      struct TpRemove<TypeList<>, Element> : Identity<TypeList<>> {};
       template<typename... Tail, typename Element>
-      struct TpRemove<TypeList<Element, Tail...>, Element> {
-        using type = TpRemove_t<TypeList<Tail...>, Element>;
-      };
+      struct TpRemove<TypeList<Element, Tail...>, Element>
+        : Identity<TpRemove_t<TypeList<Tail...>, Element>> {};
 #if PACE__FAST_TYPEAT
       template<typename Head, typename... Tail, typename Element>
       struct TpRemove<TypeList<Head, Tail...>, Element>
@@ -42,15 +35,12 @@ namespace pace {
                   TpRemove_t<Split_r<TypeList<Head, Tail...>>, Element>> {};
 #else
       template<typename Head, typename... Tail, typename Element>
-      struct TpRemove<TypeList<Head, Tail...>, Element> {
-        using type = TpPrepend_t<TpRemove_t<TypeList<Tail...>, Element>, Head>;
-      };
+      struct TpRemove<TypeList<Head, Tail...>, Element>
+        : Identity<TpPrepend_t<TpRemove_t<TypeList<Tail...>, Element>, Head>> {};
 #endif
 
       template<typename... Es, template<typename...> class Collection>
-      struct Combine<TypeList<Es...>, Collection<>> {
-        using type = TypeList<Es...>;
-      };
+      struct Combine<TypeList<Es...>, Collection<>> : Identity<TypeList<Es...>> {};
       template<typename... Es, template<typename...> class Collection, typename T, typename... Ts>
       struct Combine<TypeList<Es...>, Collection<T, Ts...>>
         : Combine<TpAppend_t<TypeList<Es...>, T>, Collection<Ts...>> {};
@@ -63,22 +53,16 @@ namespace pace {
         template<typename List>
         struct _select<false, List> : TpAppend<List, Element> {};
         template<typename List>
-        struct _select<true, List> {
-          using type = List;
-        };
+        struct _select<true, List> : Identity<List> {};
         using Half_t = typename TpFill<Element, N / 2>::type;
 
       public:
         using type = typename _select<( N % 2 == 0 ), Combine_t<Half_t, Half_t>>::type;
       };
       template<typename Element>
-      struct TpFill<Element, 0> {
-        using type = TypeList<>;
-      };
+      struct TpFill<Element, 0> : Identity<TypeList<>> {};
       template<typename Element>
-      struct TpFill<Element, 1> {
-        using type = TypeList<Element>;
-      };
+      struct TpFill<Element, 1> : Identity<TypeList<Element>> {};
       template<typename Element, types::Size N>
       using TpFill_t = typename TpFill<Element, N>::type;
 

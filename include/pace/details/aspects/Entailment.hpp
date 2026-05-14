@@ -8,17 +8,14 @@ namespace pace {
   namespace details {
     namespace aspects {
       template<template<typename...> class Facade>
-      struct EntailOf {
-        using type = traits::C3Container<>;
-      };
+      struct EntailOf : traits::Identity<traits::C3Container<>> {};
       template<template<typename...> class Facade>
       using EntailOf_t = typename EntailOf<Facade>::type;
 
-#define PACE__ENTAIL_REGISTER( Facade, ... )                      \
-  template<>                                                      \
-  struct pace::details::aspects::EntailOf<Facade> {               \
-    using type = pace::details::traits::C3Container<__VA_ARGS__>; \
-  }
+#define PACE__ENTAIL_REGISTER( Facade, ... )      \
+  template<>                                      \
+  struct pace::details::aspects::EntailOf<Facade> \
+    : pace::details::traits::Identity<pace::details::traits::C3Container<__VA_ARGS__>> {}
 
       // Resolves and links behaviors into a linear inheritance hierarchy.
       template<typename Config>
@@ -33,9 +30,7 @@ namespace pace {
         template<typename /* TypeSet<...> */ Result, typename /* C3Container<...> */ Behaviors>
         struct FlatMap;
         template<typename /* TypeSet<...> */ Result>
-        struct FlatMap<Result, traits::C3Container<>> {
-          using type = Result;
-        };
+        struct FlatMap<Result, traits::C3Container<>> : traits::Identity<Result> {};
         template<typename /* TypeSet<...> */ Result,
                  template<typename...> class Behavior,
                  template<typename...> class... Behaviors>

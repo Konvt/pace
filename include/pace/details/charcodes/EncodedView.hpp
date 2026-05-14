@@ -39,11 +39,7 @@ namespace pace {
         PACE__NODISCARD PACE__FORCEINLINE constexpr iterator begin() const noexcept { return head_; }
         PACE__NODISCARD PACE__FORCEINLINE constexpr iterator end() const noexcept { return tail_; }
 
-#ifdef __cpp_lib_string_view
-        PACE__NODISCARD PACE__FORCEINLINE constexpr types::ROStr as_string_view() const noexcept
-        { return { head_, size() }; }
-        constexpr operator types::ROStr() const noexcept { return as_string_view(); }
-#endif
+        constexpr operator StringView() const noexcept { return { head_, size() }; }
         explicit constexpr operator bool() const noexcept { return !empty(); }
 
         PACE__CXX20_CNSTXPR void swap( EncodedView& other ) noexcept

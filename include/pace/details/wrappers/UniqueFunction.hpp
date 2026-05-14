@@ -88,7 +88,7 @@ namespace pace {
         template<typename F>
         static PACE__CXX23_CNSTXPR
           typename std::enable_if<!Inlinable<typename std::decay<F>::type>::value>::type
-          store_fn( const VTable*( &vtable ), AnyFn& any, F&& fn ) noexcept( false )
+          store_fn( const VTable*( &vtable ), AnyFn& any, F&& fn )
         {
           using T   = typename std::decay<F>::type;
           auto dptr = std::unique_ptr<void, void ( * )( void* )>(

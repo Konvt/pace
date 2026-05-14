@@ -132,7 +132,7 @@ namespace pace {
           { return field_.clock_.padding_; }
         };
 
-        PACE__NODISCARD static std::vector<TimerField> parse_timer_fmt( types::ROStr fmt_str )
+        PACE__NODISCARD static std::vector<TimerField> parse_timer_fmt( charcodes::StringView fmt_str )
         {
           std::vector<TimerField> fields;
           if ( fmt_str.empty() )
@@ -171,7 +171,7 @@ namespace pace {
               if ( fmt_str[i] == ':' ) {
                 if ( i + 1 >= fmt_str.size() )
                   PACE__UNLIKELY throw exception::InvalidArgument( "stray ':' at end of format" );
-                padding = charcodes::U8Char::from_bytes( fmt_str.data() + i + 1, fmt_str.size() - i - 1 );
+                padding = charcodes::U8Char::from_bytes( fmt_str.substr( i + 1 ) );
                 i += padding.size();
               } else {
                 switch ( fmt_str[i] ) {
