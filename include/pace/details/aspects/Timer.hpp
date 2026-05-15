@@ -151,7 +151,7 @@ namespace pace {
           for ( types::Size i = 0; i < fmt_str.size(); ++i ) {
             switch ( state ) {
             case Phase::Symbol: {
-              const auto sentinel = fmt_str.find( '%', i + 1 );
+              const auto sentinel = fmt_str.find( '%', i );
               if ( sentinel == fmt_str.npos ) {
                 buffer.append( fmt_str.data() + i, fmt_str.size() - i );
                 i = fmt_str.size() - 1;
@@ -244,9 +244,6 @@ namespace pace {
 
           return fields;
         }
-
-        static constexpr auto _default_char  = '?';
-        static constexpr auto _overflow_char = '#';
 
         template<typename... Options>
         constexpr Timer( traits::TypeSet<Options...> tag ) noexcept : Base( tag )

@@ -51,10 +51,11 @@ namespace pace {
         template<typename A>
         PACE__CXX20_CNSTXPR BasicStringView& operator=( const std::basic_string<Char, Traits, A>& str ) &
         { return operator=( BasicStringView( str ) ); }
-        template<types::Size N>
+        template<size_type N>
         constexpr BasicStringView( const Char ( &lit )[N] ) noexcept : BasicStringView( &lit, N - 1 )
         {}
-        PACE__CXX20_CNSTXPR operator std::basic_string<Char, Traits>() const { return { data_, length_ }; }
+        PACE__CXX20_CNSTXPR explicit operator std::basic_string<Char, Traits>() const
+        { return { data_, length_ }; }
 
         constexpr BasicStringView() noexcept : data_ { nullptr }, length_ { 0 } {}
         constexpr BasicStringView( const_pointer s, size_type count ) noexcept
@@ -101,8 +102,8 @@ namespace pace {
         PACE__NODISCARD constexpr const_reverse_iterator crend() const noexcept { return cbegin(); }
         PACE__NODISCARD constexpr reverse_iterator rend() const noexcept { return crend(); }
 
-        constexpr const_reference operator[]( types::Size pos ) const noexcept { return data_[pos]; }
-        PACE__CXX20_CNSTXPR const_reference at( types::Size pos ) const
+        constexpr const_reference operator[]( size_type pos ) const noexcept { return data_[pos]; }
+        PACE__CXX20_CNSTXPR const_reference at( size_type pos ) const
         {
           if ( pos >= length_ )
             PACE__UNLIKELY throw std::out_of_range( "pace: accessed position is out of range" );

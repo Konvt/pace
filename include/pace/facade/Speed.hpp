@@ -93,9 +93,11 @@ namespace pace {
                                                                 option::Magnitude&& val ) noexcept
       {
         self.magnitude_ = val.value();
-        self.numeric_width_ =
-          std::max( 3 + details::utils::count_digits( val.value() ), sizeof( _overflow_speed ) - 1 );
-        // 3 is the length of ".00"
+        if ( self.magnitude_ > 1 )
+          // 3 is the length of ".00"
+          self.numeric_width_ = 3 + details::utils::count_digits( val.value() );
+        else
+          self.numeric_width_ = sizeof( _undefined_speed ) - 1;
       }
       friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Speed& self,
                                                                 option::SpeedUnit&& val ) noexcept
@@ -114,9 +116,10 @@ namespace pace {
       }
 
       // The overflow char is used to replace values that exceed the display width.
-      static constexpr details::types::Char _overflow_char = '#';
-      static constexpr auto& _overflow_speed               = "inf.";
-      static constexpr auto& _invalid_speed                = "nan.";
+      static constexpr details::types::Char _overflow_speed_char = '#';
+      static constexpr auto& _overflow_speed                     = "inf. ";
+      static constexpr auto& _invalid_speed                      = "nan. ";
+      static constexpr auto& _undefined_speed                    = "undef. ";
 
       std::vector<details::charcodes::U8Raw> units_;
       details::types::Size widest_width_;
@@ -128,10 +131,11 @@ namespace pace {
                                         const details::render::Parameter& params ) const
       {
         if ( params.task_quota_ == 0 || magnitude_ <= 1 ) {
+          const auto& prompt = params.task_quota_ == 0 ? _invalid_speed : _undefined_speed;
           if ( units_.empty() )
-            return pipeline << details::utils::format_as<details::utils::TxtAlign::Right>( _invalid_speed,
+            return pipeline << details::utils::format_as<details::utils::TxtAlign::Right>( prompt,
                                                                                            fixed_length() );
-          return pipeline << details::utils::format_as<details::utils::TxtAlign::Right>( _invalid_speed
+          return pipeline << details::utils::format_as<details::utils::TxtAlign::Right>( prompt
                                                                                            + units_.front(),
                                                                                          fixed_length() );
         }
@@ -165,7 +169,7 @@ namespace pace {
         else {
           orig = details::utils::format( frequency / tier, 2 );
           if ( orig.size() > numeric_width_ )
-            orig = details::types::String( numeric_width_, _overflow_char );
+            orig = details::types::String( numeric_width_, _overflow_speed_char );
         }
         orig += ' ';
         if ( !units_.empty() )

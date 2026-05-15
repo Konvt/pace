@@ -76,6 +76,9 @@ namespace pace {
       using Token = typename Base::TimerToken;
 
     private:
+      static constexpr details::types::Char _overflow_eta_char = '#';
+      static constexpr details::types::Char _default_eta_char  = '?';
+
       std::vector<Field> fmt_ir_;
       bool show_hour_   : 1;
       bool show_minute_ : 1;
@@ -99,12 +102,11 @@ namespace pace {
                                         const details::render::Parameter& params ) const
       {
         if ( fmt_ir_.empty() )
-          return pipeline << Base::_default_char;
+          return pipeline << _default_eta_char;
 
-        const auto invalid = ( params.tasks_completed_ == 0 || params.task_quota_ == 0 );
-        bool overflow      = false;
+        bool overflow = false;
         details::types::Tempus remaining_time;
-        if ( !invalid ) {
+        if ( params.task_quota_ > 0 && params.tasks_completed_ > 0 ) {
           auto time_per_task = params.elapsed_time_ / params.tasks_completed_;
           if ( time_per_task.count() == 0 )
             time_per_task = details::types::Tempus( 1 );
@@ -121,13 +123,19 @@ namespace pace {
           case Token::Literal: pipeline << field.text(); continue;
 
           case Token::Hour: {
-            if ( !overflow )
+            if ( field.width() == 0 ) {
+              pipeline << _default_eta_char;
+              continue;
+            } else if ( params.task_quota_ > 0 && !overflow )
               formatted = details::utils::format(
                 std::chrono::duration_cast<std::chrono::hours>( remaining_time ).count() );
           } break;
 
           case Token::Minute: {
-            if ( !overflow ) {
+            if ( field.width() == 0 ) {
+              pipeline << _default_eta_char;
+              continue;
+            } else if ( params.task_quota_ > 0 && !overflow ) {
               const auto num_minutes =
                 std::chrono::duration_cast<std::chrono::minutes>( remaining_time ).count();
               formatted = details::utils::format( show_hour_ ? num_minutes % 60 : num_minutes );
@@ -135,7 +143,10 @@ namespace pace {
           } break;
 
           case Token::Second: {
-            if ( !overflow ) {
+            if ( field.width() == 0 ) {
+              pipeline << _default_eta_char;
+              continue;
+            } else if ( params.task_quota_ > 0 && !overflow ) {
               const auto num_seconds =
                 std::chrono::duration_cast<std::chrono::seconds>( remaining_time ).count();
               formatted =
@@ -146,8 +157,11 @@ namespace pace {
           default: details::utils::unreachable();
           }
 
-          if ( overflow || formatted.size() > field.width() ) {
-            pipeline.append( Base::_overflow_char, field.width() );
+          if ( params.task_quota_ == 0 ) {
+            pipeline.append( _default_eta_char, field.width() );
+            continue;
+          } else if ( overflow || formatted.size() > field.width() ) {
+            pipeline.append( _overflow_eta_char, field.width() );
             continue;
           }
 
@@ -238,6 +252,10 @@ namespace pace {
         Base::swap( other );
       }
     };
+    template<typename Base, typename Derived>
+    constexpr details::types::Char ETA<Base, Derived>::_default_eta_char;
+    template<typename Base, typename Derived>
+    constexpr details::types::Char ETA<Base, Derived>::_overflow_eta_char;
   } // namespace facade
 
   PACE__INHERIT_REGISTER( facade::ETA, details::aspects::Timer, details::aspects::Capacity );

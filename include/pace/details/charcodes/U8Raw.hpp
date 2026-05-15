@@ -98,36 +98,42 @@ namespace pace {
         PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( U8Raw&& a,
                                                                                               const U8Raw& b )
         { return std::move( a.bytes_ ) + b.bytes_; }
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( const U8Raw& a,
-                                                                                              const U8Raw& b )
-        { return a.bytes_ + b.bytes_; }
         PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+(
           types::String&& a,
           const U8Raw& b )
         { return std::move( a ) + b.bytes_; }
-        template<types::Size N>
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+(
-          const char ( &a )[N],
-          const U8Raw& b )
-        { return a + b.bytes_; }
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( const char* a,
-                                                                                              const U8Raw& b )
-        { return a + b.bytes_; }
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+(
-          charcodes::StringView a,
-          const U8Raw& b )
-        { return types::String( a ) + b; }
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+(
-          U8Raw&& a,
-          charcodes::StringView b )
+
+        template<typename SV>
+        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR
+          typename std::enable_if<std::is_constructible<StringView, SV>::value, types::String>::type
+          operator+( U8Raw&& a, SV&& b )
         {
+          StringView sv = b;
           a.bytes_.append( b.data(), b.size() );
           return std::move( a.bytes_ );
         }
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+(
-          const U8Raw& a,
-          charcodes::StringView b )
-        { return a.bytes_ + types::String( b ); }
+        template<typename SV>
+        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR
+          typename std::enable_if<std::is_constructible<StringView, SV>::value, types::String>::type
+          operator+( SV&& a, const U8Raw& b )
+        {
+          StringView sv = a;
+          types::String copy;
+          copy.reserve( sv.size() + b.size() );
+          copy.append( sv.data(), sv.size() ).append( b.bytes_ );
+          return copy;
+        }
+        template<typename SV>
+        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR
+          typename std::enable_if<std::is_constructible<StringView, SV>::value, types::String>::type
+          operator+( const U8Raw& a, SV&& b )
+        {
+          StringView sv = b;
+          types::String copy;
+          copy.reserve( a.size() + sv.size() );
+          copy.append( a.bytes_ ).append( sv.data(), sv.size() );
+          return copy;
+        }
 
 #ifdef __cpp_lib_char8_t
         explicit PACE__CXX20_CNSTXPR U8Raw( charcodes::U8StringView u8_sv ) : U8Raw()
