@@ -82,9 +82,11 @@ export namespace pace {
 
     // Bar
     using pace::option::BarWidth;
-    using pace::option::EndColor;
+    using pace::option::EndBackcolor;
+    using pace::option::EndForecolor;
     using pace::option::Ending;
-    using pace::option::StartColor;
+    using pace::option::StartBackcolor;
+    using pace::option::StartForecolor;
     using pace::option::Starting;
 
     // Capacity
@@ -92,34 +94,52 @@ export namespace pace {
 
     // Filler
     using pace::option::Filler;
-    using pace::option::FillerColor;
+    using pace::option::FillerBackcolor;
+    using pace::option::FillerForecolor;
 
     // Frame
     using pace::option::Lead;
-    using pace::option::LeadColor;
+    using pace::option::LeadBackcolor;
+    using pace::option::LeadForecolor;
 
     // Remain
     using pace::option::Remain;
-    using pace::option::RemainColor;
+    using pace::option::RemainBackcolor;
+    using pace::option::RemainForecolor;
 
     // RenderRule
-    using pace::option::Bolded;
     using pace::option::Colored;
+    using pace::option::FontBold;
+    using pace::option::FontCrossed;
+    using pace::option::FontFaint;
+    using pace::option::FontHidden;
+    using pace::option::FontInverse;
+    using pace::option::FontItalic;
+    using pace::option::FontUnderline;
 
     // Reversible
     using pace::option::Reversed;
 
     // Segment
     using pace::option::Divider;
-    using pace::option::InfoColor;
+    using pace::option::InfoBackcolor;
+    using pace::option::InfoForecolor;
     using pace::option::LeftBorder;
     using pace::option::RightBorder;
 
     // Text
     using pace::option::Postfix;
-    using pace::option::PostfixColor;
+    using pace::option::PostfixBackcolor;
+    using pace::option::PostfixForecolor;
     using pace::option::Prefix;
-    using pace::option::PrefixColor;
+    using pace::option::PrefixBackcolor;
+    using pace::option::PrefixForecolor;
+
+    // Elapsed
+    using pace::option::ElapsedFormat;
+
+    // ETA
+    using pace::option::ETAFormat;
 
     // Speed
     using pace::option::Magnitude;
