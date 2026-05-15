@@ -325,10 +325,11 @@ Specifying a width of zero, or passing an empty format string, causes the output
 
 Only the largest unit does not carry over. All smaller units are reduced modulo 60 as usual:
 
-txt
+```txt
 %H:%M:%S -> 01:01:01
 %M:%S    -> 61:01
 %:4S     -> 3661
+```
 
 If the provided format string does not conform to the grammar above, or contains duplicate time units, or has no time units at all, an exception of type `pace::exception::InvalidArgument` is thrown.
 
