@@ -30,9 +30,9 @@ namespace pace {
                                         const details::render::Parameter& params ) const
       {
         if ( params.task_quota_ == 0 ) {
-          pipeline << '-';
+          pipeline << '?';
           if ( show_quota_ )
-            pipeline << '/' << '-';
+            pipeline << '/' << '?';
         } else {
           pipeline << details::utils::format_as<details::utils::TxtAlign::Right>(
             details::utils::format( params.tasks_completed_ ),

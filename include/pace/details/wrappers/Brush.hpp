@@ -2,6 +2,8 @@
 #define PACE_BRUSH
 
 #include "../io/CharPipeline.hpp"
+#include "../traits/ConceptTraits.hpp"
+#include "../utils/Backport.hpp"
 
 namespace pace {
   namespace details {

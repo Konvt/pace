@@ -20,6 +20,7 @@ int main()
     .colored( true )
     .font_bold( true )
     .font_underline( true )
+    .elapsed_format("⏳ %:-3Ss")
     .enable_all()
     .quota( 2147483647 );
 

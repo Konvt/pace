@@ -10,7 +10,7 @@ namespace pace {
       template<typename Base, types::Size>
       struct TuplePacket : public Base {
         using Base::Base;
-        PACE__CXX23_CNSTXPR TuplePacket( TuplePacket&& )              = default;
+        constexpr TuplePacket( TuplePacket&& )                        = default;
         PACE__CXX14_CNSTXPR TuplePacket& operator=( TuplePacket&& ) & = default;
         constexpr TuplePacket( Base&& rhs ) noexcept : Base( std::move( rhs ) ) {}
         PACE__CXX14_CNSTXPR TuplePacket& operator=( Base&& rhs ) & noexcept

@@ -80,7 +80,7 @@ namespace pace {
           _units.cbegin(),
           _units.cend(),
           std::back_inserter( data_ ),
-          []( const details::charcodes::U8StringView& ele ) { return details::charcodes::U8Raw( ele ); } );
+          []( details::charcodes::U8StringView ele ) { return details::charcodes::U8Raw( ele ); } );
       }
 #endif
     };
@@ -89,39 +89,52 @@ namespace pace {
   namespace facade {
     template<typename Base, typename Derived>
     class Speed : public Base {
-      friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Speed& self, option::Magnitude&& val )
+      friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Speed& self,
+                                                                option::Magnitude&& val ) noexcept
       {
-        if ( val.value() <= 1 )
-          PACE__UNLIKELY throw exception::InvalidArgument( "speed magnitude must be greater than 1" );
         self.magnitude_ = val.value();
+        self.numeric_width_ =
+          std::max( 3 + details::utils::count_digits( val.value() ), sizeof( _overflow_speed ) - 1 );
+        // 3 is the length of ".00"
       }
-      friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Speed& self, option::SpeedUnit&& val )
+      friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Speed& self,
+                                                                option::SpeedUnit&& val ) noexcept
       {
-        self.units_        = std::move( val.value() );
-        self.widest_width_ = std::max_element( self.units_.cbegin(),
-                                               self.units_.cend(),
-                                               []( const details::charcodes::U8Raw& a,
-                                                   const details::charcodes::U8Raw& b ) noexcept {
-                                                 return a.width() < b.width();
-                                               } )
-                               ->width();
+        self.units_ = std::move( val.value() );
+        auto itr    = std::max_element(
+          self.units_.cbegin(),
+          self.units_.cend(),
+          []( const details::charcodes::U8Raw& a, const details::charcodes::U8Raw& b ) noexcept {
+            return a.width() < b.width();
+          } );
+        if ( itr != self.units_.cend() )
+          self.widest_width_ = itr->width();
+        else
+          self.widest_width_ = 0;
       }
 
-      // The width prepared for "999.99 "
-      static constexpr auto& _default_speed = "   inf ";
+      // The overflow char is used to replace values that exceed the display width.
+      static constexpr details::types::Char _overflow_char = '#';
+      static constexpr auto& _overflow_speed               = "inf.";
+      static constexpr auto& _invalid_speed                = "nan.";
 
       std::vector<details::charcodes::U8Raw> units_;
       details::types::Size widest_width_;
+      details::types::Size numeric_width_;
       std::uint16_t magnitude_;
 
     protected:
       details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
                                         const details::render::Parameter& params ) const
       {
-        if ( params.task_quota_ == 0 )
-          PACE__UNLIKELY return pipeline
-            << details::utils::format_as<details::utils::TxtAlign::Right>( "-- " + units_.front(),
-                                                                           fixed_length() );
+        if ( params.task_quota_ == 0 || magnitude_ <= 1 ) {
+          if ( units_.empty() )
+            return pipeline << details::utils::format_as<details::utils::TxtAlign::Right>( _invalid_speed,
+                                                                                           fixed_length() );
+          return pipeline << details::utils::format_as<details::utils::TxtAlign::Right>( _invalid_speed
+                                                                                           + units_.front(),
+                                                                                         fixed_length() );
+        }
 
         const auto seconds_passed =
           std::chrono::duration<details::types::Float>( params.elapsed_time_ ).count();
@@ -135,7 +148,6 @@ namespace pace {
          * the representable range of std::uint64_t,
          * we choose to use std::uint16_t to represent the scaling magnitude. */
         std::uint64_t tier               = 1;
-        PACE__ASSERT( magnitude_ > 1 );
         while ( !overflow && frequency >= static_cast<details::types::Float>( tier ) * magnitude_ ) {
           ++num_powered;
           const auto next_tier = tier * magnitude_;
@@ -149,9 +161,13 @@ namespace pace {
         num_powered = std::min( num_powered, units_.size() - 1 );
         details::types::String orig;
         if ( overflow )
-          orig = _default_speed;
-        else
-          orig = details::utils::format( frequency / tier, 2 ) + ' ';
+          orig = _overflow_speed;
+        else {
+          orig = details::utils::format( frequency / tier, 2 );
+          if ( orig.size() > numeric_width_ )
+            orig = details::types::String( numeric_width_, _overflow_char );
+        }
+        orig += ' ';
         if ( !units_.empty() )
           orig.append( units_[num_powered].data(), units_[num_powered].size() );
 
@@ -160,7 +176,7 @@ namespace pace {
       }
 
       PACE__NODISCARD PACE__FORCEINLINE constexpr details::types::Size fixed_length() const noexcept
-      { return sizeof( _default_speed ) - 1 + widest_width_; }
+      { return numeric_width_ + 1 + widest_width_; }
 
       template<typename... Options>
       PACE__CXX20_CNSTXPR Speed( details::traits::TypeSet<Options...> tag ) : Base( tag )

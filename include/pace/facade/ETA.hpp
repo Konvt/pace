@@ -14,6 +14,42 @@
 
 namespace pace {
   namespace option {
+    /**
+     * A wrapper that stores format string for timer formatting.
+     *
+     * The format string supports three units: hour %H, minute %M and second %S.
+     *
+     * Characters other than format specifiers are output literally; for example:
+     *
+     * `%: 3H:%2M:%S`
+     *  ^~~~^ ^~^ ^^ --- Time units
+     *   ^~^   ^     --- Alignment and fill character
+     *       ^   ^   --- Literals
+     *
+     * %: 3H - `3` specifies width 3; values shorter than the width are padded,
+     *             while longer values are replaced with `###`.
+     *         `:` means the next and only next Unicode character is used as fill character;
+     *             here it is ` `.
+     *         `:` is optional and does not support Unicode combining characters.
+     *
+     * The actual format is: %[ ':' <fill-char> ][ <width> ]<unit>; and %% escapes `%`.
+     *
+     * Width defaults to 2 if omitted; fill character defaults to `0`.
+     *
+     * If the digit count exceeds the width, equally wide `#` characters are output;
+     * but width 0 always outputs a single `?`.
+     *
+     * Only the largest unit does not overflow; all others are normalized using clock carry rules.
+     * For example:
+     *
+     * %H:%M:%S -> 01:01:01
+     * %M:%S    -> 61:01
+     * %S       -> 3661
+     *
+     * @throw exception::InvalidArgument
+     *   Thrown if any input string fails UTF-8 validation or the array size mismatches.
+     *   Thrown also if input string is not a valid format string.
+     */
     struct ETAFormat : details::wrappers::OptionPacket<details::types::String> {
     private:
       using Base = details::wrappers::OptionPacket<details::types::String>;
@@ -34,16 +70,7 @@ namespace pace {
     template<typename Base, typename Derived>
     class ETA : public Base {
       friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( ETA& self, option::ETAFormat&& val )
-      {
-        self.fmt_ir_ = Base::parse_timer_fmt( val.value() );
-        std::for_each( self.fmt_ir_.cbegin(), self.fmt_ir_.cend(), [&]( const Field& field ) noexcept {
-          switch ( field.token() ) {
-          case Token::Hour:   self.show_hour_ = true; break;
-          case Token::Minute: self.show_minute_ = true; break;
-          default:            break;
-          }
-        } );
-      }
+      { self.eta_parser( val.value() ); }
 
       using Field = typename Base::TimerField;
       using Token = typename Base::TimerToken;
@@ -52,6 +79,20 @@ namespace pace {
       std::vector<Field> fmt_ir_;
       bool show_hour_   : 1;
       bool show_minute_ : 1;
+
+      void eta_parser( details::charcodes::StringView fmt_str )
+      {
+        fmt_ir_      = Base::parse_timer_fmt( fmt_str );
+        show_hour_   = false;
+        show_minute_ = false;
+        std::for_each( fmt_ir_.cbegin(), fmt_ir_.cend(), [&]( const Field& field ) noexcept {
+          switch ( field.token() ) {
+          case Token::Hour:   show_hour_ = true; break;
+          case Token::Minute: show_minute_ = true; break;
+          default:            break;
+          }
+        } );
+      }
 
     protected:
       details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
@@ -151,18 +192,20 @@ namespace pace {
       PACE__SPECIAL_MEMBERS( ETA );
 
     public:
-#define PACE__METHOD( ParamName, ReturnType )                                           \
-  std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };             \
-  fmt_ir_ = Base::parse_timer_fmt( ParamName );                                         \
-  std::for_each( fmt_ir_.cbegin(), fmt_ir_.cend(), [&]( const Field& field ) noexcept { \
-    switch ( field.token() ) {                                                          \
-    case Token::Hour:   show_hour_ = true; break;                                       \
-    case Token::Minute: show_minute_ = true; break;                                     \
-    default:            break;                                                                     \
-    }                                                                                   \
-  } );                                                                                  \
+#define PACE__METHOD( ParamName, ReturnType )                               \
+  std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ }; \
+  eta_parser( ParamName );                                                  \
   return static_cast<ReturnType>( *this )
 
+      /**
+       * Set elapsed time format.
+       *
+       * Format syntax is described in `option::ETAFormat`.
+       *
+       * @param _fmt_str Format string.
+       *
+       * @throw exception::InvalidArgument Propagated from `option::ETAFormat`.
+       */
       Derived& eta_format( details::charcodes::StringView _fmt_str ) &
       { PACE__METHOD( _fmt_str, Derived& ); }
       Derived&& eta_format( details::charcodes::StringView _fmt_str ) &&
@@ -170,17 +213,9 @@ namespace pace {
 
 #undef PACE__METHOD
 #ifdef __cpp_lib_char8_t
-# define PACE__METHOD( ParamName, ReturnType )                                                  \
-   std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };                    \
-   fmt_ir_ = Base::parse_timer_fmt(                                                             \
-     { reinterpret_cast<const details::types::Char*>( ParamName.data() ), ParamName.size() } ); \
-   std::for_each( fmt_ir_.cbegin(), fmt_ir_.cend(), [&]( const Field& field ) noexcept {        \
-    switch ( field.token() ) {                                                                  \
-    case Token::Hour:   show_hour_ = true; break;                                               \
-    case Token::Minute: show_minute_ = true; break;                                             \
-    default:            break;                                                                             \
-    }                                                                                           \
-   } );                                                                                         \
+# define PACE__METHOD( ParamName, ReturnType )                                                            \
+   std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };                              \
+   eta_parser( { reinterpret_cast<const details::types::Char*>( ParamName.data() ), ParamName.size() } ); \
    return static_cast<ReturnType>( *this )
 
       Derived& eta_format( details::charcodes::U8StringView _fmt_str ) &

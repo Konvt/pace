@@ -151,13 +151,18 @@ namespace pace {
           for ( types::Size i = 0; i < fmt_str.size(); ++i ) {
             switch ( state ) {
             case Phase::Symbol: {
-              if ( fmt_str[i] == '%' ) {
-                // set defaults
-                width   = 2;
-                padding = charcodes::U8Char( '0' );
-                state   = Phase::Marker;
-              } else
-                buffer.push_back( fmt_str[i] );
+              const auto sentinel = fmt_str.find( '%', i + 1 );
+              if ( sentinel == fmt_str.npos ) {
+                buffer.append( fmt_str.data() + i, fmt_str.size() - i );
+                i = fmt_str.size() - 1;
+                break;
+              }
+              buffer.append( fmt_str.data() + i, sentinel - i );
+              i       = sentinel;
+              // set defaults
+              width   = 2;
+              padding = charcodes::U8Char( '0' );
+              state   = Phase::Marker;
             } break;
 
             case Phase::Marker: {

@@ -4,6 +4,9 @@
   - [Configuration](#configuration)
     - [Data modification](#data-modification)
     - [Component switch](#component-switch)
+  - [Component Subfeatures](#component-subfeatures)
+    - [Speed](#speed)
+    - [Elapsed and ETA](#elapsed-and-eta)
   - [Iterating Over Ranges](#iterating-over-ranges)
   - [The Template Argument](#the-template-argument)
     - [Output stream](#output-stream)
@@ -268,6 +271,64 @@ auto selection = pace::option::Only<pace::facade::CharPlot>() | pace::option::On
 // containing components that do not belong to it
 // pgbar.with( selection | pace::option::Only<pace::facade::BlockPlot>() ); No!
 ```
+
+## Component Subfeatures
+### Speed
+All progress bar configuration types that enable `pace::facade::Speed` may additionally configure speed-related data.
+
+A `pace::facade::Speed` consists of two parts: the radix step size `pace::option::Magnitude` and the unit set `pace::option::SpeedUnit`.
+
+pace does not require the number of units in `pace::option::SpeedUnit` to strictly match the cumulative radix limit, which allows highly flexible rate display behavior.
+
+For example, `pace::option::Magnitude( 1024 )` + `pace::option::SpeedUnit( {"B/s", "kiB/s", "MiB/s", "GiB/s"} )` produces a rate display using a radix of 1024.
+
+Meanwhile, `pace::option::Magnitude( 1000 )` + `pace::option::SpeedUnit( {"B/s", "kB/s", "MB/s", "GB/s"} )` produces a rate display using a radix of 1000.
+
+An insufficient number of units does not cause an error. Instead, the display remains fixed at the final unit. If `pace::option::Magnitude` is less than or equal to 1, the output is always `nan.` rather than a valid rate.
+
+The term “rate” refers to the amount of task progress increment per unit time. The displayed unit is automatically adjusted according to the current rate. When the rate reaches or exceeds the threshold corresponding to the current unit, the display switches to the next unit.
+
+A special case should be noted when `pace::option::Magnitude` is set to a very large value, such as a value close to `UINT16_MAX`. Since the fourth power of `UINT16_MAX` is slightly smaller than the currently representable upper limit `UINT64_MAX`, under such conditions the effective number of usable units in `pace::option::SpeedUnit` is limited to 5.
+
+Furthermore, when a large radix value causes multiplication overflow during cumulative scaling, the display becomes fixed at the last reachable unit and outputs `inf`.
+### Elapsed and ETA
+Progress bars supporting `pace::facade::Elapsed` or `pace::facade::ETA` may define a clock format using a format string. Both features share the same format string parsing logic.
+
+The syntax of the format string is:
+
+```txt
+%[ ':' <fill-char> ][ <width> ]<unit>
+```
+
+For example, consider the following format string:
+
+```txt
+`%: 3H:%2M:%S`
+ ^~~~^ ^~^ ^^ --- Time units
+  ^~^   ^     --- Fill character and width constraint
+      ^   ^   --- Literals
+
+ %: 3H - `3` specifies a width of 3. Decimal values shorter than this width are padded using the fill character; values exceeding the width are replaced with a fixed `###`.
+         `:` indicates that the next Unicode character, and only the next Unicode character, is interpreted as the fill character. In this example, the character is ` `.
+         `:` is optional and does not support Unicode combining characters.
+```
+
+Any part outside formatting directives is interpreted literally and emitted unchanged. The string encoding must be UTF-8.
+
+If the width is omitted, the default width is 2. If the fill character is omitted, the default fill character is `0`.
+
+If the decimal representation of a time value exceeds the specified width limit, the value is replaced by a sequence of `#` characters whose length equals the configured width.
+
+Specifying a width of zero, or passing an empty format string, causes the output to become a fixed `?` character.
+
+Only the largest unit does not carry over. All smaller units are reduced modulo 60 as usual:
+
+txt
+%H:%M:%S -> 01:01:01
+%M:%S    -> 61:01
+%S       -> 3661
+
+If the provided format string does not conform to the grammar above, an exception of type `pace::exception::InvalidArgument` is thrown.
 
 ## Iterating Over Ranges
 When processing iteration tasks involving iterable types or numeric ranges, pace can integrate progress bars into these scenarios through the `iterate` method.

@@ -7,7 +7,8 @@
 #include <tuple>
 #ifdef __cpp_lib_to_chars
 # include <charconv>
-#elif defined( PACE_DEBUG )
+#endif
+#ifdef PACE_DEBUG
 # include <limits>
 #endif
 
