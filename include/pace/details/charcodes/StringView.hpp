@@ -241,8 +241,8 @@ namespace pace {
     namespace utils {
       template<TxtAlign Alignment>
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String
-        format_as( charcodes::StringView str, types::Size width, types::Char align_ch = ' ' )
-      { return format_as<Alignment>( types::String( str ), width, align_ch ); }
+        format_as( charcodes::StringView str, types::Size width, types::Char padding = ' ' )
+      { return format_as<Alignment>( types::String( str ), width, padding ); }
     }
   } // namespace details
 } // namespace pace

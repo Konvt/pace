@@ -179,12 +179,12 @@ namespace pace {
     namespace utils {
       template<TxtAlign Alignment>
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String
-        format_as( const charcodes::U8Raw& str, types::Size width, types::Char align_ch = ' ' )
-      { return format_as<Alignment>( str.str(), width, align_ch ); }
+        format_as( const charcodes::U8Raw& str, types::Size width, types::Char padding = ' ' )
+      { return format_as<Alignment>( str.str(), width, padding ); }
       template<TxtAlign Alignment>
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String
-        format_as( charcodes::U8Raw&& str, types::Size width, types::Char align_ch = ' ' )
-      { return format_as<Alignment>( width, std::move( str ).str(), align_ch ); }
+        format_as( charcodes::U8Raw&& str, types::Size width, types::Char padding = ' ' )
+      { return format_as<Alignment>( width, std::move( str ).str(), padding ); }
     } // namespace utils
   } // namespace details
 } // namespace pace

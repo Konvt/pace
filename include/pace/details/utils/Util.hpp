@@ -134,27 +134,27 @@ namespace pace {
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
         typename std::enable_if<std::is_same<typename std::decay<String>::type, types::String>::value,
                                 types::String>::type
-        format_as( String&& str, types::Size width, types::Char align_ch = ' ' )
+        format_as( String&& str, types::Size width, types::Char padding = ' ' )
       {
         if ( width == 0 )
           PACE__UNLIKELY return {};
         if ( str.size() >= width )
           return str;
         if PACE__CXX17_CNSTXPR ( Alignment == TxtAlign::Right )
-          return types::String( width - str.size(), align_ch ) + std::forward<String>( str );
+          return types::String( width - str.size(), padding ) + std::forward<String>( str );
         else if PACE__CXX17_CNSTXPR ( Alignment == TxtAlign::Left ) {
 #if PACE__CXX17
           if PACE__CXX17_CNSTXPR ( std::is_rvalue_reference_v<String&&> && !std::is_const_v<String> ) {
-            str.append( width - str.size(), align_ch );
+            str.append( width - str.size(), padding );
             return str;
           } else
 #endif
-            return std::forward<String>( str ) + types::String( width - str.size(), align_ch );
+            return std::forward<String>( str ) + types::String( width - str.size(), padding );
         } else {
           width -= str.size();
           const types::Size left_align = width / 2;
-          return types::String( left_align, align_ch ) + std::forward<String>( str )
-               + types::String( width - left_align, align_ch );
+          return types::String( left_align, padding ) + std::forward<String>( str )
+               + types::String( width - left_align, padding );
         }
       }
     } // namespace utils

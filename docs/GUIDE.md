@@ -317,6 +317,8 @@ Any part outside formatting directives is interpreted literally and emitted unch
 
 If the width is omitted, the default width is 2. If the fill character is omitted, the default fill character is `0`.
 
+The display results are fixed to be right-aligned. Other alignment methods are not supported for the time being.
+
 If the decimal representation of a time value exceeds the specified width limit, the value is replaced by a sequence of `#` characters whose length equals the configured width.
 
 Specifying a width of zero, or passing an empty format string, causes the output to become a fixed `?` character.
@@ -326,9 +328,9 @@ Only the largest unit does not carry over. All smaller units are reduced modulo 
 txt
 %H:%M:%S -> 01:01:01
 %M:%S    -> 61:01
-%S       -> 3661
+%:4S     -> 3661
 
-If the provided format string does not conform to the grammar above, an exception of type `pace::exception::InvalidArgument` is thrown.
+If the provided format string does not conform to the grammar above, or contains duplicate time units, or has no time units at all, an exception of type `pace::exception::InvalidArgument` is thrown.
 
 ## Iterating Over Ranges
 When processing iteration tasks involving iterable types or numeric ranges, pace can integrate progress bars into these scenarios through the `iterate` method.
