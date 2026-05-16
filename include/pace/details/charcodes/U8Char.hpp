@@ -17,7 +17,7 @@ namespace pace {
 
       public:
         /// @return The utf codepoint and the number of byte of the utf-8 character.
-        static PACE__CXX23_CNSTXPR std::pair<types::CodePoint, std::uint8_t> next_codepoint(
+        static PACE__CXX20_CNSTXPR std::pair<types::CodePoint, std::uint8_t> next_codepoint(
           charcodes::StringView raw_u8_str )
         {
           // After RFC 3629, the maximum length of each standard UTF-8 character is 4 bytes.
@@ -135,7 +135,8 @@ namespace pace {
 
         PACE__NODISCARD constexpr bool empty() const noexcept { return length_ == 0; }
 
-        PACE__NODISCARD constexpr operator StringView() const noexcept { return { byte_.data(), length_ }; }
+        PACE__NODISCARD PACE__CXX17_CNSTXPR operator StringView() const noexcept
+        { return { byte_.data(), length_ }; }
 
         PACE__CXX20_CNSTXPR void swap( U8Char& other ) noexcept
         {
