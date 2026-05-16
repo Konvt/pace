@@ -29,17 +29,11 @@ namespace pace {
       details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
                                         const details::render::Parameter& params ) const
       {
-        if ( params.task_quota_ == 0 ) {
-          pipeline << '?';
-          if ( show_quota_ )
-            pipeline << '/' << '?';
-        } else {
-          pipeline << details::utils::format_as<details::utils::TxtAlign::Right>(
-            details::utils::format( params.tasks_completed_ ),
-            details::utils::count_digits( params.task_quota_ ) );
-          if ( show_quota_ )
-            pipeline << '/' << details::utils::format( params.task_quota_ );
-        }
+        pipeline << details::utils::format_as<details::utils::TxtAlign::Right>(
+          details::utils::format( params.tasks_completed_ ),
+          details::utils::count_digits( params.task_quota_ ) );
+        if ( show_quota_ )
+          pipeline << '/' << details::utils::format( params.task_quota_ );
         return pipeline;
       }
 
