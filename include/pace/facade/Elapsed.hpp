@@ -49,20 +49,7 @@ namespace pace {
      *   Thrown if any input string fails UTF-8 validation or the array size mismatches.
      *   Thrown also if input string is not a valid format string.
      */
-    struct ElapsedFormat : details::wrappers::OptionPacket<details::types::String> {
-    private:
-      using Base = details::wrappers::OptionPacket<details::types::String>;
-
-    public:
-      PACE__CXX20_CNSTXPR ElapsedFormat() = default;
-
-      PACE__CXX20_CNSTXPR ElapsedFormat( details::types::String _fmt ) noexcept : Base( std::move( _fmt ) ) {}
-#ifdef __cpp_lib_char8_t
-      ElapsedFormat( details::charcodes::U8StringView _fmt )
-        : Base( { reinterpret_cast<const details::types::Char*>( _fmt.data() ), _fmt.size() } )
-      {}
-#endif
-    };
+    struct ElapsedFormat : PACE__DERIVING_OPTION3( ElapsedFormat, details::charcodes::U8Raw, _fmt_str );
   } // namespace option
 
   namespace facade {
@@ -152,6 +139,7 @@ namespace pace {
         }
         return pipeline;
       }
+
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR details::types::Size fixed_length() const noexcept
       {
         if ( fmt_ir_.empty() )
@@ -185,6 +173,7 @@ namespace pace {
     public:
 #define PACE__METHOD( ParamName, ReturnType )                               \
   std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ }; \
+  details::charcodes::U8Raw::text_width( ParamName ); /* ensure is u8 str*/ \
   elapsed_parser( ParamName );                                              \
   return static_cast<ReturnType>( *this )
 

@@ -50,20 +50,7 @@ namespace pace {
      *   Thrown if any input string fails UTF-8 validation or the array size mismatches.
      *   Thrown also if input string is not a valid format string.
      */
-    struct ETAFormat : details::wrappers::OptionPacket<details::types::String> {
-    private:
-      using Base = details::wrappers::OptionPacket<details::types::String>;
-
-    public:
-      PACE__CXX20_CNSTXPR ETAFormat() = default;
-
-      PACE__CXX20_CNSTXPR ETAFormat( details::types::String _fmt ) noexcept : Base( std::move( _fmt ) ) {}
-#ifdef __cpp_lib_char8_t
-      ETAFormat( details::charcodes::U8StringView _fmt )
-        : Base( { reinterpret_cast<const details::types::Char*>( _fmt.data() ), _fmt.size() } )
-      {}
-#endif
-    };
+    struct ETAFormat : PACE__DERIVING_OPTION3( ETAFormat, details::charcodes::U8Raw, _fmt_str );
   } // namespace option
 
   namespace facade {
@@ -208,6 +195,7 @@ namespace pace {
     public:
 #define PACE__METHOD( ParamName, ReturnType )                               \
   std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ }; \
+  details::charcodes::U8Raw::text_width( ParamName ); /* ensure is u8 str*/ \
   eta_parser( ParamName );                                                  \
   return static_cast<ReturnType>( *this )
 

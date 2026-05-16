@@ -22,7 +22,7 @@ namespace pace {
          *
          * @return Returns the render width of the given string.
          */
-        PACE__NODISCARD static PACE__CXX20_CNSTXPR types::Size text_width( StringView text )
+        static PACE__CXX20_CNSTXPR types::Size text_width( StringView text )
         {
           types::Size width = 0;
           for ( types::Size i = 0; i < text.size(); ) {

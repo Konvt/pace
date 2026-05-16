@@ -119,7 +119,7 @@ namespace pace {
       static constexpr details::types::Char _overflow_speed_char = '#';
       static constexpr auto& _overflow_speed                     = "inf. ";
       static constexpr auto& _invalid_speed                      = "nan. ";
-      static constexpr auto& _undefined_speed                    = "undef. ";
+      static constexpr auto& _undefined_speed                    = "und. ";
 
       std::vector<details::charcodes::U8Raw> units_;
       details::types::Size widest_width_;
