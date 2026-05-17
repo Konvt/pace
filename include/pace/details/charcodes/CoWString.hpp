@@ -647,7 +647,7 @@ namespace pace {
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR void duplicate_from( size_type cap, Operation&& op )
         {
           PACE__TRUST( tag_ == Kind::Dynamic );
-          PACE__ASSERT( as_.remote_.refs_ > 1 );
+          PACE__ASSERT( *as_.remote_.refs_ > 1 );
           auto cow = make_cow( cap );
           try {
             const size_type num_written = std::forward<Operation>( op )( cow.str(), cap - 1 );
@@ -712,7 +712,7 @@ namespace pace {
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR void expand_with( size_type cap, Operation&& op )
         {
           PACE__TRUST( tag_ == Kind::Dynamic );
-          PACE__ASSERT( as_.remote_.refs_ == 1 );
+          PACE__ASSERT( *as_.remote_.refs_ == 1 );
           throw_if_exceed( cap - 1 );
           auto str = allocate( cap );
           try {
@@ -1224,7 +1224,7 @@ namespace pace {
           switch ( other.tag_ ) {
           case Kind::Literal: utils::construct_at( &as_.literal_, other.as_.literal_ ); break;
           case Kind::Inline:  {
-            PACE__ASSERT( rhs.length_ <= small_capacity() );
+            PACE__ASSERT( other.length_ <= small_capacity() );
             Traits::copy( utils::launder_as<Char>( &as_ ),
                           utils::launder_as<const Char>( &other.as_ ),
                           other.length_ + 1 );
@@ -1302,7 +1302,7 @@ namespace pace {
             }
           } break;
           case Kind::Inline: {
-            PACE__ASSERT( rhs.length_ <= small_capacity() );
+            PACE__ASSERT( other.length_ <= small_capacity() );
             transfer_to<Kind::Inline>( utils::launder_as<const Char>( &other.as_ ) + pos, count, 0 );
           } break;
           case Kind::Dynamic: {

@@ -80,7 +80,6 @@ namespace pace {
           switch ( encoding_ ) {
           case render::Paint::Csi8: {
             const auto str = _digits + ( utils::to_underlying( sgr_.ansi_ ) * 3 );
-            PACE__ASSERT( col.sgr_.front() >= 10 && col.sgr_.front() < 100 );
             pipeline << str[0] << str[1];
           } break;
           case render::Paint::Xterm24bit: {

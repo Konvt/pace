@@ -271,7 +271,7 @@ namespace pace {
           // The reason can be found in the move assignment.
           PACE__TRUST( this != &other );
           PACE__ASSERT( online() == false );
-          PACE__ASSERT( lhs.online() == false );
+          PACE__ASSERT( other.online() == false );
           (void)std::initializer_list<bool> {
             ( this->ElementAt_t<Tags>::swap( static_cast<ElementAt_t<Tags>&>( other ) ), false )...
           };

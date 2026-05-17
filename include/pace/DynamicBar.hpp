@@ -153,7 +153,7 @@ namespace pace {
       // The reason can be found in the move assignment.
       PACE__TRUST( this != &other );
       PACE__ASSERT( active() == false );
-      PACE__ASSERT( lhs.active() == false );
+      PACE__ASSERT( other.active() == false );
       core_.swap( other.core_ );
     }
     friend void swap( DynamicBar& a, DynamicBar& b ) noexcept { a.swap( b ); }

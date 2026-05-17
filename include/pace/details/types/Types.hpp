@@ -34,6 +34,7 @@ namespace pace {
   enum class Policy : std::uint8_t { Async, Signal, Sync };
   enum class Region : bool { Fixed, Relative };
 
+  // The ANSI 8 colors
   enum class Color : std::uint8_t {
     Black = 30,
     Red,

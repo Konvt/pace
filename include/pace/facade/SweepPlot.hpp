@@ -28,6 +28,7 @@ namespace pace {
           params.style_off_ )
                  << this->starting_;
 
+        PACE__ASSERT( this->filler_.width() > 0 );
         if ( !this->lead_.empty() ) {
           const auto& current_lead = this->lead_[frame_cnt % this->lead_.size()];
           if ( current_lead.width() <= this->bar_width_ ) {

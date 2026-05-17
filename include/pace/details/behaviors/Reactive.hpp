@@ -16,7 +16,7 @@ namespace pace {
           bool nil_ = false;
 
           constexpr Callback() = default;
-          PACE__CXX20_CNSTXPR ~Callback() noexcept {}
+          ~Callback() noexcept {}
         } hook_;
         enum class Tag : std::uint8_t { Nil, Nullary, Unary } tag_ = Tag::Nil;
 
@@ -52,7 +52,7 @@ namespace pace {
         }
 
       protected:
-        PACE__FORCEINLINE void react() &
+        PACE__FORCEINLINE PACE__CXX20_CNSTXPR void react() &
         {
           switch ( tag_ ) {
           case Tag::Nullary: hook_.on_(); break;
@@ -77,7 +77,7 @@ namespace pace {
           rhs.move_to( *this );
           return *this;
         }
-        PACE__CXX23_CNSTXPR ~Reactive() noexcept { destroy(); }
+        ~Reactive() noexcept { destroy(); }
 
       public:
         using Base::Base;

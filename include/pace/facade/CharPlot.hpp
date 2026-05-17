@@ -34,6 +34,8 @@ namespace pace {
           params.style_off_ )
                  << this->starting_;
 
+        PACE__ASSERT( this->filler_.width() > 0 );
+        PACE__ASSERT( this->remain_.width() > 0 );
         if ( !this->reversed_ ) {
           pipeline << this->clear_then_dye(
             details::console::Dualcolor( this->filler_forecolor_, this->filler_backcolor_ ),
