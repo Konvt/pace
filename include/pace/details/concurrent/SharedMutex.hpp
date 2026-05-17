@@ -5,10 +5,8 @@
 #ifdef __cpp_lib_shared_mutex
 # include <shared_mutex>
 #else
-# include "../core/Core.hpp"
-# include <atomic>
+# include "Util.hpp"
 # include <mutex>
-# include <thread>
 #endif
 
 namespace pace {
@@ -42,11 +40,10 @@ namespace pace {
         void lock() & noexcept
         {
           while ( true ) {
-            while ( num_readers_.load( std::memory_order_acquire ) != 0 )
-              std::this_thread::yield();
+            spin_wait( [this]() noexcept { return num_readers_.load( std::memory_order_relaxed ) == 0; } );
 
             writer_mtx_.lock();
-            if ( num_readers_.load( std::memory_order_acquire ) == 0 )
+            if ( num_readers_.load( std::memory_order_relaxed ) == 0 )
               break;
             else // unlock it and wait for readers to finish
               writer_mtx_.unlock();
@@ -54,8 +51,8 @@ namespace pace {
         }
         bool try_lock() & noexcept
         {
-          if ( num_readers_.load( std::memory_order_acquire ) == 0 && writer_mtx_.try_lock() ) {
-            if ( num_readers_.load( std::memory_order_acquire ) == 0 )
+          if ( num_readers_.load( std::memory_order_relaxed ) == 0 && writer_mtx_.try_lock() ) {
+            if ( num_readers_.load( std::memory_order_relaxed ) == 0 )
               return true;
             else
               writer_mtx_.unlock();
@@ -68,7 +65,7 @@ namespace pace {
         {
           writer_mtx_.lock();
 
-          num_readers_.fetch_add( 1, std::memory_order_release );
+          num_readers_.fetch_add( 1, std::memory_order_relaxed );
           PACE__ASSERT( num_readers_ > 0 ); // overflow checking
 
           writer_mtx_.unlock();
@@ -76,7 +73,7 @@ namespace pace {
         bool try_lock_shared() & noexcept
         {
           if ( writer_mtx_.try_lock() ) {
-            num_readers_.fetch_add( 1, std::memory_order_release );
+            num_readers_.fetch_add( 1, std::memory_order_relaxed );
             PACE__ASSERT( num_readers_ > 0 );
             writer_mtx_.unlock();
             return true;
@@ -86,7 +83,7 @@ namespace pace {
         void unlock_shared() & noexcept
         {
           PACE__ASSERT( num_readers_ > 0 ); // underflow checking
-          num_readers_.fetch_sub( 1, std::memory_order_release );
+          num_readers_.fetch_sub( 1, std::memory_order_relaxed );
         }
       };
 #endif

@@ -44,7 +44,7 @@ namespace pace {
       private:
         PACE__FORCEINLINE void draw_content()
         {
-          switch ( state_.load( std::memory_order_acquire ) ) {
+          switch ( state_.load( std::memory_order_relaxed ) ) {
           case Phase::Awake:   static_cast<MostDerived*>( this )->prologue(); break;
           case Phase::Refresh: static_cast<MostDerived*>( this )->monologue(); break;
           case Phase::Finish:  static_cast<MostDerived*>( this )->epilogue(); break;
@@ -67,7 +67,7 @@ namespace pace {
                  // No exceptions are caught here, this should be done by the thread manager.
                  auto& ostream    = io::OStream<Sink>::itself();
                  const auto istty = console::TermContext<Sink>::itself().connected();
-                 switch ( state_.load( std::memory_order_acquire ) ) {
+                 switch ( state_.load( std::memory_order_relaxed ) ) {
                  case Phase::Awake: {
                    if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                      if ( istty )
@@ -131,23 +131,23 @@ namespace pace {
         {
           if ( state_.load( std::memory_order_relaxed ) != Phase::Stop ) {
             if PACE__CXX17_CNSTXPR ( Forced )
-              state_.store( Phase::Stop, std::memory_order_release );
+              state_.store( Phase::Stop, std::memory_order_relaxed );
             else {
               this->react();
               state_.store( Phase::Finish, std::memory_order_release );
             }
             this->do_halt( Forced );
           } else
-            state_.store( Phase::Stop, std::memory_order_release );
+            state_.store( Phase::Stop, std::memory_order_relaxed );
         }
         template<typename F>
         void do_tick( F&& ticker ) &
         {
-          switch ( state_.load( std::memory_order_acquire ) ) {
+          switch ( state_.load( std::memory_order_relaxed ) ) {
           case Phase::Stop:  PACE__FALLTHROUGH;
           case Phase::Awake: {
             std::lock_guard<std::mutex> lock { mtx_ };
-            if ( state_.load( std::memory_order_acquire ) == Phase::Stop ) {
+            if ( state_.load( std::memory_order_relaxed ) == Phase::Stop ) {
               static_cast<MostDerived*>( this )->on_awaken();
               state_.store( Phase::Awake, std::memory_order_relaxed );
 

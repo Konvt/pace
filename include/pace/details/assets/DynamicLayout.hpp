@@ -149,7 +149,7 @@ namespace pace {
         {
           std::lock_guard<std::mutex> lock1 { sched_mtx_ };
           std::lock_guard<concurrent::SharedMutex> lock2 { res_mtx_ };
-          if ( state_.load( std::memory_order_acquire ) != Phase::Stop ) {
+          if ( state_.load( std::memory_order_relaxed ) != Phase::Stop ) {
             for ( types::Size i = 0; i < items_.size(); ++i ) {
               if ( items_[i].stage_ == Locus::Onstage ) {
                 if PACE__CXX17_CNSTXPR ( Forced )
@@ -158,10 +158,11 @@ namespace pace {
                   items_[i].target_->reset();
               }
             }
-            render::Renderer<Sink>::itself().dismiss();
+            render::Renderer<Sink>::itself().dismiss_then(
+              []() noexcept { io::OStream<Sink>::itself().release(); } );
           }
-          state_.store( Phase::Stop, std::memory_order_release );
           items_.clear();
+          state_.store( Phase::Stop, std::memory_order_relaxed );
         }
 
       public:
@@ -185,7 +186,7 @@ namespace pace {
                    auto& ostream        = io::OStream<Sink>::itself();
                    const auto istty     = console::TermContext<Sink>::itself().connected();
                    const auto hide_done = config::hide_completed();
-                   switch ( state_.load( std::memory_order_acquire ) ) {
+                   switch ( state_.load( std::memory_order_relaxed ) ) {
                    case Phase::Awake: {
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                        if ( istty )
@@ -196,7 +197,7 @@ namespace pace {
                      }
                      ostream << io::flush;
                      auto expected = Phase::Awake;
-                     state_.compare_exchange_strong( expected, Phase::Refresh, std::memory_order_release );
+                     state_.compare_exchange_strong( expected, Phase::Refresh, std::memory_order_relaxed );
                    } break;
                    case Phase::Refresh: {
                      {
@@ -227,12 +228,12 @@ namespace pace {
 
             io::OStream<Sink>::itself() << io::release;
             num_modified_lines_ = 0;
-            state_.store( Phase::Awake, std::memory_order_release );
+            state_.store( Phase::Awake, std::memory_order_relaxed );
 
             auto guard = utils::make_scope_fail( [this]() noexcept {
               std::lock_guard<concurrent::SharedMutex> lock2 { res_mtx_ };
               items_.clear();
-              state_.store( Phase::Stop, std::memory_order_release );
+              state_.store( Phase::Stop, std::memory_order_relaxed );
             } );
             items_.emplace_back( item );
             executor.template activate<Mode>();
@@ -267,7 +268,7 @@ namespace pace {
           }
 
           if ( suspend_flag ) {
-            state_.store( Phase::Stop, std::memory_order_release );
+            state_.store( Phase::Stop, std::memory_order_relaxed );
             executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().release(); } );
           }
         }

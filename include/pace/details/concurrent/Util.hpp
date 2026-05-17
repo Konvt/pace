@@ -68,7 +68,7 @@ namespace pace {
       template<typename T>
       PACE__FORCEINLINE void atomic_commit_all( std::atomic<T>& atom,
                                                 T alter,
-                                                std::memory_order order = std::memory_order_release ) noexcept
+                                                std::memory_order order = std::memory_order_seq_cst ) noexcept
       {
         atom.store( alter, order );
 #ifdef __cpp_lib_atomic_wait
@@ -79,7 +79,7 @@ namespace pace {
       PACE__FORCEINLINE bool atomic_commit_all( std::atomic<T>& atom,
                                                 T expected,
                                                 T alter,
-                                                std::memory_order order = std::memory_order_release ) noexcept
+                                                std::memory_order order = std::memory_order_seq_cst ) noexcept
       {
         bool cas = atom.compare_exchange_strong( expected, alter, order );
 #ifdef __cpp_lib_atomic_wait
@@ -92,7 +92,7 @@ namespace pace {
       PACE__FORCEINLINE bool atomic_commit_one( std::atomic<T>& atom,
                                                 T expected,
                                                 T alter,
-                                                std::memory_order order = std::memory_order_release ) noexcept
+                                                std::memory_order order = std::memory_order_seq_cst ) noexcept
       {
         bool cas = atom.compare_exchange_strong( expected, alter, order );
 #ifdef __cpp_lib_atomic_wait

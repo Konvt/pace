@@ -43,7 +43,7 @@ namespace pace {
 
         // Get the progress of the task.
         PACE__NODISCARD std::uint64_t progress() const noexcept
-        { return task_cnt_.load( std::memory_order_acquire ); }
+        { return task_cnt_.load( std::memory_order_relaxed ); }
 
         PACE__FORCEINLINE void tick() & final
         {

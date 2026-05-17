@@ -116,7 +116,7 @@ namespace pace {
             if ( !forced )
               executor.template trigger<Mode>();
             if ( alive_cnt_.fetch_sub( 1, std::memory_order_acq_rel ) == 1 ) {
-              state_.store( Phase::Stop, std::memory_order_release );
+              state_.store( Phase::Stop, std::memory_order_relaxed );
               executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().release(); } );
             }
           }
@@ -125,11 +125,11 @@ namespace pace {
         {
           std::lock_guard<std::mutex> lock { sched_mtx_ };
           auto& executor = render::Renderer<Sink>::itself();
-          if ( state_.load( std::memory_order_acquire ) == Phase::Stop ) {
+          if ( state_.load( std::memory_order_relaxed ) == Phase::Stop ) {
             if ( !executor.try_appoint( [this]() {
                    auto& ostream    = io::OStream<Sink>::itself();
                    const auto istty = console::TermContext<Sink>::itself().connected();
-                   switch ( state_.load( std::memory_order_acquire ) ) {
+                   switch ( state_.load( std::memory_order_relaxed ) ) {
                    case Phase::Awake: {
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                        if ( istty )
@@ -143,7 +143,7 @@ namespace pace {
                      ostream << io::flush;
 
                      auto expected = Phase::Awake;
-                     state_.compare_exchange_strong( expected, Phase::Refresh, std::memory_order_release );
+                     state_.compare_exchange_strong( expected, Phase::Refresh, std::memory_order_relaxed );
                    } break;
                    case Phase::Refresh: {
                      {
@@ -172,16 +172,16 @@ namespace pace {
                 charcodes::make_literal( "pace: another progress bar instance is already running" ) );
 
             io::OStream<Sink>::itself() << io::release;
-            state_.store( Phase::Awake, std::memory_order_release );
+            state_.store( Phase::Awake, std::memory_order_relaxed );
 
             auto guard = utils::make_scope_fail( [&]() noexcept {
-              state_.store( Phase::Stop, std::memory_order_release );
+              state_.store( Phase::Stop, std::memory_order_relaxed );
               executor.dismiss();
             } );
             executor.template activate<Mode>();
           } else
             executor.template trigger<Mode>();
-          alive_cnt_.fetch_add( 1, std::memory_order_release );
+          alive_cnt_.fetch_add( 1, std::memory_order_relaxed );
           PACE__ASSERT( alive_cnt_ <= sizeof...( Configs ) );
         }
 
@@ -257,7 +257,7 @@ namespace pace {
           PACE__ASSERT( online() == false );
         }
         PACE__NODISCARD PACE__FORCEINLINE bool online() const noexcept
-        { return state_.load( std::memory_order_acquire ) != Phase::Stop; }
+        { return state_.load( std::memory_order_relaxed ) != Phase::Stop; }
         PACE__NODISCARD PACE__FORCEINLINE types::Size online_count() const noexcept
         {
           concurrent::SharedLock<concurrent::SharedMutex> lock { res_mtx_ };
