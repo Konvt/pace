@@ -27,7 +27,7 @@ namespace pace {
           types::Size width = 0;
           for ( types::Size i = 0; i < text.size(); ) {
             auto parsed = U8Char::next_codepoint( text.substr( i ) );
-            width += static_cast<types::Size>( U8Char::glyph_width( parsed.first ) );
+            width += static_cast<types::Size>( CodeChart::glyph_width( parsed.first ) );
             i += parsed.second;
           }
           return width;

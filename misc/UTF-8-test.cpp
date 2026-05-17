@@ -122,7 +122,7 @@ namespace pace {
           if ( codepoint >= 0x1F900 && codepoint <= 0x1FBFF )
             return 3; // new emojis
 
-          return 1; // Default fallback
+          return 2; // Default fallback
         }
         /* nodiscard inline */ static types::Size render_width( types::ROStr u8_str )
         {

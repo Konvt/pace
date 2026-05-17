@@ -20,7 +20,7 @@ namespace pace {
           std::vector<Font> characters;
           for ( types::Size i = 0; i < raw_u8_str.size(); ) {
             auto resolved = U8Char::next_codepoint( raw_u8_str.substr( i ) );
-            characters.emplace_back( i, U8Char::glyph_width( resolved.first ) );
+            characters.emplace_back( i, CodeChart::glyph_width( resolved.first ) );
             i += resolved.second;
           }
           return characters;
