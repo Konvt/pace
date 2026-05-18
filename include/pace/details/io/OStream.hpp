@@ -25,10 +25,10 @@ namespace pace {
       template<Channel Sink>
       class OStream;
       template<Channel Sink>
-      OStream<Sink>& flush( OStream<Sink>& stream )
+      PACE__FORCEINLINE OStream<Sink>& flush( OStream<Sink>& stream )
       { return stream.flush(); }
       template<Channel Sink>
-      PACE__CXX20_CNSTXPR OStream<Sink>& release( OStream<Sink>& stream ) noexcept
+      PACE__FORCEINLINE PACE__CXX20_CNSTXPR OStream<Sink>& release( OStream<Sink>& stream ) noexcept
       {
         stream.release();
         return stream;

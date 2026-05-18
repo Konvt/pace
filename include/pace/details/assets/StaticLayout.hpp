@@ -153,12 +153,12 @@ namespace pace {
                            ostream << console::resetcursor;
                          else
                            ostream
-                             .append( console::prevline,
-                                      std::count_if(
-                                        stages_.cbegin(),
-                                        stages_.cend(),
-                                        []( Locus stage ) noexcept { return stage != Locus::Offstage; } ) )
-                             .append( console::linestart );
+                             .apply( console::prevline,
+                                     std::count_if(
+                                       stages_.cbegin(),
+                                       stages_.cend(),
+                                       []( Locus stage ) noexcept { return stage != Locus::Offstage; } ) )
+                             .apply( console::linestart );
                        }
                        do_render( console::TermContext<Sink>::itself().connected(),
                                   config::hide_completed() );

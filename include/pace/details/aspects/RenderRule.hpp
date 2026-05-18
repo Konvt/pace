@@ -78,19 +78,19 @@ namespace pace {
           if ( style_off )
             return pipeline;
           if ( rules_[utils::to_underlying( Chroma::Bold )] )
-            pipeline << console::fontbold;
+            pipeline << console::fontbold();
           if ( rules_[utils::to_underlying( Chroma::Faint )] )
-            pipeline << console::fontfaint;
+            pipeline << console::fontfaint();
           if ( rules_[utils::to_underlying( Chroma::Italic )] )
-            pipeline << console::fontitalic;
+            pipeline << console::fontitalic();
           if ( rules_[utils::to_underlying( Chroma::Underline )] )
-            pipeline << console::fontunderline;
+            pipeline << console::fontunderline();
           if ( rules_[utils::to_underlying( Chroma::Inverse )] )
-            pipeline << console::fontinverse;
+            pipeline << console::fontinverse();
           if ( rules_[utils::to_underlying( Chroma::Hidden )] )
-            pipeline << console::fonthidden;
+            pipeline << console::fonthidden();
           if ( rules_[utils::to_underlying( Chroma::Crossed )] )
-            pipeline << console::fontcrossed;
+            pipeline << console::fontcrossed();
 #endif
           return pipeline;
         }
@@ -101,7 +101,7 @@ namespace pace {
           (void)style_off;
 #else
           if ( !style_off && rules_.any() )
-            pipeline << console::stylereset;
+            pipeline << console::resetstyle();
 #endif
           return pipeline;
         }
@@ -125,15 +125,14 @@ namespace pace {
         }
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
-          wrappers::Brush<std::reference_wrapper<const console::Escode>,
-                          wrappers::Brush<std::reference_wrapper<const console::Escode>>>
+          wrappers::Brush<console::Escode, wrappers::Brush<console::Escode>>
           with_clear( bool style_off ) const
         {
 #ifdef PACE_NOSTYLE
           (void)style_off;
 #else
           if ( !style_off && rules_[utils::to_underlying( Chroma::Colored )] )
-            return { std::cref( console::fgcolorrest ), { std::cref( console::bgcolorrest ) } };
+            return { console::resetfgcolor(), { console::resetbgcolor() } };
 #endif
           return { {} };
         }
@@ -143,9 +142,7 @@ namespace pace {
           traits::AnyOf<std::is_same<Op, console::Forecolor>,
                         std::is_same<Op, console::Backcolor>,
                         std::is_same<Op, console::Dualcolor>>::value,
-          wrappers::Brush<
-            std::reference_wrapper<const console::Escode>,
-            wrappers::Brush<std::reference_wrapper<const console::Escode>, wrappers::Brush<Op>>>>::type
+          wrappers::Brush<console::Escode, wrappers::Brush<console::Escode, wrappers::Brush<Op>>>>::type
           clear_then_dye( Op rgb, bool style_off ) const
         {
 #ifdef PACE_NOSTYLE

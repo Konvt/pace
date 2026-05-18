@@ -61,8 +61,10 @@ namespace pace {
       using Field = typename Base::TimerField;
       using Token = typename Base::TimerToken;
 
-      static constexpr details::types::Char _overflow_elapsed_char = '#';
-      static constexpr details::types::Char _default_elapsed_char  = '?';
+      PACE__NODISCARD static PACE__FORCEINLINE constexpr details::types::Char overflow_char() noexcept
+      { return '#'; }
+      PACE__NODISCARD static PACE__FORCEINLINE constexpr details::types::Char unkown_char() noexcept
+      { return '?'; }
 
       std::vector<Field> fmt_ir_;
       bool show_hour_   : 1;
@@ -87,7 +89,7 @@ namespace pace {
                                         const details::render::Parameter& params ) const
       {
         if ( fmt_ir_.empty() )
-          return pipeline << _default_elapsed_char;
+          return pipeline << unkown_char();
 
         for ( const auto& field : fmt_ir_ ) {
           details::types::String formatted;
@@ -97,7 +99,7 @@ namespace pace {
 
           case Token::Hour: {
             if ( field.width() == 0 ) {
-              pipeline << _default_elapsed_char;
+              pipeline << unkown_char();
               continue;
             }
             formatted = details::utils::format(
@@ -106,7 +108,7 @@ namespace pace {
 
           case Token::Minute: {
             if ( field.width() == 0 ) {
-              pipeline << _default_elapsed_char;
+              pipeline << unkown_char();
               continue;
             }
             const auto num_minutes =
@@ -116,7 +118,7 @@ namespace pace {
 
           case Token::Second: {
             if ( field.width() == 0 ) {
-              pipeline << _default_elapsed_char;
+              pipeline << unkown_char();
               break;
             }
             const auto num_seconds =
@@ -128,7 +130,7 @@ namespace pace {
           }
 
           if ( formatted.size() > field.width() ) {
-            pipeline.append( _overflow_elapsed_char, field.width() );
+            pipeline.append( overflow_char(), field.width() );
             continue;
           }
           auto blank_length      = field.width() - formatted.size();
@@ -219,10 +221,6 @@ namespace pace {
         Base::swap( other );
       }
     };
-    template<typename Base, typename Derived>
-    constexpr details::types::Char Elapsed<Base, Derived>::_default_elapsed_char;
-    template<typename Base, typename Derived>
-    constexpr details::types::Char Elapsed<Base, Derived>::_overflow_elapsed_char;
   } // namespace facade
 
   PACE__INHERIT_REGISTER( facade::Elapsed, details::aspects::Timer );

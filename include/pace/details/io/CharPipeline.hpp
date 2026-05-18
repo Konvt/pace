@@ -61,6 +61,22 @@ namespace pace {
           return *this;
         }
 
+        PACE__CXX20_CNSTXPR CharPipeline& apply( CharPipeline& ( *fnptr )(CharPipeline&),
+                                                 types::Size num = 1 ) &
+        {
+          while ( num-- )
+            fnptr( *this );
+          return *this;
+        }
+
+        friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& operator<<(
+          CharPipeline& stream,
+          CharPipeline& ( *fnptr )(CharPipeline&))
+        {
+          PACE__TRUST( fnptr != nullptr );
+          return fnptr( stream );
+        }
+
         template<typename T>
         friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR typename std::enable_if<
           traits::AnyOf<std::is_convertible<T, charcodes::StringView>,

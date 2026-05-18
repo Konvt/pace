@@ -45,24 +45,50 @@ namespace pace {
         }
       };
 
-      PACE__CXX17_INLINE const auto stylereset  = Escode( "0" );
-      PACE__CXX17_INLINE const auto fgcolorrest = Escode( "39" );
-      PACE__CXX17_INLINE const auto bgcolorrest = Escode( "49" );
+      // We wrote a Monoid `Brush` to abstract a series of coloring actions into a fixed behavior chain.
+      // To enable these "actions" to be materialized as values that can be placed in the chain,
+      // the following vars must exist in the form of variables.
+      // However, pace is a library that is compatible with C++11.
+      // If the "actions" here are treated as variables, then in some cases it might violate the ODR.
+      // Therefore we have to let them be a return value of a constexpr factory function.
 
-      PACE__CXX17_INLINE const auto fontbold      = Escode( "1" );
-      PACE__CXX17_INLINE const auto fontfaint     = Escode( "2" );
-      PACE__CXX17_INLINE const auto fontitalic    = Escode( "3" );
-      PACE__CXX17_INLINE const auto fontunderline = Escode( "4" );
-      PACE__CXX17_INLINE const auto fontinverse   = Escode( "7" );
-      PACE__CXX17_INLINE const auto fonthidden    = Escode( "8" );
-      PACE__CXX17_INLINE const auto fontcrossed   = Escode( "9" );
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Escode resetstyle() noexcept
+      { return { "0" }; }
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Escode resetfgcolor() noexcept
+      { return { "39" }; }
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Escode resetbgcolor() noexcept
+      { return { "49" }; }
 
-      PACE__CXX17_INLINE constexpr auto& savecursor      = "\x1B[s";
-      PACE__CXX17_INLINE constexpr auto& resetcursor     = "\x1B[u";
-      PACE__CXX17_INLINE constexpr auto& linewipe        = "\x1B[K";
-      PACE__CXX17_INLINE constexpr auto& prevline        = "\x1B[A";
-      PACE__CXX17_INLINE constexpr types::Char nextline  = '\n';
-      PACE__CXX17_INLINE constexpr types::Char linestart = '\r';
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Escode fontbold() noexcept
+      { return { "1" }; }
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Escode fontfaint() noexcept
+      { return { "2" }; }
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Escode fontitalic() noexcept
+      { return { "3" }; }
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Escode fontunderline() noexcept
+      { return { "4" }; }
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Escode fontinverse() noexcept
+      { return { "7" }; }
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Escode fonthidden() noexcept
+      { return { "8" }; }
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Escode fontcrossed() noexcept
+      { return { "9" }; }
+
+      // The following operations do not need to participate in the effect composition of the rendering,
+      // so they can be written in the form of functions.
+
+#define PACE__METHOD( FunctionName, Param )                                      \
+  PACE__FORCEINLINE io::CharPipeline& FunctionName( io::CharPipeline& pipeline ) \
+  { return pipeline << Param; }
+
+      PACE__METHOD( savecursor, "\x1B[s" );
+      PACE__METHOD( resetcursor, "\x1B[u" );
+      PACE__METHOD( linewipe, "\x1B[K" );
+      PACE__METHOD( prevline, "\x1B[A" );
+      PACE__METHOD( nextline, '\n' );
+      PACE__METHOD( linestart, '\r' );
+
+#undef PACE__METHOD
     } // namespace console
   } // namespace details
 } // namespace pace

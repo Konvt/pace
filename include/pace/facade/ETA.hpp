@@ -62,9 +62,10 @@ namespace pace {
       using Field = typename Base::TimerField;
       using Token = typename Base::TimerToken;
 
-    private:
-      static constexpr details::types::Char _overflow_eta_char = '#';
-      static constexpr details::types::Char _default_eta_char  = '?';
+      PACE__NODISCARD static PACE__FORCEINLINE constexpr details::types::Char overflow_char() noexcept
+      { return '#'; }
+      PACE__NODISCARD static PACE__FORCEINLINE constexpr details::types::Char unkown_char() noexcept
+      { return '?'; }
 
       std::vector<Field> fmt_ir_;
       bool show_hour_   : 1;
@@ -89,7 +90,7 @@ namespace pace {
                                         const details::render::Parameter& params ) const
       {
         if ( fmt_ir_.empty() )
-          return pipeline << _default_eta_char;
+          return pipeline << unkown_char();
 
         bool overflow = false;
         details::types::Tempus remaining_time;
@@ -111,7 +112,7 @@ namespace pace {
 
           case Token::Hour: {
             if ( field.width() == 0 ) {
-              pipeline << _default_eta_char;
+              pipeline << unkown_char();
               continue;
             } else if ( params.task_quota_ > 0 && !overflow )
               formatted = details::utils::format(
@@ -120,7 +121,7 @@ namespace pace {
 
           case Token::Minute: {
             if ( field.width() == 0 ) {
-              pipeline << _default_eta_char;
+              pipeline << unkown_char();
               continue;
             } else if ( params.task_quota_ > 0 && !overflow ) {
               const auto num_minutes =
@@ -131,7 +132,7 @@ namespace pace {
 
           case Token::Second: {
             if ( field.width() == 0 ) {
-              pipeline << _default_eta_char;
+              pipeline << unkown_char();
               continue;
             } else if ( params.task_quota_ > 0 && !overflow ) {
               const auto num_seconds =
@@ -145,10 +146,10 @@ namespace pace {
           }
 
           if ( params.task_quota_ == 0 ) {
-            pipeline.append( _default_eta_char, field.width() );
+            pipeline.append( unkown_char(), field.width() );
             continue;
           } else if ( overflow || formatted.size() > field.width() ) {
-            pipeline.append( _overflow_eta_char, field.width() );
+            pipeline.append( overflow_char(), field.width() );
             continue;
           }
 
@@ -240,10 +241,6 @@ namespace pace {
         Base::swap( other );
       }
     };
-    template<typename Base, typename Derived>
-    constexpr details::types::Char ETA<Base, Derived>::_default_eta_char;
-    template<typename Base, typename Derived>
-    constexpr details::types::Char ETA<Base, Derived>::_overflow_eta_char;
   } // namespace facade
 
   PACE__INHERIT_REGISTER( facade::ETA, details::aspects::Timer, details::aspects::Capacity );

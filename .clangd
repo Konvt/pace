@@ -1,5 +1,5 @@
 CompileFlags:
-  Add: [-Wall, -Wpedantic, -Wextra, -std=c++23]
+  Add: [-Wall, -Wpedantic, -Wextra, -std=c++11]
 
 Diagnostics:
   ClangTidy:

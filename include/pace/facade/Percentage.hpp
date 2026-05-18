@@ -14,14 +14,15 @@ namespace pace {
   namespace facade {
     template<typename Base, typename Derived>
     class Percentage : public Base {
-      static constexpr auto& _default_percent = " nan. %";
+      static PACE__FORCEINLINE constexpr details::charcodes::StringView default_text() noexcept
+      { return { details::charcodes::make_literal( " nan. %" ) }; }
 
     protected:
       details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
                                         const details::render::Parameter& params ) const
       {
         if ( params.progress_ratio_ <= 0.0 ) // 0.01%
-          PACE__UNLIKELY return pipeline << _default_percent;
+          PACE__UNLIKELY return pipeline << default_text();
 
         auto orig = details::utils::format( params.progress_ratio_ * 100.0, 2 );
         orig.push_back( '%' );
@@ -30,7 +31,7 @@ namespace pace {
       }
 
       PACE__NODISCARD static PACE__FORCEINLINE PACE__CNSTEVAL details::types::Size fixed_length() noexcept
-      { return sizeof( _default_percent ) - 1; }
+      { return default_text().size(); }
 
       template<typename... Options>
       constexpr Percentage( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
