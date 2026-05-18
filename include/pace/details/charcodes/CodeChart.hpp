@@ -24,8 +24,7 @@ namespace pace {
         PACE__CXX14_CNSTXPR CodeChart& operator=( const CodeChart& ) & = default;
         PACE__CXX20_CNSTXPR ~CodeChart()                               = default;
 
-        // See the Unicode CodeCharts documentation for complete code points.
-        // Also can see the `if-else` version in misc/UTF-8-test.cpp
+        // The content is from the Unicode 17.0 standard CodeChart pdf.
         static PACE__CNSTEVAL std::array<CodeChart, 47> code_chart() noexcept
         {
           return {

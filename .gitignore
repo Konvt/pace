@@ -4,6 +4,7 @@
 
 .cache/
 build/
+misc/
 
 CMakeUserPresets.json
 *.exe
