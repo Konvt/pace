@@ -17,7 +17,18 @@ namespace pace {
     namespace render {
       template<Channel Tag>
       class Renderer final {
-        static std::atomic<details::types::Tempus> _working_interval;
+        static constexpr auto _default_working_interval =
+          std::chrono::duration_cast<types::Tempus>( std::chrono::milliseconds( 40 ) );
+
+#if PACE__CXX17
+        static std::atomic<types::Tempus> _working_interval;
+#else
+        static std::atomic<types::Tempus>& _working_interval() noexcept
+        {
+          static std::atomic<types::Tempus> instance { _default_working_interval };
+          return instance;
+        }
+#endif
 
         std::atomic<std::uint64_t> quota_      = { 0 };
         concurrent::ExceptionBox box_          = {};
@@ -181,11 +192,23 @@ namespace pace {
 
       public:
         // Get the current working interval for all threads.
-        PACE__NODISCARD static PACE__FORCEINLINE details::types::Tempus working_interval() noexcept
-        { return _working_interval.load( std::memory_order_relaxed ); }
+        PACE__NODISCARD static PACE__FORCEINLINE types::Tempus working_interval() noexcept
+        {
+#if PACE__CXX17
+          return _working_interval.load( std::memory_order_relaxed );
+#else
+          return _working_interval().load( std::memory_order_relaxed );
+#endif
+        }
         // Adjust the thread working interval between this loop and the next loop.
-        static PACE__FORCEINLINE void working_interval( details::types::Tempus new_rate ) noexcept
-        { _working_interval.store( new_rate, std::memory_order_relaxed ); }
+        static PACE__FORCEINLINE void working_interval( types::Tempus new_rate ) noexcept
+        {
+#if PACE__CXX17
+          _working_interval.store( new_rate, std::memory_order_relaxed );
+#else
+          _working_interval().store( new_rate, std::memory_order_relaxed );
+#endif
+        }
 
         static Renderer& itself() noexcept
         {
@@ -378,10 +401,12 @@ namespace pace {
           return task_ == nullptr;
         }
       };
+#if PACE__CXX17
       template<Channel Tag>
-      std::atomic<details::types::Tempus> Renderer<Tag>::_working_interval {
-        std::chrono::duration_cast<details::types::Tempus>( std::chrono::milliseconds( 40 ) )
+      PACE__CXX17_INLINE std::atomic<types::Tempus> Renderer<Tag>::_working_interval {
+        Renderer<Tag>::_default_working_interval
       };
+#endif
     } // namespace render
   } // namespace details
 } // namespace pace

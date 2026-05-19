@@ -15,6 +15,13 @@
 namespace pace {
   namespace details {
     namespace charcodes {
+#ifdef __cpp_lib_string_view
+      template<typename Char, typename Traits = std::char_traits<Char>>
+      using BasicStringView = std::basic_string_view<Char, Traits>;
+
+      template<typename Char>
+      using Literal = BasicStringView<Char>;
+#else
       template<typename Char>
       struct Literal {
       private:
@@ -35,17 +42,6 @@ namespace pace {
         PACE__NODISCARD constexpr const Char* data() const noexcept { return data_; }
       };
 
-      template<typename Char, types::Size N>
-      constexpr Literal<Char> make_literal( const Char ( &cstr )[N] ) noexcept
-      { return { cstr }; }
-      template<typename Char>
-      constexpr Literal<Char> make_literal( const Char* cstr, types::Size length ) noexcept
-      { return { cstr, length }; }
-
-#ifdef __cpp_lib_string_view
-      template<typename Char, typename Traits = std::char_traits<Char>>
-      using BasicStringView = std::basic_string_view<Char, Traits>;
-#else
       template<typename Char, typename Traits = std::char_traits<Char>>
       class BasicStringView {
       public:
@@ -71,6 +67,7 @@ namespace pace {
         size_type length_;
 
       public:
+        // extension
         template<typename A>
         PACE__CXX20_CNSTXPR BasicStringView( const std::basic_string<Char, Traits, A>& str )
           : BasicStringView( str.data(), str.size() )
@@ -294,6 +291,13 @@ namespace pace {
 # endif
       };
 #endif
+
+      template<typename Char, types::Size N>
+      constexpr Literal<Char> make_literal( const Char ( &cstr )[N] ) noexcept
+      { return { cstr }; }
+      template<typename Char>
+      constexpr Literal<Char> make_literal( const Char* cstr, types::Size length ) noexcept
+      { return { cstr, length }; }
 
       using StringView = BasicStringView<types::Char>;
 #ifdef __cpp_char8_t

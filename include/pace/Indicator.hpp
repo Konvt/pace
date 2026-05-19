@@ -13,8 +13,24 @@ namespace pace {
   }
 
   class Indicator {
+    static constexpr bool _default_hide_completed = false;
+    static constexpr bool _default_auto_style_off = true;
+
+#if PACE__CXX17
     static std::atomic<bool> _hide_completed;
     static std::atomic<bool> _auto_style_off;
+#else
+    static std::atomic<bool>& _hide_completed() noexcept
+    {
+      static std::atomic<bool> instance { _default_hide_completed };
+      return instance;
+    }
+    static std::atomic<bool>& _auto_style_off() noexcept
+    {
+      static std::atomic<bool> instance { _default_auto_style_off };
+      return instance;
+    }
+#endif
 
     friend void config::hide_completed( bool ) noexcept;
     friend bool config::hide_completed() noexcept;
@@ -46,22 +62,48 @@ namespace pace {
       return details::concurrent::spin_wait_for( [this]() noexcept { return !active(); }, timeout );
     }
   };
-  PACE__CXX17_INLINE std::atomic<bool> Indicator::_hide_completed { false };
-  PACE__CXX17_INLINE std::atomic<bool> Indicator::_auto_style_off { true };
+#if PACE__CXX17
+  PACE__CXX17_INLINE std::atomic<bool> Indicator::_hide_completed { Indicator::_default_hide_completed };
+  PACE__CXX17_INLINE std::atomic<bool> Indicator::_auto_style_off { Indicator::_default_auto_style_off };
+#endif
 
   namespace config {
     inline void hide_completed( bool flag ) noexcept
-    { Indicator::_hide_completed.store( flag, std::memory_order_relaxed ); }
+    {
+#if PACE__CXX17
+      Indicator::_hide_completed.store( flag, std::memory_order_relaxed );
+#else
+      Indicator::_hide_completed().store( flag, std::memory_order_relaxed );
+#endif
+    }
     inline bool hide_completed() noexcept
-    { return Indicator::_hide_completed.load( std::memory_order_relaxed ); }
+    {
+#if PACE__CXX17
+      return Indicator::_hide_completed.load( std::memory_order_relaxed );
+#else
+      return Indicator::_hide_completed().load( std::memory_order_relaxed );
+#endif
+    }
     /**
      * Whether to automatically disable the style effect of the configuration object
      * when the output stream is not directed to a terminal.
      */
     inline void auto_style_off( bool flag ) noexcept
-    { Indicator::_auto_style_off.store( flag, std::memory_order_relaxed ); }
+    {
+#if PACE__CXX17
+      Indicator::_auto_style_off.store( flag, std::memory_order_relaxed );
+#else
+      Indicator::_auto_style_off().store( flag, std::memory_order_relaxed );
+#endif
+    }
     inline bool auto_style_off() noexcept
-    { return Indicator::_auto_style_off.load( std::memory_order_relaxed ); }
+    {
+#if PACE__CXX17
+      return Indicator::_auto_style_off;
+#else
+      return Indicator::_auto_style_off().load( std::memory_order_relaxed );
+#endif
+    }
   } // namespace config
 } // namespace pace
 

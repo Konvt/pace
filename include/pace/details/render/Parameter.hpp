@@ -11,7 +11,7 @@ namespace pace {
         std::uint64_t task_quota_;
         std::uint64_t tasks_completed_;
         types::Float progress_ratio_ { 0.0 };
-        details::types::Tempus elapsed_time_;
+        types::Tempus elapsed_time_;
         std::uint32_t frame_count_;
         bool style_off_;
 
@@ -22,8 +22,8 @@ namespace pace {
                    bool style_off ) noexcept
           : task_quota_ { task_quota }
           , tasks_completed_ { tasks_completed }
-          , elapsed_time_ { std::chrono::duration_cast<details::types::Tempus>(
-              std::chrono::steady_clock::now() - start_time ) }
+          , elapsed_time_ { std::chrono::duration_cast<types::Tempus>( std::chrono::steady_clock::now()
+                                                                       - start_time ) }
           , frame_count_ { frame_count }
           , style_off_ { style_off }
         {
