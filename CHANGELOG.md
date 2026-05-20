@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-05-20
+### Added
+- None
+
+### Changed
+- Changed the definition methods of some global variables to meet ODR
+- Updated the unicode mapping with 17.0 standard code chart
+- Adjusted the memory order of atomic variables
+
+### Fixed
+- Fixed several compilation errors under different standards
+- Fixed the display issue of ETA, Elapsed and Speed under boundary conditions
+
+### Removed
+- None
+
+- - -
+
 ## [1.2.0] - 2026-05-15
 ### Added
 - Allowed custom format strings for the timer
