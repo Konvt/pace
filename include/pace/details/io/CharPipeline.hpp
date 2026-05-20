@@ -61,8 +61,8 @@ namespace pace {
           return *this;
         }
 
-        PACE__CXX20_CNSTXPR CharPipeline& apply( CharPipeline& ( *fnptr )(CharPipeline&),
-                                                 types::Size num = 1 ) &
+        PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& apply( CharPipeline& ( *fnptr )(CharPipeline&),
+                                                                   types::Size num = 1 ) &
         {
           while ( num-- )
             fnptr( *this );

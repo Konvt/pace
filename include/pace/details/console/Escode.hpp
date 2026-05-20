@@ -77,8 +77,8 @@ namespace pace {
       // The following operations do not need to participate in the effect composition of the rendering,
       // so they can be written in the form of functions.
 
-#define PACE__METHOD( FunctionName, Param )                                      \
-  PACE__FORCEINLINE io::CharPipeline& FunctionName( io::CharPipeline& pipeline ) \
+#define PACE__METHOD( FunctionName, Param )                    \
+  io::CharPipeline& FunctionName( io::CharPipeline& pipeline ) \
   { return pipeline << Param; }
 
       PACE__METHOD( savecursor, "\x1B[s" );

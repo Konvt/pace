@@ -120,13 +120,13 @@ namespace pace {
       { return '#'; }
       PACE__NODISCARD static PACE__FORCEINLINE constexpr details::charcodes::StringView
         overflow_text() noexcept
-      { return details::charcodes::make_literal( "inf. " ); }
+      { return "inf. "; }
       PACE__NODISCARD static PACE__FORCEINLINE constexpr details::charcodes::StringView
         invalid_text() noexcept
-      { return details::charcodes::make_literal( "nan. " ); }
+      { return "nan. "; }
       PACE__NODISCARD static PACE__FORCEINLINE constexpr details::charcodes::StringView
         undefined_text() noexcept
-      { return details::charcodes::make_literal( "und. " ); }
+      { return "und. "; }
 
       std::vector<details::charcodes::U8Raw> units_;
       details::types::Size widest_width_;

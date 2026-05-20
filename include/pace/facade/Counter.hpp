@@ -40,7 +40,7 @@ namespace pace {
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR std::uint32_t fixed_length() const noexcept
       {
         const auto num_digits = details::utils::count_digits( this->task_quota_ );
-        return show_quota_ ? num_digits * 2 + 1 : num_digits;
+        return static_cast<std::uint32_t>( show_quota_ ? num_digits * 2 + 1 : num_digits );
       }
 
       template<typename... Options>

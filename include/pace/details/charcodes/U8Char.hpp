@@ -5,7 +5,6 @@
 #include "CodeChart.hpp"
 #include "StringView.hpp"
 #include <algorithm>
-#include <array>
 
 namespace pace {
   namespace details {
@@ -76,7 +75,7 @@ namespace pace {
         {
           auto parsed = next_codepoint( bytes );
           U8Char ret;
-          ret.width_ = CodeChart::glyph_width( parsed.first );
+          ret.width_ = glyph_width( parsed.first );
           std::copy( bytes.data(), bytes.data() + parsed.second, ret.byte_.begin() );
           ret.length_ = static_cast<std::uint8_t>( parsed.second );
           return ret;
@@ -91,7 +90,7 @@ namespace pace {
         PACE__CXX14_CNSTXPR U8Char& operator=( const U8Char& ) & = default;
         PACE__CXX20_CNSTXPR ~U8Char()                            = default;
 
-        PACE__NODISCARD const types::Char* as_bytes() const noexcept { return byte_.begin(); }
+        PACE__NODISCARD const types::Char* as_bytes() const noexcept { return byte_.data(); }
 
         PACE__NODISCARD constexpr std::uint8_t size() const noexcept { return length_; }
         PACE__NODISCARD constexpr std::uint8_t width() const noexcept { return width_; }

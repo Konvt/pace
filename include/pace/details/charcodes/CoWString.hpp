@@ -4,15 +4,46 @@
 #include "../traits/Backport.hpp"
 #include "../traits/Util.hpp"
 #include "../utils/Backport.hpp"
-#include "StringView.hpp"
 #include <algorithm>
 #include <atomic>
 #include <iterator>
 #include <limits>
+#include <stdexcept>
 
 namespace pace {
   namespace details {
     namespace charcodes {
+      template<typename Char>
+      struct Literal {
+      private:
+        const Char* data_;
+        types::Size size_;
+
+      public:
+        constexpr Literal() noexcept : data_ { nullptr }, size_ { 0 } {}
+
+        constexpr Literal( const Char* literal, types::Size length ) noexcept
+          : data_ { literal }, size_ { length }
+        {}
+        template<types::Size N>
+        constexpr Literal( const Char ( &literal )[N] ) noexcept : Literal( literal, N - 1 )
+        {}
+
+        PACE__NODISCARD constexpr types::Size size() const noexcept { return size_; }
+        PACE__NODISCARD constexpr const Char* data() const noexcept { return data_; }
+
+#ifdef __cpp_lib_string_view
+        constexpr operator std::basic_string_view<Char>() const noexcept { return { data(), size() }; }
+#endif
+      };
+
+      template<typename Char, types::Size N>
+      constexpr Literal<Char> make_literal( const Char ( &cstr )[N] ) noexcept
+      { return { cstr }; }
+      template<typename Char>
+      constexpr Literal<Char> make_literal( const Char* cstr, types::Size length ) noexcept
+      { return { cstr, length }; }
+
       template<typename Alloc, typename = void>
       class CoWAllocator {
         Alloc alloc_;
@@ -2805,7 +2836,8 @@ namespace pace {
       // For now, we have only used the char type.
       using CoWString = BasicCoWString<types::Char>;
 
-      PACE__CXX20_CNSTXPR CoWString operator""_cow( const types::Char* str, types::Size len ) noexcept
+      PACE__FORCEINLINE PACE__CXX20_CNSTXPR CoWString operator""_cow( const types::Char* str,
+                                                                      types::Size len ) noexcept
       { return { make_literal( str, len ) }; }
     } // namespace charcodes
   } // namespace details

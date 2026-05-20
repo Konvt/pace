@@ -15,7 +15,7 @@ namespace pace {
     template<typename Base, typename Derived>
     class Percentage : public Base {
       static PACE__FORCEINLINE constexpr details::charcodes::StringView default_text() noexcept
-      { return { details::charcodes::make_literal( " nan. %" ) }; }
+      { return { " nan. %" }; }
 
     protected:
       details::io::CharPipeline& build( details::io::CharPipeline& pipeline,

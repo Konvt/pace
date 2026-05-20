@@ -10,6 +10,7 @@
 # include "../traits/Identity.hpp"
 # include <iterator>
 # include <limits>
+# include <stdexcept>
 #endif
 
 namespace pace {
@@ -18,30 +19,7 @@ namespace pace {
 #ifdef __cpp_lib_string_view
       template<typename Char, typename Traits = std::char_traits<Char>>
       using BasicStringView = std::basic_string_view<Char, Traits>;
-
-      template<typename Char>
-      using Literal = BasicStringView<Char>;
 #else
-      template<typename Char>
-      struct Literal {
-      private:
-        const Char* data_;
-        types::Size size_;
-
-      public:
-        constexpr Literal() noexcept : data_ { nullptr }, size_ { 0 } {}
-
-        constexpr Literal( const Char* literal, types::Size length ) noexcept
-          : data_ { literal }, size_ { length }
-        {}
-        template<types::Size N>
-        constexpr Literal( const Char ( &literal )[N] ) noexcept : Literal( literal, N - 1 )
-        {}
-
-        PACE__NODISCARD constexpr types::Size size() const noexcept { return size_; }
-        PACE__NODISCARD constexpr const Char* data() const noexcept { return data_; }
-      };
-
       template<typename Char, typename Traits = std::char_traits<Char>>
       class BasicStringView {
       public:
@@ -75,7 +53,9 @@ namespace pace {
         template<typename A>
         PACE__CXX20_CNSTXPR BasicStringView& operator=( const std::basic_string<Char, Traits, A>& str ) &
         { return operator=( BasicStringView( str ) ); }
-        constexpr BasicStringView( Literal<Char> lit ) noexcept : data_ { lit.data() }, length_ { lit.size() }
+        template<size_type N>
+        constexpr BasicStringView( const Char ( &lit )[N] ) noexcept
+          : data_ { static_cast<const_pointer>( lit ) }, length_ { N - 1 }
         {}
         PACE__CXX20_CNSTXPR explicit operator std::basic_string<Char, Traits>() const
         { return { data_, length_ }; }
@@ -83,45 +63,47 @@ namespace pace {
         template<typename Alloc>
         PACE__NODISCARD friend PACE__CXX20_CNSTXPR std::basic_string<Char, Traits, Alloc> operator+(
           const std::basic_string<Char, Traits, Alloc>& a,
-          std::basic_string_view<Char, Traits> b )
+          BasicStringView<Char, Traits> b )
         { return std::basic_string<Char, Traits, Alloc>( a ) + b; }
         template<typename Alloc>
         PACE__NODISCARD friend PACE__CXX20_CNSTXPR std::basic_string<Char, Traits, Alloc> operator+(
           std::basic_string<Char, Traits, Alloc>&& a,
-          std::basic_string_view<Char, Traits> b )
+          BasicStringView<Char, Traits> b )
         {
           a.append( b.data(), b.size() );
           return a;
         }
         template<typename Alloc>
         PACE__NODISCARD friend PACE__CXX20_CNSTXPR std::basic_string<Char, Traits, Alloc> operator+(
-          std::basic_string_view<Char, Traits> a,
+          BasicStringView<Char, Traits> a,
           const std::basic_string<Char, Traits, Alloc>& b )
         { return static_cast<std::basic_string<Char, Traits, Alloc>>( a ) + b; }
         template<typename Alloc>
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR std::basic_string<Char, Traits, Alloc> operator+=(
-          const std::basic_string<Char, Traits, Alloc>& a,
-          std::basic_string_view<Char, Traits> b )
-        {
-          auto ret = a;
-          ret.append( b.data(), b.size() );
-          return ret;
-        }
-        template<typename Alloc>
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR std::basic_string<Char, Traits, Alloc> operator+=(
-          std::basic_string<Char, Traits, Alloc>&& a,
-          std::basic_string_view<Char, Traits> b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR std::basic_string<Char, Traits, Alloc>& operator+=(
+          std::basic_string<Char, Traits, Alloc>& a,
+          BasicStringView<Char, Traits> b )
         {
           a.append( b.data(), b.size() );
           return a;
+        }
+        template<typename Alloc>
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR std::basic_string<Char, Traits, Alloc>&& operator+=(
+          std::basic_string<Char, Traits, Alloc>&& a,
+          BasicStringView<Char, Traits> b )
+        {
+          a.append( b.data(), b.size() );
+          return std::move( a );
         }
 
         constexpr BasicStringView() noexcept : data_ { nullptr }, length_ { 0 } {}
         constexpr BasicStringView( const_pointer s, size_type count ) noexcept
           : data_ { s }, length_ { count }
         {}
-        PACE__CXX17_CNSTXPR BasicStringView( const_pointer s ) noexcept
-          : data_ { s }, length_ { Traits::length( s ) }
+        template<typename P,
+                 typename = typename std::enable_if<traits::AllOf<
+                   std::is_convertible<P, const_pointer>,
+                   traits::Not<std::is_array<typename std::remove_reference<P>::type>>>::value>::type>
+        PACE__CXX17_CNSTXPR BasicStringView( P&& s ) noexcept : data_ { s }, length_ { Traits::length( s ) }
         {}
 
 # ifdef __cpp_lib_ranges
@@ -291,13 +273,6 @@ namespace pace {
 # endif
       };
 #endif
-
-      template<typename Char, types::Size N>
-      constexpr Literal<Char> make_literal( const Char ( &cstr )[N] ) noexcept
-      { return { cstr }; }
-      template<typename Char>
-      constexpr Literal<Char> make_literal( const Char* cstr, types::Size length ) noexcept
-      { return { cstr, length }; }
 
       using StringView = BasicStringView<types::Char>;
 #ifdef __cpp_char8_t
