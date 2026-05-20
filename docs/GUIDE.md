@@ -224,7 +224,7 @@ pace::config::Line config2;
 config2.quota( 100 )
   .speed_unit( { "B/s", "kiB/s", "MiB/s", "GiB/s" } )
   .magnitude( 1024 )
-  .info_color( "#39C5BB" );
+  .info_forecolor( "#39C5BB" );
 
 auto config3 = config2; // variadic template parameters can still be used after construction
 config3.with( pace::option::Prefix( "Do something" ), pace::option::PrefixForecolor( 0xFFE211 ) );
@@ -484,9 +484,9 @@ pace::ProgressBar<> bar;
 bool flag = true;
 auto callback = [&]( pace::ProgressBar<>& self ) {
   if ( flag )
-    self.config().prefix( "✔ Mission Accomplished" ).prefix_color( pace::Color::Green );
+    self.config().prefix( "✔ Mission Accomplished" ).prefix_forecolor( pace::Color::Green );
   else
-    self.config().prefix( "❌ Mission failed" ).prefix_color( pace::Color::Red );
+    self.config().prefix( "❌ Mission failed" ).prefix_forecolor( pace::Color::Red );
 };
 
 bar.action( callback );
