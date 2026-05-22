@@ -1418,7 +1418,7 @@ protected:
     return pipeline;
   }
 
-  uint64_t fixed_length() const noexcept { return 8 + ( format_ ? 0 : 2 ); }
+  uint64_t fixed_length() const noexcept { return 8 + ( format_ ? 2 : 0 ); }
 
   template<typename... Option>
   Clock( pace::details::traits::TypeSet<Option...> tag ) : Base( tag )
@@ -1436,7 +1436,7 @@ protected:
 template<>
 struct pace::details::traits::InheritOrder<Clock> {
   // Clock 必须在第一个位置上
-  using type = pace::details::traits::C3Container<Clock, pace::details::aspects::RenderRule>;
+  using type = pace::details::traits::Relation<Clock, pace::details::aspects::RenderRule>;
 };
 
 template<>
@@ -1445,8 +1445,8 @@ struct pace::details::aspects::EntailOf<Clock> {
   // 否则必须声明对于 pace::details::behaviors::Determinate 的依赖
   // 而且若外观组件需要依赖帧计数器，则应该声明对于 pace::details::behaviors::Fancy 的依赖
   // 更多详细操作可以参阅 pace::details::aspects 的代码实现
-  using type = pace::details::traits::C3Container<pace::details::behaviors::Indeterminate,
-                                                  pace::details::behaviors::Plain>;
+  using type = pace::details::traits::Relation<pace::details::behaviors::Indeterminate,
+                                               pace::details::behaviors::Plain>;
 };
 
 // 所有组件会按声明顺序渲染

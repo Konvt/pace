@@ -1444,7 +1444,7 @@ protected:
     return pipeline;
   }
 
-  uint64_t fixed_length() const noexcept { return 8 + ( format_ ? 0 : 2 ); }
+  uint64_t fixed_length() const noexcept { return 8 + ( format_ ? 2 : 0 ); }
 
   template<typename... Option>
   Clock( pace::details::traits::TypeSet<Option...> tag ) : Base( tag )
@@ -1462,7 +1462,7 @@ protected:
 template<>
 struct pace::details::traits::InheritOrder<Clock> {
   // Clock must be the first element
-  using type = pace::details::traits::C3Container<Clock, pace::details::aspects::RenderRule>;
+  using type = pace::details::traits::Relation<Clock, pace::details::aspects::RenderRule>;
 };
 
 template<>
@@ -1471,8 +1471,8 @@ struct pace::details::aspects::EntailOf<Clock> {
   // otherwise dependency on pace::details::behaviors::Determinate must be declared
   // if the facade depends on frame counters, dependency on pace::details::behaviors::Fancy should be declared
   // more details can be found in the implementation of pace::details::aspects
-  using type = pace::details::traits::C3Container<pace::details::behaviors::Indeterminate,
-                                                  pace::details::behaviors::Plain>;
+  using type = pace::details::traits::Relation<pace::details::behaviors::Indeterminate,
+                                               pace::details::behaviors::Plain>;
 };
 
 // All components are rendered in the order they are declared

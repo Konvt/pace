@@ -8,14 +8,14 @@ namespace pace {
   namespace details {
     namespace aspects {
       template<template<typename...> class Facade>
-      struct EntailOf : traits::Identity<traits::C3Container<>> {};
+      struct EntailOf : traits::Identity<traits::Relation<>> {};
       template<template<typename...> class Facade>
       using EntailOf_t = typename EntailOf<Facade>::type;
 
 #define PACE__ENTAIL_REGISTER( Facade, ... )      \
   template<>                                      \
   struct pace::details::aspects::EntailOf<Facade> \
-    : pace::details::traits::Identity<pace::details::traits::C3Container<__VA_ARGS__>> {}
+    : pace::details::traits::Identity<pace::details::traits::Relation<__VA_ARGS__>> {}
 
       // Resolves and links behaviors into a linear inheritance hierarchy.
       template<typename Config>
@@ -27,18 +27,18 @@ namespace pace {
                template<typename...> class... Facades>
       struct EntailLinker<AnyConfig<Facades...>> {
       private:
-        template<typename /* TypeSet<...> */ Result, typename /* C3Container<...> */ Behaviors>
+        template<typename /* TypeSet<...> */ Result, typename /* Relation<...> */ Behaviors>
         struct FlatMap;
         template<typename /* TypeSet<...> */ Result>
-        struct FlatMap<Result, traits::C3Container<>> : traits::Identity<Result> {};
+        struct FlatMap<Result, traits::Relation<>> : traits::Identity<Result> {};
         template<typename /* TypeSet<...> */ Result,
                  template<typename...> class Behavior,
                  template<typename...> class... Behaviors>
-        struct FlatMap<Result, traits::C3Container<Behavior, Behaviors...>>
+        struct FlatMap<Result, traits::Relation<Behavior, Behaviors...>>
           : FlatMap<traits::TpAppend_t<Result, traits::InheritOrder_t<Behavior>>,
-                    traits::C3Container<Behaviors...>> {};
+                    traits::Relation<Behaviors...>> {};
 
-        template<typename /* TypeSet<C3Container<...>, ...> */ VBLists>
+        template<typename /* TypeSet<Relation<...>, ...> */ VBLists>
         struct Helper;
         template<typename... VBLists>
         struct Helper<traits::TypeSet<VBLists...>> : traits::C3Merge<VBLists...> {};
@@ -46,7 +46,7 @@ namespace pace {
       public:
         using type = typename Helper<
           typename FlatMap<traits::TypeSet<>,
-                           traits::Merge_t<traits::C3Container<>, EntailOf_t<Facades>...>>::type>::type;
+                           traits::Merge_t<traits::Relation<>, EntailOf_t<Facades>...>>::type>::type;
       };
     } // namespace aspects
   } // namespace details
