@@ -27,12 +27,13 @@ namespace pace {
 
       using Base::Base;
       constexpr BasicBar() = default;
+      template<typename... Args
 #ifdef __cpp_concepts
-      template<typename... Args>
+               >
         requires( !( std::is_same_v<std::decay_t<Args>, Soul> || ... )
                   && std::is_constructible_v<Soul, Args && ...> )
 #else
-      template<typename... Args,
+               ,
                typename = typename std::enable_if<details::traits::AllOf<
                  details::traits::Not<std::is_same<typename std::decay<Args>::type, Soul>>...,
                  std::is_constructible<Soul, Args&&...>>::value>::type>
