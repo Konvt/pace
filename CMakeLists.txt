@@ -12,7 +12,7 @@ set(PACE_PROJECT
     pace
     VERSION ${PACE_VERSION}
     LANGUAGES CXX
-    DESCRIPTION "A high-performance and modular terminal progress bar for Modern C++.")
+    DESCRIPTION "A powerful and high-performance terminal progress bar for Modern C++.")
 if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.12")
   list(APPEND PACE_PROJECT HOMEPAGE_URL "https://github.com/Konvt/pace")
 endif()
