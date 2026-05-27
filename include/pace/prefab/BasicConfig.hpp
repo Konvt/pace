@@ -119,7 +119,7 @@ namespace pace {
       PACE__CXX23_CNSTXPR BasicConfig( details::traits::TypeList<Args...> tag ) : Layout( tag )
       {
 #ifndef __cpp_concepts
-        static_assert( details::traits::Distinct<details::traits::TypeList<Args...>>::value
+        static_assert( details::traits::Distinct<details::traits::TypeList<Args...>>::value,
                        "passed options cannot be repeated" );
         static_assert( details::traits::AllOf<is_setting<Args>...>::value,
                        "passed arguments must be valid options" );
@@ -239,7 +239,7 @@ namespace pace {
 #endif
       {
 #ifndef __cpp_concepts
-        static_assert( details::traits::Distinct<details::traits::TypeList<Arg, Args...>>::value
+        static_assert( details::traits::Distinct<details::traits::TypeList<Arg, Args...>>::value,
                        "passed options cannot be repeated" );
         static_assert( details::traits::AllOf<is_setting<Arg>, is_setting<Args>...>::value,
                        "passed arguments must be valid options" );
@@ -257,7 +257,7 @@ namespace pace {
 #endif
       {
 #ifndef __cpp_concepts
-        static_assert( details::traits::Distinct<details::traits::TypeList<Arg, Args...>>::value
+        static_assert( details::traits::Distinct<details::traits::TypeList<Arg, Args...>>::value,
                        "passed options cannot be repeated" );
         static_assert( details::traits::AllOf<is_setting<Arg>, is_setting<Args>...>::value,
                        "passed arguments must be valid options" );
@@ -316,7 +316,7 @@ namespace pace {
       {
 #ifndef __cpp_concepts
         static_assert( details::traits::AllOf<details::traits::TmpContain<Element, F>,
-                                              details::traits::TmpContain<Element, Fs>...>::value
+                                              details::traits::TmpContain<Element, Fs>...>::value,
                        "enabled facades must be part of the config object" );
 #endif
         std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
@@ -336,7 +336,7 @@ namespace pace {
       {
 #ifndef __cpp_concepts
         static_assert( details::traits::AllOf<details::traits::TmpContain<Element, F>,
-                                              details::traits::TmpContain<Element, Fs>...>::value
+                                              details::traits::TmpContain<Element, Fs>...>::value,
                        "enabled facades must be part of the config object" );
 #endif
         std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
@@ -357,7 +357,7 @@ namespace pace {
       {
 #ifndef __cpp_concepts
         static_assert( details::traits::AllOf<details::traits::TmpContain<Element, F>,
-                                              details::traits::TmpContain<Element, Fs>...>::value
+                                              details::traits::TmpContain<Element, Fs>...>::value,
                        "disabled facades must be part of the config object" );
 #endif
         std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
@@ -377,7 +377,7 @@ namespace pace {
       {
 #ifndef __cpp_concepts
         static_assert( details::traits::AllOf<details::traits::TmpContain<Element, F>,
-                                              details::traits::TmpContain<Element, Fs>...>::value
+                                              details::traits::TmpContain<Element, Fs>...>::value,
                        "disabled facades must be part of the config object" );
 #endif
         std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
