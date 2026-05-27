@@ -111,19 +111,16 @@ namespace pace {
     protected:
       std::bitset<sizeof...( Facades )> projection_;
 
-      template<typename... Args>
+      template<typename... Args
 #ifdef __cpp_concepts
-        requires( details::traits::Distinct<details::traits::TypeList<Args...>>::value
-                  && ( is_setting<Args>::value && ... ) )
+               >
+        requires( is_setting<Args>::value && ... )
+#else
+               ,
+               typename = typename std::enable_if<details::traits::AllOf<is_setting<Args>...>::value>::type>
 #endif
-      PACE__CXX23_CNSTXPR BasicConfig( details::traits::TypeList<Args...> tag ) : Layout( tag )
+      PACE__CXX23_CNSTXPR BasicConfig( details::traits::TypeSet<Args...> tag ) : Layout( tag )
       {
-#ifndef __cpp_concepts
-        static_assert( details::traits::Distinct<details::traits::TypeList<Args...>>::value,
-                       "passed options cannot be repeated" );
-        static_assert( details::traits::AllOf<is_setting<Args>...>::value,
-                       "passed arguments must be valid options" );
-#endif
         // Projection is only used for injecting default values.
         if PACE__CXX17_CNSTXPR ( !details::traits::AnyOf<details::traits::is_selection<Args>...>::value )
           unpack( *this, config::provide_for<BasicConfig, option::Projection>() );
@@ -180,9 +177,19 @@ namespace pace {
         return { std::move( projection ) };
       }
 
-      template<typename... Args>
+      template<typename... Args
+#ifdef __cpp_concepts
+               >
+        requires( details::traits::Distinct<details::traits::TypeList<Args...>>::value
+                  && ( is_setting<Args>::value && ... ) )
+#else
+               ,
+               typename = typename std::enable_if<
+                 details::traits::AllOf<details::traits::Distinct<details::traits::TypeList<Args...>>,
+                                        is_setting<Args>...>::value>::type>
+#endif
       PACE__CXX23_CNSTXPR BasicConfig( Args... args )
-        : BasicConfig( details::traits::TypeList<typename std::decay<Args>::type...>() )
+        : BasicConfig( details::traits::TypeSet<typename std::decay<Args>::type...>() )
       { (void)std::initializer_list<bool> { ( unpack( *this, std::move( args ) ), false )... }; }
 
       BasicConfig( const BasicConfig& other ) noexcept( std::is_nothrow_copy_assignable<Layout>::value )
