@@ -69,6 +69,7 @@ namespace pace {
           auto guard = utils::make_scope_fail(
             [this]() noexcept { state_.store( Phase::Dead, std::memory_order_relaxed ); } );
 
+          state_.store( Phase::Dormant, std::memory_order_relaxed );
           runner_ = std::thread( [this]() {
             try {
               for ( auto state = state_.load( std::memory_order_acquire ); state != Phase::Dead;
@@ -157,7 +158,7 @@ namespace pace {
 #endif
                 } break;
 
-                default: return;
+                default: utils::unreachable();
                 }
               }
             } catch ( ... ) {
@@ -168,9 +169,8 @@ namespace pace {
               if ( !dump )
                 throw;
             }
+            PACE__ASSERT( state_ == Phase::Dead );
           } );
-          auto expected = Phase::Dead;
-          state_.compare_exchange_strong( expected, Phase::Dormant, std::memory_order_relaxed );
         }
 
         void shutdown() noexcept
@@ -226,11 +226,13 @@ namespace pace {
         {
           if ( state_.load( std::memory_order_relaxed ) == Phase::Dead ) {
             std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
-            if ( runner_.get_id() == std::thread::id() )
-              launch();
-            else {
-              shutdown();
-              launch();
+            if ( state_.load( std::memory_order_relaxed ) == Phase::Dead ) {
+              if ( runner_.get_id() == std::thread::id() )
+                launch();
+              else {
+                shutdown();
+                launch();
+              }
             }
           }
 
@@ -256,20 +258,17 @@ namespace pace {
 #ifdef __cpp_lib_atomic_wait
               state_.wait( desired(), std::memory_order_relaxed );
 #else
-              {
-                std::lock_guard<std::mutex> lock { sched_mtx_ };
-                cond_var_.notify_one();
-              }
+              cond_var_.notify_one();
               concurrent::spin_wait(
                 [&]() noexcept { return state_.load( std::memory_order_relaxed ) != desired(); } );
 #endif
             } else {
-              std::lock_guard<concurrent::SharedMutex> lock1 { res_mtx_ };
+              concurrent::SharedLock<concurrent::SharedMutex> lock1 { res_mtx_ };
               std::lock_guard<std::mutex> lock2 { sched_mtx_ };
+              task_();
 #ifndef __cpp_lib_atomic_wait
               cond_var_.notify_one();
 #endif
-              task_();
             }
           }
         }
@@ -284,13 +283,11 @@ namespace pace {
 #ifdef __cpp_lib_atomic_wait
               quota_.notify_one();
 #else
-              std::lock_guard<std::mutex> lock { sched_mtx_ };
               cond_var_.notify_one();
 #endif
             }
           } else if PACE__CXX17_CNSTXPR ( Mode == Policy::Sync ) {
-            PACE__ASSERT( state_ == Phase::Idle );
-            std::lock_guard<concurrent::SharedMutex> lock1 { res_mtx_ };
+            concurrent::SharedLock<concurrent::SharedMutex> lock1 { res_mtx_ };
             // To ensure that only one thread is rendering the bar to the OStream.
             std::lock_guard<std::mutex> lock2 { sched_mtx_ };
             task_();
@@ -319,10 +316,7 @@ namespace pace {
 #else
           auto state_transfer = [this]( Phase expected, Phase desired ) noexcept {
             if ( state_.compare_exchange_strong( expected, desired, std::memory_order_relaxed ) ) {
-              {
-                std::lock_guard<std::mutex> lock { sched_mtx_ };
-                cond_var_.notify_one();
-              }
+              cond_var_.notify_one();
               concurrent::spin_wait(
                 [&]() noexcept { return state_.load( std::memory_order_relaxed ) != desired; } );
             }
@@ -353,10 +347,7 @@ namespace pace {
 #ifdef __cpp_lib_atomic_wait
             state_.wait( Phase::Asleep, std::memory_order_relaxed );
 #else
-            {
-              std::lock_guard<std::mutex> lock { sched_mtx_ };
-              cond_var_.notify_all();
-            }
+            cond_var_.notify_all();
             concurrent::spin_wait(
               [this]() noexcept { return state_.load( std::memory_order_relaxed ) != Phase::Asleep; } );
 #endif
