@@ -13,6 +13,8 @@ namespace pace {
         std::vector<types::Char> buffer_;
 
       public:
+        using value_type = types::Char;
+
         PACE__CXX20_CNSTXPR CharPipeline() = default;
 
         PACE__CXX20_CNSTXPR CharPipeline( const CharPipeline& )              = default;
@@ -36,6 +38,12 @@ namespace pace {
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& reserve( types::Size capacity ) &
         {
           buffer_.reserve( capacity );
+          return *this;
+        }
+
+        PACE__FORCEINLINE PACE__CXX20_CNSTXPR CharPipeline& push_back( types::Char ch ) &
+        {
+          buffer_.push_back( ch );
           return *this;
         }
 

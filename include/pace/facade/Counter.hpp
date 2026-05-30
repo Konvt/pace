@@ -8,7 +8,9 @@
 #include "../details/behaviors/Plain.hpp"
 #include "../details/io/CharPipeline.hpp"
 #include "../details/render/Parameter.hpp"
+#include "../details/render/TextAlign.hpp"
 #include "../details/traits/C3.hpp"
+#include "../details/utils/Util.hpp"
 
 namespace pace {
   namespace option {
@@ -29,11 +31,15 @@ namespace pace {
       details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
                                         const details::render::Parameter& params ) const
       {
-        pipeline << details::utils::format_as<details::utils::TxtAlign::Right>(
-          details::utils::format( params.tasks_completed_ ),
+        details::render::align_to<details::render::TextAlign::Right>(
+          std::back_inserter( pipeline ),
+          params.tasks_completed_,
           details::utils::count_digits( params.task_quota_ ) );
-        if ( show_quota_ )
-          pipeline << '/' << details::utils::format( params.task_quota_ );
+
+        if ( show_quota_ ) {
+          pipeline << '/';
+          details::utils::format_to( std::back_inserter( pipeline ), params.task_quota_ );
+        }
         return pipeline;
       }
 

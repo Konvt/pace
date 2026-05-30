@@ -10,6 +10,7 @@
 #include "../details/behaviors/Temporal.hpp"
 #include "../details/render/Parameter.hpp"
 #include "../details/traits/C3.hpp"
+#include "../details/utils/Util.hpp"
 #include <numeric>
 
 namespace pace {
@@ -106,7 +107,7 @@ namespace pace {
         }
 
         for ( const auto& field : fmt_ir_ ) {
-          details::types::String formatted;
+          std::int64_t timer_value = 0;
           switch ( field.token() ) {
           case Token::Literal: pipeline << field.text(); continue;
 
@@ -115,8 +116,7 @@ namespace pace {
               pipeline << unkown_char();
               continue;
             } else if ( params.task_quota_ > 0 && !overflow )
-              formatted = details::utils::format(
-                std::chrono::duration_cast<std::chrono::hours>( remaining_time ).count() );
+              timer_value = std::chrono::duration_cast<std::chrono::hours>( remaining_time ).count();
           } break;
 
           case Token::Minute: {
@@ -126,7 +126,7 @@ namespace pace {
             } else if ( params.task_quota_ > 0 && !overflow ) {
               const auto num_minutes =
                 std::chrono::duration_cast<std::chrono::minutes>( remaining_time ).count();
-              formatted = details::utils::format( show_hour_ ? num_minutes % 60 : num_minutes );
+              timer_value = show_hour_ ? num_minutes % 60 : num_minutes;
             }
           } break;
 
@@ -137,27 +137,28 @@ namespace pace {
             } else if ( params.task_quota_ > 0 && !overflow ) {
               const auto num_seconds =
                 std::chrono::duration_cast<std::chrono::seconds>( remaining_time ).count();
-              formatted =
-                details::utils::format( show_hour_ || show_minute_ ? num_seconds % 60 : num_seconds );
+              timer_value = show_hour_ || show_minute_ ? num_seconds % 60 : num_seconds;
             }
           } break;
 
           default: details::utils::unreachable();
           }
 
+          const auto num_digits = details::utils::count_digits( timer_value );
           if ( params.task_quota_ == 0 ) {
             pipeline.append( unkown_char(), field.width() );
             continue;
-          } else if ( overflow || formatted.size() > field.width() ) {
+          } else if ( overflow || num_digits > field.width() ) {
             pipeline.append( overflow_char(), field.width() );
             continue;
           }
 
-          auto blank_length      = field.width() - formatted.size();
+          auto blank_length      = field.width() - num_digits;
           const auto num_padding = blank_length / field.padding().width();
           blank_length -= num_padding * field.padding().width();
 
-          pipeline.append( ' ', blank_length ).append( field.padding(), num_padding ).append( formatted );
+          pipeline.append( ' ', blank_length ).append( field.padding(), num_padding );
+          details::utils::format_to( std::back_inserter( pipeline ), timer_value );
         }
 
         return pipeline;

@@ -3,6 +3,7 @@
 
 #include "../../prefab/BasicBar.hpp"
 #include "../io/OStream.hpp"
+#include "../utils/Util.hpp"
 #include "../wrappers/TuplePacket.hpp"
 #include <initializer_list>
 #include <tuple>

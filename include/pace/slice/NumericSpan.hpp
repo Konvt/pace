@@ -1,7 +1,7 @@
 #ifndef PACE_NUMERIC_SPAN
 #define PACE_NUMERIC_SPAN
 
-#include "../details/utils/Util.hpp"
+#include "../details/utils/Format.hpp"
 #include "../exception/Error.hpp"
 #include <cmath>
 #include <limits>
@@ -153,24 +153,24 @@ namespace pace {
           PACE__UNLIKELY
           {
             details::charcodes::CoWString message = details::charcodes::make_literal( "pace: 'endpoint (" );
-            message.append( details::utils::format( endpoint ) )
-              .append( ")' is less than 'startpoint (" )
-              .append( details::utils::format( startpoint ) )
-              .append( ")' while 'step (" )
-              .append( details::utils::format( step ) )
-              .append( ")' is positive" );
+            details::utils::format_to( std::back_inserter( message ), endpoint );
+            message.append( ")' is less than 'startpoint (" );
+            details::utils::format_to( std::back_inserter( message ), startpoint );
+            message.append( ")' while 'step (" );
+            details::utils::format_to( std::back_inserter( message ), step );
+            message.append( ")' is positive" );
             throw exception::InvalidArgument( std::move( message ) );
           }
         else if ( step < 0 && startpoint < endpoint )
           PACE__UNLIKELY
           {
             details::charcodes::CoWString message = details::charcodes::make_literal( "pace: 'endpoint (" );
-            message.append( details::utils::format( endpoint ) )
-              .append( ")' is greater than 'startpoint (" )
-              .append( details::utils::format( startpoint ) )
-              .append( ")' while 'step (" )
-              .append( details::utils::format( step ) )
-              .append( ")' is negative" );
+            details::utils::format_to( std::back_inserter( message ), endpoint );
+            message.append( ")' is greater than 'startpoint (" );
+            details::utils::format_to( std::back_inserter( message ), startpoint );
+            message.append( ")' while 'step (" );
+            details::utils::format_to( std::back_inserter( message ), step );
+            message.append( ")' is negative" );
             throw exception::InvalidArgument( std::move( message ) );
           }
         else if ( step == 0 )

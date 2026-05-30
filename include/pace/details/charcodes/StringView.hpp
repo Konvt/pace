@@ -2,7 +2,6 @@
 #define PACE_STRING_VIEW
 
 #include "../traits/ConceptTraits.hpp"
-#include "../utils/Util.hpp"
 #ifdef __cpp_lib_string_view
 # include "../types/Types.hpp"
 # include <string_view>
@@ -279,13 +278,6 @@ namespace pace {
       using U8StringView = BasicStringView<char8_t>;
 #endif
     } // namespace charcodes
-
-    namespace utils {
-      template<TxtAlign Alignment>
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String
-        format_as( charcodes::StringView str, types::Size width, types::Char padding = ' ' )
-      { return format_as<Alignment>( types::String( str ), width, padding ); }
-    }
   } // namespace details
 } // namespace pace
 

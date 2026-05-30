@@ -287,10 +287,10 @@ namespace pace {
       {
         details::charcodes::CoWString message =
           details::charcodes::make_literal( "pace: provided object count (" );
-        message.append( details::utils::format( sizeof...( Objs ) ) )
-          .append( ") exceeds the specified count (" )
-          .append( details::utils::format( count ) )
-          .push_back( ')' );
+        details::utils::format_to( std::back_inserter( message ), sizeof...( Objs ) );
+        message.append( ") exceeds the specified count (" );
+        details::utils::format_to( std::back_inserter( message ), count );
+        message.push_back( ')' );
         throw exception::InvalidArgument( std::move( message ) );
       }
 
@@ -333,10 +333,10 @@ namespace pace {
       {
         details::charcodes::CoWString message =
           details::charcodes::make_literal( "pace: provided configs count (" );
-        message.append( details::utils::format( sizeof...( Configs ) ) )
-          .append( ") exceeds the specified count (" )
-          .append( details::utils::format( count ) )
-          .push_back( ')' );
+        details::utils::format_to( std::back_inserter( message ), sizeof...( Configs ) );
+        message.append( ") exceeds the specified count (" );
+        details::utils::format_to( std::back_inserter( message ), count );
+        message.push_back( ')' );
         throw exception::InvalidArgument( std::move( message ) );
       }
 
@@ -379,10 +379,10 @@ namespace pace {
       {
         details::charcodes::CoWString message =
           details::charcodes::make_literal( "pace: provided bar count (" );
-        message.append( details::utils::format( sizeof...( Configs ) ) )
-          .append( ") exceeds the specified count (" )
-          .append( details::utils::format( count ) )
-          .push_back( ')' );
+        details::utils::format_to( std::back_inserter( message ), sizeof...( Configs ) );
+        message.append( ") exceeds the specified count (" );
+        details::utils::format_to( std::back_inserter( message ), count );
+        message.push_back( ')' );
         throw exception::InvalidArgument( std::move( message ) );
       }
 

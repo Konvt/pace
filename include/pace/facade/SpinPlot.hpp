@@ -7,6 +7,7 @@
 #include "../details/behaviors/Indeterminate.hpp"
 #include "../details/io/CharPipeline.hpp"
 #include "../details/render/Parameter.hpp"
+#include "../details/render/TextAlign.hpp"
 
 namespace pace {
   namespace facade {
@@ -22,12 +23,14 @@ namespace pace {
         frame_cnt %= this->lead_.size();
         PACE__ASSERT( this->len_longest_lead_ >= this->lead_[frame_cnt].width() );
 
-        return pipeline << this->clear_then_dye(
-                 details::console::Dualcolor( this->lead_forecolor_, this->lead_backcolor_ ),
-                 params.style_off_ )
-                        << details::utils::format_as<details::utils::TxtAlign::Left>(
-                             this->lead_[frame_cnt],
-                             this->len_longest_lead_ );
+        pipeline << this->clear_then_dye(
+          details::console::Dualcolor( this->lead_forecolor_, this->lead_backcolor_ ),
+          params.style_off_ );
+        details::render::align_to<details::render::TextAlign::Left>( std::back_inserter( pipeline ),
+                                                                     this->lead_[frame_cnt],
+                                                                     this->len_longest_lead_ );
+
+        return pipeline;
       }
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR details::types::Size fixed_length() const noexcept

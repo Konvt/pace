@@ -9,7 +9,9 @@
 #include "../details/behaviors/Temporal.hpp"
 #include "../details/io/CharPipeline.hpp"
 #include "../details/render/Parameter.hpp"
+#include "../details/render/TextAlign.hpp"
 #include "../details/traits/C3.hpp"
+#include "../details/utils/Util.hpp"
 
 namespace pace {
   namespace option {
@@ -140,11 +142,14 @@ namespace pace {
         if ( params.task_quota_ == 0 || magnitude_ <= 1 ) {
           const auto prompt = params.task_quota_ == 0 ? invalid_text() : undefined_text();
           if ( units_.empty() )
-            return pipeline << details::utils::format_as<details::utils::TxtAlign::Right>( prompt,
-                                                                                           fixed_length() );
-          return pipeline << details::utils::format_as<details::utils::TxtAlign::Right>( prompt
-                                                                                           + units_.front(),
-                                                                                         fixed_length() );
+            details::render::align_to<details::render::TextAlign::Right>( std::back_inserter( pipeline ),
+                                                                          prompt,
+                                                                          fixed_length() );
+          else
+            details::render::align_to<details::render::TextAlign::Right>( std::back_inserter( pipeline ),
+                                                                          prompt + units_.front(),
+                                                                          fixed_length() );
+          return pipeline;
         }
 
         const auto seconds_passed =
@@ -174,7 +179,7 @@ namespace pace {
         if ( overflow )
           orig = static_cast<details::types::String>( overflow_text() );
         else {
-          orig = details::utils::format( frequency / tier, 2 );
+          details::utils::format_to( std::back_inserter( orig ), frequency / tier, 2 );
           if ( orig.size() > numeric_width_ )
             orig = details::types::String( numeric_width_, overflow_char() );
         }
@@ -182,8 +187,10 @@ namespace pace {
         if ( !units_.empty() )
           orig.append( units_[num_powered].data(), units_[num_powered].size() );
 
-        return pipeline << details::utils::format_as<details::utils::TxtAlign::Right>( std::move( orig ),
-                                                                                       fixed_length() );
+        details::render::align_to<details::render::TextAlign::Right>( std::back_inserter( pipeline ),
+                                                                      orig,
+                                                                      fixed_length() );
+        return pipeline;
       }
 
       PACE__NODISCARD PACE__FORCEINLINE constexpr details::types::Size fixed_length() const noexcept

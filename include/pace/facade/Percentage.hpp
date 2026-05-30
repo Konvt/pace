@@ -8,6 +8,7 @@
 #include "../details/behaviors/Plain.hpp"
 #include "../details/io/CharPipeline.hpp"
 #include "../details/render/Parameter.hpp"
+#include "../details/render/TextAlign.hpp"
 #include "../details/traits/C3.hpp"
 
 namespace pace {
@@ -24,10 +25,14 @@ namespace pace {
         if ( params.progress_ratio_ <= 0.0 ) // 0.01%
           PACE__UNLIKELY return pipeline << default_text();
 
-        auto orig = details::utils::format( params.progress_ratio_ * 100.0, 2 );
+        details::types::String orig;
+        details::utils::format_to( std::back_inserter( orig ), params.progress_ratio_ * 100.0, 2 );
         orig.push_back( '%' );
-        return pipeline << details::utils::format_as<details::utils::TxtAlign::Right>( std::move( orig ),
-                                                                                       fixed_length() );
+        details::render::align_to<details::render::TextAlign::Right>( std::back_inserter( pipeline ),
+                                                                      orig,
+                                                                      fixed_length() );
+
+        return pipeline;
       }
 
       PACE__NODISCARD static PACE__FORCEINLINE PACE__CNSTEVAL details::types::Size fixed_length() noexcept

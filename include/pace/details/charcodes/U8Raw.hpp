@@ -1,7 +1,7 @@
 #ifndef PACE_U8_RAW
 #define PACE_U8_RAW
 
-#include "../utils/Util.hpp"
+#include "../render/TextAlign.hpp"
 #include "U8Char.hpp"
 #include <utility>
 
@@ -182,16 +182,18 @@ namespace pace {
       };
     } // namespace charcodes
 
-    namespace utils {
-      template<TxtAlign Alignment>
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String
-        format_as( const charcodes::U8Raw& str, types::Size width, types::Char padding = ' ' )
-      { return format_as<Alignment>( str.str(), width, padding ); }
-      template<TxtAlign Alignment>
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String
-        format_as( charcodes::U8Raw&& str, types::Size width, types::Char padding = ' ' )
-      { return format_as<Alignment>( width, std::move( str ).str(), padding ); }
-    } // namespace utils
+    namespace render {
+      template<TextAlign Style>
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String align( const charcodes::U8Raw& str,
+                                                                                 types::Size width,
+                                                                                 types::Char padding = ' ' )
+      { return align<Style>( str.str(), width, padding ); }
+      template<TextAlign Style>
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String align( charcodes::U8Raw&& str,
+                                                                                 types::Size width,
+                                                                                 types::Char padding = ' ' )
+      { return align<Style>( std::move( str ).str(), width, padding ); }
+    } // namespace render
   } // namespace details
 } // namespace pace
 
