@@ -7,7 +7,6 @@
 #else
 # include "../traits/Backport.hpp"
 # include "../utils/Backport.hpp"
-# include <new>
 #endif
 
 namespace pace {
@@ -217,6 +216,7 @@ namespace pace {
         static PACE__NOINLINE PACE__CXX14_CNSTXPR R invoke_null( const AnyFn&, Param_t<Args>... )
           noexcept( Noexcept )
         {
+          PACE__ASSERT( false );
           utils::unreachable();
           // The standard says this should trigger an undefined behavior.
         }
@@ -225,14 +225,14 @@ namespace pace {
           noexcept( Noexcept )
         {
           const auto ptr = utils::launder_as<Delegate_t<T>>( ( &const_cast<AnyFn&>( fn ).sso_ ) );
-          return utils::invoke( utils::forward_like<CrefInfo>( *ptr ), std::forward<Args>( args )... );
+          return utils::invoke_r<R>( utils::forward_like<CrefInfo>( *ptr ), std::forward<Args>( args )... );
         }
         template<typename T>
         static PACE__NOINLINE PACE__CXX14_CNSTXPR R invoke_dynamic( const AnyFn& fn, Param_t<Args>... args )
           noexcept( Noexcept )
         {
           const auto dptr = utils::launder_as<Delegate_t<T>>( fn.dptr_ );
-          return utils::invoke( utils::forward_like<CrefInfo>( *dptr ), std::forward<Args>( args )... );
+          return utils::invoke_r<R>( utils::forward_like<CrefInfo>( *dptr ), std::forward<Args>( args )... );
         }
 
         constexpr FnInvoker()                                     = default;
@@ -271,7 +271,7 @@ namespace pace {
                    // Therefore we need to add a SFINAE below to prevent the instantiation.
                    traits::Not<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
                    std::is_constructible<typename std::decay<F>::type, F>,
-                   traits::is_invocable_to<R, typename Base::template Fn_t<F>, Args...>>::value>::type>
+                   traits::is_invocable_r<R, F, Args...>>::value>::type>
         UniqueFunction( F&& fn ) noexcept( Base::template Inlinable<typename std::decay<F>::type>::value )
         {
           Base::store_fn( this->vtable_, this->callee_, std::forward<F>( fn ) );
@@ -283,7 +283,7 @@ namespace pace {
         PACE__CXX14_CNSTXPR typename std::enable_if<
           traits::AllOf<traits::Not<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
                         std::is_constructible<typename std::decay<F>::type, F>,
-                        traits::is_invocable_to<R, typename Base::template Fn_t<F>, Args...>>::value,
+                        traits::is_invocable_r<R, typename Base::template Fn_t<F>, Args...>>::value,
           UniqueFunction&>::type
           operator=( F&& fn ) & noexcept( Base::template Inlinable<typename std::decay<F>::type>::value )
         {

@@ -345,11 +345,12 @@ namespace pace {
 #ifdef __cpp_lib_is_invocable
       using std::is_invocable;
 
-      template<typename Ret, typename Fn, typename... Args>
-      using is_invocable_to = std::is_invocable_r<Ret, Fn, Args...>;
+      using std::is_invocable_r;
+
+      using std::is_nothrow_invocable_r;
 #else
       template<typename Fn, typename... Args>
-      struct is_invocable {
+      struct _impl_is_invocable {
       private:
         template<typename F>
         static constexpr auto check( int ) -> typename std::enable_if<
@@ -357,27 +358,83 @@ namespace pace {
                                  void() )>::value,
           std::true_type>::type;
         template<typename>
-        static constexpr std::false_type check( ... );
+        static constexpr auto check( ... ) -> std::false_type;
 
       public:
-        static constexpr bool value = decltype( check<Fn>( 0 ) )::value;
+        using result = decltype( check<Fn>( 0 ) );
       };
+      template<typename Fn, typename... Args>
+      using is_invocable = typename _impl_is_invocable<Fn, Args...>::result;
 
-      template<typename Ret, typename Fn, typename... Args>
-      struct is_invocable_to {
+      template<typename Fn, typename... Args>
+      struct _impl_is_nothrow_invocable {
       private:
         template<typename F>
-        static constexpr auto check( int )
+        static auto check( std::true_type )
+          -> BoolConstant<noexcept( utils::invoke( std::declval<F>(), std::declval<Args>()... ) )>;
+        template<typename>
+        static auto check( std::false_type ) -> std::false_type;
+
+      public:
+        using result = decltype( check( std::declval<is_invocable<Fn, Args...>>() ) );
+      };
+      template<typename Fn, typename... Args>
+      using is_nothrow_invocable = typename _impl_is_nothrow_invocable<Fn, Args...>::result;
+
+      template<typename Ret, typename Fn, typename... Args>
+      struct _impl_is_invocable_r {
+      private:
+        template<typename F>
+        static constexpr auto check( std::true_type )
           -> std::is_convertible<decltype( utils::invoke( std::declval<F>(), std::declval<Args>()... ) ),
                                  Ret>;
         template<typename>
-        static constexpr std::false_type check( ... );
+        static constexpr auto check( std::false_type ) -> std::false_type;
 
       public:
-        static constexpr bool value = decltype( check<Fn>( 0 ) )::value;
+        using result = decltype( check( std::declval<is_invocable<Fn, Args...>>() ) );
       };
+      template<typename Fn, typename... Args>
+      struct _impl_is_invocable_r<void, Fn, Args...> : _impl_is_invocable<Fn, Args...> {};
+      template<typename Ret, typename Fn, typename... Args>
+      using is_invocable_r = typename _impl_is_invocable_r<Ret, Fn, Args...>::result;
+
+      template<typename Ret, typename Fn, typename... Args>
+      struct _impl_is_nothrow_invocable_r {
+      private:
+        template<typename F>
+        static constexpr auto check( std::true_type )
+          -> is_nothrow_convertible<decltype( utils::invoke( std::declval<Fn>(), std::declval<Args>()... ) ),
+                                    Ret>;
+        template<typename>
+        static constexpr auto check( std::false_type ) -> std::false_type;
+
+      public:
+        using result = decltype( check( std::declval<is_nothrow_invocable<Ret, Fn, Args...>>() ) );
+      };
+      template<typename Fn, typename... Args>
+      struct _impl_is_nothrow_invocable_r<void, Fn, Args...> : _impl_is_nothrow_invocable<Fn, Args...> {};
+      template<typename Ret, typename Fn, typename... Args>
+      using is_nothrow_invocable_r = typename _impl_is_nothrow_invocable_r<Fn, Args...>::result;
 #endif
     } // namespace traits
+
+    namespace utils {
+#ifdef __cpp_lib_invoke_r
+      using std::invoke_r;
+#else
+      template<typename R, typename F, typename... Args>
+      PACE__FORCEINLINE PACE__CXX14_CNSTXPR
+        typename std::enable_if<std::is_void<R>::value>::type invoke_r( F&& fn, Args&&... args )
+          noexcept( noexcept( invoke( std::forward<F>( fn ), std::forward<Args>( args )... ) ) )
+      { (void)invoke( std::forward<F>( fn ), std::forward<Args>( args )... ); }
+      template<typename R, typename F, typename... Args>
+      PACE__FORCEINLINE constexpr typename std::enable_if<!std::is_void<R>::value, R>::type invoke_r(
+        F&& fn,
+        Args&&... args ) noexcept( traits::is_nothrow_invocable_r<R, F, Args...>::value )
+      { return invoke( std::forward<F>( fn ), std::forward<Args>( args )... ); }
+#endif
+    }
   } // namespace details
 } // namespace pace
 #endif
