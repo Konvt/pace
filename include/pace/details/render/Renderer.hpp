@@ -69,7 +69,7 @@ namespace pace {
           auto guard = utils::make_scope_fail(
             [this]() noexcept { state_.store( Phase::Dead, std::memory_order_relaxed ); } );
 
-          state_.store( Phase::Dormant, std::memory_order_relaxed );
+          state_  = Phase::Dormant; // need seq_cst here
           runner_ = std::thread( [this]() {
             try {
               for ( auto state = state_.load( std::memory_order_acquire ); state != Phase::Dead;
@@ -79,7 +79,7 @@ namespace pace {
                   concurrent::atomic_commit_all( state_,
                                                  Phase::Asleep,
                                                  Phase::Dormant,
-                                                 std::memory_order_release );
+                                                 std::memory_order_relaxed );
                   PACE__FALLTHROUGH;
                 case Phase::Dormant: {
 #ifdef __cpp_lib_atomic_wait
@@ -175,7 +175,7 @@ namespace pace {
 
         void shutdown() noexcept
         {
-          concurrent::atomic_commit_all( state_, Phase::Dead, std::memory_order_relaxed );
+          concurrent::atomic_commit_all( state_, Phase::Dead, std::memory_order_acq_rel );
 #ifndef __cpp_lib_atomic_wait
           {
             std::lock_guard<std::mutex> lock { sched_mtx_ };
@@ -224,7 +224,7 @@ namespace pace {
         template<Policy Mode>
         void activate() &
         {
-          if ( state_.load( std::memory_order_relaxed ) == Phase::Dead ) {
+          if ( state_.load( std::memory_order_acquire ) == Phase::Dead ) {
             std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
             if ( state_.load( std::memory_order_relaxed ) == Phase::Dead ) {
               if ( runner_.get_id() == std::thread::id() )
@@ -249,7 +249,7 @@ namespace pace {
               return Phase::Idle;
           };
           auto expected = Phase::Dormant;
-          if ( state_.compare_exchange_strong( expected, desired(), std::memory_order_relaxed ) ) {
+          if ( state_.compare_exchange_strong( expected, desired(), std::memory_order_release ) ) {
             quota_.store( 0, std::memory_order_relaxed );
 #ifdef __cpp_lib_atomic_wait
             state_.notify_one();
@@ -278,7 +278,7 @@ namespace pace {
         PACE__FORCEINLINE void commit() &
         {
           if PACE__CXX17_CNSTXPR ( Mode == Policy::Signal ) {
-            if ( state_.load( std::memory_order_relaxed ) != Phase::Dormant ) {
+            if ( state_.load( std::memory_order_acquire ) != Phase::Dormant ) {
               quota_.fetch_add( 1, std::memory_order_relaxed );
 #ifdef __cpp_lib_atomic_wait
               quota_.notify_one();
@@ -299,7 +299,7 @@ namespace pace {
         {
 #ifdef __cpp_lib_atomic_wait
           auto state_transfer = [this]( Phase expected, Phase desired ) noexcept {
-            if ( concurrent::atomic_commit_one( state_, expected, desired, std::memory_order_relaxed ) )
+            if ( concurrent::atomic_commit_one( state_, expected, desired, std::memory_order_acquire ) )
               state_.wait( desired, std::memory_order_relaxed );
           };
           if PACE__CXX17_CNSTXPR ( Mode == Policy::Async )
@@ -315,7 +315,7 @@ namespace pace {
             state_transfer( Phase::Idle, Phase::Shot );
 #else
           auto state_transfer = [this]( Phase expected, Phase desired ) noexcept {
-            if ( state_.compare_exchange_strong( expected, desired, std::memory_order_relaxed ) ) {
+            if ( state_.compare_exchange_strong( expected, desired, std::memory_order_acquire ) ) {
               cond_var_.notify_one();
               concurrent::spin_wait(
                 [&]() noexcept { return state_.load( std::memory_order_relaxed ) != desired; } );
@@ -340,7 +340,7 @@ namespace pace {
             return concurrent::atomic_commit_one( state_,
                                                   expected,
                                                   Phase::Asleep,
-                                                  std::memory_order_relaxed );
+                                                  std::memory_order_acquire );
           };
           if ( try_update( Phase::Warmup ) || try_update( Phase::Loop ) || try_update( Phase::Primed )
                || try_update( Phase::Pulse ) || try_update( Phase::Shot ) || try_update( Phase::Idle ) ) {
