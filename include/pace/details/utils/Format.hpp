@@ -23,8 +23,7 @@ namespace pace {
 #ifdef __cpp_lib_format
         return std::format_to( itr, "{}", val );
 #else
-        std::array<types::Char, std::numeric_limits<Integer>::digits10 + 1 + std::is_signed<Integer>::value>
-          buffer;
+        std::array<types::Char, std::numeric_limits<Integer>::digits10 + 1> buffer;
 # ifdef __cpp_lib_to_chars
         auto result = std::to_chars( buffer.data(), buffer.data() + buffer.size(), val );
         PACE__TRUST( result.ec == std::errc() );
@@ -39,7 +38,7 @@ namespace pace {
           val /= 10;
         } while ( val != 0 );
         if ( sign )
-          buffer[--pos] = '-';
+          *( itr++ ) = '-';
         return std::copy( buffer.begin() + pos, buffer.end(), itr );
 # endif
 #endif
@@ -54,12 +53,11 @@ namespace pace {
 #ifdef __cpp_lib_format
         return std::format_to( itr, "{:.{}f}", val, precision );
 #else
-        std::array<types::Char,
-                   std::numeric_limits<Floating>::max_exponent10
-                     + ( -std::numeric_limits<Floating>::min_exponent10 )
-                     + std::numeric_limits<Floating>::max_digits10 + 2>
-          buffer;
+        constexpr auto integral_part = std::numeric_limits<Floating>::max_exponent10 + 1;
+        constexpr auto fraction_part =
+          ( -std::numeric_limits<Floating>::min_exponent10 ) + std::numeric_limits<Floating>::max_digits10;
 # ifdef __cpp_lib_to_chars
+        std::array<types::Char, integral_part + fraction_part + 1> buffer;
         auto result = std::to_chars( buffer.data(),
                                      buffer.data() + buffer.size(),
                                      val,
@@ -68,28 +66,34 @@ namespace pace {
         PACE__TRUST( result.ec == std::errc() );
         return std::copy( buffer.data(), result.ptr, itr );
 # else
+        std::array<types::Char, ( integral_part > fraction_part ? integral_part : fraction_part )> buffer;
+
         const auto scale = static_cast<std::uint64_t>( std::pow( 10, precision ) );
         PACE__ASSERT( scale <= ( std::numeric_limits<std::uint64_t>::max )() );
         const auto scaled = static_cast<std::uint64_t>( std::round( scale * std::abs( val ) ) );
         PACE__ASSERT( scaled <= ( std::numeric_limits<std::uint64_t>::max )() );
         auto integer  = scaled / scale;
         auto fraction = scaled % scale;
+        auto pos      = buffer.size();
 
-        auto pos = buffer.size();
-        if ( precision > 0 ) {
-          while ( precision-- > 0 ) {
-            buffer[--pos] = static_cast<types::Char>( '0' + fraction % 10 );
-            fraction /= 10;
-          }
-          buffer[--pos] = '.';
-        }
         do {
           buffer[--pos] = static_cast<types::Char>( '0' + integer % 10 );
           integer /= 10;
         } while ( integer != 0 );
         if ( std::signbit( val ) )
-          buffer[--pos] = '-';
-        return std::copy( buffer.begin() + pos, buffer.end(), itr );
+          ( *itr++ ) = '-';
+        itr = std::copy( buffer.begin() + pos, buffer.end(), itr );
+        pos = buffer.size();
+
+        if ( precision > 0 ) {
+          ( *itr++ ) = '.';
+          while ( precision-- > 0 ) {
+            buffer[--pos] = static_cast<types::Char>( '0' + fraction % 10 );
+            fraction /= 10;
+          }
+          itr = std::copy( buffer.begin() + pos, buffer.end(), itr );
+        }
+        return itr;
 # endif
 #endif
       }
