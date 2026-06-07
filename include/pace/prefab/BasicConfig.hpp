@@ -79,8 +79,8 @@ namespace pace {
 
       friend PACE__FORCEINLINE void unpack( BasicConfig& self, option::Projection proj ) noexcept
       {
-        const size_t length = std::min( sizeof...( Facades ), proj.value().size() );
-        for ( size_t i = 0; i < length; ++i )
+        const details::types::Size length = std::min( sizeof...( Facades ), proj.value().size() );
+        for ( details::types::Size i = 0; i < length; ++i )
           self.projection_.set( i, proj.value()[i] );
       }
       template<template<typename...> class... Fs>
@@ -284,7 +284,7 @@ namespace pace {
       PACE__NODISCARD virtual std::uint64_t fixed_width() const noexcept
       {
         PACE__TRUST( false );
-        return std::numeric_limits<std::uint64_t>::max();
+        return ( std::numeric_limits<std::uint64_t>::max )();
       }
 
       BasicConfig& enable_all() & noexcept
