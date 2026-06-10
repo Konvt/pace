@@ -1324,10 +1324,10 @@ struct pace::config::ProvideFor<AnotherConfig, pace::option::Projection> {
   }
 };
 
-// 如果使用 C++14 及之后的标准，可以利用 lambda 特化变量模板 ProvideFor_v
+// 如果使用 C++14 及之后的标准，可以利用 lambda 特化变量模板 provide_for_v
 // 此时不需要特化整个 ProvideFor 类型
 template<>
-auto pace::config::ProvideFor_v<AnotherConfig, pace::option::Prefix> =
+auto pace::config::provide_for_v<AnotherConfig, pace::option::Prefix> =
   []() -> pace::option::Prefix { return { "sample" }; };
 
 int main()
@@ -1456,18 +1456,18 @@ struct pace::details::aspects::EntailOf<Clock> {
 using AnotherConfig = pace::prefab::BasicConfig<pace::facade::Elapsed, pace::facade::ETA, Clock>;
 
 template<>
-auto pace::config::ProvideFor_v<AnotherConfig, pace::option::Colored> =
+auto pace::config::provide_for_v<AnotherConfig, pace::option::Colored> =
   []() { return pace::option::Colored( true ); };
 template<>
-auto pace::config::ProvideFor_v<AnotherConfig, pace::option::Divider> =
+auto pace::config::provide_for_v<AnotherConfig, pace::option::Divider> =
   []() { return pace::option::Divider( " | " ); };
 template<>
-auto pace::config::ProvideFor_v<AnotherConfig, ClockColor> =
+auto pace::config::provide_for_v<AnotherConfig, ClockColor> =
   []() -> pace::details::console::TrueColor { return { 0xFF8899 }; };
 template<>
-auto pace::config::ProvideFor_v<AnotherConfig, TimeFormat> = []() -> TimeFormat { return { true }; };
+auto pace::config::provide_for_v<AnotherConfig, TimeFormat> = []() -> TimeFormat { return { true }; };
 template<>
-auto pace::config::ProvideFor_v<AnotherConfig, pace::option::Projection> =
+auto pace::config::provide_for_v<AnotherConfig, pace::option::Projection> =
   []() { return AnotherConfig::bake( pace::option::Except<>() ); };
 
 int main()
