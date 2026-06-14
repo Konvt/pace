@@ -19,7 +19,7 @@ namespace pace {
 #ifdef PACE_NOSTYLE
       public:
         constexpr Brush() = default;
-        constexpr Brush( Effect ) noexcept {}
+        constexpr Brush( Effect&& ) noexcept {}
 
         Brush( Brush&& )              = default;
         Brush& operator=( Brush&& ) & = default;
@@ -127,7 +127,7 @@ namespace pace {
 #ifdef PACE_NOSTYLE
       public:
         constexpr Brush( NextAction&& ) noexcept {}
-        constexpr Brush( Effect, NextAction&& ) noexcept {}
+        constexpr Brush( Effect&&, NextAction&& ) noexcept {}
 
         Brush( Brush&& )              = default;
         Brush& operator=( Brush&& ) & = default;
