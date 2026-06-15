@@ -86,6 +86,7 @@ namespace pace {
     template<typename Config>
     PACE__NODISCARD auto insert( prefab::BasicBar<Config, Sink, Mode, Zone>&& bar )
 #ifdef __cpp_concepts
+      -> std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>
       requires details::traits::is_config<Config>::value
 #else
       -> typename std::enable_if<details::traits::is_config<Config>::value,
@@ -100,6 +101,7 @@ namespace pace {
     template<typename Config>
     PACE__NODISCARD auto insert( Config cfg )
 #ifdef __cpp_concepts
+      -> std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>
       requires details::traits::is_config<Config>::value
 #else
       -> typename std::enable_if<details::traits::is_config<Config>::value,
@@ -115,6 +117,7 @@ namespace pace {
     template<typename Bar, typename... Options>
     PACE__NODISCARD auto insert( Options&&... options )
 #ifdef __cpp_concepts
+      -> std::unique_ptr<Bar>
       requires( details::traits::is_bar<Bar>::value && Bar::sink == Sink && Bar::mode == Mode
                 && Bar::zone == Zone && std::is_constructible_v<Bar, Options && ...> )
 #else
@@ -135,6 +138,7 @@ namespace pace {
     template<typename Config, typename... Options>
     PACE__NODISCARD auto insert( Options&&... options )
 #ifdef __cpp_concepts
+      -> std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>
       requires( details::traits::is_config<Config>::value && std::is_constructible_v<Config, Options && ...> )
 #else
       -> typename std::enable_if<details::traits::AllOf<details::traits::is_config<Config>,
