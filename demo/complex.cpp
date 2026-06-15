@@ -37,7 +37,7 @@ int main()
     };
 
     mt19937 rd { random_device {}() };
-    bar.iterate<0>( 50000, [&rd]( int ) {
+    bar.at<0>().iterate( 50000, [&rd]( int ) {
       this_thread::sleep_for( chrono::microseconds( uniform_int_distribution<int>( 1, 1025 )( rd ) ) );
     } );
   } );
@@ -51,19 +51,19 @@ int main()
     };
 
     mt19937 rd { random_device {}() };
-    bar.config<1>().quota( 10000 );
+    bar.at<1>().config().quota( 10000 );
     const size_t terminate_val = 5000 + uniform_int_distribution<int>( 10, 1000 )( rd );
     for ( size_t i = 0; i < terminate_val; ++i ) {
-      bar.tick<1>();
+      bar.at<1>().tick();
       this_thread::sleep_for( chrono::microseconds( uniform_int_distribution<int>( 1, 1105 )( rd ) ) );
     }
     flag = false;
-    bar.reset<1>();
+    bar.at<1>().reset();
   } );
-  bar.tick<2>();
+  bar.at<2>().tick();
 
   for ( auto& td : pool )
     td.join();
-  bar.reset<2>();
+  bar.at<2>().reset();
   bar.wait();
 }

@@ -867,14 +867,12 @@ pace::MultiBar<pace::ProgressBar<pace::Channel::Stdout>,
 pace::MultiBar_t<pace::ProgressBar<pace::Channel::Stdout>, 3> mbar3;
 static_assert( std::is_same_v<decltype( mbar2 ), decltype( mbar3 )> );
 
-mbar1.config<0>().quota( 100 );
-mbar1.config<1>().quota( 200 );
-mbar1.config<2>().quota( 300 );
+mbar1.at<0>().config().quota( 100 );
+mbar1.at<1>().config().quota( 200 );
+mbar1.at<2>().config().quota( 300 );
 
-// Direct access to the corresponding progress bar object
 mbar1.at<0>().tick();
-// Indirect access
-mbar1.tick<1>();
+mbar1.at<1>().tick();
 // Access via unqualified get()
 using std::get;
 get<2>( mbar1 );
@@ -957,8 +955,8 @@ auto bar = pace::make_multi<pace::Channel::Stderr, pace::Policy::Sync, pace::Reg
   pace::config::Line( pace::option::Quota( 200 ) ) );
 
 for ( size_t i = 0; i < 95; ++i ) {
-  bar.tick<0>();
-  bar.tick<1>();
+  bar.at<0>().tick();
+  bar.at<1>().tick();
 }
 
 std::cerr << "Extra log information";
@@ -967,13 +965,13 @@ for ( size_t i = 0; i < bar.active_count() + 1; ++i )
   std::cerr << '\n';
 std::cerr << std::flush;
 
-bar.tick<2>();
-while ( bar.active<0>() )
-  bar.tick<0>();
-while ( bar.active<1>() )
-  bar.tick<1>();
-while ( bar.active<2>() )
-  bar.tick<2>();
+bar.at<2>().tick();
+while ( bar.at<0>().active() )
+  bar.at<0>().tick();
+while ( bar.at<1>().active() )
+  bar.at<1>().tick();
+while ( bar.at<2>().active() )
+  bar.at<2>().tick();
 ```
 ### Tuple protocol
 `pace::MultiBar` provides specializations for `std::tuple_element` and `std::tuple_size`, and also overloads `get`. Therefore, it can be treated as a specialized version of `std::tuple`.

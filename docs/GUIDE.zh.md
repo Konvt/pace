@@ -850,15 +850,13 @@ pace::MultiBar<pace::ProgressBar<pace::Channel::Stdout>,
 pace::MultiBar_t<pace::ProgressBar<pace::Channel::Stdout>, 3> mbar3;
 static_assert( std::is_same_v<decltype( mbar2 ), decltype( mbar3 )> );
 
-mbar1.config<0>().quota( 100 );
-mbar1.config<1>().quota( 200 );
-mbar1.config<2>().quota( 300 );
+mbar1.at<0>().config().quota( 100 );
+mbar1.at<1>().config().quota( 200 );
+mbar1.at<2>().config().quota( 300 );
 
-// 可以直接访问对应的进度条对象
 mbar1.at<0>().tick();
-// 也可以间接访问
-mbar1.tick<1>();
-// 还可以使用无名称限定的 get() 调用访问
+mbar1.at<1>().tick();
+// 可以使用无名称限定的 get() 调用访问
 using std::get;
 get<2>( mbar1 );
 
@@ -937,8 +935,8 @@ auto bar = pace::make_multi<pace::Channel::Stderr, pace::Policy::Sync, pace::Reg
   pace::config::Line( pace::option::Quota( 200 ) ) );
 
 for ( size_t i = 0; i < 95; ++i ) {
-  bar.tick<0>();
-  bar.tick<1>();
+  bar.at<0>().tick();
+  bar.at<1>().tick();
 }
 
 std::cerr << "Extra log information";
@@ -947,13 +945,13 @@ for ( size_t i = 0; i < bar.active_count() + 1; ++i )
   std::cerr << '\n';
 std::cerr << std::flush;
 
-bar.tick<2>();
-while ( bar.active<0>() )
-  bar.tick<0>();
-while ( bar.active<1>() )
-  bar.tick<1>();
-while ( bar.active<2>() )
-  bar.tick<2>();
+bar.at<2>().tick();
+while ( bar.at<0>().active() )
+  bar.at<0>().tick();
+while ( bar.at<1>().active() )
+  bar.at<1>().tick();
+while ( bar.at<2>().active() )
+  bar.at<2>().tick();
 ```
 ### 元组协议
 `pace::MultiBar` 为标准库的 `std::tuple_element` 和 `std::tuple_size` 提供了特化实现，同时提供了 `get` 的重载版本；因此可以将 `pace::MultiBar` 视作是一个特殊版本的 `std::tuple`。
