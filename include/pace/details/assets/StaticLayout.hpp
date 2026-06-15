@@ -279,13 +279,13 @@ namespace pace {
         }
 
         template<types::Size Pos>
-        PACE__FORCEINLINE ElementAt_t<Pos>& at() & noexcept
+        PACE__FORCEINLINE PACE__CXX14_CNSTXPR ElementAt_t<Pos>& at() & noexcept
         { return static_cast<ElementAt_t<Pos>&>( *this ); }
         template<types::Size Pos>
-        PACE__FORCEINLINE const ElementAt_t<Pos>& at() const& noexcept
+        PACE__FORCEINLINE PACE__CXX14_CNSTXPR const ElementAt_t<Pos>& at() const& noexcept
         { return static_cast<const ElementAt_t<Pos>&>( *this ); }
         template<types::Size Pos>
-        PACE__FORCEINLINE ElementAt_t<Pos>& at() && noexcept
+        PACE__FORCEINLINE PACE__CXX14_CNSTXPR ElementAt_t<Pos>& at() && noexcept
         { return std::move( at<Pos>() ); }
       };
     } // namespace assets

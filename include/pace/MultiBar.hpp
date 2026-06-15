@@ -100,85 +100,14 @@ namespace pace {
     }
 
     template<details::types::Size Pos>
-    PACE__FORCEINLINE BarAt_t<Pos>& at() & noexcept
+    PACE__FORCEINLINE PACE__CXX14_CNSTXPR BarAt_t<Pos>& at() & noexcept
     { return package_.template at<Pos>(); }
     template<details::types::Size Pos>
-    PACE__FORCEINLINE const BarAt_t<Pos>& at() const& noexcept
+    PACE__FORCEINLINE PACE__CXX14_CNSTXPR const BarAt_t<Pos>& at() const& noexcept
     { return package_.template at<Pos>(); }
     template<details::types::Size Pos>
-    PACE__FORCEINLINE BarAt_t<Pos>&& at() && noexcept
+    PACE__FORCEINLINE PACE__CXX14_CNSTXPR BarAt_t<Pos>&& at() && noexcept
     { return std::move( package_.template at<Pos>() ); }
-
-    template<details::types::Size Pos>
-    PACE__FORCEINLINE void tick() &
-    { at<Pos>().tick(); }
-    template<details::types::Size Pos>
-    PACE__FORCEINLINE void tick( std::uint64_t next_step ) &
-    { at<Pos>().tick( next_step ); }
-    template<details::types::Size Pos>
-    PACE__FORCEINLINE void tick_to( std::uint8_t percentage ) &
-    { at<Pos>().tick_to( percentage ); }
-    template<details::types::Size Pos>
-    PACE__FORCEINLINE void reset()
-    { at<Pos>().reset(); }
-    template<details::types::Size Pos>
-    PACE__FORCEINLINE void abort() noexcept
-    { at<Pos>().abort(); }
-    template<details::types::Size Pos>
-    PACE__FORCEINLINE void wait() const noexcept
-    { at<Pos>().wait(); }
-    template<details::types::Size Pos, class Rep, class Period>
-    PACE__NODISCARD PACE__FORCEINLINE bool wait_for(
-      const std::chrono::duration<Rep, Period>& timeout ) const noexcept
-    { return at<Pos>().wait_for( timeout ); }
-    template<details::types::Size Pos>
-    PACE__NODISCARD PACE__FORCEINLINE bool active() const noexcept
-    { return at<Pos>().active(); }
-    template<details::types::Size Pos>
-    PACE__FORCEINLINE ConfigAt_t<Pos>& config() &
-    { return at<Pos>().config(); }
-    template<details::types::Size Pos>
-    PACE__FORCEINLINE const ConfigAt_t<Pos>& config() const&
-    { return at<Pos>().config(); }
-    template<details::types::Size Pos>
-    PACE__FORCEINLINE ConfigAt_t<Pos>&& config() &&
-    { return at<Pos>().config(); }
-
-    template<details::types::Size Pos, typename... Args
-#ifdef __cpp_concepts
-             >
-      requires details::traits::is_iterable_bar<BarAt_t<Pos>>::value
-#else
-             ,
-      typename = typename std::enable_if<details::traits::is_iterable_bar<BarAt_t<Pos>>::value>::type>
-#endif
-    PACE__FORCEINLINE auto iterate( Args&&... args ) & noexcept(
-      noexcept( this->template at<Pos>().iterate( std::forward<Args>( args )... ) ) )
-      -> decltype( this->template at<Pos>().iterate( std::forward<Args>( args )... ) )
-    { return at<Pos>().iterate( std::forward<Args>( args )... ); }
-
-    template<details::types::Size Pos, typename F
-#ifdef __cpp_concepts
-             >
-      requires details::traits::is_reactive_bar<BarAt_t<Pos>>::value
-#else
-      ,
-      typename = typename std::enable_if<details::traits::is_reactive_bar<BarAt_t<Pos>>::value>::type>
-#endif
-    PACE__FORCEINLINE BarAt_t<Pos>& action( F&& fn ) & noexcept(
-      noexcept( this->template at<Pos>().action( std::forward<F>( fn ) ) ) )
-    { return at<Pos>().action( std::forward<F>( fn ) ); }
-    template<details::types::Size Pos
-#ifdef __cpp_concepts
-             >
-      requires details::traits::is_reactive_bar<BarAt_t<Pos>>::value
-
-#else
-             ,
-             typename = typename std::enable_if<details::traits::is_reactive_bar<BarAt_t<Pos>>::value>::type>
-#endif
-    PACE__FORCEINLINE BarAt_t<Pos>& action() noexcept
-    { return at<Pos>().action(); }
 
     void swap( MultiBar& other ) noexcept { package_.swap( other.package_ ); }
     friend void swap( MultiBar& a, MultiBar& b ) noexcept { a.swap( b ); }
