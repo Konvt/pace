@@ -2,7 +2,7 @@
 
 # define PACE_MAJOR 1
 # define PACE_MINOR 2
-# define PACE_PATCH 1
+# define PACE_PATCH 2
 # define PACE_STAGE "stable"
 
 # define PACE__STR( x )                       #x
