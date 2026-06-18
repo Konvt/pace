@@ -72,16 +72,7 @@ namespace pace {
     }
 
     // Wait until the indicator is Stop.
-    void wait() const noexcept
-    {
-      details::concurrent::spin_wait( [this]() noexcept { return !active(); } );
-    }
-    // Wait for the indicator is Stop or timed out.
-    template<class Rep, class Period>
-    PACE__NODISCARD bool wait_for( const std::chrono::duration<Rep, Period>& timeout ) const noexcept
-    {
-      return details::concurrent::spin_wait_for( [this]() noexcept { return !active(); }, timeout );
-    }
+    void wait() const noexcept { core_->wait(); }
 
     template<typename Config>
     PACE__NODISCARD auto insert( prefab::BasicBar<Config, Sink, Mode, Zone>&& bar )

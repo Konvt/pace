@@ -45,7 +45,7 @@ namespace pace {
         mutable std::mutex sched_mtx_;
 
         enum class Phase : std::uint8_t { Stop, Awake, Refresh };
-        std::atomic<Phase> state_ = { Phase::Stop };
+        std::atomic<Phase> state_ { Phase::Stop };
 
         void do_render() &
         {
@@ -147,6 +147,9 @@ namespace pace {
         template<bool Forced>
         void do_shut() noexcept( Forced )
         {
+          if ( state_.load( std::memory_order_relaxed ) == Phase::Stop )
+            return;
+
           std::lock_guard<std::mutex> lock1 { sched_mtx_ };
           std::lock_guard<concurrent::SharedMutex> lock2 { res_mtx_ };
           if ( state_.load( std::memory_order_relaxed ) != Phase::Stop ) {
@@ -163,6 +166,7 @@ namespace pace {
           }
           items_.clear();
           state_.store( Phase::Stop, std::memory_order_relaxed );
+          concurrent::atomic_notify_all( state_ );
         }
 
       public:
@@ -171,17 +175,13 @@ namespace pace {
         DynamicLayout& operator=( const DynamicLayout& ) = delete;
         ~DynamicLayout() noexcept { kill(); }
 
-        void shut() { do_shut<false>(); }
-        void kill() noexcept { do_shut<true>(); }
-
         template<typename C>
         void append( assets::ManagedBar<C, Sink, Mode, Zone>* item ) &
         {
-          std::lock_guard<std::mutex> lock1 { sched_mtx_ };
           auto& executor = render::Renderer<Sink>::itself();
-          concurrent::SharedLock<concurrent::SharedMutex> lock2 { res_mtx_ };
-          if ( items_.empty() ) {
-            lock2.unlock();
+          std::lock_guard<std::mutex> lock1 { sched_mtx_ };
+          if ( state_.load( std::memory_order_relaxed ) == Phase::Stop ) {
+            PACE__ASSERT( items_.empty() );
             if ( !executor.try_appoint( [this]() {
                    auto& ostream        = io::OStream<Sink>::itself();
                    const auto istty     = console::TermContext<Sink>::itself().connected();
@@ -189,8 +189,10 @@ namespace pace {
                    switch ( state_.load( std::memory_order_relaxed ) ) {
                    case Phase::Awake: {
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
-                       if ( istty )
+                       if ( istty ) {
+                         num_modified_lines_ = 0;
                          ostream << console::savecursor;
+                       }
                      {
                        concurrent::SharedLock<concurrent::SharedMutex> lock { res_mtx_ };
                        do_render();
@@ -227,20 +229,22 @@ namespace pace {
                 charcodes::make_literal( "pace: another progress bar instance is already running" ) );
 
             io::OStream<Sink>::itself() << io::release;
-            num_modified_lines_ = 0;
             state_.store( Phase::Awake, std::memory_order_relaxed );
 
-            auto guard = utils::make_scope_fail( [this]() noexcept {
-              std::lock_guard<concurrent::SharedMutex> lock2 { res_mtx_ };
-              items_.clear();
+            auto guard = utils::make_scope_fail( [&]() noexcept {
               state_.store( Phase::Stop, std::memory_order_relaxed );
+              executor.dismiss();
+              items_.clear();
+              concurrent::atomic_notify_all( state_ );
             } );
             items_.emplace_back( item );
             executor.template activate<Mode>();
           } else {
-            eliminate();
-            items_.emplace_back( item );
-            lock2.unlock();
+            {
+              std::lock_guard<concurrent::SharedMutex> lock2 { res_mtx_ };
+              eliminate();
+              items_.emplace_back( item );
+            }
             executor.template trigger<Mode>();
           }
         }
@@ -248,35 +252,48 @@ namespace pace {
         {
           auto& executor = render::Renderer<Sink>::itself();
           PACE__ASSERT( executor.empty() == false );
-          std::lock_guard<std::mutex> lock1 { sched_mtx_ };
           PACE__ASSERT( online_count() != 0 );
           if ( !forced )
             executor.template trigger<Mode>();
 
-          bool suspend_flag = false;
-          {
-            std::lock_guard<concurrent::SharedMutex> lock2 { res_mtx_ };
-            const auto itr = std::find_if( items_.begin(), items_.end(), [item]( const Slot& slot ) noexcept {
-              return item == slot.target_;
-            } );
-            // Mark target_ as empty,
-            // and then search for the first k invalid or destructed progress bars and remove them.
-            if ( itr != items_.end() )
-              itr->target_ = nullptr;
-            eliminate();
-            suspend_flag = items_.empty();
-          }
+          std::lock_guard<std::mutex> lock1 { sched_mtx_ };
+          std::unique_lock<concurrent::SharedMutex> lock2 { res_mtx_ };
+          const auto itr = std::find_if( items_.begin(), items_.end(), [item]( const Slot& slot ) noexcept {
+            return item == slot.target_;
+          } );
+          // Mark target_ as empty,
+          // and then search for the first k invalid or destructed bars and remove them.
+          if ( itr != items_.end() )
+            itr->target_ = nullptr;
+          eliminate();
 
-          if ( suspend_flag ) {
+          if ( items_.empty() ) {
+            lock2.unlock();
             state_.store( Phase::Stop, std::memory_order_relaxed );
             executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().release(); } );
+            concurrent::atomic_notify_all( state_ );
           }
         }
+
+        void shut() { do_shut<false>(); }
+        void kill() noexcept { do_shut<true>(); }
 
         PACE__NODISCARD PACE__FORCEINLINE types::Size online_count() const noexcept
         {
           concurrent::SharedLock<concurrent::SharedMutex> lock { res_mtx_ };
           return items_.size();
+        }
+
+        void wait() const noexcept
+        {
+#ifdef __cpp_lib_atomic_wait
+          for ( auto status = state_.load( std::memory_order_relaxed ); status != Phase::Stop;
+                status      = state_.load( std::memory_order_relaxed ) )
+            state_.wait( status, std::memory_order_relaxed );
+#else
+          details::concurrent::spin_wait(
+            [this]() noexcept { return state_.load( std::memory_order_relaxed ) == Phase::Stop; } );
+#endif
         }
       };
     } // namespace assets

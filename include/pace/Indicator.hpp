@@ -49,18 +49,6 @@ namespace pace {
     virtual void abort() noexcept                        = 0;
     virtual void tick() &                                = 0;
     PACE__NODISCARD virtual bool active() const noexcept = 0;
-
-    // Wait until the indicator is Stop.
-    void wait() const noexcept
-    {
-      details::concurrent::spin_wait( [this]() noexcept { return !active(); } );
-    }
-    // Wait for the indicator is Stop or timed out.
-    template<class Rep, class Period>
-    PACE__NODISCARD bool wait_for( const std::chrono::duration<Rep, Period>& timeout ) const noexcept
-    {
-      return details::concurrent::spin_wait_for( [this]() noexcept { return !active(); }, timeout );
-    }
   };
 #if PACE__CXX17
   PACE__CXX17_INLINE std::atomic<bool> Indicator::_hide_completed { Indicator::_default_hide_completed };

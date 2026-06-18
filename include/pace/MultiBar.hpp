@@ -75,8 +75,6 @@ namespace pace {
     MultiBar& operator=( MultiBar&& rhs ) & noexcept = default;
     ~MultiBar()                                      = default;
 
-    // Check whether a progress bar is running
-    PACE__NODISCARD PACE__FORCEINLINE bool active() const noexcept { return package_.online(); }
     // Reset all the progress bars.
     PACE__FORCEINLINE void reset() { package_.shut(); }
     // Abort all the progress bars.
@@ -84,20 +82,13 @@ namespace pace {
     // Returns the number of progress bars.
     PACE__NODISCARD static PACE__FORCEINLINE PACE__CNSTEVAL details::types::Size size() noexcept
     { return sizeof...( Configs ) + 1; }
+    // Check whether a progress bar is running
+    PACE__NODISCARD PACE__FORCEINLINE bool active() const noexcept { return package_.online(); }
     // Returns the number of progress bars which is running.
     PACE__NODISCARD PACE__FORCEINLINE details::types::Size active_count() const noexcept
     { return package_.online_count(); }
     // Wait for all progress bars to stop.
-    void wait() const noexcept
-    {
-      details::concurrent::spin_wait( [this]() noexcept { return !active(); } );
-    }
-    // Wait for all progress bars to stop or time out.
-    template<class Rep, class Period>
-    PACE__NODISCARD bool wait_for( const std::chrono::duration<Rep, Period>& timeout ) const noexcept
-    {
-      return details::concurrent::spin_wait_for( [this]() noexcept { return !active(); }, timeout );
-    }
+    void wait() const noexcept { package_.wait(); }
 
     template<details::types::Size Pos>
     PACE__FORCEINLINE PACE__CXX14_CNSTXPR BarAt_t<Pos>& at() & noexcept
@@ -193,7 +184,7 @@ namespace pace {
       PACE__NODISCARD PACE__FORCEINLINE typename std::enable_if<
         traits::is_bar<typename std::decay<B>::type>::value,
         MultiBar_t<prefab::BasicBar<typename std::decay<B>::type::Config, O, M, A>, Cnt>>::type
-        make_multi_helper( B&& bar, const traits::IndexSeq<Is...>& )
+        make_multi_helper( B&& bar, traits::IndexSeq<Is...> )
           noexcept( traits::BoolConstant<( Cnt == 1 )>::value )
       {
         using Bar = typename std::decay<B>::type;
@@ -204,7 +195,7 @@ namespace pace {
       PACE__NODISCARD PACE__FORCEINLINE typename std::enable_if<
         traits::is_config<typename std::decay<C>::type>::value,
         MultiBar_t<prefab::BasicBar<typename std::decay<C>::type, O, M, A>, Cnt>>::type
-        make_multi_helper( C&& cfg, const traits::IndexSeq<Is...>& )
+        make_multi_helper( C&& cfg, traits::IndexSeq<Is...> )
           noexcept( traits::AllOf<traits::BoolConstant<( Cnt == 1 )>,
                                   traits::Not<std::is_lvalue_reference<C&&>>>::value )
       {

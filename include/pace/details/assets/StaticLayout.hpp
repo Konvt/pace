@@ -24,12 +24,10 @@ namespace pace {
           traits::TypeAt_t<Pos, wrappers::TuplePacket<prefab::BasicBar<Configs, Sink, Mode, Zone>, Tags>...>;
 
         std::atomic<types::Size> alive_cnt_;
-        mutable std::mutex sched_mtx_;
-        // The std::bitset isn't TriviallyCopyable, so we cannot use std::atomic<std::bitset>.
-        mutable concurrent::SharedMutex res_mtx_;
+        mutable std::mutex mtx_;
 
         enum class Phase : std::uint8_t { Stop, Awake, Refresh };
-        std::atomic<Phase> state_;
+        std::atomic<Phase> state_ { Phase::Stop };
 
         enum class Locus : std::uint8_t { Offstage, Onstage, Echo };
         // Bitmask indicating which bars produced output in the current render pass.
@@ -110,22 +108,26 @@ namespace pace {
         { // This virtual function is invoked only via the vtable,
           // hence the default arguments from the base class declaration are always used.
           // Any default arguments provided in the derived class are ignored.
-          if ( online() ) {
-            auto& executor = render::Renderer<Sink>::itself();
-            PACE__ASSERT( executor.empty() == false );
-            std::lock_guard<std::mutex> lock { sched_mtx_ };
-            if ( !forced )
-              executor.template trigger<Mode>();
-            if ( alive_cnt_.fetch_sub( 1, std::memory_order_acq_rel ) == 1 ) {
-              state_.store( Phase::Stop, std::memory_order_relaxed );
-              executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().release(); } );
-            }
+          PACE__ASSERT( online() );
+          PACE__ASSERT( alive_cnt_ > 0 );
+          auto& executor = render::Renderer<Sink>::itself();
+          PACE__ASSERT( executor.empty() == false );
+          if ( !forced )
+            executor.template trigger<Mode>();
+
+          if ( alive_cnt_.fetch_sub( 1, std::memory_order_relaxed ) > 1 )
+            return;
+          std::lock_guard<std::mutex> lock { mtx_ };
+          if ( alive_cnt_.load( std::memory_order_relaxed ) == 0 ) {
+            state_.store( Phase::Stop, std::memory_order_relaxed );
+            executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().release(); } );
+            concurrent::atomic_notify_all( state_ );
           }
         }
         void do_boot() & final
         {
-          std::lock_guard<std::mutex> lock { sched_mtx_ };
           auto& executor = render::Renderer<Sink>::itself();
+          std::lock_guard<std::mutex> lock { mtx_ };
           if ( state_.load( std::memory_order_relaxed ) == Phase::Stop ) {
             if ( !executor.try_appoint( [this]() {
                    auto& ostream    = io::OStream<Sink>::itself();
@@ -135,35 +137,30 @@ namespace pace {
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                        if ( istty )
                          ostream << console::savecursor;
-                     {
-                       std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
-                       std::fill( stages_.begin(), stages_.end(), Locus::Offstage );
-                       do_render( console::TermContext<Sink>::itself().connected(),
-                                  config::hide_completed() );
-                     }
+                     // Since the Renderer ensures that only one thread is performing rendering at any time,
+                     // all access to stages_ always occurs within a same thread,
+                     // so we do not need to use a mutex to protect it.
+                     std::fill( stages_.begin(), stages_.end(), Locus::Offstage );
+                     do_render( console::TermContext<Sink>::itself().connected(), config::hide_completed() );
                      ostream << io::flush;
 
                      auto expected = Phase::Awake;
                      state_.compare_exchange_strong( expected, Phase::Refresh, std::memory_order_relaxed );
                    } break;
                    case Phase::Refresh: {
-                     {
-                       std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
-                       if ( istty ) {
-                         if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
-                           ostream << console::resetcursor;
-                         else
-                           ostream
-                             .apply( console::prevline,
-                                     std::count_if(
-                                       stages_.cbegin(),
-                                       stages_.cend(),
-                                       []( Locus stage ) noexcept { return stage != Locus::Offstage; } ) )
-                             .apply( console::linestart );
-                       }
-                       do_render( console::TermContext<Sink>::itself().connected(),
-                                  config::hide_completed() );
+                     if ( istty ) {
+                       if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
+                         ostream << console::resetcursor;
+                       else
+                         ostream
+                           .apply( console::prevline,
+                                   std::count_if(
+                                     stages_.cbegin(),
+                                     stages_.cend(),
+                                     []( Locus stage ) noexcept { return stage != Locus::Offstage; } ) )
+                           .apply( console::linestart );
                      }
+                     do_render( console::TermContext<Sink>::itself().connected(), config::hide_completed() );
                      ostream << io::flush;
                    } break;
                    default: break;
@@ -175,9 +172,10 @@ namespace pace {
             io::OStream<Sink>::itself() << io::release;
             state_.store( Phase::Awake, std::memory_order_relaxed );
 
-            auto guard = utils::make_scope_fail( [&]() noexcept {
+            auto guard2 = utils::make_scope_fail( [&]() noexcept {
               state_.store( Phase::Stop, std::memory_order_relaxed );
               executor.dismiss();
+              concurrent::atomic_notify_all( state_ );
             } );
             executor.template activate<Mode>();
           } else
@@ -187,13 +185,9 @@ namespace pace {
         }
 
         template<typename Tuple, types::Size... Is>
-        StaticLayout( Tuple&& tup, const traits::IndexSeq<Is...>& )
+        StaticLayout( Tuple&& tup, traits::IndexSeq<Is...> )
           noexcept( std::tuple_size<typename std::decay<Tuple>::type>::value == sizeof...( Configs ) )
           : ElementAt_t<Is>( utils::pick_or<Is, ElementAt_t<Is>>( std::forward<Tuple>( tup ) ) )...
-          , alive_cnt_ { 0 }
-          , sched_mtx_ {}
-          , res_mtx_ {}
-          , state_ { Phase::Stop }
         {
           static_assert( std::tuple_size<typename std::decay<Tuple>::type>::value <= sizeof...( Is ),
                          "unexpected tuple size mismatch" );
@@ -225,8 +219,6 @@ namespace pace {
         StaticLayout& operator=( const StaticLayout& ) = delete;
         StaticLayout( StaticLayout&& rhs ) noexcept
           : wrappers::TuplePacket<prefab::BasicBar<Configs, Sink, Mode, Zone>, Tags>( std::move( rhs ) )...
-          , alive_cnt_ { 0 }
-          , state_ { Phase::Stop }
         { PACE__ASSERT( rhs.online() == false ); }
         StaticLayout& operator=( StaticLayout&& rhs ) & noexcept
         { // The thread insecurity here is deliberately designed.
@@ -257,14 +249,21 @@ namespace pace {
           PACE__ASSERT( alive_cnt_ == 0 );
           PACE__ASSERT( online() == false );
         }
+
         PACE__NODISCARD PACE__FORCEINLINE bool online() const noexcept
         { return state_.load( std::memory_order_relaxed ) != Phase::Stop; }
         PACE__NODISCARD PACE__FORCEINLINE types::Size online_count() const noexcept
+        { return alive_cnt_.load( std::memory_order_relaxed ); }
+
+        void wait() const noexcept
         {
-          concurrent::SharedLock<concurrent::SharedMutex> lock { res_mtx_ };
-          return std::count_if( stages_.cbegin(), stages_.cend(), []( Locus stage ) noexcept {
-            return stage == Locus::Onstage || stage == Locus::Offstage;
-          } );
+#ifdef __cpp_lib_atomic_wait
+          for ( auto status = state_.load( std::memory_order_relaxed ); status != Phase::Stop;
+                status      = state_.load( std::memory_order_relaxed ) )
+            state_.wait( status, std::memory_order_relaxed );
+#else
+          details::concurrent::spin_wait( [this]() noexcept { return !online(); } );
+#endif
         }
 
         void swap( StaticLayout& other ) noexcept

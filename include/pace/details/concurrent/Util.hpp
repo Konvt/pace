@@ -66,14 +66,42 @@ namespace pace {
       { return spin_wait_for( std::forward<F>( pred ), 128, timeout ); }
 
       template<typename T>
+      PACE__FORCEINLINE void atomic_notify_one( std::atomic<T>& atom ) noexcept
+      {
+#ifdef __cpp_lib_atomic_wait
+        atom.notify_one();
+#else
+        (void)atom;
+#endif
+      }
+      template<typename T>
+      PACE__FORCEINLINE void atomic_notify_all( std::atomic<T>& atom ) noexcept
+      {
+#ifdef __cpp_lib_atomic_wait
+        atom.notify_all();
+#else
+        (void)atom;
+#endif
+      }
+
+      template<typename T>
+      PACE__FORCEINLINE bool atomic_commit_one( std::atomic<T>& atom,
+                                                T expected,
+                                                T alter,
+                                                std::memory_order order = std::memory_order_seq_cst ) noexcept
+      {
+        bool cas = atom.compare_exchange_strong( expected, alter, order );
+        if ( cas )
+          atomic_notify_one( atom );
+        return cas;
+      }
+      template<typename T>
       PACE__FORCEINLINE void atomic_commit_all( std::atomic<T>& atom,
                                                 T alter,
                                                 std::memory_order order = std::memory_order_seq_cst ) noexcept
       {
         atom.store( alter, order );
-#ifdef __cpp_lib_atomic_wait
-        atom.notify_all();
-#endif
+        atomic_notify_all( atom );
       }
       template<typename T>
       PACE__FORCEINLINE bool atomic_commit_all( std::atomic<T>& atom,
@@ -82,23 +110,8 @@ namespace pace {
                                                 std::memory_order order = std::memory_order_seq_cst ) noexcept
       {
         bool cas = atom.compare_exchange_strong( expected, alter, order );
-#ifdef __cpp_lib_atomic_wait
         if ( cas )
-          atom.notify_all();
-#endif
-        return cas;
-      }
-      template<typename T>
-      PACE__FORCEINLINE bool atomic_commit_one( std::atomic<T>& atom,
-                                                T expected,
-                                                T alter,
-                                                std::memory_order order = std::memory_order_seq_cst ) noexcept
-      {
-        bool cas = atom.compare_exchange_strong( expected, alter, order );
-#ifdef __cpp_lib_atomic_wait
-        if ( cas )
-          atom.notify_one();
-#endif
+          atomic_notify_all( atom );
         return cas;
       }
     } // namespace concurrent

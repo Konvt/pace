@@ -15,6 +15,8 @@
 namespace pace {
   namespace details {
     namespace render {
+      // A global renderer;
+      // It ensures that only one thread is executing the rendering at any given time.
       template<Channel Tag>
       class Renderer final {
         static constexpr auto _default_working_interval =
@@ -30,16 +32,16 @@ namespace pace {
         }
 #endif
 
-        std::atomic<std::uint64_t> quota_      = { 0 };
-        concurrent::ExceptionBox box_          = {};
-        wrappers::UniqueFunction<void()> task_ = {};
-        std::thread runner_                    = {};
+        std::atomic<std::uint64_t> quota_ { 0 };
+        concurrent::ExceptionBox box_ {};
+        wrappers::UniqueFunction<void()> task_ {};
+        std::thread runner_ {};
 
 #ifndef __cpp_lib_atomic_wait
-        mutable std::condition_variable cond_var_ = {};
+        mutable std::condition_variable cond_var_ {};
+        mutable std::mutex sched_mtx_ {};
 #endif
-        mutable concurrent::SharedMutex res_mtx_ = {};
-        mutable std::mutex sched_mtx_            = {};
+        mutable std::mutex res_mtx_ {};
 
         /***********************************************************
           Dead
@@ -60,7 +62,7 @@ namespace pace {
             └─ drop() → Dead
         ***********************************************************/
         enum class Phase : std::uint8_t { Dead, Asleep, Dormant, Warmup, Loop, Primed, Pulse, Shot, Idle };
-        std::atomic<Phase> state_ = { Phase::Dead };
+        std::atomic<Phase> state_ { Phase::Dead };
 
         void launch() &
         {
@@ -69,7 +71,7 @@ namespace pace {
           auto guard = utils::make_scope_fail(
             [this]() noexcept { state_.store( Phase::Dead, std::memory_order_relaxed ); } );
 
-          state_  = Phase::Dormant; // need seq_cst here
+          state_.store( Phase::Dormant, std::memory_order_relaxed );
           runner_ = std::thread( [this]() {
             try {
               for ( auto state = state_.load( std::memory_order_acquire ); state != Phase::Dead;
@@ -93,6 +95,8 @@ namespace pace {
                 } break;
 
                 case Phase::Warmup: {
+                  // Since Renderer is an internal component and we always have exactly one background thread,
+                  // we do not lock res_mtx_ in any asynchronous states.
                   task_();
                   concurrent::atomic_commit_all( state_,
                                                  Phase::Warmup,
@@ -137,8 +141,7 @@ namespace pace {
 
                 case Phase::Shot: {
                   {
-                    concurrent::SharedLock<concurrent::SharedMutex> lock1 { res_mtx_ };
-                    std::lock_guard<std::mutex> lock2 { sched_mtx_ };
+                    std::lock_guard<std::mutex> lock { res_mtx_ };
                     task_();
                   }
                   concurrent::atomic_commit_all( state_,
@@ -223,16 +226,13 @@ namespace pace {
         // `activate` guarantees to perform the render task at least once.
         template<Policy Mode>
         void activate() &
-        {
+        { // This method is NOT designed for concurrent calls.
           if ( state_.load( std::memory_order_acquire ) == Phase::Dead ) {
-            std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
-            if ( state_.load( std::memory_order_relaxed ) == Phase::Dead ) {
-              if ( runner_.get_id() == std::thread::id() )
-                launch();
-              else {
-                shutdown();
-                launch();
-              }
+            if ( runner_.get_id() == std::thread::id() )
+              launch();
+            else {
+              shutdown();
+              launch();
             }
           }
 
@@ -240,7 +240,7 @@ namespace pace {
           PACE__ASSERT( task_ != nullptr );
           // The operations below are all thread safe without locking.
           box_.rethrow();
-          auto desired = []() noexcept {
+          const auto desired = +[]() noexcept {
             if PACE__CXX17_CNSTXPR ( Mode == Policy::Async )
               return Phase::Warmup;
             else if PACE__CXX17_CNSTXPR ( Mode == Policy::Signal )
@@ -251,9 +251,7 @@ namespace pace {
           auto expected = Phase::Dormant;
           if ( state_.compare_exchange_strong( expected, desired(), std::memory_order_release ) ) {
             quota_.store( 0, std::memory_order_relaxed );
-#ifdef __cpp_lib_atomic_wait
-            state_.notify_one();
-#endif
+            concurrent::atomic_notify_one( state_ );
             if PACE__CXX17_CNSTXPR ( Mode != Policy::Sync ) {
 #ifdef __cpp_lib_atomic_wait
               state_.wait( desired(), std::memory_order_relaxed );
@@ -263,8 +261,7 @@ namespace pace {
                 [&]() noexcept { return state_.load( std::memory_order_relaxed ) != desired(); } );
 #endif
             } else {
-              concurrent::SharedLock<concurrent::SharedMutex> lock1 { res_mtx_ };
-              std::lock_guard<std::mutex> lock2 { sched_mtx_ };
+              std::lock_guard<std::mutex> lock { res_mtx_ };
               task_();
 #ifndef __cpp_lib_atomic_wait
               cond_var_.notify_one();
@@ -276,29 +273,27 @@ namespace pace {
         // Commit a rendering request and ensure it's executed.
         template<Policy Mode>
         PACE__FORCEINLINE void commit() &
-        {
+        { // This method IS designed for concurrent calls.
           if PACE__CXX17_CNSTXPR ( Mode == Policy::Signal ) {
             if ( state_.load( std::memory_order_acquire ) != Phase::Dormant ) {
               quota_.fetch_add( 1, std::memory_order_relaxed );
-#ifdef __cpp_lib_atomic_wait
-              quota_.notify_one();
-#else
+              concurrent::atomic_notify_one( quota_ );
+#ifndef __cpp_lib_atomic_wait
               cond_var_.notify_one();
 #endif
             }
           } else if PACE__CXX17_CNSTXPR ( Mode == Policy::Sync ) {
-            concurrent::SharedLock<concurrent::SharedMutex> lock1 { res_mtx_ };
+            std::lock_guard<std::mutex> lock { res_mtx_ };
             // To ensure that only one thread is rendering the bar to the OStream.
-            std::lock_guard<std::mutex> lock2 { sched_mtx_ };
             task_();
           }
         }
 
         template<Policy Mode>
         void trigger() & noexcept
-        {
+        { // This method is designed for concurrent calls.
 #ifdef __cpp_lib_atomic_wait
-          auto state_transfer = [this]( Phase expected, Phase desired ) noexcept {
+          const auto state_transfer = [this]( Phase expected, Phase desired ) noexcept {
             if ( concurrent::atomic_commit_one( state_, expected, desired, std::memory_order_acquire ) )
               state_.wait( desired, std::memory_order_relaxed );
           };
@@ -314,7 +309,7 @@ namespace pace {
           } else if PACE__CXX17_CNSTXPR ( Mode == Policy::Sync )
             state_transfer( Phase::Idle, Phase::Shot );
 #else
-          auto state_transfer = [this]( Phase expected, Phase desired ) noexcept {
+          const auto state_transfer = [this]( Phase expected, Phase desired ) noexcept {
             if ( state_.compare_exchange_strong( expected, desired, std::memory_order_acquire ) ) {
               cond_var_.notify_one();
               concurrent::spin_wait(
@@ -355,30 +350,28 @@ namespace pace {
         }
 
         template<typename F>
-        void dismiss_then( F&& noexpt_fn ) noexcept
-        {
-          static_assert( noexcept( (void)noexpt_fn() ), "unsafe functor types" );
-
+        void dismiss_then( F&& fn )
+        { // This method is NOT designed for concurrent calls.
           abort();
-          std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
+          std::lock_guard<std::mutex> lock { res_mtx_ };
           if ( task_ != nullptr )
             task_ = nullptr;
-          (void)noexpt_fn();
+          (void)fn();
         }
         void dismiss() noexcept
-        {
+        { // This method is NOT designed for concurrent calls.
           dismiss_then( []() noexcept {} );
         }
 
         void drop() noexcept
-        {
-          std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
+        { // This method is NOT designed for concurrent calls.
+          std::lock_guard<std::mutex> lock { res_mtx_ };
           shutdown();
         }
 
         PACE__NODISCARD bool try_appoint( wrappers::UniqueFunction<void()>&& task ) &
-        {
-          std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
+        { // This method IS designed for concurrent calls.
+          std::lock_guard<std::mutex> lock { res_mtx_ };
           if ( task_ != nullptr )
             return false;
           task_ = std::move( task );
@@ -388,7 +381,7 @@ namespace pace {
         PACE__NODISCARD PACE__FORCEINLINE bool interrupted() const noexcept { return !box_.empty(); }
         PACE__NODISCARD PACE__FORCEINLINE bool empty() const noexcept
         {
-          concurrent::SharedLock<concurrent::SharedMutex> lock { res_mtx_ };
+          std::lock_guard<std::mutex> lock { res_mtx_ };
           return task_ == nullptr;
         }
       };
