@@ -121,7 +121,6 @@ namespace pace {
           if ( alive_cnt_.load( std::memory_order_relaxed ) == 0 ) {
             state_.store( Phase::Stop, std::memory_order_relaxed );
             executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().release(); } );
-            concurrent::atomic_notify_all( state_ );
           }
         }
         void do_boot() & final
@@ -175,7 +174,6 @@ namespace pace {
             auto guard2 = utils::make_scope_fail( [&]() noexcept {
               state_.store( Phase::Stop, std::memory_order_relaxed );
               executor.dismiss();
-              concurrent::atomic_notify_all( state_ );
             } );
             executor.template activate<Mode>();
           } else
@@ -254,17 +252,6 @@ namespace pace {
         { return state_.load( std::memory_order_relaxed ) != Phase::Stop; }
         PACE__NODISCARD PACE__FORCEINLINE types::Size online_count() const noexcept
         { return alive_cnt_.load( std::memory_order_relaxed ); }
-
-        void wait() const noexcept
-        {
-#ifdef __cpp_lib_atomic_wait
-          for ( auto status = state_.load( std::memory_order_relaxed ); status != Phase::Stop;
-                status      = state_.load( std::memory_order_relaxed ) )
-            state_.wait( status, std::memory_order_relaxed );
-#else
-          details::concurrent::spin_wait( [this]() noexcept { return !online(); } );
-#endif
-        }
 
         void swap( StaticLayout& other ) noexcept
         { // The thread insecurity here is deliberately designed.

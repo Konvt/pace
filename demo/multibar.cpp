@@ -61,5 +61,4 @@ int main()
     if ( td.joinable() )
       td.join();
   }
-  mbar.wait();
 }

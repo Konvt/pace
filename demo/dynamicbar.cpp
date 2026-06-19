@@ -53,5 +53,4 @@ int main()
 
   for ( auto& td : pool )
     td.join();
-  dbar.wait();
 }

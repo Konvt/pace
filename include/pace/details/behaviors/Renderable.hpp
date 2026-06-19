@@ -139,7 +139,6 @@ namespace pace {
             this->do_halt( Forced );
           } else
             state_.store( Phase::Stop, std::memory_order_relaxed );
-          concurrent::atomic_notify_all( state_ );
         }
         template<typename F>
         void do_tick( F&& ticker ) &
@@ -151,10 +150,8 @@ namespace pace {
               static_cast<MostDerived*>( this )->on_awaken();
               state_.store( Phase::Awake, std::memory_order_relaxed );
 
-              auto guard = utils::make_scope_fail( [this]() noexcept {
-                state_.store( Phase::Stop, std::memory_order_relaxed );
-                concurrent::atomic_notify_all( state_ );
-              } );
+              auto guard = utils::make_scope_fail(
+                [this]() noexcept { state_.store( Phase::Stop, std::memory_order_relaxed ); } );
               this->do_boot();
             }
           }
@@ -208,18 +205,6 @@ namespace pace {
           std::lock_guard<std::mutex> lock { mtx_ };
           do_reset<true>();
           PACE__ASSERT( active() == false );
-        }
-
-        // Wait until the bar is Stop.
-        void wait() const noexcept
-        {
-#ifdef __cpp_lib_atomic_wait
-          for ( auto status = state_.load( std::memory_order_relaxed ); status != Phase::Stop;
-                status      = state_.load( std::memory_order_relaxed ) )
-            state_.wait( status, std::memory_order_relaxed );
-#else
-          details::concurrent::spin_wait( [this]() noexcept { return !active(); } );
-#endif
         }
 
         PACE__FORCEINLINE Soul& config() & noexcept { return config_; }

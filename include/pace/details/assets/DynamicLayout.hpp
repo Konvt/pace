@@ -166,7 +166,6 @@ namespace pace {
           }
           items_.clear();
           state_.store( Phase::Stop, std::memory_order_relaxed );
-          concurrent::atomic_notify_all( state_ );
         }
 
       public:
@@ -235,7 +234,6 @@ namespace pace {
               state_.store( Phase::Stop, std::memory_order_relaxed );
               executor.dismiss();
               items_.clear();
-              concurrent::atomic_notify_all( state_ );
             } );
             items_.emplace_back( item );
             executor.template activate<Mode>();
@@ -271,7 +269,6 @@ namespace pace {
             lock2.unlock();
             state_.store( Phase::Stop, std::memory_order_relaxed );
             executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().release(); } );
-            concurrent::atomic_notify_all( state_ );
           }
         }
 
@@ -282,18 +279,6 @@ namespace pace {
         {
           concurrent::SharedLock<concurrent::SharedMutex> lock { res_mtx_ };
           return items_.size();
-        }
-
-        void wait() const noexcept
-        {
-#ifdef __cpp_lib_atomic_wait
-          for ( auto status = state_.load( std::memory_order_relaxed ); status != Phase::Stop;
-                status      = state_.load( std::memory_order_relaxed ) )
-            state_.wait( status, std::memory_order_relaxed );
-#else
-          details::concurrent::spin_wait(
-            [this]() noexcept { return state_.load( std::memory_order_relaxed ) == Phase::Stop; } );
-#endif
         }
       };
     } // namespace assets

@@ -28,13 +28,12 @@ namespace pace {
 #endif
         }
 
-        template<template<typename...> class... Elements>
-        typename std::enable_if<sizeof...( Elements ) == 0>::type render_each(
-          io::CharPipeline&,
-          const Parameter& ) const noexcept
+        template<template<typename...> class... Es>
+        typename std::enable_if<( sizeof...( Es ) == 0 )>::type render_each( io::CharPipeline&,
+                                                                             const Parameter& ) const noexcept
         {}
         template<template<typename...> class Element, template<typename...> class... Elements>
-        void render_each( io::CharPipeline& pipeline, const Parameter& params ) const noexcept
+        void render_each( io::CharPipeline& pipeline, const Parameter& params ) const
         {
           // Before the first element and the last element, we do not set a divider.
           if ( this->projection_.test( traits::IndexIn<Element, Facades...>::value ) ) {

@@ -71,9 +71,6 @@ namespace pace {
         core_->kill();
     }
 
-    // Wait until the indicator is Stop.
-    void wait() const noexcept { core_->wait(); }
-
     template<typename Config>
     PACE__NODISCARD auto insert( prefab::BasicBar<Config, Sink, Mode, Zone>&& bar )
 #ifdef __cpp_concepts

@@ -65,5 +65,4 @@ int main()
   for ( auto& td : pool )
     td.join();
   bar.at<2>().reset();
-  bar.wait();
 }

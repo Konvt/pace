@@ -87,8 +87,6 @@ namespace pace {
     // Returns the number of progress bars which is running.
     PACE__NODISCARD PACE__FORCEINLINE details::types::Size active_count() const noexcept
     { return package_.online_count(); }
-    // Wait for all progress bars to stop.
-    void wait() const noexcept { package_.wait(); }
 
     template<details::types::Size Pos>
     PACE__FORCEINLINE PACE__CXX14_CNSTXPR BarAt_t<Pos>& at() & noexcept
