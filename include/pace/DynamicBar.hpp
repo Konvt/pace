@@ -16,9 +16,10 @@ namespace pace {
     {
       if ( !initr_.test( std::memory_order_relaxed ) ) {
         std::lock_guard<details::concurrent::SharedMutex> lock { mtx_ };
-        if ( !initr_.test_and_set( std::memory_order_relaxed ) ) {
+        if ( !initr_.test( std::memory_order_relaxed ) ) {
           PACE__ASSERT( core_ == nullptr );
           core_ = std::make_shared<Context>();
+          initr_.test_and_set( std::memory_order_release );
         }
       }
     }

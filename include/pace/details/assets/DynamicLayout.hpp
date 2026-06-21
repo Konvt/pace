@@ -243,7 +243,10 @@ namespace pace {
               eliminate();
               items_.emplace_back( item );
             }
-            executor.template trigger<Mode>();
+            if PACE__CXX17_CNSTXPR ( Mode == Policy::Sync )
+              executor.template commit<Mode>();
+            else
+              executor.template trigger<Mode>();
           }
         }
         void pop( const Indicator* item, bool forced = false ) noexcept

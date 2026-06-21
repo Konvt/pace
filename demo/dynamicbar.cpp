@@ -9,7 +9,7 @@ int main()
 {
   pace::DynamicBar<> dbar;
 
-  auto /* std::unique<BarType> */ bar1 = dbar.insert<pace::ProgressBar<>>();
+  auto /* std::unique_ptr<BarType> */ bar1 = dbar.insert<pace::ProgressBar<>>();
   auto bar2 =
     dbar.insert( pace::config::Line( pace::option::Prefix( "No.2" ), pace::option::Quota( 8000 ) ) );
 
