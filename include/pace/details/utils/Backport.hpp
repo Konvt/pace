@@ -129,7 +129,9 @@ namespace pace {
 
       // The `std::invoke` in MSVC will result in a hard compilation error when used in SFINAE.
       // Therefore, we need to wait for support for std::is_invocable.
-#if defined( __cpp_lib_invoke ) && ( !defined( _MSC_VER ) || defined( __cpp_lib_is_invocable ) )
+#if defined( __cpp_lib_invoke )                                         \
+  && ( !( defined( _MSVC_STL_VERSION ) || defined( _MSVC_STL_UPDATE ) ) \
+       || defined( __cpp_lib_is_invocable ) )
       using std::invoke;
 #else
       template<typename C, typename MemFn, typename Object, typename... Args>
