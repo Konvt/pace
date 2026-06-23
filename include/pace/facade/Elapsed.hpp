@@ -2,12 +2,11 @@
 #define PACE_ELAPSED
 
 #include "../details/aspects/Entailment.hpp"
-#include "../details/aspects/Timer.hpp"
+#include "../details/aspects/TimerField.hpp"
 #include "../details/behaviors/Indeterminate.hpp"
 #include "../details/behaviors/Plain.hpp"
 #include "../details/behaviors/Temporal.hpp"
 #include "../details/render/Parameter.hpp"
-#include "../details/traits/C3.hpp"
 #include "../details/traits/TypeSet.hpp"
 #include "../details/utils/Util.hpp"
 #include <numeric>
@@ -50,17 +49,37 @@ namespace pace {
      *   Thrown if any input string fails UTF-8 validation or the array size mismatches.
      *   Thrown also if input string is not a valid format string.
      */
-    struct ElapsedFormat : PACE__DERIVING_OPTION3( ElapsedFormat, details::charcodes::U8Raw, _fmt_str );
+    struct ElapsedFormat : public details::wrappers::OptionPacket<std::vector<details::aspects::TimerField>> {
+    private:
+      using Field = details::aspects::TimerField;
+
+    public:
+      PACE__CXX23_CNSTXPR ElapsedFormat() = default;
+      PACE__CXX20_CNSTXPR ElapsedFormat( details::charcodes::StringView _fmt_str ) noexcept
+        : details::wrappers::OptionPacket<std::vector<Field>>( Field::parse( _fmt_str ) )
+      {}
+    };
   } // namespace option
 
   namespace facade {
     template<typename Base, typename Derived>
     class Elapsed : public Base {
-      friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Elapsed& self, option::ElapsedFormat&& val )
-      { self.elapsed_parser( val.value() ); }
+      using Field = details::aspects::TimerField;
+      using Token = details::aspects::TimerToken;
 
-      using Field = typename Base::TimerField;
-      using Token = typename Base::TimerToken;
+      friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Elapsed& self, option::ElapsedFormat&& val )
+      {
+        self.show_hour_   = false;
+        self.show_minute_ = false;
+        self.fmt_ir_      = std::move( val.value() );
+        std::for_each( self.fmt_ir_.cbegin(), self.fmt_ir_.cend(), [&]( const Field& field ) noexcept {
+          switch ( field.token() ) {
+          case Token::Hour:   self.show_hour_ = true; break;
+          case Token::Minute: self.show_minute_ = true; break;
+          default:            break;
+          }
+        } );
+      }
 
       PACE__NODISCARD static PACE__FORCEINLINE constexpr details::types::Char overflow_char() noexcept
       { return '#'; }
@@ -70,20 +89,6 @@ namespace pace {
       std::vector<Field> fmt_ir_;
       bool show_hour_   : 1;
       bool show_minute_ : 1;
-
-      void elapsed_parser( details::charcodes::StringView fmt_str )
-      {
-        fmt_ir_      = Base::parse_timer_fmt( fmt_str );
-        show_hour_   = false;
-        show_minute_ = false;
-        std::for_each( fmt_ir_.cbegin(), fmt_ir_.cend(), [&]( const Field& field ) noexcept {
-          switch ( field.token() ) {
-          case Token::Hour:   show_hour_ = true; break;
-          case Token::Minute: show_minute_ = true; break;
-          default:            break;
-          }
-        } );
-      }
 
     protected:
       details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
@@ -176,8 +181,7 @@ namespace pace {
     public:
 #define PACE__METHOD( ParamName, ReturnType )                               \
   std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ }; \
-  details::charcodes::U8Raw::text_width( ParamName ); /* ensure is u8 str*/ \
-  elapsed_parser( ParamName );                                              \
+  unpack( *this, option::ElapsedFormat( ParamName ) );                      \
   return static_cast<ReturnType>( *this )
 
       /**
@@ -196,10 +200,11 @@ namespace pace {
 
 #undef PACE__METHOD
 #ifdef __cpp_lib_char8_t
-# define PACE__METHOD( ParamName, ReturnType )                                                  \
-   std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };                    \
-   elapsed_parser(                                                                              \
-     { reinterpret_cast<const details::types::Char*>( ParamName.data() ), ParamName.size() } ); \
+# define PACE__METHOD( ParamName, ReturnType )                                                            \
+   std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };                              \
+   unpack( *this,                                                                                         \
+           option::ElapsedFormat(                                                                         \
+             { reinterpret_cast<const details::types::Char*>( ParamName.data() ), ParamName.size() } ) ); \
    return static_cast<ReturnType>( *this )
 
       Derived& elapsed_format( details::charcodes::U8StringView _fmt_str ) &
@@ -223,8 +228,6 @@ namespace pace {
       }
     };
   } // namespace facade
-
-  PACE__INHERIT_REGISTER( facade::Elapsed, details::aspects::Timer );
 
   PACE__OPTION_REGISTER( facade::Elapsed, option::ElapsedFormat );
 

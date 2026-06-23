@@ -3,7 +3,7 @@
 
 #include "../details/aspects/Capacity.hpp"
 #include "../details/aspects/Entailment.hpp"
-#include "../details/aspects/Timer.hpp"
+#include "../details/aspects/TimerField.hpp"
 #include "../details/behaviors/Incremental.hpp"
 #include "../details/behaviors/Indeterminate.hpp"
 #include "../details/behaviors/Plain.hpp"
@@ -51,17 +51,37 @@ namespace pace {
      *   Thrown if any input string fails UTF-8 validation or the array size mismatches.
      *   Thrown also if input string is not a valid format string.
      */
-    struct ETAFormat : PACE__DERIVING_OPTION3( ETAFormat, details::charcodes::U8Raw, _fmt_str );
+    struct ETAFormat : public details::wrappers::OptionPacket<std::vector<details::aspects::TimerField>> {
+    private:
+      using Field = details::aspects::TimerField;
+
+    public:
+      PACE__CXX23_CNSTXPR ETAFormat() = default;
+      PACE__CXX20_CNSTXPR ETAFormat( details::charcodes::StringView _fmt_str ) noexcept
+        : details::wrappers::OptionPacket<std::vector<Field>>( Field::parse( _fmt_str ) )
+      {}
+    };
   } // namespace option
 
   namespace facade {
     template<typename Base, typename Derived>
     class ETA : public Base {
-      friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( ETA& self, option::ETAFormat&& val )
-      { self.eta_parser( val.value() ); }
+      using Field = details::aspects::TimerField;
+      using Token = details::aspects::TimerToken;
 
-      using Field = typename Base::TimerField;
-      using Token = typename Base::TimerToken;
+      friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( ETA& self, option::ETAFormat&& val )
+      {
+        self.show_hour_   = false;
+        self.show_minute_ = false;
+        self.fmt_ir_      = std::move( val.value() );
+        std::for_each( self.fmt_ir_.cbegin(), self.fmt_ir_.cend(), [&]( const Field& field ) noexcept {
+          switch ( field.token() ) {
+          case Token::Hour:   self.show_hour_ = true; break;
+          case Token::Minute: self.show_minute_ = true; break;
+          default:            break;
+          }
+        } );
+      }
 
       PACE__NODISCARD static PACE__FORCEINLINE constexpr details::types::Char overflow_char() noexcept
       { return '#'; }
@@ -71,20 +91,6 @@ namespace pace {
       std::vector<Field> fmt_ir_;
       bool show_hour_   : 1;
       bool show_minute_ : 1;
-
-      void eta_parser( details::charcodes::StringView fmt_str )
-      {
-        fmt_ir_      = Base::parse_timer_fmt( fmt_str );
-        show_hour_   = false;
-        show_minute_ = false;
-        std::for_each( fmt_ir_.cbegin(), fmt_ir_.cend(), [&]( const Field& field ) noexcept {
-          switch ( field.token() ) {
-          case Token::Hour:   show_hour_ = true; break;
-          case Token::Minute: show_minute_ = true; break;
-          default:            break;
-          }
-        } );
-      }
 
     protected:
       details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
@@ -197,8 +203,7 @@ namespace pace {
     public:
 #define PACE__METHOD( ParamName, ReturnType )                               \
   std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ }; \
-  details::charcodes::U8Raw::text_width( ParamName ); /* ensure is u8 str*/ \
-  eta_parser( ParamName );                                                  \
+  unpack( *this, option::ETAFormat( ParamName ) );                          \
   return static_cast<ReturnType>( *this )
 
       /**
@@ -219,7 +224,9 @@ namespace pace {
 #ifdef __cpp_lib_char8_t
 # define PACE__METHOD( ParamName, ReturnType )                                                            \
    std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };                              \
-   eta_parser( { reinterpret_cast<const details::types::Char*>( ParamName.data() ), ParamName.size() } ); \
+   unpack( *this,                                                                                         \
+           option::ETAFormat(                                                                             \
+             { reinterpret_cast<const details::types::Char*>( ParamName.data() ), ParamName.size() } ) ); \
    return static_cast<ReturnType>( *this )
 
       Derived& eta_format( details::charcodes::U8StringView _fmt_str ) &
@@ -244,7 +251,7 @@ namespace pace {
     };
   } // namespace facade
 
-  PACE__INHERIT_REGISTER( facade::ETA, details::aspects::Timer, details::aspects::Capacity );
+  PACE__INHERIT_REGISTER( facade::ETA, details::aspects::Capacity );
 
   PACE__OPTION_REGISTER( facade::ETA, option::ETAFormat );
 

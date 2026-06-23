@@ -22,10 +22,12 @@ namespace pace {
           : data_ { std::move( data ) }
         {}
 
-        constexpr OptionPacket( OptionPacket&& )                        = default;
-        PACE__CXX14_CNSTXPR OptionPacket& operator=( OptionPacket&& ) & = default;
+        constexpr OptionPacket( const OptionPacket& )                        = default;
+        PACE__CXX14_CNSTXPR OptionPacket& operator=( const OptionPacket& ) & = default;
+        constexpr OptionPacket( OptionPacket&& )                             = default;
+        PACE__CXX14_CNSTXPR OptionPacket& operator=( OptionPacket&& ) &      = default;
         // Intentional non-virtual destructors.
-        PACE__CXX20_CNSTXPR ~OptionPacket()                             = default;
+        PACE__CXX20_CNSTXPR ~OptionPacket()                                  = default;
 
       public:
         PACE__CXX14_CNSTXPR T& value() & noexcept { return data_; }

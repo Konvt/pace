@@ -41,20 +41,34 @@ namespace pace {
   PACE__PROVIDE_FOR( config::Flow, option::Ending, "]" );
   PACE__PROVIDE_FOR( config::Flow, option::Filler, " " );
   PACE__PROVIDE_FOR( config::Flow, option::Divider, " | " );
-  PACE__PROVIDE_FOR( config::Flow, option::ElapsedFormat, "+%H:%M:%S" );
-  PACE__PROVIDE_FOR( config::Flow, option::ETAFormat, "-%H:%M:%S" );
   PACE__PROVIDE_FOR( config::Flow, option::InfoForecolor, Color::Cyan );
   template<>
-  struct pace::config::ProvideFor<config::Flow, option::Projection> {
+  struct config::ProvideFor<config::Flow, option::ElapsedFormat> {
+    static option::ElapsedFormat provide()
+    {
+      static auto cached_option = option::ElapsedFormat( "+%H:%M:%S" );
+      return cached_option;
+    }
+  };
+  template<>
+  struct config::ProvideFor<config::Flow, option::ETAFormat> {
+    static option::ETAFormat provide()
+    {
+      static auto cached_option = option::ETAFormat( "-%H:%M:%S" );
+      return cached_option;
+    }
+  };
+  template<>
+  struct config::ProvideFor<config::Flow, option::Projection> {
     static option::Projection provide()
     { return config::Flow::bake( option::Only<facade::FlowPlot, facade::Elapsed>() ); }
   };
   template<>
-  struct pace::config::ProvideFor<config::Flow, option::Lead> {
+  struct config::ProvideFor<config::Flow, option::Lead> {
     static option::Lead provide() { return { "====" }; }
   };
   template<>
-  struct pace::config::ProvideFor<config::Flow, option::SpeedUnit> {
+  struct config::ProvideFor<config::Flow, option::SpeedUnit> {
     static option::SpeedUnit provide() { return option::SpeedUnit( { "Hz", "kHz", "MHz", "GHz" } ); }
   };
 } // namespace pace

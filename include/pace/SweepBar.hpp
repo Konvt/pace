@@ -40,20 +40,34 @@ namespace pace {
   PACE__PROVIDE_FOR( config::Sweep, option::Ending, "]" );
   PACE__PROVIDE_FOR( config::Sweep, option::Filler, "-" );
   PACE__PROVIDE_FOR( config::Sweep, option::Divider, " | " );
-  PACE__PROVIDE_FOR( config::Sweep, option::ElapsedFormat, "+%H:%M:%S" );
-  PACE__PROVIDE_FOR( config::Sweep, option::ETAFormat, "-%H:%M:%S" );
   PACE__PROVIDE_FOR( config::Sweep, option::InfoForecolor, Color::Cyan );
   template<>
-  struct pace::config::ProvideFor<config::Sweep, option::Projection> {
+  struct config::ProvideFor<config::Sweep, option::ElapsedFormat> {
+    static option::ElapsedFormat provide()
+    {
+      static auto cached_option = option::ElapsedFormat( "+%H:%M:%S" );
+      return cached_option;
+    }
+  };
+  template<>
+  struct config::ProvideFor<config::Sweep, option::ETAFormat> {
+    static option::ETAFormat provide()
+    {
+      static auto cached_option = option::ETAFormat( "-%H:%M:%S" );
+      return cached_option;
+    }
+  };
+  template<>
+  struct config::ProvideFor<config::Sweep, option::Projection> {
     static option::Projection provide()
     { return config::Sweep::bake( option::Only<facade::SweepPlot, facade::Elapsed>() ); }
   };
   template<>
-  struct pace::config::ProvideFor<config::Sweep, option::Lead> {
+  struct config::ProvideFor<config::Sweep, option::Lead> {
     static option::Lead provide() { return { "<=>" }; }
   };
   template<>
-  struct pace::config::ProvideFor<config::Sweep, option::SpeedUnit> {
+  struct config::ProvideFor<config::Sweep, option::SpeedUnit> {
     static option::SpeedUnit provide() { return option::SpeedUnit( { "Hz", "kHz", "MHz", "GHz" } ); }
   };
 } // namespace pace
