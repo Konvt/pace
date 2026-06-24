@@ -35,7 +35,7 @@ namespace pace {
         };
 
         template<typename T>
-        using Inlinable = traits::AllOf<
+        using Inlinable = traits::all_of<
           std::is_nothrow_move_constructible<T>,
           traits::BoolConstant<( sizeof( AnyFn::sso_ ) >= sizeof( T ) && alignof( AnyFn ) >= alignof( T ) )>>;
 
@@ -264,12 +264,12 @@ namespace pace {
 
         constexpr UniqueFunction( std::nullptr_t ) noexcept : UniqueFunction() {}
         template<typename F,
-                 typename = typename std::enable_if<traits::AllOf<
+                 typename = typename std::enable_if<traits::all_of<
                    // It's so strange that even if we have a no-template overload here,
                    // using an earlier standard (c++14) in msvc still causes compile error
                    // because the compiler attempts to instantiate the template version with std::nullptr_t.
                    // Therefore we need to add a SFINAE below to prevent the instantiation.
-                   traits::Not<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
+                   traits::neg<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
                    std::is_constructible<typename std::decay<F>::type, F>,
                    traits::is_invocable_r<R, F, Args...>>::value>::type>
         UniqueFunction( F&& fn ) noexcept( Base::template Inlinable<typename std::decay<F>::type>::value )
@@ -281,9 +281,9 @@ namespace pace {
         // Therefore, we do not provide an overloaded constructor for this type here.
         template<typename F>
         PACE__CXX14_CNSTXPR typename std::enable_if<
-          traits::AllOf<traits::Not<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
-                        std::is_constructible<typename std::decay<F>::type, F>,
-                        traits::is_invocable_r<R, typename Base::template Fn_t<F>, Args...>>::value,
+          traits::all_of<traits::neg<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
+                         std::is_constructible<typename std::decay<F>::type, F>,
+                         traits::is_invocable_r<R, typename Base::template Fn_t<F>, Args...>>::value,
           UniqueFunction&>::type
           operator=( F&& fn ) & noexcept( Base::template Inlinable<typename std::decay<F>::type>::value )
         {

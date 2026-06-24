@@ -77,11 +77,11 @@ namespace pace {
         PACE__CXX20_CNSTXPR Prefix( traits::TypeSet<Options...> tag ) : Base( tag )
         {
           using OptionSet = traits::TypeSet<Options...>;
-          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Prefix>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::Prefix>::value )
             unpack( *this, config::provide_for<Derived, option::Prefix>() );
-          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::PrefixForecolor>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::PrefixForecolor>::value )
             unpack( *this, config::provide_for<Derived, option::PrefixForecolor>() );
-          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::PrefixBackcolor>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::PrefixBackcolor>::value )
             unpack( *this, config::provide_for<Derived, option::PrefixBackcolor>() );
         }
 
@@ -160,11 +160,11 @@ namespace pace {
         PACE__CXX14_CNSTXPR Postfix( traits::TypeSet<Options...> tag ) : Base( tag )
         {
           using OptionSet = traits::TypeSet<Options...>;
-          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Postfix>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::Postfix>::value )
             unpack( *this, config::provide_for<Derived, option::Postfix>() );
-          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::PostfixForecolor>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::PostfixForecolor>::value )
             unpack( *this, config::provide_for<Derived, option::PostfixForecolor>() );
-          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::PostfixBackcolor>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::PostfixBackcolor>::value )
             unpack( *this, config::provide_for<Derived, option::PostfixBackcolor>() );
         }
 

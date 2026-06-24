@@ -1266,7 +1266,7 @@ pace::iterate<pace::config::Block, pace::Channel::Stderr, pace::Policy::Sync>( a
 ## 模块化组件
 pace 将进度条拆分为三个部分：外观组件 `pace::facade`，进度条对象行为 `pace::details::behaviors`，以及支撑外观组件实现的功能组件 `pace::details::aspects`。
 
-这三个部分会使用多个注册结构联系到一起：进度条对象行为组件通过 `pace::details::traits::InheritOrder` 结构声明不同功能之间的依赖关系；功能组件同样通过同一个结构声明不同功能组件的依赖关系；外观组件也通过该结构声明对功能组件的依赖关系，并通过 `pace::details::aspects::EntailOf` 结构声明外观组件对进度条对象行为组件的依赖关系。
+这三个部分会使用多个注册结构联系到一起：进度条对象行为组件通过 `pace::details::traits::InheritOrder` 结构声明不同功能之间的依赖关系；功能组件同样通过同一个结构声明不同功能组件的依赖关系；外观组件也通过该结构声明对功能组件的依赖关系，并通过 `pace::details::aspects::EntailOn` 结构声明外观组件对进度条对象行为组件的依赖关系。
 
 `pace::prefab::BasicConfig` 的模板参数能接收多个外观组件，并且会使用某个依赖解析算法收集外观组件的功能组件依赖关系，得到目标配置类型。
 
@@ -1441,7 +1441,7 @@ struct pace::details::traits::InheritOrder<Clock> {
 };
 
 template<>
-struct pace::details::aspects::EntailOf<Clock> {
+struct pace::details::aspects::EntailOn<Clock> {
   // 如果外观组件不要求必须配置任务数量，那么只需要声明对这两个类型的依赖
   // 否则必须声明对于 pace::details::behaviors::Determinate 的依赖
   // 而且若外观组件需要依赖帧计数器，则应该声明对于 pace::details::behaviors::Fancy 的依赖
@@ -1494,11 +1494,11 @@ int main()
 
 而且如果有实际需求，完全可以另起炉灶编写一个不同的 `BasicConfig`，或者提供某些偏特化实现；只需要遵循原来 `BasicConfig` 定义的接口即可。
 
-但是不同的是 `pace::prefab::BasicBar` 并不支持重写，首先是因为 `pace::prefab::BasicBar` 遵循最小依赖原则，它不关心配置类型的实现、也不关心配置类型有什么数据，更不关心自己继承自哪些 `pace::prefab::behaviors`，且只收集 `pace::details::aspects::EntailOf` 的依赖信息并借助解析依赖算法构造一个基类，重写它不会有任何收益。
+但是不同的是 `pace::prefab::BasicBar` 并不支持重写，首先是因为 `pace::prefab::BasicBar` 遵循最小依赖原则，它不关心配置类型的实现、也不关心配置类型有什么数据，更不关心自己继承自哪些 `pace::prefab::behaviors`，且只收集 `pace::details::aspects::EntailOn` 的依赖信息并借助解析依赖算法构造一个基类，重写它不会有任何收益。
 
 其次 `pace::MultiBar` 和 `pace::DynamicBar` 显式依赖了 `pace::prefab::BasicBar` 的名称，重写新的 `BasicBar` 会无法接入现有的多进度条渲染体系。
 
-虽然 `pace::prefab::behaviors` 的组件也是可替换重写的，但这必须建立在实现了 `pace::MultiBar` 和 `pace::DynamicBar` 所依赖的内部接口之上，而且必须提供对于 `pace::details::aspects::EntailOf` 的特化支持。
+虽然 `pace::prefab::behaviors` 的组件也是可替换重写的，但这必须建立在实现了 `pace::MultiBar` 和 `pace::DynamicBar` 所依赖的内部接口之上，而且必须提供对于 `pace::details::aspects::EntailOn` 的特化支持。
 
 # 设计说明
 ## 断言检查

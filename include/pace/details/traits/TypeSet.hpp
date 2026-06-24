@@ -16,64 +16,63 @@ namespace pace {
       struct TypeSet : TypeList<Ts>... {};
 
       template<typename... Es, typename T>
-      struct TpContain<TypeSet<Es...>, T> : std::is_base_of<TypeList<T>, TypeSet<Es...>> {};
+      struct contains_tp<TypeSet<Es...>, T> : std::is_base_of<TypeList<T>, TypeSet<Es...>> {};
 
       template<typename... Es, typename T>
-      struct TpAppend<TypeSet<Es...>, T> {
+      struct append_tp<TypeSet<Es...>, T> {
       private:
         template<bool Cond, typename NewOne>
-        struct _select;
+        struct select : Identity<TypeSet<Es...>> {};
         template<typename NewOne>
-        struct _select<true, NewOne> : Identity<TypeSet<Es...>> {};
-        template<typename NewOne>
-        struct _select<false, NewOne> : Identity<TypeSet<Es..., NewOne>> {};
+        struct select<false, NewOne> : Identity<TypeSet<Es..., NewOne>> {};
 
       public:
-        using type = typename _select<TpContain<TypeSet<Es...>, T>::value, T>::type;
+        using type = typename select<contains_tp<TypeSet<Es...>, T>::value, T>::type;
       };
 
       template<typename Element>
-      struct TpRemove<TypeSet<>, Element> : Identity<TypeSet<>> {};
+      struct remove_tp<TypeSet<>, Element> : Identity<TypeSet<>> {};
       template<typename... Tail, typename Element>
-      struct TpRemove<TypeSet<Element, Tail...>, Element> : Identity<TypeSet<Tail...>> {};
+      struct remove_tp<TypeSet<Element, Tail...>, Element> : Identity<TypeSet<Tail...>> {};
 #if PACE__FAST_TYPEAT
       template<typename... Es, typename Element>
-      struct TpRemove<TypeSet<Es...>, Element> {
+      struct remove_tp<TypeSet<Es...>, Element> {
       private:
         template<typename Removed, typename Another>
-        struct Helper;
+        struct helper;
         template<typename... Head, typename... Tail>
-        struct Helper<TypeSet<Head...>, TypeSet<Tail...>> : Identity<TypeSet<Head..., Tail...>> {};
+        struct helper<TypeSet<Head...>, TypeSet<Tail...>> : Identity<TypeSet<Head..., Tail...>> {};
 
-        using Left  = Split_l<TypeSet<Es...>>;
-        using Right = Split_r<TypeSet<Es...>>;
+        using Left  = split_l<TypeSet<Es...>>;
+        using Right = split_r<TypeSet<Es...>>;
 
       public:
-        using type = typename Helper<
-          TpRemove_t<typename std::conditional<TpContain<Left, Element>::value, Left, Right>::type, Element>,
-          typename std::conditional<TpContain<Left, Element>::value, Right, Left>::type>::type;
+        using type = typename helper<
+          remove_tp_t<typename std::conditional<contains_tp<Left, Element>::value, Left, Right>::type,
+                      Element>,
+          typename std::conditional<contains_tp<Left, Element>::value, Right, Left>::type>::type;
       };
 #else
       template<typename Head, typename... Tail, typename Element>
-      struct TpRemove<TypeSet<Head, Tail...>, Element>
-        : Identity<TpPrepend_t<TpRemove_t<TypeSet<Tail...>, Element>, Head>> {};
+      struct remove_tp<TypeSet<Head, Tail...>, Element>
+        : Identity<prepend_tp_t<remove_tp_t<TypeSet<Tail...>, Element>, Head>> {};
 #endif
 
       template<typename... Es, template<typename...> class Collection>
-      struct Combine<TypeSet<Es...>, Collection<>> : Identity<TypeSet<Es...>> {};
+      struct combine<TypeSet<Es...>, Collection<>> : Identity<TypeSet<Es...>> {};
       template<typename... Es, template<typename...> class Collection, typename T, typename... Ts>
-      struct Combine<TypeSet<Es...>, Collection<T, Ts...>>
-        : Combine<TpAppend_t<TypeSet<Es...>, T>, Collection<Ts...>> {};
+      struct combine<TypeSet<Es...>, Collection<T, Ts...>>
+        : combine<append_tp_t<TypeSet<Es...>, T>, Collection<Ts...>> {};
 
-      template<typename Visited, typename List>
-      struct _impl_distinct;
+      template<bool Cond, typename Visited, typename... Elements>
+      struct _impl_is_unique_tp : std::false_type {};
       template<typename Visited>
-      struct _impl_distinct<Visited, TypeList<>> : std::true_type {};
+      struct _impl_is_unique_tp<false, Visited> : std::true_type {};
       template<typename Visited, typename U, typename... Us>
-      struct _impl_distinct<Visited, TypeList<U, Us...>>
-        : AllOf<Not<TpContain<Visited, U>>, _impl_distinct<TpAppend_t<Visited, U>, TypeList<Us...>>> {};
+      struct _impl_is_unique_tp<false, Visited, U, Us...>
+        : _impl_is_unique_tp<contains_tp<Visited, U>::value, append_tp_t<Visited, U>, Us...> {};
       template<typename... Elements>
-      struct Distinct<TypeList<Elements...>> : _impl_distinct<TypeSet<>, TypeList<Elements...>> {};
+      struct is_unique<TypeList<Elements...>> : _impl_is_unique_tp<false, TypeSet<>, Elements...> {};
     } // namespace traits
   } // namespace details
 } // namespace pace

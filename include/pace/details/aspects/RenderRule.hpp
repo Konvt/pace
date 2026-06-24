@@ -108,9 +108,9 @@ namespace pace {
 
         template<typename Op>
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
-          typename std::enable_if<traits::AnyOf<std::is_same<Op, console::Forecolor>,
-                                                std::is_same<Op, console::Backcolor>,
-                                                std::is_same<Op, console::Dualcolor>>::value,
+          typename std::enable_if<traits::any_of<std::is_same<Op, console::Forecolor>,
+                                                 std::is_same<Op, console::Backcolor>,
+                                                 std::is_same<Op, console::Dualcolor>>::value,
                                   wrappers::Brush<Op>>::type
           with_dye( Op rgb, bool style_off ) const
         {
@@ -139,9 +139,9 @@ namespace pace {
 
         template<typename Op>
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR typename std::enable_if<
-          traits::AnyOf<std::is_same<Op, console::Forecolor>,
-                        std::is_same<Op, console::Backcolor>,
-                        std::is_same<Op, console::Dualcolor>>::value,
+          traits::any_of<std::is_same<Op, console::Forecolor>,
+                         std::is_same<Op, console::Backcolor>,
+                         std::is_same<Op, console::Dualcolor>>::value,
           wrappers::Brush<console::Escode, wrappers::Brush<console::Escode, wrappers::Brush<Op>>>>::type
           clear_then_dye( Op rgb, bool style_off ) const
         {
@@ -159,9 +159,9 @@ namespace pace {
         PACE__CXX14_CNSTXPR RenderRule( traits::TypeSet<Options...> tag ) : Base( tag )
         {
           using OptionSet = traits::TypeSet<Options...>;
-          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Colored>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::Colored>::value )
             unpack( *this, config::provide_for<Derived, option::Colored>() );
-          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::FontBold>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::FontBold>::value )
             unpack( *this, config::provide_for<Derived, option::FontBold>() );
         }
 

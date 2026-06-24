@@ -14,14 +14,14 @@ namespace pace {
       template<typename Seq, typename... Bars>
       class StaticLayout;
       template<types::Size... Tags, Channel Sink, Policy Mode, Region Zone, typename... Configs>
-      class StaticLayout<traits::IndexSeq<Tags...>, prefab::BasicBar<Configs, Sink, Mode, Zone>...> final
+      class StaticLayout<traits::IndexSequence<Tags...>, prefab::BasicBar<Configs, Sink, Mode, Zone>...> final
         : public wrappers::TuplePacket<prefab::BasicBar<Configs, Sink, Mode, Zone>, Tags>... {
         static_assert( sizeof...( Tags ) == sizeof...( Configs ), "unexpected type mismatch" );
         static_assert( sizeof...( Configs ) > 0, "the number of progress bars cannot be zero" );
 
         template<types::Size Pos>
-        using ElementAt_t =
-          traits::TypeAt_t<Pos, wrappers::TuplePacket<prefab::BasicBar<Configs, Sink, Mode, Zone>, Tags>...>;
+        using element_at_t =
+          traits::type_at_t<Pos, wrappers::TuplePacket<prefab::BasicBar<Configs, Sink, Mode, Zone>, Tags>...>;
 
         std::atomic<types::Size> alive_cnt_;
         mutable std::mutex mtx_;
@@ -185,9 +185,9 @@ namespace pace {
         }
 
         template<typename Tuple, types::Size... Is>
-        StaticLayout( Tuple&& tup, traits::IndexSeq<Is...> )
+        StaticLayout( Tuple&& tup, traits::IndexSequence<Is...> )
           noexcept( std::tuple_size<typename std::decay<Tuple>::type>::value == sizeof...( Configs ) )
-          : ElementAt_t<Is>( utils::pick_or<Is, ElementAt_t<Is>>( std::forward<Tuple>( tup ) ) )...
+          : element_at_t<Is>( utils::pick_or<Is, element_at_t<Is>>( std::forward<Tuple>( tup ) ) )...
         {
           static_assert( std::tuple_size<typename std::decay<Tuple>::type>::value <= sizeof...( Is ),
                          "unexpected tuple size mismatch" );
@@ -200,20 +200,20 @@ namespace pace {
         // SFINAE is used here to prevent infinite recursive matching of errors.
         template<typename Cfg,
                  typename... Cfgs,
-                 typename = typename std::enable_if<traits::TpStartsWith<
+                 typename = typename std::enable_if<traits::starts_with_tp<
                    traits::TypeList<typename std::decay<Cfg>::type, typename std::decay<Cfgs>::type...>,
                    Configs...>::value>::type>
         StaticLayout( Cfg&& cfg, Cfgs&&... cfgs ) noexcept( sizeof...( Cfgs ) + 1 == sizeof...( Configs ) )
           : StaticLayout( std::forward_as_tuple( std::forward<Cfg>( cfg ), std::forward<Cfgs>( cfgs )... ),
-                          traits::MakeIndexSeq<sizeof...( Cfgs ) + 1>() )
+                          traits::make_index_sequence<sizeof...( Cfgs ) + 1>() )
         {}
         template<typename... Cfgs,
                  typename = typename std::enable_if<
-                   traits::TpStartsWith<traits::TypeList<Cfgs...>, Configs...>::value>::type>
+                   traits::starts_with_tp<traits::TypeList<Cfgs...>, Configs...>::value>::type>
         StaticLayout( prefab::BasicBar<Cfgs, Sink, Mode, Zone>&&... bars )
           noexcept( sizeof...( Cfgs ) == sizeof...( Configs ) )
           : StaticLayout( std::forward_as_tuple( std::move( bars )... ),
-                          traits::MakeIndexSeq<sizeof...( Cfgs )>() )
+                          traits::make_index_sequence<sizeof...( Cfgs )>() )
         {}
         StaticLayout( const StaticLayout& )            = delete;
         StaticLayout& operator=( const StaticLayout& ) = delete;
@@ -238,14 +238,14 @@ namespace pace {
         void shut()
         {
           if ( online() && !details::render::Renderer<Sink>::itself().empty() )
-            (void)std::initializer_list<bool> { ( this->ElementAt_t<Tags>::reset(), false )... };
+            (void)std::initializer_list<bool> { ( this->element_at_t<Tags>::reset(), false )... };
           PACE__ASSERT( alive_cnt_ == 0 );
           PACE__ASSERT( online() == false );
         }
         void kill() noexcept
         {
           if ( online() && !details::render::Renderer<Sink>::itself().empty() )
-            (void)std::initializer_list<bool> { ( this->ElementAt_t<Tags>::abort(), false )... };
+            (void)std::initializer_list<bool> { ( this->element_at_t<Tags>::abort(), false )... };
           PACE__ASSERT( alive_cnt_ == 0 );
           PACE__ASSERT( online() == false );
         }
@@ -262,18 +262,18 @@ namespace pace {
           PACE__ASSERT( online() == false );
           PACE__ASSERT( other.online() == false );
           (void)std::initializer_list<bool> {
-            ( this->ElementAt_t<Tags>::swap( static_cast<ElementAt_t<Tags>&>( other ) ), false )...
+            ( this->element_at_t<Tags>::swap( static_cast<element_at_t<Tags>&>( other ) ), false )...
           };
         }
 
         template<types::Size Pos>
-        PACE__FORCEINLINE PACE__CXX14_CNSTXPR ElementAt_t<Pos>& at() & noexcept
-        { return static_cast<ElementAt_t<Pos>&>( *this ); }
+        PACE__FORCEINLINE PACE__CXX14_CNSTXPR element_at_t<Pos>& at() & noexcept
+        { return static_cast<element_at_t<Pos>&>( *this ); }
         template<types::Size Pos>
-        PACE__FORCEINLINE PACE__CXX14_CNSTXPR const ElementAt_t<Pos>& at() const& noexcept
-        { return static_cast<const ElementAt_t<Pos>&>( *this ); }
+        PACE__FORCEINLINE PACE__CXX14_CNSTXPR const element_at_t<Pos>& at() const& noexcept
+        { return static_cast<const element_at_t<Pos>&>( *this ); }
         template<types::Size Pos>
-        PACE__FORCEINLINE PACE__CXX14_CNSTXPR ElementAt_t<Pos>& at() && noexcept
+        PACE__FORCEINLINE PACE__CXX14_CNSTXPR element_at_t<Pos>& at() && noexcept
         { return std::move( at<Pos>() ); }
       };
     } // namespace assets

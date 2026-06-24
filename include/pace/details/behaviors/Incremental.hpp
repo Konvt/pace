@@ -206,8 +206,8 @@ namespace pace {
         // Visualize unidirectional traversal of a iterator interval defined by parameters.
         template<typename Itr, typename Snt>
         PACE__NODISCARD auto iterate( Itr startpoint, Snt endpoint ) & noexcept(
-          traits::AllOf<std::is_nothrow_move_constructible<Itr>,
-                        std::is_nothrow_move_constructible<Snt>>::value )
+          traits::all_of<std::is_nothrow_move_constructible<Itr>,
+                         std::is_nothrow_move_constructible<Snt>>::value )
 #ifdef __cpp_concepts
           -> slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>, wrappers::MovableRef<Derived>>
           requires traits::is_sized_cursor<Itr, Snt>::value

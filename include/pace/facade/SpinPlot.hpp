@@ -34,7 +34,7 @@ namespace pace {
       }
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR details::types::Size fixed_length() const noexcept
-      { return this->details::traits::BaseOf_t<Base, details::aspects::Frame>::fixed_length(); }
+      { return this->details::traits::base_of_t<Base, details::aspects::Frame>::fixed_length(); }
 
       template<typename... Options>
       constexpr SpinPlot( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )

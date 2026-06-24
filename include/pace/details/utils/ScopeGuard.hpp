@@ -27,7 +27,7 @@ namespace pace {
       template<typename EF>
       class ScpStore<EF,
                      typename std::enable_if<
-                       traits::AllOf<std::is_empty<EF>, traits::Not<traits::is_final<EF>>>::value>::type>
+                       traits::all_of<std::is_empty<EF>, traits::neg<traits::is_final<EF>>>::value>::type>
         : private EF {
       protected:
         template<typename Fn>
@@ -61,13 +61,14 @@ namespace pace {
 
         template<typename Fn,
                  typename = typename std::enable_if<
-                   traits::AllOf<traits::Not<std::is_same<typename std::decay<Fn>::type, ScopeFail>>,
-                                 std::is_constructible<EF, Fn>>::value>::type>
-        explicit ScopeFail( Fn&& fn ) noexcept( traits::AnyOf<std::is_nothrow_constructible<EF, Fn>,
-                                                              std::is_nothrow_constructible<EF, Fn&>>::value )
+                   traits::all_of<traits::neg<std::is_same<typename std::decay<Fn>::type, ScopeFail>>,
+                                  std::is_constructible<EF, Fn>>::value>::type>
+        explicit ScopeFail( Fn&& fn )
+          noexcept( traits::any_of<std::is_nothrow_constructible<EF, Fn>,
+                                   std::is_nothrow_constructible<EF, Fn&>>::value )
         try
-          : Base( traits::AllOf<traits::Not<std::is_lvalue_reference<Fn>>,
-                                std::is_nothrow_constructible<EF, Fn>>(),
+          : Base( traits::all_of<traits::neg<std::is_lvalue_reference<Fn>>,
+                                 std::is_nothrow_constructible<EF, Fn>>(),
                   std::forward<Fn>( fn ) )
           , exceptions_on_entry_ { uncaught_exceptions() } {
         } catch ( ... ) {
@@ -77,10 +78,10 @@ namespace pace {
         }
         template<
           typename Fn = EF,
-          typename    = typename std::enable_if<traits::AnyOf<std::is_nothrow_move_constructible<Fn>,
-                                                              std::is_copy_constructible<Fn>>::value>::type>
-        ScopeFail( ScopeFail&& rhs ) noexcept( traits::AnyOf<std::is_nothrow_move_constructible<EF>,
-                                                             std::is_nothrow_copy_constructible<EF>>::value )
+          typename    = typename std::enable_if<traits::any_of<std::is_nothrow_move_constructible<Fn>,
+                                                               std::is_copy_constructible<Fn>>::value>::type>
+        ScopeFail( ScopeFail&& rhs ) noexcept( traits::any_of<std::is_nothrow_move_constructible<EF>,
+                                                              std::is_nothrow_copy_constructible<EF>>::value )
           : Base( std::is_nothrow_move_constructible<EF>(), std::forward<EF>( rhs.callback() ) )
           , exceptions_on_entry_ { rhs.exceptions_on_entry_ }
         { rhs.release(); }

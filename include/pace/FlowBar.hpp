@@ -46,7 +46,7 @@ namespace pace {
   struct config::ProvideFor<config::Flow, option::ElapsedFormat> {
     static option::ElapsedFormat provide()
     {
-      static auto cached_option = option::ElapsedFormat( "+%H:%M:%S" );
+      static const auto cached_option = option::ElapsedFormat( "+%H:%M:%S" );
       return cached_option;
     }
   };
@@ -54,7 +54,7 @@ namespace pace {
   struct config::ProvideFor<config::Flow, option::ETAFormat> {
     static option::ETAFormat provide()
     {
-      static auto cached_option = option::ETAFormat( "-%H:%M:%S" );
+      static const auto cached_option = option::ETAFormat( "-%H:%M:%S" );
       return cached_option;
     }
   };

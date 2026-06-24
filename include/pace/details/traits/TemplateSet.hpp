@@ -12,55 +12,50 @@ namespace pace {
       struct TemplateSet : TemplateList<Ts>... {};
 
       template<template<typename...> class... Es, template<typename...> class T>
-      struct TmpContain<TemplateSet<Es...>, T> : std::is_base_of<TemplateList<T>, TemplateSet<Es...>> {};
+      struct contains_tmp<TemplateSet<Es...>, T> : std::is_base_of<TemplateList<T>, TemplateSet<Es...>> {};
 
       template<template<typename...> class... Es, template<typename...> class T>
-      struct TmpPrepend<TemplateSet<Es...>, T> {
+      struct prepend_tmp<TemplateSet<Es...>, T> {
       private:
         template<bool Cond, template<typename...> class NewOne>
-        struct _select;
+        struct select : Identity<TemplateSet<Es...>> {};
         template<template<typename...> class NewOne>
-        struct _select<true, NewOne> : Identity<TemplateSet<Es...>> {};
-        template<template<typename...> class NewOne>
-        struct _select<false, NewOne> : Identity<TemplateSet<NewOne, Es...>> {};
+        struct select<false, NewOne> : Identity<TemplateSet<NewOne, Es...>> {};
 
       public:
-        using type = typename _select<TmpContain<TemplateSet<Es...>, T>::value, T>::type;
+        using type = typename select<contains_tmp<TemplateSet<Es...>, T>::value, T>::type;
       };
 
       template<template<typename...> class... Es, template<typename...> class T>
-      struct TmpAppend<TemplateSet<Es...>, T> {
+      struct append_tmp<TemplateSet<Es...>, T> {
       private:
         template<bool Cond, template<typename...> class NewOne>
-        struct _select;
+        struct select : Identity<TemplateSet<Es...>> {};
         template<template<typename...> class NewOne>
-        struct _select<true, NewOne> : Identity<TemplateSet<Es...>> {};
-        template<template<typename...> class NewOne>
-        struct _select<false, NewOne> : Identity<TemplateSet<Es..., NewOne>> {};
+        struct select<false, NewOne> : Identity<TemplateSet<Es..., NewOne>> {};
 
       public:
-        using type = typename _select<TmpContain<TemplateSet<Es...>, T>::value, T>::type;
+        using type = typename select<contains_tmp<TemplateSet<Es...>, T>::value, T>::type;
       };
 
       template<template<typename...> class... Es, template<template<typename...> class...> class Collection>
-      struct Combine<TemplateSet<Es...>, Collection<>> : Identity<TemplateSet<Es...>> {};
+      struct combine<TemplateSet<Es...>, Collection<>> : Identity<TemplateSet<Es...>> {};
       template<template<typename...> class... Es,
                template<template<typename...> class...> class Collection,
                template<typename...> class T,
                template<typename...> class... Ts>
-      struct Combine<TemplateSet<Es...>, Collection<T, Ts...>>
-        : Combine<TmpAppend_t<TemplateSet<Es...>, T>, Collection<Ts...>> {};
+      struct combine<TemplateSet<Es...>, Collection<T, Ts...>>
+        : combine<append_tmp_t<TemplateSet<Es...>, T>, Collection<Ts...>> {};
 
-      template<typename Visited, typename List>
-      struct _impl_distinct;
+      template<bool Cond, typename Visited, template<typename...> class... Elements>
+      struct _impl_is_unique_tmp : std::false_type {};
       template<typename Visited>
-      struct _impl_distinct<Visited, TemplateList<>> : std::true_type {};
+      struct _impl_is_unique_tmp<false, Visited> : std::true_type {};
       template<typename Visited, template<typename...> class U, template<typename...> class... Us>
-      struct _impl_distinct<Visited, TemplateList<U, Us...>>
-        : AllOf<Not<TmpContain<Visited, U>>, _impl_distinct<TmpAppend_t<Visited, U>, TemplateList<Us...>>> {};
+      struct _impl_is_unique_tmp<false, Visited, U, Us...>
+        : _impl_is_unique_tmp<contains_tmp<Visited, U>::value, append_tmp_t<Visited, U>, Us...> {};
       template<template<typename...> class... Elements>
-      struct Distinct<TemplateList<Elements...>>
-        : _impl_distinct<TemplateSet<>, TemplateList<Elements...>> {};
+      struct is_unique<TemplateList<Elements...>> : _impl_is_unique_tmp<false, TemplateSet<>, Elements...> {};
     } // namespace traits
   } // namespace details
 } // namespace pace

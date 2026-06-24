@@ -71,7 +71,7 @@ namespace pace {
       class CoWAllocator<
         Alloc,
         typename std::enable_if<
-          traits::AllOf<std::is_empty<Alloc>, traits::Not<traits::is_final<Alloc>>>::value>::type>
+          traits::all_of<std::is_empty<Alloc>, traits::neg<traits::is_final<Alloc>>>::value>::type>
         : private Alloc {
       protected:
         template<typename... Args,
@@ -207,7 +207,7 @@ namespace pace {
 
         constexpr Pointee* owner() const noexcept { return owner_; }
         PACE__NODISCARD constexpr typename Pointee::size_type offset() const noexcept { return pos_; }
-        constexpr traits::CopyConst_t<Pointee, value_type>* base() const noexcept
+        constexpr traits::copy_const_t<Pointee, value_type>* base() const noexcept
         { return owner_->data() + pos_; }
 
         constexpr reference operator[]( difference_type offset ) const noexcept
@@ -283,12 +283,12 @@ namespace pace {
 #ifdef __cpp_lib_string_view
         template<typename StringViewLike>
         using is_string_view_like =
-          traits::AllOf<std::is_convertible<const StringViewLike&, std::basic_string_view<Char, Traits>>,
-                        traits::Not<std::is_convertible<const StringViewLike&, const Char*>>>;
+          traits::all_of<std::is_convertible<const StringViewLike&, std::basic_string_view<Char, Traits>>,
+                         traits::neg<std::is_convertible<const StringViewLike&, const Char*>>>;
 #endif
 #ifndef __cpp_lib_concepts
         template<typename InputIt>
-        using is_legacy_input_iterator = traits::AllOf<
+        using is_legacy_input_iterator = traits::all_of<
           std::is_base_of<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>,
           std::is_convertible<decltype( std::declval<const InputIt&>() == std::declval<const InputIt&>() ),
                               bool>,
@@ -987,7 +987,7 @@ namespace pace {
           const BasicCoWString& a,
           const std::basic_string<Char, Traits, A>& b ) noexcept
         {
-          return static_cast<traits::ComparisonCategory_t<Traits>>(
+          return static_cast<traits::comparison_category_t<Traits>>(
             a.compare( 0, a.length_, b.data(), b.size() ) <=> 0 );
         }
 #else
@@ -1107,14 +1107,15 @@ namespace pace {
 #else
                  ,
                  typename std::enable_if<
-                   traits::AllOf<std::is_base_of<std::forward_iterator_tag,
-                                                 typename std::iterator_traits<ForwardIt>::iterator_category>,
-                                 std::is_convertible<decltype( std::declval<const ForwardIt&>()
-                                                               == std::declval<const ForwardIt&>() ),
-                                                     bool>,
-                                 std::is_convertible<decltype( std::declval<const ForwardIt&>()
-                                                               != std::declval<const ForwardIt&>() ),
-                                                     bool>>::value,
+                   traits::all_of<
+                     std::is_base_of<std::forward_iterator_tag,
+                                     typename std::iterator_traits<ForwardIt>::iterator_category>,
+                     std::is_convertible<decltype( std::declval<const ForwardIt&>()
+                                                   == std::declval<const ForwardIt&>() ),
+                                         bool>,
+                     std::is_convertible<decltype( std::declval<const ForwardIt&>()
+                                                   != std::declval<const ForwardIt&>() ),
+                                         bool>>::value,
                    bool>::type = 0>
 #endif
         PACE__CXX20_CNSTXPR BasicCoWString( ForwardIt first, ForwardIt last, const Alloc& alloc = Alloc() )
@@ -1221,8 +1222,8 @@ namespace pace {
           Traits::assign( utils::launder_as<Char>( &rhs.as_ )[0], Char() );
         }
         PACE__CXX20_CNSTXPR BasicCoWString( const BasicCoWString& other, const Alloc& alloc )
-          noexcept( traits::AllOf<std::is_nothrow_copy_constructible<Alloc>,
-                                  typename std::allocator_traits<Alloc>::is_always_equal>::value )
+          noexcept( traits::all_of<std::is_nothrow_copy_constructible<Alloc>,
+                                   typename std::allocator_traits<Alloc>::is_always_equal>::value )
           : BasicCoWString( alloc )
         {
           switch ( other.tag_ ) {
@@ -1247,8 +1248,8 @@ namespace pace {
           length_ = other.length_;
         }
         PACE__CXX20_CNSTXPR BasicCoWString( BasicCoWString&& rhs, const Alloc& alloc )
-          noexcept( traits::AllOf<std::is_nothrow_copy_constructible<Alloc>,
-                                  typename std::allocator_traits<Alloc>::is_always_equal>::value )
+          noexcept( traits::all_of<std::is_nothrow_copy_constructible<Alloc>,
+                                   typename std::allocator_traits<Alloc>::is_always_equal>::value )
           : BasicCoWString( alloc )
         {
           switch ( rhs.tag_ ) {
@@ -1374,12 +1375,12 @@ namespace pace {
         PACE__CXX20_CNSTXPR ~BasicCoWString() noexcept { destroy_self(); }
 
         PACE__CXX20_CNSTXPR BasicCoWString& operator=( const BasicCoWString& other ) & noexcept(
-          traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_copy_assignment,
-                        typename std::allocator_traits<Alloc>::is_always_equal>::value )
+          traits::any_of<typename std::allocator_traits<Alloc>::propagate_on_container_copy_assignment,
+                         typename std::allocator_traits<Alloc>::is_always_equal>::value )
         { return assign( other ); }
         PACE__CXX20_CNSTXPR BasicCoWString& operator=( BasicCoWString&& rhs ) & noexcept(
-          traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_move_assignment,
-                        typename std::allocator_traits<Alloc>::is_always_equal>::value )
+          traits::any_of<typename std::allocator_traits<Alloc>::propagate_on_container_move_assignment,
+                         typename std::allocator_traits<Alloc>::is_always_equal>::value )
         { return assign( std::move( rhs ) ); }
         PACE__CXX20_CNSTXPR BasicCoWString& operator=( const_pointer cstr ) & { return assign( cstr ); }
         PACE__CXX20_CNSTXPR BasicCoWString& operator=( Char ch ) & noexcept( small_capacity() >= 1 )
@@ -1395,21 +1396,21 @@ namespace pace {
         BasicCoWString& operator=( std::nullptr_t ) = delete;
 
         PACE__CXX20_CNSTXPR BasicCoWString& assign( const BasicCoWString& other ) & noexcept(
-          traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_copy_assignment,
-                        typename std::allocator_traits<Alloc>::is_always_equal>::value )
+          traits::any_of<typename std::allocator_traits<Alloc>::propagate_on_container_copy_assignment,
+                         typename std::allocator_traits<Alloc>::is_always_equal>::value )
         { // self-assignment without extra parameters is invalid
           PACE__TRUST( this != &other );
           this->CoWCopyAlloc<Alloc, BasicCoWString>::operator=( other );
           propagate_self<
-            traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_copy_assignment,
-                          typename std::allocator_traits<Alloc>::is_always_equal>::value>( other );
+            traits::any_of<typename std::allocator_traits<Alloc>::propagate_on_container_copy_assignment,
+                           typename std::allocator_traits<Alloc>::is_always_equal>::value>( other );
           length_ = other.length_;
           tag_    = other.tag_;
           return *this;
         }
         PACE__CXX20_CNSTXPR BasicCoWString& assign( BasicCoWString&& rhs ) & noexcept(
-          traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_move_assignment,
-                        typename std::allocator_traits<Alloc>::is_always_equal>::value )
+          traits::any_of<typename std::allocator_traits<Alloc>::propagate_on_container_move_assignment,
+                         typename std::allocator_traits<Alloc>::is_always_equal>::value )
         {
           PACE__TRUST( this != &rhs );
           this->CoWMoveAlloc<Alloc, BasicCoWString>::operator=( std::move( rhs ) );
@@ -2595,9 +2596,9 @@ namespace pace {
                                                                    size_type count = npos ) &&
         { return { std::move( *this ), pos, count }; }
 
-        PACE__CXX20_CNSTXPR void swap( BasicCoWString& other )
-          noexcept( traits::AnyOf<typename std::allocator_traits<Alloc>::is_always_equal,
-                                  typename std::allocator_traits<Alloc>::propagate_on_container_swap>::value )
+        PACE__CXX20_CNSTXPR void swap( BasicCoWString& other ) noexcept(
+          traits::any_of<typename std::allocator_traits<Alloc>::is_always_equal,
+                         typename std::allocator_traits<Alloc>::propagate_on_container_swap>::value )
         {
           PACE__TRUST( this != &other );
           this->CoWSwapAlloc<Alloc, BasicCoWString>::swap( other );
@@ -2790,9 +2791,9 @@ namespace pace {
 #ifdef __cpp_lib_three_way_comparison
         PACE__NODISCARD friend constexpr auto operator<=>( const BasicCoWString& a,
                                                            const BasicCoWString& b ) noexcept
-        { return static_cast<traits::ComparisonCategory_t<Traits>>( a.compare( b ) <=> 0 ); }
+        { return static_cast<traits::comparison_category_t<Traits>>( a.compare( b ) <=> 0 ); }
         PACE__NODISCARD friend constexpr auto operator<=>( const BasicCoWString& a, const_pointer b )
-        { return static_cast<traits::ComparisonCategory_t<Traits>>( a.compare( b ) <=> 0 ); }
+        { return static_cast<traits::comparison_category_t<Traits>>( a.compare( b ) <=> 0 ); }
 #else
         PACE__NODISCARD friend constexpr bool operator<( const BasicCoWString& a,
                                                          const BasicCoWString& b ) noexcept

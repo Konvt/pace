@@ -39,7 +39,7 @@ namespace pace {
 #else
       template<typename T, typename U = T>
       PACE__CXX14_CNSTXPR T exchange( T& obj, U&& new_val ) noexcept(
-        traits::AllOf<std::is_nothrow_move_constructible<T>, std::is_nothrow_assignable<T&, U&&>>::value )
+        traits::all_of<std::is_nothrow_move_constructible<T>, std::is_nothrow_assignable<T&, U&&>>::value )
       {
         T old_value = std::move( obj );
         obj         = std::forward<U>( new_val );
@@ -138,17 +138,17 @@ namespace pace {
       PACE__FORCEINLINE constexpr auto invoke( MemFn C::* method, Object&& object, Args&&... args )
         noexcept( noexcept( ( std::forward<Object>( object ).*method )( std::forward<Args>( args )... ) ) ) ->
         typename std::enable_if<
-          traits::AllOf<std::is_member_function_pointer<MemFn C::*>,
-                        traits::AnyOf<std::is_base_of<C, typename std::decay<Object>::type>,
-                                      std::is_same<C, typename std::decay<Object>::type>>>::value,
+          traits::all_of<std::is_member_function_pointer<MemFn C::*>,
+                         traits::any_of<std::is_base_of<C, typename std::decay<Object>::type>,
+                                        std::is_same<C, typename std::decay<Object>::type>>>::value,
           decltype( ( std::forward<Object>( object ).*method )( std::forward<Args>( args )... ) )>::type
       { return ( std::forward<Object>( object ).*method )( std::forward<Args>( args )... ); }
       template<typename C, typename MemFn, typename Object, typename... Args>
       PACE__FORCEINLINE constexpr auto invoke( MemFn C::* method, Object&& object, Args&&... args )
         noexcept( noexcept( ( object.get().*method )( std::forward<Args>( args )... ) ) ) ->
-        typename std::enable_if<traits::AllOf<std::is_member_function_pointer<MemFn C::*>,
-                                              traits::is_instance_of<typename std::decay<Object>::type,
-                                                                     std::reference_wrapper>>::value,
+        typename std::enable_if<traits::all_of<std::is_member_function_pointer<MemFn C::*>,
+                                               traits::is_instance_of<typename std::decay<Object>::type,
+                                                                      std::reference_wrapper>>::value,
                                 decltype( ( object.get().*method )( std::forward<Args>( args )... ) )>::type
       { return ( object.get().*method )( std::forward<Args>( args )... ); }
       template<typename C, typename MemFn, typename Object, typename... Args>
@@ -156,45 +156,45 @@ namespace pace {
         noexcept( noexcept( ( ( *std::forward<Object>( object ) )
                               .*method )( std::forward<Args>( args )... ) ) ) ->
         typename std::enable_if<
-          traits::AllOf<std::is_member_function_pointer<MemFn C::*>,
-                        traits::Not<traits::AnyOf<std::is_base_of<C, typename std::decay<Object>::type>,
-                                                  std::is_same<C, typename std::decay<Object>::type>,
-                                                  traits::is_instance_of<typename std::decay<Object>::type,
-                                                                         std::reference_wrapper>>>>::value,
+          traits::all_of<std::is_member_function_pointer<MemFn C::*>,
+                         traits::neg<traits::any_of<std::is_base_of<C, typename std::decay<Object>::type>,
+                                                    std::is_same<C, typename std::decay<Object>::type>,
+                                                    traits::is_instance_of<typename std::decay<Object>::type,
+                                                                           std::reference_wrapper>>>>::value,
           decltype( ( ( *std::forward<Object>( object ) ).*method )( std::forward<Args>( args )... ) )>::type
       { return ( ( *std::forward<Object>( object ) ).*method )( std::forward<Args>( args )... ); }
       template<typename C, typename MemObj, typename Object>
       PACE__FORCEINLINE constexpr auto invoke( MemObj C::* member, Object&& object ) noexcept ->
         typename std::enable_if<
-          traits::AllOf<std::is_member_object_pointer<MemObj C::*>,
-                        traits::AnyOf<std::is_base_of<C, typename std::decay<Object>::type>,
-                                      std::is_same<C, typename std::decay<Object>::type>>>::value,
+          traits::all_of<std::is_member_object_pointer<MemObj C::*>,
+                         traits::any_of<std::is_base_of<C, typename std::decay<Object>::type>,
+                                        std::is_same<C, typename std::decay<Object>::type>>>::value,
           decltype( std::forward<Object>( object ).*member )>::type
       { return std::forward<Object>( object ).*member; }
       template<typename C, typename MemObj, typename Object>
       PACE__FORCEINLINE constexpr auto invoke( MemObj C::* member, Object&& object ) noexcept ->
-        typename std::enable_if<traits::AllOf<std::is_member_object_pointer<MemObj C::*>,
-                                              traits::is_instance_of<typename std::decay<Object>::type,
-                                                                     std::reference_wrapper>>::value,
+        typename std::enable_if<traits::all_of<std::is_member_object_pointer<MemObj C::*>,
+                                               traits::is_instance_of<typename std::decay<Object>::type,
+                                                                      std::reference_wrapper>>::value,
                                 decltype( object.get().*member )>::type
       { return object.get().*member; }
       template<typename C, typename MemObj, typename Object>
       PACE__FORCEINLINE constexpr auto invoke( MemObj C::* member, Object&& object )
         noexcept( noexcept( ( *std::forward<Object>( object ) ).*member ) ) -> typename std::enable_if<
-          traits::AllOf<std::is_member_object_pointer<MemObj C::*>,
-                        traits::Not<traits::AnyOf<std::is_base_of<C, typename std::decay<Object>::type>,
-                                                  std::is_same<C, typename std::decay<Object>::type>,
-                                                  traits::is_instance_of<typename std::decay<Object>::type,
-                                                                         std::reference_wrapper>>>>::value,
+          traits::all_of<std::is_member_object_pointer<MemObj C::*>,
+                         traits::neg<traits::any_of<std::is_base_of<C, typename std::decay<Object>::type>,
+                                                    std::is_same<C, typename std::decay<Object>::type>,
+                                                    traits::is_instance_of<typename std::decay<Object>::type,
+                                                                           std::reference_wrapper>>>>::value,
           decltype( ( *std::forward<Object>( object ) ).*member )>::type
       { return ( *std::forward<Object>( object ) ).*member; }
       template<typename Fn, typename... Args>
       PACE__FORCEINLINE constexpr auto invoke( Fn&& fn, Args&&... args )
         noexcept( noexcept( std::forward<Fn>( fn )( std::forward<Args>( args )... ) ) ) ->
         typename std::enable_if<
-          traits::Not<
-            traits::AnyOf<std::is_member_function_pointer<typename std::remove_reference<Fn>::type>,
-                          std::is_member_object_pointer<typename std::remove_reference<Fn>::type>>>::value,
+          traits::neg<
+            traits::any_of<std::is_member_function_pointer<typename std::remove_reference<Fn>::type>,
+                           std::is_member_object_pointer<typename std::remove_reference<Fn>::type>>>::value,
           decltype( std::forward<Fn>( fn )( std::forward<Args>( args )... ) )>::type
       { return std::forward<Fn>( fn )( std::forward<Args>( args )... ); }
 #endif
@@ -300,17 +300,17 @@ namespace pace {
       template<typename As, typename T>
       constexpr auto forward_like( T&& param ) noexcept ->
         typename std::conditional<std::is_lvalue_reference<As>::value,
-                                  traits::CopyConst_t<typename std::remove_reference<As>::type,
-                                                      typename std::remove_reference<T>::type>&,
-                                  traits::CopyConst_t<typename std::remove_reference<As>::type,
-                                                      typename std::remove_reference<T>::type>&&>::type
+                                  traits::copy_const_t<typename std::remove_reference<As>::type,
+                                                       typename std::remove_reference<T>::type>&,
+                                  traits::copy_const_t<typename std::remove_reference<As>::type,
+                                                       typename std::remove_reference<T>::type>&&>::type
       {
         return static_cast<
           typename std::conditional<std::is_lvalue_reference<As>::value,
-                                    traits::CopyConst_t<typename std::remove_reference<As>::type,
-                                                        typename std::remove_reference<T>::type>&,
-                                    traits::CopyConst_t<typename std::remove_reference<As>::type,
-                                                        typename std::remove_reference<T>::type>&&>::type>(
+                                    traits::copy_const_t<typename std::remove_reference<As>::type,
+                                                         typename std::remove_reference<T>::type>&,
+                                    traits::copy_const_t<typename std::remove_reference<As>::type,
+                                                         typename std::remove_reference<T>::type>&&>::type>(
           param );
       }
 #endif

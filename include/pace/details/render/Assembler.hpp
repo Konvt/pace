@@ -18,11 +18,11 @@ namespace pace {
         PACE__NODISCARD PACE__FORCEINLINE bool any_more() const noexcept
         {
 #if PACE__CXX17
-          return ( this->projection_.test( traits::IndexIn<Compnts, Facades...>::value ) || ... );
+          return ( this->projection_.test( traits::index_in<Compnts, Facades...>::value ) || ... );
 #else
           bool existance = false;
           (void)std::initializer_list<bool> { (
-            ( existance |= this->projection_.test( traits::IndexIn<Compnts, Facades...>::value ) ),
+            ( existance |= this->projection_.test( traits::index_in<Compnts, Facades...>::value ) ),
             false )... };
           return existance;
 #endif
@@ -36,11 +36,11 @@ namespace pace {
         void render_each( io::CharPipeline& pipeline, const Parameter& params ) const
         {
           // Before the first element and the last element, we do not set a divider.
-          if ( this->projection_.test( traits::IndexIn<Element, Facades...>::value ) ) {
+          if ( this->projection_.test( traits::index_in<Element, Facades...>::value ) ) {
             pipeline << this->clear_then_dye(
               console::Dualcolor( this->info_forecolor_, this->info_backcolor_ ),
               params.style_off_ );
-            this->traits::BaseOf_t<typename Base::Layout, Element>::build( pipeline, params );
+            this->traits::base_of_t<typename Base::Layout, Element>::build( pipeline, params );
             if ( any_more<Elements...>() )
               pipeline << this->clear_then_dye(
                 console::Dualcolor( this->info_forecolor_, this->info_backcolor_ ),
@@ -63,16 +63,16 @@ namespace pace {
           details::types::Size num_enabled = 0;
           std::uint64_t width              = 0;
           (void)std::initializer_list<bool> { (
-            num_enabled += this->projection_.test( details::traits::IndexIn<Facades, Facades...>::value ),
-            width += ( this->projection_.test( details::traits::IndexIn<Facades, Facades...>::value )
-                         ? details::traits::BaseOf_t<typename Base::Layout, Facades>::fixed_length()
+            num_enabled += this->projection_.test( details::traits::index_in<Facades, Facades...>::value ),
+            width += ( this->projection_.test( details::traits::index_in<Facades, Facades...>::value )
+                         ? details::traits::base_of_t<typename Base::Layout, Facades>::fixed_length()
                          : 0 ),
             false )... };
           // Before the first element and the last element, we do not set a divider.
           return width
-               + details::traits::BaseOf_t<typename Base::Layout, details::aspects::Prefix>::fixed_length()
-               + details::traits::BaseOf_t<typename Base::Layout, details::aspects::Postfix>::fixed_length()
-               + details::traits::BaseOf_t<typename Base::Layout, details::aspects::Segment>::fixed_length(
+               + details::traits::base_of_t<typename Base::Layout, details::aspects::Prefix>::fixed_length()
+               + details::traits::base_of_t<typename Base::Layout, details::aspects::Postfix>::fixed_length()
+               + details::traits::base_of_t<typename Base::Layout, details::aspects::Segment>::fixed_length(
                    num_enabled );
         }
       };

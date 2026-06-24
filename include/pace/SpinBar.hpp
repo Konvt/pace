@@ -42,7 +42,7 @@ namespace pace {
   struct config::ProvideFor<config::Spin, option::ElapsedFormat> {
     static option::ElapsedFormat provide()
     {
-      static auto cached_option = option::ElapsedFormat( "+%H:%M:%S" );
+      static const auto cached_option = option::ElapsedFormat( "+%H:%M:%S" );
       return cached_option;
     }
   };
@@ -50,7 +50,7 @@ namespace pace {
   struct config::ProvideFor<config::Spin, option::ETAFormat> {
     static option::ETAFormat provide()
     {
-      static auto cached_option = option::ETAFormat( "-%H:%M:%S" );
+      static const auto cached_option = option::ETAFormat( "-%H:%M:%S" );
       return cached_option;
     }
   };
@@ -90,10 +90,10 @@ namespace pace {
                      << this->l_border_;
           }
           // For SpinBar, we manually remove the divider between the Lead and the Percent.
-          this->traits::BaseOf_t<typename Config::Layout, aspects::Prefix>::build( pipeline, params );
+          this->traits::base_of_t<typename Config::Layout, aspects::Prefix>::build( pipeline, params );
           if ( this->projection_.test( 0 ) ) {
             // zero is facade::SpinPlot
-            this->traits::BaseOf_t<typename Config::Layout, facade::SpinPlot>::build( pipeline, params );
+            this->traits::base_of_t<typename Config::Layout, facade::SpinPlot>::build( pipeline, params );
             pipeline << ' ';
           }
 
@@ -103,7 +103,7 @@ namespace pace {
                                      facade::Elapsed,
                                      facade::ETA>( pipeline, params );
 
-          this->traits::BaseOf_t<typename Config::Layout, aspects::Postfix>::build( pipeline, params );
+          this->traits::base_of_t<typename Config::Layout, aspects::Postfix>::build( pipeline, params );
           if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() ) {
             pipeline << this->clear_then_dye(
               console::Dualcolor( this->info_forecolor_, this->info_backcolor_ ),

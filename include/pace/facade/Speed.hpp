@@ -200,9 +200,9 @@ namespace pace {
       PACE__CXX20_CNSTXPR Speed( details::traits::TypeSet<Options...> tag ) : Base( tag )
       {
         using OptionSet = details::traits::TypeSet<Options...>;
-        if PACE__CXX17_CNSTXPR ( !details::traits::TpContain<OptionSet, option::Magnitude>::value )
+        if PACE__CXX17_CNSTXPR ( !details::traits::contains_tp<OptionSet, option::Magnitude>::value )
           unpack( *this, config::provide_for<Derived, option::Magnitude>() );
-        if PACE__CXX17_CNSTXPR ( !details::traits::TpContain<OptionSet, option::SpeedUnit>::value )
+        if PACE__CXX17_CNSTXPR ( !details::traits::contains_tp<OptionSet, option::SpeedUnit>::value )
           unpack( *this, config::provide_for<Derived, option::SpeedUnit>() );
       }
 

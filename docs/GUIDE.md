@@ -1287,7 +1287,7 @@ In fact, all progress bar types and configuration types in the pace library are 
 ## Modular Components
 pace divides the progress bar into three parts: the facade component `pace::facade`, the progress bar object behavior `pace::details::behaviors`, and the supporting functional components `pace::details::aspects`.
 
-These three parts are connected through multiple registration structures: the behavior components of the progress bar object declare dependency relationships between different features via the `pace::details::traits::InheritOrder` structure; the functional components also declare dependencies among themselves using the same structure; the facade components likewise declare dependencies on functional components through this structure, and declare their dependency on behavior components via the `pace::details::aspects::EntailOf` structure.
+These three parts are connected through multiple registration structures: the behavior components of the progress bar object declare dependency relationships between different features via the `pace::details::traits::InheritOrder` structure; the functional components also declare dependencies among themselves using the same structure; the facade components likewise declare dependencies on functional components through this structure, and declare their dependency on behavior components via the `pace::details::aspects::EntailOn` structure.
 
 The template parameters of `pace::prefab::BasicConfig` can accept multiple facade components, and a dependency resolution algorithm is used to collect the functional component dependencies of these facade components, producing the target configuration type.
 
@@ -1467,7 +1467,7 @@ struct pace::details::traits::InheritOrder<Clock> {
 };
 
 template<>
-struct pace::details::aspects::EntailOf<Clock> {
+struct pace::details::aspects::EntailOn<Clock> {
   // If the facade does not require task quantity configuration, only these two types need to be declared
   // otherwise dependency on pace::details::behaviors::Determinate must be declared
   // if the facade depends on frame counters, dependency on pace::details::behaviors::Fancy should be declared
@@ -1520,11 +1520,11 @@ The concrete implementation can be found in the implementation of [pace/SpinBar.
 
 In addition, if needed in practice, it is completely possible to build a different `BasicConfig`, or provide partial specializations; as long as the interface defined by the original `BasicConfig` is followed.
 
-However, `pace::prefab::BasicBar` does not support overriding. This is because `pace::prefab::BasicBar` follows the principle of minimal dependencies: it does not care about the implementation of the configuration type, nor does it care about what data the configuration type contains, nor does it care which `pace::prefab::behaviors` it inherits from. It only collects dependency information from `pace::details::aspects::EntailOf` and constructs a base class through a dependency resolution algorithm. Overriding it provides no benefit.
+However, `pace::prefab::BasicBar` does not support overriding. This is because `pace::prefab::BasicBar` follows the principle of minimal dependencies: it does not care about the implementation of the configuration type, nor does it care about what data the configuration type contains, nor does it care which `pace::prefab::behaviors` it inherits from. It only collects dependency information from `pace::details::aspects::EntailOn` and constructs a base class through a dependency resolution algorithm. Overriding it provides no benefit.
 
 Secondly, `pace::MultiBar` and `pace::DynamicBar` explicitly depend on the name `pace::prefab::BasicBar`, so replacing it with a new `BasicBar` would break integration with the existing multi-progress-bar rendering system.
 
-Although components in `pace::prefab::behaviors` are also replaceable, this must be built on top of the internal interfaces required by `pace::MultiBar` and `pace::DynamicBar`, and must also provide a specialization for `pace::details::aspects::EntailOf`.
+Although components in `pace::prefab::behaviors` are also replaceable, this must be built on top of the internal interfaces required by `pace::MultiBar` and `pace::DynamicBar`, and must also provide a specialization for `pace::details::aspects::EntailOn`.
 
 # Design Notes
 ## Assertion Checks

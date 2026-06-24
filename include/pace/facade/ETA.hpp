@@ -193,8 +193,8 @@ namespace pace {
       template<typename... Options>
       PACE__CXX14_CNSTXPR ETA( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
       {
-        if PACE__CXX17_CNSTXPR ( !details::traits::TpContain<details::traits::TypeSet<Options...>,
-                                                             option::ETAFormat>::value )
+        if PACE__CXX17_CNSTXPR ( !details::traits::contains_tp<details::traits::TypeSet<Options...>,
+                                                               option::ETAFormat>::value )
           unpack( *this, config::provide_for<Derived, option::ETAFormat>() );
       }
 

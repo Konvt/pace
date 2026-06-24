@@ -46,11 +46,11 @@ namespace pace {
         PACE__CXX20_CNSTXPR Filler( traits::TypeSet<Options...> tag ) : Base( tag )
         {
           using OptionSet = traits::TypeSet<Options...>;
-          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Filler>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::Filler>::value )
             unpack( *this, config::provide_for<Derived, option::Filler>() );
-          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::FillerForecolor>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::FillerForecolor>::value )
             unpack( *this, config::provide_for<Derived, option::FillerForecolor>() );
-          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::FillerBackcolor>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::FillerBackcolor>::value )
             unpack( *this, config::provide_for<Derived, option::FillerBackcolor>() );
         }
 

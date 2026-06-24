@@ -28,7 +28,7 @@ namespace pace {
         PACE__CXX14_CNSTXPR Reversible( traits::TypeSet<Options...> tag ) : Base( tag )
         {
           using OptionSet = traits::TypeSet<Options...>;
-          if PACE__CXX17_CNSTXPR ( !traits::TpContain<OptionSet, option::Reversed>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::Reversed>::value )
             unpack( *this, config::provide_for<Derived, option::Reversed>() );
         }
 

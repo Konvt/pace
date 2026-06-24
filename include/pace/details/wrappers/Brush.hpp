@@ -63,8 +63,8 @@ namespace pace {
           }
         }
         PACE__CXX20_CNSTXPR Brush& operator=( Brush&& rhs ) & noexcept(
-          traits::AllOf<std::is_nothrow_move_constructible<Effect>,
-                        std::is_nothrow_move_assignable<Effect>>::value )
+          traits::all_of<std::is_nothrow_move_constructible<Effect>,
+                         std::is_nothrow_move_assignable<Effect>>::value )
         {
           rhs.cast_to( *this );
           return *this;
@@ -72,9 +72,9 @@ namespace pace {
 
         template<typename AnotherAction>
         PACE__CXX20_CNSTXPR void cast_to( Brush<Effect, AnotherAction>& to )
-          noexcept( traits::AllOf<std::is_nothrow_move_constructible<Effect>,
-                                  std::is_nothrow_move_assignable<Effect>,
-                                  std::is_nothrow_destructible<Effect>>::value )
+          noexcept( traits::all_of<std::is_nothrow_move_constructible<Effect>,
+                                   std::is_nothrow_move_assignable<Effect>,
+                                   std::is_nothrow_destructible<Effect>>::value )
         {
           if ( existed_ ) {
             if PACE__CXX17_CNSTXPR ( std::is_trivially_move_assignable<Effect>::value )
@@ -92,9 +92,9 @@ namespace pace {
 
         template<typename NewEffect>
         PACE__CXX20_CNSTXPR Brush<Effect, Brush<typename std::decay<NewEffect>::type, void>> append(
-          NewEffect&& new_effect ) noexcept( traits::AllOf<std::is_nothrow_move_constructible<NewEffect>,
-                                                           std::is_nothrow_move_constructible<Effect>,
-                                                           std::is_nothrow_destructible<Effect>>::value )
+          NewEffect&& new_effect ) noexcept( traits::all_of<std::is_nothrow_move_constructible<NewEffect>,
+                                                            std::is_nothrow_move_constructible<Effect>,
+                                                            std::is_nothrow_destructible<Effect>>::value )
         {
           // We cannot extract the original type from the universal reference,
           // we have to use std::decay here.
@@ -151,8 +151,8 @@ namespace pace {
           : Base(), next_ { std::move( next ) }
         {}
         PACE__CXX20_CNSTXPR Brush( Effect&& effect, NextAction&& next )
-          noexcept( traits::AllOf<std::is_nothrow_move_constructible<Effect>,
-                                  std::is_nothrow_move_constructible<NextAction>>::value )
+          noexcept( traits::all_of<std::is_nothrow_move_constructible<Effect>,
+                                   std::is_nothrow_move_constructible<NextAction>>::value )
           : Base( std::move( effect ) ), next_ { std::move( next ) }
         {}
 
@@ -160,8 +160,8 @@ namespace pace {
           : Base( std::move( rhs ) ), next_ { std::move( rhs.next_ ) }
         {}
         PACE__CXX20_CNSTXPR Brush& operator=( Brush&& rhs ) & noexcept(
-          traits::AllOf<std::is_nothrow_move_constructible<Effect>,
-                        std::is_nothrow_move_assignable<Effect>>::value )
+          traits::all_of<std::is_nothrow_move_constructible<Effect>,
+                         std::is_nothrow_move_assignable<Effect>>::value )
         {
           Base::operator=( std::move( rhs ) );
           next_ = std::move( rhs.next_ );

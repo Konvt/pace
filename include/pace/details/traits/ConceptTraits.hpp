@@ -15,27 +15,27 @@ namespace pace {
   namespace details {
     namespace traits {
       template<typename I>
-      using IterCategory_t = typename std::iterator_traits<I>::iterator_category;
+      using iter_category_t = typename std::iterator_traits<I>::iterator_category;
       template<typename I>
-      using IterPointer_t = typename std::iterator_traits<I>::pointer;
+      using iter_pointer_t = typename std::iterator_traits<I>::pointer;
 #ifdef __cpp_lib_ranges
       template<typename I>
-      using IterValue_t = std::iter_value_t<I>;
+      using iter_value_t = std::iter_value_t<I>;
       template<typename I>
-      using IterDifference_t = std::iter_difference_t<I>;
+      using iter_difference_t = std::iter_difference_t<I>;
       template<typename I>
-      using IterReference_t = std::iter_reference_t<I>;
+      using iter_reference_t = std::iter_reference_t<I>;
 #else
       template<typename I>
-      using IterValue_t = typename std::iterator_traits<I>::value_type;
+      using iter_value_t = typename std::iterator_traits<I>::value_type;
       template<typename I>
-      using IterDifference_t = typename std::iterator_traits<I>::difference_type;
+      using iter_difference_t = typename std::iterator_traits<I>::difference_type;
       template<typename I>
-      using IterReference_t = typename std::iterator_traits<I>::reference;
+      using iter_reference_t = typename std::iterator_traits<I>::reference;
 #endif
 
       template<typename T>
-      struct IteratorOf {
+      struct iterator_of {
       private:
         // Provide a default fallback to avoid the problem of the type not existing
         // in the immediate context derivation.
@@ -53,10 +53,10 @@ namespace pace {
       };
       // Get the result type of `IteratorOf`.
       template<typename T>
-      using IteratorOf_t = typename IteratorOf<T>::type;
+      using iterator_of_t = typename iterator_of<T>::type;
 
       template<typename T>
-      struct SentinelOf {
+      struct sentinel_of {
       private:
         template<typename U>
         static constexpr U check( ... );
@@ -72,7 +72,7 @@ namespace pace {
         using type = decltype( check<T>( 0 ) );
       };
       template<typename T>
-      using SentinelOf_t = typename SentinelOf<T>::type;
+      using sentinel_of_t = typename sentinel_of<T>::type;
 
       template<typename T, typename = void>
       struct _impl_is_pointer_like : std::false_type {};
@@ -82,10 +82,10 @@ namespace pace {
       struct _impl_is_pointer_like<
         T,
         typename std::enable_if<
-          Not<AnyOf<std::is_reference<T>,
-                    std::is_void<decltype( *std::declval<T&>() )>,
-                    std::is_void<decltype( std::declval<T&>().operator->() )>,
-                    std::is_void<decltype( static_cast<bool>( std::declval<T&>() ) )>>>::value>::type>
+          neg<any_of<std::is_reference<T>,
+                     std::is_void<decltype( *std::declval<T&>() )>,
+                     std::is_void<decltype( std::declval<T&>().operator->() )>,
+                     std::is_void<decltype( static_cast<bool>( std::declval<T&>() ) )>>>::value>::type>
         : std::true_type {};
       template<typename T>
       using is_pointer_like = _impl_is_pointer_like<T>;
@@ -100,8 +100,8 @@ namespace pace {
         static constexpr std::false_type check( ... );
 
       public:
-        using result = AllOf<Not<std::is_reference<Instance>>,
-                             decltype( check( std::declval<typename std::remove_cv<Instance>::type>() ) )>;
+        using result = all_of<neg<std::is_reference<Instance>>,
+                              decltype( check( std::declval<typename std::remove_cv<Instance>::type>() ) )>;
       };
       template<typename Instance, template<typename...> class Tmp>
       using is_instance_of = typename _impl_is_instance_of<Instance, Tmp>::result;
@@ -120,16 +120,16 @@ namespace pace {
       struct _impl_is_sized_cursor<
         Itr,
         Snt,
-        typename std::enable_if<AllOf<
-          Not<std::is_reference<Itr>>,
-          Not<std::is_reference<Snt>>,
+        typename std::enable_if<all_of<
+          neg<std::is_reference<Itr>>,
+          neg<std::is_reference<Snt>>,
           std::is_move_constructible<Itr>,
-          std::is_signed<IterDifference_t<Itr>>,
+          std::is_signed<iter_difference_t<Itr>>,
           std::is_same<decltype( ++std::declval<Itr>() ), Itr&>,
           std::is_void<decltype( std::declval<Itr>()++, void() )>,
-          std::is_same<decltype( *std::declval<Itr>() ), IterReference_t<Itr>>,
+          std::is_same<decltype( *std::declval<Itr>() ), iter_reference_t<Itr>>,
           std::is_same<decltype( std::distance( std::declval<Itr>(), std::declval<Snt>() ) ),
-                       IterDifference_t<Itr>>,
+                       iter_difference_t<Itr>>,
           std::is_convertible<decltype( std::declval<Itr>() != std::declval<Snt>() ), bool>>::value>::type>
         : std::true_type {};
       template<typename Itr, typename Snt = Itr>
@@ -148,16 +148,16 @@ namespace pace {
       struct _impl_is_sized_range<
         T,
         typename std::enable_if<
-          AllOf<Not<std::is_reference<T>>,
-                std::is_convertible<decltype( std::declval<T>().begin() != std::declval<T>().end() ), bool>,
-                Not<std::is_void<decltype( std::declval<T>().size() )>>>::value>::type> : std::true_type {};
+          all_of<neg<std::is_reference<T>>,
+                 std::is_convertible<decltype( std::declval<T>().begin() != std::declval<T>().end() ), bool>,
+                 neg<std::is_void<decltype( std::declval<T>().size() )>>>::value>::type> : std::true_type {};
       template<typename T>
       using is_sized_range = _impl_is_sized_range<T>;
 #endif
 
 #ifdef __cpp_lib_three_way_comparison
       template<typename Trait>
-      struct ComparisonCategory {
+      struct comparison_category {
       private:
         template<typename T>
         static constexpr auto check( int ) -> typename T::comparison_category;
@@ -168,7 +168,7 @@ namespace pace {
         using type = decltype( check<Trait>( 0 ) );
       };
       template<typename Trait>
-      using ComparisonCategory_t = typename ComparisonCategory<Trait>::type;
+      using comparison_category_t = typename comparison_category<Trait>::type;
 #endif
     } // namespace traits
   } // namespace details

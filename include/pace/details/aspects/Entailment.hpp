@@ -8,45 +8,45 @@ namespace pace {
   namespace details {
     namespace aspects {
       template<template<typename...> class Facade>
-      struct EntailOf : traits::Identity<traits::Relation<>> {};
+      struct EntailOn : traits::Identity<traits::Relation<>> {};
       template<template<typename...> class Facade>
-      using EntailOf_t = typename EntailOf<Facade>::type;
+      using EntailOn_t = typename EntailOn<Facade>::type;
 
 #define PACE__ENTAIL_REGISTER( Facade, ... )      \
   template<>                                      \
-  struct pace::details::aspects::EntailOf<Facade> \
+  struct pace::details::aspects::EntailOn<Facade> \
     : pace::details::traits::Identity<pace::details::traits::Relation<__VA_ARGS__>> {}
 
       // Resolves and links behaviors into a linear inheritance hierarchy.
       template<typename Config>
-      struct EntailLinker;
+      struct link_entailments;
       template<typename Config>
-      using EntailLinker_t = typename EntailLinker<Config>::type;
+      using link_entailments_t = typename link_entailments<Config>::type;
 
       template<template<template<typename...> class...> class AnyConfig,
                template<typename...> class... Facades>
-      struct EntailLinker<AnyConfig<Facades...>> {
+      struct link_entailments<AnyConfig<Facades...>> {
       private:
         template<typename /* TypeSet<...> */ Result, typename /* Relation<...> */ Behaviors>
-        struct FlatMap;
+        struct flat_map;
         template<typename /* TypeSet<...> */ Result>
-        struct FlatMap<Result, traits::Relation<>> : traits::Identity<Result> {};
+        struct flat_map<Result, traits::Relation<>> : traits::Identity<Result> {};
         template<typename /* TypeSet<...> */ Result,
                  template<typename...> class Behavior,
                  template<typename...> class... Behaviors>
-        struct FlatMap<Result, traits::Relation<Behavior, Behaviors...>>
-          : FlatMap<traits::TpAppend_t<Result, traits::InheritOrder_t<Behavior>>,
-                    traits::Relation<Behaviors...>> {};
+        struct flat_map<Result, traits::Relation<Behavior, Behaviors...>>
+          : flat_map<traits::append_tp_t<Result, traits::InheritOrder_t<Behavior>>,
+                     traits::Relation<Behaviors...>> {};
 
         template<typename /* TypeSet<Relation<...>, ...> */ VBLists>
-        struct Helper;
+        struct helper;
         template<typename... VBLists>
-        struct Helper<traits::TypeSet<VBLists...>> : traits::C3Merge<VBLists...> {};
+        struct helper<traits::TypeSet<VBLists...>> : traits::c3_merge<VBLists...> {};
 
       public:
-        using type = typename Helper<
-          typename FlatMap<traits::TypeSet<>,
-                           traits::Merge_t<traits::Relation<>, EntailOf_t<Facades>...>>::type>::type;
+        using type = typename helper<
+          typename flat_map<traits::TypeSet<>,
+                            traits::merge_t<traits::Relation<>, EntailOn_t<Facades>...>>::type>::type;
       };
     } // namespace aspects
   } // namespace details
