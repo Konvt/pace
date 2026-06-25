@@ -2583,10 +2583,8 @@ namespace pace {
         PACE__NODISCARD PACE__CXX20_CNSTXPR
           typename std::enable_if<is_string_view_like<StringViewLike>::value, int>::type
           compare( const StringViewLike& str_v ) const
-# ifdef __cpp_lib_is_nothrow_convertible
-          noexcept(
-            std::is_nothrow_convertible<const StringViewLike&, std::basic_string_view<Char, Traits>>::value )
-# endif
+          noexcept( traits::is_nothrow_convertible<const StringViewLike&,
+                                                   std::basic_string_view<Char, Traits>>::value )
         { return compare( 0, npos, str_v, 0 ); }
 #endif
 

@@ -318,7 +318,7 @@ namespace pace {
 #ifdef __cpp_lib_unreachable
       using std::unreachable;
 #else
-      [[noreturn]] PACE__FORCEINLINE void unreachable()
+      [[noreturn]] void unreachable()
       {
 # if defined( __GNUC__ ) || defined( __clang__ )
         __builtin_unreachable();
@@ -346,9 +346,7 @@ namespace pace {
     namespace traits {
 #ifdef __cpp_lib_is_invocable
       using std::is_invocable;
-
       using std::is_invocable_r;
-
       using std::is_nothrow_invocable_r;
 #else
       template<typename Fn, typename... Args>
@@ -378,7 +376,7 @@ namespace pace {
         static auto check( std::false_type ) -> std::false_type;
 
       public:
-        using result = decltype( check( std::declval<is_invocable<Fn, Args...>>() ) );
+        using result = decltype( check<Fn>( std::declval<is_invocable<Fn, Args...>>() ) );
       };
       template<typename Fn, typename... Args>
       using is_nothrow_invocable = typename _impl_is_nothrow_invocable<Fn, Args...>::result;
@@ -394,7 +392,7 @@ namespace pace {
         static constexpr auto check( std::false_type ) -> std::false_type;
 
       public:
-        using result = decltype( check( std::declval<is_invocable<Fn, Args...>>() ) );
+        using result = decltype( check<Fn>( std::declval<is_invocable<Fn, Args...>>() ) );
       };
       template<typename Fn, typename... Args>
       struct _impl_is_invocable_r<void, Fn, Args...> : _impl_is_invocable<Fn, Args...> {};
@@ -406,18 +404,18 @@ namespace pace {
       private:
         template<typename F>
         static constexpr auto check( std::true_type )
-          -> is_nothrow_convertible<decltype( utils::invoke( std::declval<Fn>(), std::declval<Args>()... ) ),
+          -> is_nothrow_convertible<decltype( utils::invoke( std::declval<F>(), std::declval<Args>()... ) ),
                                     Ret>;
         template<typename>
         static constexpr auto check( std::false_type ) -> std::false_type;
 
       public:
-        using result = decltype( check( std::declval<is_nothrow_invocable<Ret, Fn, Args...>>() ) );
+        using result = decltype( check<Fn>( std::declval<is_nothrow_invocable<Ret, Fn, Args...>>() ) );
       };
       template<typename Fn, typename... Args>
       struct _impl_is_nothrow_invocable_r<void, Fn, Args...> : _impl_is_nothrow_invocable<Fn, Args...> {};
       template<typename Ret, typename Fn, typename... Args>
-      using is_nothrow_invocable_r = typename _impl_is_nothrow_invocable_r<Fn, Args...>::result;
+      using is_nothrow_invocable_r = typename _impl_is_nothrow_invocable_r<Ret, Fn, Args...>::result;
 #endif
     } // namespace traits
 

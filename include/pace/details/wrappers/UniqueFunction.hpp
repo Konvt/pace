@@ -35,7 +35,7 @@ namespace pace {
         };
 
         template<typename T>
-        using Inlinable = traits::all_of<
+        using is_inlinable = traits::all_of<
           std::is_nothrow_move_constructible<T>,
           traits::BoolConstant<( sizeof( AnyFn::sso_ ) >= sizeof( T ) && alignof( AnyFn ) >= alignof( T ) )>>;
 
@@ -75,7 +75,7 @@ namespace pace {
 
         template<typename F>
         static PACE__CXX23_CNSTXPR
-          typename std::enable_if<Inlinable<typename std::decay<F>::type>::value>::type
+          typename std::enable_if<is_inlinable<typename std::decay<F>::type>::value>::type
           store_fn( const VTable*( &vtable ), AnyFn& any, F&& fn ) noexcept
         {
           using T             = typename std::decay<F>::type;
@@ -86,7 +86,7 @@ namespace pace {
         }
         template<typename F>
         static PACE__CXX23_CNSTXPR
-          typename std::enable_if<!Inlinable<typename std::decay<F>::type>::value>::type
+          typename std::enable_if<!is_inlinable<typename std::decay<F>::type>::value>::type
           store_fn( const VTable*( &vtable ), AnyFn& any, F&& fn )
         {
           using T   = typename std::decay<F>::type;
@@ -137,7 +137,7 @@ namespace pace {
           vtable_ = &table_null();
         }
         template<typename F>
-        PACE__CXX23_CNSTXPR void reset( F&& fn ) noexcept( Inlinable<typename std::decay<F>::type>::value )
+        PACE__CXX23_CNSTXPR void reset( F&& fn ) noexcept( is_inlinable<typename std::decay<F>::type>::value )
         {
           const VTable* vtable = nullptr;
           AnyFn tmp;
@@ -272,7 +272,7 @@ namespace pace {
                    traits::neg<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
                    std::is_constructible<typename std::decay<F>::type, F>,
                    traits::is_invocable_r<R, F, Args...>>::value>::type>
-        UniqueFunction( F&& fn ) noexcept( Base::template Inlinable<typename std::decay<F>::type>::value )
+        UniqueFunction( F&& fn ) noexcept( Base::template is_inlinable<typename std::decay<F>::type>::value )
         {
           Base::store_fn( this->vtable_, this->callee_, std::forward<F>( fn ) );
           PACE__TRUST( this->vtable_ != nullptr );
@@ -285,7 +285,7 @@ namespace pace {
                          std::is_constructible<typename std::decay<F>::type, F>,
                          traits::is_invocable_r<R, typename Base::template Fn_t<F>, Args...>>::value,
           UniqueFunction&>::type
-          operator=( F&& fn ) & noexcept( Base::template Inlinable<typename std::decay<F>::type>::value )
+          operator=( F&& fn ) & noexcept( Base::template is_inlinable<typename std::decay<F>::type>::value )
         {
           this->reset( std::forward<F>( fn ) );
           return *this;
