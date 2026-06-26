@@ -20,23 +20,6 @@ namespace pace {
           ++cnt;
         }
       }
-      template<typename F, typename Act, typename Rep, typename Period>
-      PACE__FORCEINLINE bool spin_with_for( F&& pred,
-                                            Act&& action,
-                                            types::Size threshold,
-                                            const std::chrono::duration<Rep, Period>& timeout )
-        noexcept( noexcept( pred() ) && noexcept( action() ) )
-      {
-        const auto start = std::chrono::steady_clock::now();
-        for ( types::Size cnt; !pred(); ) {
-          if ( std::chrono::steady_clock::now() - start >= timeout )
-            return false;
-          else if ( cnt >= threshold )
-            (void)action();
-          ++cnt;
-        }
-        return true;
-      }
 
       // Wait for pred to be true.
       template<typename F>
@@ -47,23 +30,6 @@ namespace pace {
       template<typename F>
       PACE__FORCEINLINE void spin_wait( F&& pred ) noexcept( noexcept( pred() ) )
       { spin_wait( std::forward<F>( pred ), 128 ); }
-
-      template<typename F, typename Rep, typename Period>
-      PACE__FORCEINLINE bool spin_wait_for( F&& pred,
-                                            types::Size threshold,
-                                            const std::chrono::duration<Rep, Period>& timeout )
-        noexcept( noexcept( pred() ) )
-      {
-        return spin_with_for(
-          std::forward<F>( pred ),
-          []() noexcept { std::this_thread::yield(); },
-          threshold,
-          timeout );
-      }
-      template<typename F, typename Rep, typename Period>
-      PACE__FORCEINLINE bool spin_wait_for( F&& pred, const std::chrono::duration<Rep, Period>& timeout )
-        noexcept( noexcept( pred() ) )
-      { return spin_wait_for( std::forward<F>( pred ), 128, timeout ); }
 
       template<typename T>
       PACE__FORCEINLINE void atomic_notify_one( std::atomic<T>& atom ) noexcept
