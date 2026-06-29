@@ -175,7 +175,7 @@ namespace pace {
               fields.emplace_back( std::move( buffer ) );
             if ( fmt_str[i] == ':' ) {
               if ( i + 1 >= fmt_str.size() )
-                PACE__UNLIKELY throw exception::InvalidArgument( "stray ':' at end of format" );
+                PACE__UNLIKELY throw exception::InvalidArgument( "pace: stray ':' at end of format" );
               padding = charcodes::U8Char::from_bytes( fmt_str.substr( i + 1 ) );
               i += padding.size();
             } else {
@@ -195,11 +195,12 @@ namespace pace {
                   if ( fmt_str[sentinel] == 'H' || fmt_str[sentinel] == 'M' || fmt_str[sentinel] == 'S' )
                     break;
                   else if ( fmt_str[sentinel] < '0' || fmt_str[sentinel] > '9' )
-                    PACE__UNLIKELY throw exception::InvalidArgument( "non-numeric character in timer width" );
+                    PACE__UNLIKELY throw exception::InvalidArgument(
+                      "pace: non-numeric character in timer width" );
                   ++sentinel;
                 }
                 if ( sentinel >= fmt_str.size() )
-                  PACE__UNLIKELY throw exception::InvalidArgument( "missing token after width" );
+                  PACE__UNLIKELY throw exception::InvalidArgument( "pace: missing token after width" );
                 width = 0;
                 while ( i < sentinel )
                   width = width * 10 + fmt_str[i++] - '0';
@@ -224,7 +225,7 @@ namespace pace {
                 state = Phase::Symbol;
               } break;
 
-              default: throw exception::InvalidArgument( "invalid clock format token" );
+              default: throw exception::InvalidArgument( "pace: invalid clock format token" );
               }
             }
           } break;
@@ -234,12 +235,12 @@ namespace pace {
         }
 
         if ( state != Phase::Symbol )
-          PACE__UNLIKELY throw exception::InvalidArgument( "incomplete clock format sequence" );
+          PACE__UNLIKELY throw exception::InvalidArgument( "pace: incomplete clock format sequence" );
         else if ( !buffer.empty() )
           fields.emplace_back( std::move( buffer ) );
         if ( ( num_seen_h == 0 && num_seen_m == 0 && num_seen_s == 0 ) || num_seen_h > 1 || num_seen_m > 1
              || num_seen_s > 1 )
-          PACE__UNLIKELY throw exception::InvalidArgument( "missing or redundant clock markers" );
+          PACE__UNLIKELY throw exception::InvalidArgument( "pace: missing or redundant clock markers" );
 
         return fields;
       }
