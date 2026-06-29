@@ -59,12 +59,12 @@
 int main()
 {
   pace::ProgressBar<> bar { pace::option::Remain( "-" ),
-                             pace::option::Filler( "=" ),
-                             pace::option::Styles( pace::config::Line::Entire ),
-                             pace::option::RemainForecolor( "#A52A2A" ),
-                             pace::option::FillerForecolor( 0x0099FF ),
-                             pace::option::InfoForecolor( pace::Color::Yellow ),
-                             pace::option::Tasks( 100 ) };
+                            pace::option::Filler( "=" ),
+                            pace::option::Except<>(),
+                            pace::option::RemainForecolor( "#A52A2A" ),
+                            pace::option::FillerForecolor( 0x0099FF ),
+                            pace::option::InfoForecolor( pace::Color::Yellow ),
+                            pace::option::Quota( 100 ) };
 
   for ( auto _ = 0; _ < 100; ++_ )
     bar.tick();

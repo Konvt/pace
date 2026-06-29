@@ -138,7 +138,7 @@ namespace pace {
         if ( fmt_str.empty() )
           return fields;
 
-        enum Phase : std::uint8_t { Symbol, Marker };
+        enum class Phase : std::uint8_t { Symbol, Marker };
         Phase state            = Phase::Symbol;
         types::Size num_seen_h = 0, num_seen_m = 0, num_seen_s = 0;
         types::Size width;
