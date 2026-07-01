@@ -2,7 +2,7 @@
 #define PACE_TRAITS_BACKPORT
 
 #include "../core/Core.hpp"
-#include "../types/Types.hpp"
+#include "../core/Types.hpp"
 #include "Identity.hpp"
 
 namespace pace {

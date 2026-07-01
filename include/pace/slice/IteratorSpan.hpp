@@ -1,7 +1,7 @@
 #ifndef PACE_ITERATOR_SPAN
 #define PACE_ITERATOR_SPAN
 
-#include "../details/traits/ConceptTraits.hpp"
+#include "../details/traits/Concept.hpp"
 #include "../details/utils/Backport.hpp"
 #include "../exception/Error.hpp"
 #ifdef __cpp_lib_ranges

@@ -1,9 +1,9 @@
 #ifndef PACE_STRING_VIEW
 #define PACE_STRING_VIEW
 
-#include "../traits/ConceptTraits.hpp"
+#include "../traits/Concept.hpp"
 #ifdef __cpp_lib_string_view
-# include "../types/Types.hpp"
+# include "../core/Types.hpp"
 # include <string_view>
 #else
 # include "../traits/Identity.hpp"

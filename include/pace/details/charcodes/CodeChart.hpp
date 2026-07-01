@@ -2,7 +2,7 @@
 #define PACE_CODE_CHART
 
 #include "../core/Core.hpp"
-#include "../types/Types.hpp"
+#include "../core/Types.hpp"
 #include <array>
 
 namespace pace {

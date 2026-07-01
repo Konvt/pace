@@ -2,7 +2,7 @@
 #define PACE_FORMAT
 
 #include "../core/Core.hpp"
-#include "../types/Types.hpp"
+#include "../core/Types.hpp"
 #include <type_traits>
 #ifdef __cpp_lib_format
 # include <format>

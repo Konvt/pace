@@ -1,7 +1,7 @@
 #ifndef PACE_TRACKED_SPAN
 #define PACE_TRACKED_SPAN
 
-#include "../details/traits/ConceptTraits.hpp"
+#include "../details/traits/Concept.hpp"
 #include "../details/traits/Util.hpp"
 #include "../prefab/BasicBar.hpp"
 #ifdef __cpp_lib_ranges

@@ -1,7 +1,7 @@
 #ifndef PACE_GLYPH
 #define PACE_GLYPH
 
-#include "../types/Types.hpp"
+#include "../core/Types.hpp"
 
 namespace pace {
   namespace details {

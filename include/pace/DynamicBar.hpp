@@ -125,7 +125,8 @@ namespace pace {
 #endif
     {
       setup_if_null();
-      return details::utils::make_unique<details::assets::ManagedBar<typename Bar::Config, Sink, Mode, Zone>>(
+      return details::utils::make_unique<
+        details::assets::ManagedBar<typename Bar::config_type, Sink, Mode, Zone>>(
         core_,
         std::forward<Options>( options )... );
     }
@@ -267,7 +268,7 @@ namespace pace {
     requires( details::traits::is_bar<Bar>::value
               && ( ( ( std::is_same_v<std::remove_cv_t<Bar>, std::remove_cv_t<Objs>> && ... )
                      && !( std::is_lvalue_reference_v<Objs &&> || ... ) )
-                   || ( std::is_same<typename Bar::Config, std::decay_t<Objs>>::value && ... ) ) )
+                   || ( std::is_same<typename Bar::config_type, std::decay_t<Objs>>::value && ... ) ) )
 #else
     -> typename std::enable_if<
       details::traits::all_of<
@@ -276,8 +277,8 @@ namespace pace {
           details::traits::all_of<
             std::is_same<typename std::remove_cv<Bar>::type, typename std::remove_cv<Objs>::type>...,
             details::traits::neg<details::traits::any_of<std::is_lvalue_reference<Objs&&>...>>>,
-          details::traits::all_of<std::is_same<typename Bar::Config, typename std::decay<Objs>::type>...>>>::
-        value,
+          details::traits::all_of<
+            std::is_same<typename Bar::config_type, typename std::decay<Objs>::type>...>>>::value,
       std::vector<std::unique_ptr<Bar>>>::type
 #endif
   {

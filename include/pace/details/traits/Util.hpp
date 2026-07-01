@@ -1,7 +1,7 @@
 #ifndef PACE_TRAITS_UTIL
 #define PACE_TRAITS_UTIL
 
-#include "ConceptTraits.hpp"
+#include "Concept.hpp"
 #include "Identity.hpp"
 #include "TypeList.hpp"
 

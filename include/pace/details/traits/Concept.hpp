@@ -1,5 +1,5 @@
-#ifndef PACE_CONCEPT_TRAITS
-#define PACE_CONCEPT_TRAITS
+#ifndef PACE_CONCEPT
+#define PACE_CONCEPT
 // Only contains trait entities unrelated to template metaprogramming here.
 
 #include "Backport.hpp"

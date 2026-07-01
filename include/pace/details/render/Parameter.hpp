@@ -2,7 +2,7 @@
 #define PACE_PARAMETER
 
 #include "../core/Core.hpp"
-#include "../types/Types.hpp"
+#include "../core/Types.hpp"
 
 namespace pace {
   namespace details {

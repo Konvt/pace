@@ -1,7 +1,7 @@
 #ifndef PACE_SIZED_SPAN
 #define PACE_SIZED_SPAN
 
-#include "../details/traits/ConceptTraits.hpp"
+#include "../details/traits/Concept.hpp"
 #include "../details/utils/Backport.hpp"
 #ifdef __cpp_lib_ranges
 # include <ranges>

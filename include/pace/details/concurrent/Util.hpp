@@ -2,7 +2,7 @@
 #define PACE_CONCURRENT_UTIL
 
 #include "../core/Core.hpp"
-#include "../types/Types.hpp"
+#include "../core/Types.hpp"
 #include <atomic>
 #include <thread>
 
