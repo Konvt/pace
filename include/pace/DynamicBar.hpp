@@ -25,6 +25,10 @@ namespace pace {
     }
 
   public:
+    static constexpr Channel sink = Sink;
+    static constexpr Policy mode  = Mode;
+    static constexpr Region zone  = Zone;
+
     DynamicBar()                               = default;
     DynamicBar( const DynamicBar& )            = delete;
     DynamicBar& operator=( const DynamicBar& ) = delete;
@@ -163,20 +167,20 @@ namespace pace {
   };
 
   // Creates a tuple of unique_ptr pointing to bars using existing bar instances.
-  template<typename Config, typename... Configs, Channel O, Policy M, Region A>
-  PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( prefab::BasicBar<Config, O, M, A>&& bar,
-                                                       prefab::BasicBar<Configs, O, M, A>&&... bars )
+  template<typename Config, typename... Configs, Channel S, Policy M, Region Z>
+  PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( prefab::BasicBar<Config, S, M, Z>&& bar,
+                                                       prefab::BasicBar<Configs, S, M, Z>&&... bars )
 #ifdef __cpp_concepts
     requires( details::traits::is_config<Config>::value
               && ( details::traits::is_config<Configs>::value && ... ) )
 #else
     -> typename std::enable_if<details::traits::all_of<details::traits::is_config<Config>,
                                                        details::traits::is_config<Configs>...>::value,
-                               std::tuple<std::unique_ptr<prefab::BasicBar<Config, O, M, A>>,
-                                          std::unique_ptr<prefab::BasicBar<Configs, O, M, A>>...>>::type
+                               std::tuple<std::unique_ptr<prefab::BasicBar<Config, S, M, Z>>,
+                                          std::unique_ptr<prefab::BasicBar<Configs, S, M, Z>>...>>::type
 #endif
   {
-    DynamicBar<O, M, A> factory;
+    DynamicBar<S, M, Z> factory;
     return std::make_tuple( factory.insert( std::move( bar ) ), factory.insert( std::move( bars ) )... );
   }
   // Creates a tuple of unique_ptr pointing to bars using configuration objects.
@@ -207,20 +211,20 @@ namespace pace {
    * Creates a vector of unique_ptr pointing to bars with a fixed number of BasicBar instances.
    * **All BasicBar instances are initialized using the same configuration.**
    */
-  template<typename Config, Channel O, Policy M, Region A>
-  PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( prefab::BasicBar<Config, O, M, A>&& bar,
+  template<typename Config, Channel S, Policy M, Region Z>
+  PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( prefab::BasicBar<Config, S, M, Z>&& bar,
                                                        details::types::Size count )
 #ifdef __cpp_concepts
     requires details::traits::is_config<Config>::value
 #else
     -> typename std::enable_if<details::traits::is_config<Config>::value,
-                               std::vector<std::unique_ptr<prefab::BasicBar<Config, O, M, A>>>>::type
+                               std::vector<std::unique_ptr<prefab::BasicBar<Config, S, M, Z>>>>::type
 #endif
   {
-    std::vector<std::unique_ptr<prefab::BasicBar<Config, O, M, A>>> products;
+    std::vector<std::unique_ptr<prefab::BasicBar<Config, S, M, Z>>> products;
     if ( count == 0 )
       PACE__UNLIKELY return products;
-    DynamicBar<O, M, A> factory;
+    DynamicBar<S, M, Z> factory;
     std::generate_n( std::back_inserter( products ), count - 1, [&factory, &bar]() {
       return factory.insert( bar.config() );
     } );

@@ -194,8 +194,8 @@ namespace pace {
         }
 
       public:
-        template<types::Size... Is, typename... Cs, Channel O, Policy M, Region A>
-        StaticLayout( const wrappers::TuplePacket<prefab::BasicBar<Cs, O, M, A>, Is>&... ) = delete;
+        template<types::Size... Is, typename... Cs, Channel S, Policy M, Region Z>
+        StaticLayout( const wrappers::TuplePacket<prefab::BasicBar<Cs, S, M, Z>, Is>&... ) = delete;
 
         // SFINAE is used here to prevent infinite recursive matching of errors.
         template<typename Cfg,

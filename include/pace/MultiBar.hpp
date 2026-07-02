@@ -7,8 +7,8 @@
 namespace pace {
   template<typename Bar, typename... Bars>
   class MultiBar;
-  template<Channel O, Policy M, Region A, typename Config, typename... Configs>
-  class MultiBar<prefab::BasicBar<Config, O, M, A>, prefab::BasicBar<Configs, O, M, A>...> {
+  template<Channel S, Policy M, Region Z, typename Config, typename... Configs>
+  class MultiBar<prefab::BasicBar<Config, S, M, Z>, prefab::BasicBar<Configs, S, M, Z>...> {
     static_assert( details::traits::all_of<details::traits::is_config<Config>,
                                            details::traits::is_config<Configs>...>::value,
                    "invalid config type" );
@@ -17,14 +17,18 @@ namespace pace {
     using config_at_t = details::traits::type_at_t<Pos, Config, Configs...>;
     template<details::types::Size Pos>
     using bar_at_t = details::traits::
-      type_at_t<Pos, prefab::BasicBar<Config, O, M, A>, prefab::BasicBar<Configs, O, M, A>...>;
+      type_at_t<Pos, prefab::BasicBar<Config, S, M, Z>, prefab::BasicBar<Configs, S, M, Z>...>;
 
     details::assets::StaticLayout<details::traits::make_index_sequence<sizeof...( Configs ) + 1>,
-                                  prefab::BasicBar<Config, O, M, A>,
-                                  prefab::BasicBar<Configs, O, M, A>...>
+                                  prefab::BasicBar<Config, S, M, Z>,
+                                  prefab::BasicBar<Configs, S, M, Z>...>
       package_;
 
   public:
+    static constexpr Channel sink = S;
+    static constexpr Policy mode  = M;
+    static constexpr Region zone  = Z;
+
     MultiBar() = default;
 
 #ifdef __cpp_concepts
@@ -64,7 +68,7 @@ namespace pace {
                  Config,
                  Configs...>>::value>::type>
 #endif
-    MultiBar( prefab::BasicBar<Cfg, O, M, A>&& bar, prefab::BasicBar<Cfgs, O, M, A>&&... bars )
+    MultiBar( prefab::BasicBar<Cfg, S, M, Z>&& bar, prefab::BasicBar<Cfgs, S, M, Z>&&... bars )
       noexcept( sizeof...( Cfgs ) == sizeof...( Configs ) )
       : package_ { std::move( bar ), std::move( bars )... }
     {}
@@ -113,9 +117,9 @@ namespace pace {
   };
 
 #ifdef __cpp_deduction_guides
-  template<Channel O, Policy M, Region A, typename Cfg, typename... Cfgs>
-  MultiBar( prefab::BasicBar<Cfg, O, M, A>&& bar, prefab::BasicBar<Cfgs, O, M, A>&&... bars )
-    -> MultiBar<prefab::BasicBar<Cfg, O, M, A>, prefab::BasicBar<Cfgs, O, M, A>...>;
+  template<Channel S, Policy M, Region Z, typename Cfg, typename... Cfgs>
+  MultiBar( prefab::BasicBar<Cfg, S, M, Z>&& bar, prefab::BasicBar<Cfgs, S, M, Z>&&... bars )
+    -> MultiBar<prefab::BasicBar<Cfg, S, M, Z>, prefab::BasicBar<Cfgs, S, M, Z>...>;
 
   // CTAD, only generates the default version,
   // which means the the Sink is `Channel::Stderr` and Mode is `Policy::Async`.
@@ -139,18 +143,19 @@ namespace pace {
   using MultiBar_t = details::traits::fill_with_t<MultiBar, Bar, Count>;
 
   // Creates a MultiBar using existing bar instances.
-  template<typename Config, typename... Configs, Channel O, Policy M, Region A>
-  PACE__NODISCARD PACE__FORCEINLINE auto make_multi( prefab::BasicBar<Config, O, M, A>&& bar,
-                                                     prefab::BasicBar<Configs, O, M, A>&&... bars ) noexcept
+  template<typename Config, typename... Configs, Channel Sink, Policy Mode, Region Zone>
+  PACE__NODISCARD PACE__FORCEINLINE auto make_multi(
+    prefab::BasicBar<Config, Sink, Mode, Zone>&& bar,
+    prefab::BasicBar<Configs, Sink, Mode, Zone>&&... bars ) noexcept
 #ifdef __cpp_concepts
-    -> MultiBar<prefab::BasicBar<Config, O, M, A>, prefab::BasicBar<Configs, O, M, A>...>
+    -> MultiBar<prefab::BasicBar<Config, Sink, Mode, Zone>, prefab::BasicBar<Configs, Sink, Mode, Zone>...>
     requires( details::traits::is_config<Config>::value
               && ( details::traits::is_config<Configs>::value && ... ) )
 #else
-    -> typename std::enable_if<
-      details::traits::all_of<details::traits::is_config<Config>,
-                              details::traits::is_config<Configs>...>::value,
-      MultiBar<prefab::BasicBar<Config, O, M, A>, prefab::BasicBar<Configs, O, M, A>...>>::type
+    -> typename std::enable_if<details::traits::all_of<details::traits::is_config<Config>,
+                                                       details::traits::is_config<Configs>...>::value,
+                               MultiBar<prefab::BasicBar<Config, Sink, Mode, Zone>,
+                                        prefab::BasicBar<Configs, Sink, Mode, Zone>...>>::type
 #endif
   { return { std::move( bar ), std::move( bars )... }; }
   // Creates a MultiBar using configuration objects.
@@ -178,10 +183,10 @@ namespace pace {
 
   namespace details {
     namespace utils {
-      template<types::Size Cnt, Channel O, Policy M, Region A, typename B, types::Size... Is>
+      template<types::Size Cnt, Channel S, Policy M, Region Z, typename B, types::Size... Is>
       PACE__NODISCARD PACE__FORCEINLINE typename std::enable_if<
         traits::is_bar<typename std::decay<B>::type>::value,
-        MultiBar_t<prefab::BasicBar<typename std::decay<B>::type::config_type, O, M, A>, Cnt>>::type
+        MultiBar_t<prefab::BasicBar<typename std::decay<B>::type::config_type, S, M, Z>, Cnt>>::type
         make_multi_helper( B&& bar, traits::IndexSequence<Is...> )
           noexcept( traits::BoolConstant<( Cnt == 1 )>::value )
       {
@@ -189,10 +194,10 @@ namespace pace {
         std::array<typename Bar::config_type, Cnt - 1> cfgs { { ( (void)( Is ), bar.config() )... } };
         return { std::forward<B>( bar ), Bar( std::move( cfgs[Is] ) )... };
       }
-      template<types::Size Cnt, Channel O, Policy M, Region A, typename C, types::Size... Is>
+      template<types::Size Cnt, Channel S, Policy M, Region Z, typename C, types::Size... Is>
       PACE__NODISCARD PACE__FORCEINLINE typename std::enable_if<
         traits::is_config<typename std::decay<C>::type>::value,
-        MultiBar_t<prefab::BasicBar<typename std::decay<C>::type, O, M, A>, Cnt>>::type
+        MultiBar_t<prefab::BasicBar<typename std::decay<C>::type, S, M, Z>, Cnt>>::type
         make_multi_helper( C&& cfg, traits::IndexSequence<Is...> )
           noexcept( traits::all_of<traits::BoolConstant<( Cnt == 1 )>,
                                    traits::neg<std::is_lvalue_reference<C&&>>>::value )
@@ -207,18 +212,18 @@ namespace pace {
    * Creates a MultiBar with a fixed number of BasicBar instances using a single bar object.
    * **All BasicBar instances are initialized using the same configuration.**
    */
-  template<details::types::Size Cnt, typename Config, Channel O, Policy M, Region A>
-  PACE__NODISCARD PACE__FORCEINLINE auto make_multi( prefab::BasicBar<Config, O, M, A>&& bar )
+  template<details::types::Size Cnt, typename Config, Channel S, Policy M, Region Z>
+  PACE__NODISCARD PACE__FORCEINLINE auto make_multi( prefab::BasicBar<Config, S, M, Z>&& bar )
     noexcept( Cnt == 1 )
 #ifdef __cpp_concepts
     requires( Cnt > 0 && details::traits::is_config<Config>::value )
 #else
       -> typename std::enable_if<details::traits::all_of<details::traits::BoolConstant<( Cnt > 0 )>,
                                                          details::traits::is_config<Config>>::value,
-                                 MultiBar_t<prefab::BasicBar<Config, O, M, A>, Cnt>>::type
+                                 MultiBar_t<prefab::BasicBar<Config, S, M, Z>, Cnt>>::type
 #endif
   {
-    return details::utils::make_multi_helper<Cnt, O, M, A>( std::move( bar ),
+    return details::utils::make_multi_helper<Cnt, S, M, Z>( std::move( bar ),
                                                             details::traits::make_index_sequence<Cnt - 1>() );
   }
   /**

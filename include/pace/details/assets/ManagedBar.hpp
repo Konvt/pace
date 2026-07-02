@@ -10,10 +10,10 @@ namespace pace {
       template<Channel, Policy, Region>
       class DynamicLayout;
 
-      template<typename C, Channel O, Policy M, Region A>
-      class ManagedBar final : public prefab::BasicBar<C, O, M, A> {
-        using Base    = prefab::BasicBar<C, O, M, A>;
-        using Context = std::shared_ptr<DynamicLayout<O, M, A>>;
+      template<typename C, Channel S, Policy M, Region Z>
+      class ManagedBar final : public prefab::BasicBar<C, S, M, Z> {
+        using Base    = prefab::BasicBar<C, S, M, Z>;
+        using Context = std::shared_ptr<DynamicLayout<S, M, Z>>;
 
         Context context_;
 
@@ -24,7 +24,7 @@ namespace pace {
         ManagedBar( Context context, C&& config ) noexcept
           : Base( std::move( config ) ), context_ { std::move( context ) }
         {}
-        ManagedBar( Context context, prefab::BasicBar<C, O, M, A>&& bar ) noexcept
+        ManagedBar( Context context, prefab::BasicBar<C, S, M, Z>&& bar ) noexcept
           : Base( std::move( bar ) ), context_ { std::move( context ) }
         {}
         template<typename... Args>

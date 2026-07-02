@@ -16,13 +16,17 @@ namespace pace {
             types::Size width_;
             charcodes::U8Char padding_;
 
+#if PACE__CXX23
             PACE__CXX23_CNSTXPR Clock() = default;
+#else
+            constexpr Clock() noexcept {}
+#endif
             constexpr Clock( types::Size width, charcodes::U8Char padding ) noexcept
               : width_ { width }, padding_ { padding }
             {}
           } clock_;
 
-          PACE__CXX23_CNSTXPR Field() noexcept : clock_ {} {}
+          PACE__CXX20_CNSTXPR Field() noexcept : clock_ {} {}
           PACE__CXX20_CNSTXPR ~Field() noexcept {}
         } field_;
         TimerToken part_ { TimerToken::None };

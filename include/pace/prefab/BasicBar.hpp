@@ -65,8 +65,8 @@ namespace pace {
       template<typename B>
       struct _impl_is_bar {
       private:
-        template<typename S, Channel O, Policy M, Region A>
-        static constexpr std::true_type check( const prefab::BasicBar<S, O, M, A>& );
+        template<typename C, Channel S, Policy M, Region Z>
+        static constexpr std::true_type check( const prefab::BasicBar<C, S, M, Z>& );
         static constexpr std::false_type check( ... );
 
       public:

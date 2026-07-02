@@ -54,7 +54,7 @@ namespace pace {
       using Field = details::aspects::TimerField;
 
     public:
-      PACE__CXX23_CNSTXPR ElapsedFormat() = default;
+      PACE__CXX20_CNSTXPR ElapsedFormat() = default;
       PACE__CXX20_CNSTXPR ElapsedFormat( details::charcodes::StringView _fmt_str ) noexcept
         : details::wrappers::OptionPacket<std::vector<Field>>( Field::parse( _fmt_str ) )
       {}

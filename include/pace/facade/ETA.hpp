@@ -56,7 +56,7 @@ namespace pace {
       using Field = details::aspects::TimerField;
 
     public:
-      PACE__CXX23_CNSTXPR ETAFormat() = default;
+      PACE__CXX20_CNSTXPR ETAFormat() = default;
       PACE__CXX20_CNSTXPR ETAFormat( details::charcodes::StringView _fmt_str ) noexcept
         : details::wrappers::OptionPacket<std::vector<Field>>( Field::parse( _fmt_str ) )
       {}
