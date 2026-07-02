@@ -13,7 +13,7 @@ namespace pace {
         union Field {
           charcodes::U8Raw text_;
           struct Clock {
-            types::Size width_;
+            types::Size width_ {};
             charcodes::U8Char padding_;
 
 #if PACE__CXX23
