@@ -73,28 +73,37 @@ int main()
 
 For more examples, see [GUIDE.md](docs/GUIDE.md) and [demo/](demo/).
 
-## FAQ
-### How to build?
-#### Header-only
-You can copy `include/pace` to the inclusion path of the project, and then directly include the corresponding header file within the source file.
-#### C++20 Module
-If you are using a compiler that already supports the `module` feature, you can use the `pace.cppm` file in the `module/` and import it within your project.
+## Integration Guide
+### FetchContent
+If the CMake version is greater than 3.11, you can use `FetchContent` to automatically import project dependencies.
 
-When using it officially, be sure to `import std` in the code file at the same time; otherwise, strange compilation errors will occur as of now.
-#### Release package
+Add the following lines to your `CMakeLists.txt`:
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+  pace
+  GIT_REPOSITORY https://github.com/Konvt/pace.git
+  GIT_TAG        main # the stable branch
+)
+FetchContent_MakeAvailable(pace)
+# ...
+target_link_libraries(YourProject PRIVATE pace::pace)
+```
+### Release package
 Download the release package (zip file) from [Releases](https://github.com/Konvt/pace/releases).
 
 Unzip the compressed package and add the following code at the corresponding position in the `CMakeLists.txt` file of the project:
 
 ```cmake
 # If the decompressed files are placed in a path that CMake can directly search, the following line is not needed.
-list(APPEND CMAKE_PREFIX_PATH "path/to/package/pace/lib/cmake")
+list(APPEND CMAKE_PREFIX_PATH "path/to/package/lib/cmake")
 find_package(pace CONFIG REQUIRED)
 # ...
-add_executable(TargetName ${SOURCES})
-target_link_libraries(TargetName PRIVATE pace)
+add_executable(YourProject ${SOURCES})
+target_link_libraries(YourProject PRIVATE pace)
 ```
-#### Submodule
+### Git submodule
 Use `git` to introduce `pace` as a sub-module into your project directory:
 
 ```bash
@@ -107,8 +116,8 @@ Then, add the following lines to your `CMakeLists.txt`:
 ```cmake
 add_subdirectory(path/to/pace)
 # ...
-add_executable(TargetName ${SOURCES})
-target_link_libraries(TargetName PRIVATE pace)
+add_executable(YourProject ${SOURCES})
+target_link_libraries(YourProject PRIVATE pace)
 ```
 
 > Note: The `main` branch of `pace` is the stable version. If you need the latest updates, you can switch to the `nightly` branch:
@@ -132,7 +141,7 @@ Or compile directly using the `make` command in the `demo/` folder.
 make all
 # Or use {filename} to compile the specified file under demo/
 ```
-#### Installation
+### Installation
 Execute the following commands to install `pace` to the default directory of the system.
 
 ```bash
@@ -151,7 +160,14 @@ Execute the following commands to remove `pace` from the system.
 ```bash
 cmake --build build --target uninstall
 ```
+### C++20 Module
+If you are using a compiler that already supports the `module` feature, you can use the `pace.cppm` file in the `module/` and import it within your project.
 
+When using it officially, be sure to `import std` in the code file at the same time; otherwise, strange compilation errors will occur as of now.
+### Header-only
+You can copy `include/pace` to the inclusion path of the project, and then directly include the corresponding header file within the source file.
+
+## FAQ
 ### Does updating the progress bar slow down the program?
 No, as mentioned in the [Features](#features) section, updating the progress bar can *essentially be regarded as* zero overhead.
 

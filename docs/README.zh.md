@@ -71,28 +71,37 @@ int main()
 
 更多用例详见 [GUIDE.zh.md](GUIDE.zh.md) 及 [demo/](../demo/)。
 
-## FAQ
-### 如何构建？
-#### 仅头文件
-你可以将 `include/pace` 复制到项目的包含路径中，随后在源文件内直接包含对应头文件。
-#### C++20 Module
-如果你在使用已经支持 `module` 功能的编译器，那么可以使用 `module/` 中的 `pace.cppm` 文件，并在项目中调用它。
+## 部署方式
+### FetchContent
+若 CMake 版本大于 3.11，可以使用 `FetchContent` 自动导入项目依赖。
 
-在正式使用时，请务必一并在代码文件中 `import std`，否则就目前来看会出现奇怪的编译错误。
-#### 发行包
+在项目的 `CMakeLists.txt` 中添加如下代码：
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+  pace
+  GIT_REPOSITORY https://github.com/Konvt/pace.git
+  GIT_TAG        main # the stable branch
+)
+FetchContent_MakeAvailable(pace)
+# ...
+target_link_libraries(YourProject PRIVATE pace::pace)
+```
+### 发行包
 从 [Releases](https://github.com/Konvt/pace/releases) 处获取发行包（zip 文件）。
 
 解压压缩包，并在项目中 `CMakeLists.txt` 的对应位置添加以下代码：
 
 ```cmake
 # 如果解压后的文件被放在 CMake 可以直接搜索到的路径中时，不需要下面这行
-list(APPEND CMAKE_PREFIX_PATH "path/to/package/pace/lib/cmake")
+list(APPEND CMAKE_PREFIX_PATH "path/to/package/lib/cmake")
 find_package(pace CONFIG REQUIRED)
 # ...
-add_executable(TargetName ${SOURCES})
-target_link_libraries(TargetName PRIVATE pace)
+add_executable(YourProject ${SOURCES})
+target_link_libraries(YourProject PRIVATE pace)
 ```
-#### 子模块（submodule）
+### Git submodule
 使用 `git` 将 `pace` 作为子模块引入你的项目目录中：
 
 ```bash
@@ -105,8 +114,8 @@ git submodule update --init --recursive
 ```cmake
 add_subdirectory(path/to/pace)
 # ...
-add_executable(TargetName ${SOURCES})
-target_link_libraries(TargetName PRIVATE pace)
+add_executable(YourProject ${SOURCES})
+target_link_libraries(YourProject PRIVATE pace)
 ```
 
 > 注意：`pace` 的 `main` 分支为 stable 版本。如果需要获取最新更新，可切换为 `nightly` 分支：
@@ -130,7 +139,7 @@ cmake --build build --target demo
 make all
 # 或者使用 {filename} 编译 demo/ 下的指定文件
 ```
-#### 安装
+### 本地安装
 执行以下命令将 `pace` 安装到系统默认目录。
 
 ```bash
@@ -149,7 +158,14 @@ cmake --install build
 ```bash
 cmake --build build --target uninstall
 ```
+### C++20 Module
+如果你在使用已经支持 `module` 功能的编译器，那么可以使用 `module/` 中的 `pace.cppm` 文件，并在项目中调用它。
 
+在正式使用时，请务必一并在代码文件中 `import std`，否则就目前来看会出现奇怪的编译错误。
+### 仅头文件
+你可以将 `include/pace` 复制到项目的包含路径中，随后在源文件内直接包含对应头文件。
+
+## FAQ
 ### 进度条的更新工作会拖慢程序本身吗？
 不，正如[特点](#特点)中指出的，进度条的更新*基本上可以看作*零开销。
 
