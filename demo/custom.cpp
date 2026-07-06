@@ -20,7 +20,7 @@ int main()
     .colored( true )
     .font_bold( true )
     .font_underline( true )
-    .elapsed_format(u8"\u23F3 %:-3Ss")
+    .elapsed_format( u8"\u23F3 %:-3Ss" )
     .enable_all()
     .quota( 2147483647 );
 

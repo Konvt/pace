@@ -15,9 +15,8 @@ namespace pace {
           template<typename Derived>
           static void render( Indicator* item )
           {
-            static_assert(
-              traits::all_of<std::is_base_of<Indicator, Derived>, traits::is_bar<Derived>>::value,
-              "Derived must inherit from Indicator" );
+            static_assert( traits::AllOf<std::is_base_of<Indicator, Derived>, traits::is_bar<Derived>>::value,
+                           "Derived must inherit from Indicator" );
             PACE__TRUST( item != nullptr );
             draw_content( static_cast<Derived&>( *item ) );
           }

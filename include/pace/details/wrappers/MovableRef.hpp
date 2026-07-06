@@ -26,8 +26,8 @@ namespace pace {
 
         template<typename U,
                  typename = typename std::enable_if<
-                   traits::all_of<traits::neg<std::is_same<typename std::decay<U>::type, MovableRef>>,
-                                  std::is_convertible<U&&, T&>>::value>::type>
+                   traits::AllOf<traits::Not<std::is_same<typename std::decay<U>::type, MovableRef>>,
+                                 std::is_convertible<U&&, T&>>::value>::type>
         PACE__CXX17_CNSTXPR MovableRef( U&& x ) noexcept
         {
           T& t = std::forward<U>( x );

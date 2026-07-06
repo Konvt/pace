@@ -65,15 +65,15 @@ namespace pace {
         PACE__CXX20_CNSTXPR Segment( traits::TypeSet<Options...> tag ) : Base( tag )
         {
           using OptionSet = traits::TypeSet<Options...>;
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::Divider>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::Divider>::value )
             unpack( *this, config::provide_for<Derived, option::Divider>() );
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::LeftBorder>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::LeftBorder>::value )
             unpack( *this, config::provide_for<Derived, option::LeftBorder>() );
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::RightBorder>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::RightBorder>::value )
             unpack( *this, config::provide_for<Derived, option::RightBorder>() );
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::InfoForecolor>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::InfoForecolor>::value )
             unpack( *this, config::provide_for<Derived, option::InfoForecolor>() );
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::InfoBackcolor>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::InfoBackcolor>::value )
             unpack( *this, config::provide_for<Derived, option::InfoBackcolor>() );
         }
 

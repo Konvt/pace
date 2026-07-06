@@ -28,8 +28,8 @@ namespace pace {
 #undef PACE__METHOD
 #define PACE__METHOD( ParamType )                                                                         \
   template<template<typename...> class... F1, template<typename...> class... F2>                          \
-  constexpr details::traits::nominal_cast_tmp_t<                                                          \
-    details::traits::combine_t<details::traits::TemplateSet<F1...>, details::traits::TemplateSet<F2...>>, \
+  constexpr details::traits::TmpNominalCast_t<                                                            \
+    details::traits::Combine_t<details::traits::TemplateSet<F1...>, details::traits::TemplateSet<F2...>>, \
     ParamType>                                                                                            \
     operator|( ParamType<F1...>, ParamType<F2...> ) noexcept                                              \
   { return {}; }
@@ -50,8 +50,8 @@ namespace pace {
         static constexpr std::false_type check( ... );
 
       public:
-        using result = all_of<neg<std::is_reference<S>>,
-                              decltype( check( std::declval<typename std::remove_cv<S>::type>() ) )>;
+        using result = AllOf<Not<std::is_reference<S>>,
+                             decltype( check( std::declval<typename std::remove_cv<S>::type>() ) )>;
       };
       template<typename S>
       using is_selection = typename _impl_is_selection<S>::result;
@@ -61,23 +61,21 @@ namespace pace {
   namespace prefab {
     template<template<typename...> class... Facades>
     class BasicConfig
-      : public details::traits::linearize_t<details::aspects::Prefix,
-                                            details::aspects::Postfix,
-                                            details::aspects::Segment,
-                                            Facades...>::template type<details::aspects::Schema,
-                                                                       BasicConfig<Facades...>> {
+      : public details::traits::
+          LI_t<details::aspects::Prefix, details::aspects::Postfix, details::aspects::Segment, Facades...>::
+            template type<details::aspects::Schema, BasicConfig<Facades...>> {
       static_assert( details::traits::is_unique<details::traits::TemplateList<Facades...>>::value,
                      "redundant Facades are not allowed" );
       using Element = details::traits::TemplateSet<Facades...>;
       template<typename Option>
-      using is_setting = details::traits::any_of<
-        details::traits::contains_tp<
-          details::traits::link_options_t<details::traits::c3_t<details::aspects::Prefix,
-                                                                details::aspects::Postfix,
-                                                                details::aspects::Segment,
-                                                                Facades...>>,
-          Option>,
-        details::traits::is_selection<Option>>;
+      using is_setting =
+        details::traits::AnyOf<details::traits::TpContains<details::traits::OptionLinker_t<
+                                                             details::traits::C3_t<details::aspects::Prefix,
+                                                                                   details::aspects::Postfix,
+                                                                                   details::aspects::Segment,
+                                                                                   Facades...>>,
+                                                           Option>,
+                               details::traits::is_selection<Option>>;
 
       friend PACE__FORCEINLINE void unpack( BasicConfig& self, option::Projection proj ) noexcept
       {
@@ -90,12 +88,12 @@ namespace pace {
                                                                 option::Only<Fs...> ) noexcept
       {
         static_assert(
-          details::traits::all_of<
-            details::traits::contains_tmp<details::traits::TemplateSet<Facades...>, Fs>...>::value,
+          details::traits::AllOf<
+            details::traits::TmpContains<details::traits::TemplateSet<Facades...>, Fs>...>::value,
           "try to modifiy an unkonwn Facade" );
         self.projection_.reset();
         (void)std::initializer_list<bool> {
-          ( self.projection_.set( details::traits::index_in<Fs, Facades...>::value ), false )...
+          ( self.projection_.set( details::traits::IndexIn<Fs, Facades...>::value ), false )...
         };
       }
       template<template<typename...> class... Fs>
@@ -103,12 +101,12 @@ namespace pace {
                                                                 option::Except<Fs...> ) noexcept
       {
         static_assert(
-          details::traits::all_of<
-            details::traits::contains_tmp<details::traits::TemplateSet<Facades...>, Fs>...>::value,
+          details::traits::AllOf<
+            details::traits::TmpContains<details::traits::TemplateSet<Facades...>, Fs>...>::value,
           "try to modifiy an unkonwn Facade" );
         self.projection_.set();
         (void)std::initializer_list<bool> {
-          ( self.projection_.reset( details::traits::index_in<Fs, Facades...>::value ), false )...
+          ( self.projection_.reset( details::traits::IndexIn<Fs, Facades...>::value ), false )...
         };
       }
 
@@ -121,22 +119,21 @@ namespace pace {
         requires( is_setting<Args>::value && ... )
 #else
                ,
-               typename = typename std::enable_if<details::traits::all_of<is_setting<Args>...>::value>::type>
+               typename = typename std::enable_if<details::traits::AllOf<is_setting<Args>...>::value>::type>
 #endif
-      PACE__CXX23_CNSTXPR BasicConfig( details::traits::TypeSet<Args...> tag ) : Layout( tag )
+      PACE__CXX23_CNSTXPR BasicConfig( details::traits::TypeSet<Args...> tag ) : layout( tag )
       {
         // Projection is only used for injecting default values.
-        if PACE__CXX17_CNSTXPR ( !details::traits::any_of<details::traits::is_selection<Args>...>::value )
+        if PACE__CXX17_CNSTXPR ( !details::traits::AnyOf<details::traits::is_selection<Args>...>::value )
           unpack( *this, config::provide_for<BasicConfig, option::Projection>() );
       }
 
     public:
-      using Layout =
-        typename details::traits::linearize_t<details::aspects::Prefix,
-                                              details::aspects::Postfix,
-                                              details::aspects::Segment,
-                                              Facades...>::template type<details::aspects::Schema,
-                                                                         BasicConfig>;
+      using layout =
+        typename details::traits::LI_t<details::aspects::Prefix,
+                                       details::aspects::Postfix,
+                                       details::aspects::Segment,
+                                       Facades...>::template type<details::aspects::Schema, BasicConfig>;
 
       /**
        * Build a Projection that explicitly enables a selected subset of Facades.
@@ -151,12 +148,12 @@ namespace pace {
       static option::Projection bake( option::Only<Fs...> )
       {
         static_assert(
-          details::traits::all_of<
-            details::traits::contains_tmp<details::traits::TemplateSet<Facades...>, Fs>...>::value,
+          details::traits::AllOf<
+            details::traits::TmpContains<details::traits::TemplateSet<Facades...>, Fs>...>::value,
           "try to modifiy an unkonwn Facade" );
         std::vector<bool> projection;
         projection.assign( sizeof...( Facades ), false );
-        (void)std::initializer_list<bool> { ( projection[details::traits::index_in<Fs, Facades...>::value] =
+        (void)std::initializer_list<bool> { ( projection[details::traits::IndexIn<Fs, Facades...>::value] =
                                                 true )... };
         return { std::move( projection ) };
       }
@@ -174,12 +171,12 @@ namespace pace {
       static option::Projection bake( option::Except<Fs...> )
       {
         static_assert(
-          details::traits::all_of<
-            details::traits::contains_tmp<details::traits::TemplateSet<Facades...>, Fs>...>::value,
+          details::traits::AllOf<
+            details::traits::TmpContains<details::traits::TemplateSet<Facades...>, Fs>...>::value,
           "try to modifiy an unkonwn Facade" );
         std::vector<bool> projection;
         projection.assign( sizeof...( Facades ), true );
-        (void)std::initializer_list<bool> { ( projection[details::traits::index_in<Fs, Facades...>::value] =
+        (void)std::initializer_list<bool> { ( projection[details::traits::IndexIn<Fs, Facades...>::value] =
                                                 false )... };
         return { std::move( projection ) };
       }
@@ -192,28 +189,28 @@ namespace pace {
 #else
                ,
                typename = typename std::enable_if<
-                 details::traits::all_of<details::traits::is_unique<details::traits::TypeList<Args...>>,
-                                         is_setting<Args>...>::value>::type>
+                 details::traits::AllOf<details::traits::is_unique<details::traits::TypeList<Args...>>,
+                                        is_setting<Args>...>::value>::type>
 #endif
       PACE__CXX23_CNSTXPR BasicConfig( Args... args )
         : BasicConfig( details::traits::TypeSet<typename std::decay<Args>::type...>() )
       { (void)std::initializer_list<bool> { ( unpack( *this, std::move( args ) ), false )... }; }
 
-      BasicConfig( const BasicConfig& other ) noexcept( std::is_nothrow_copy_assignable<Layout>::value )
+      BasicConfig( const BasicConfig& other ) noexcept( std::is_nothrow_copy_assignable<layout>::value )
       {
         std::lock_guard<details::concurrent::SharedMutex> lock { other.rw_mtx_ };
-        Layout::operator=( other );
+        layout::operator=( other );
         projection_ = other.projection_;
       }
       BasicConfig( BasicConfig&& rhs ) noexcept
       {
         std::lock_guard<details::concurrent::SharedMutex> lock { rhs.rw_mtx_ };
-        Layout::operator=( std::move( rhs ) );
+        layout::operator=( std::move( rhs ) );
         using std::swap;
         swap( projection_, rhs.projection_ );
       }
       BasicConfig& operator=( const BasicConfig& other ) & noexcept(
-        std::is_nothrow_copy_assignable<Layout>::value )
+        std::is_nothrow_copy_assignable<layout>::value )
       {
         PACE__TRUST( this != &other );
         details::concurrent::SharedLock<details::concurrent::SharedMutex> lock1 { other.rw_mtx_,
@@ -222,7 +219,7 @@ namespace pace {
         std::lock_guard<details::concurrent::SharedMutex> lock2 { this->rw_mtx_, std::adopt_lock };
 
         projection_ = other.projection_;
-        Layout::operator=( other );
+        layout::operator=( other );
         return *this;
       }
       BasicConfig& operator=( BasicConfig&& rhs ) & noexcept
@@ -235,7 +232,7 @@ namespace pace {
         PACE__TRUST( this != &rhs );
         using std::swap;
         swap( projection_, rhs.projection_ );
-        Layout::operator=( std::move( rhs ) );
+        layout::operator=( std::move( rhs ) );
         return *this;
       }
       /**
@@ -255,7 +252,7 @@ namespace pace {
 #ifndef __cpp_concepts
         static_assert( details::traits::is_unique<details::traits::TypeList<Arg, Args...>>::value,
                        "passed options cannot be repeated" );
-        static_assert( details::traits::all_of<is_setting<Arg>, is_setting<Args>...>::value,
+        static_assert( details::traits::AllOf<is_setting<Arg>, is_setting<Args>...>::value,
                        "passed arguments must be valid options" );
 #endif
         std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
@@ -273,7 +270,7 @@ namespace pace {
 #ifndef __cpp_concepts
         static_assert( details::traits::is_unique<details::traits::TypeList<Arg, Args...>>::value,
                        "passed options cannot be repeated" );
-        static_assert( details::traits::all_of<is_setting<Arg>, is_setting<Args>...>::value,
+        static_assert( details::traits::AllOf<is_setting<Arg>, is_setting<Args>...>::value,
                        "passed arguments must be valid options" );
 #endif
         std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
@@ -324,19 +321,19 @@ namespace pace {
       template<template<typename...> class F, template<typename...> class... Fs>
       BasicConfig& enable() & noexcept
 #ifdef __cpp_concepts
-        requires( details::traits::contains_tmp<Element, F>::value
-                  && ( details::traits::contains_tmp<Element, Fs>::value && ... ) )
+        requires( details::traits::TmpContains<Element, F>::value
+                  && ( details::traits::TmpContains<Element, Fs>::value && ... ) )
 #endif
       {
 #ifndef __cpp_concepts
-        static_assert( details::traits::all_of<details::traits::contains_tmp<Element, F>,
-                                               details::traits::contains_tmp<Element, Fs>...>::value,
+        static_assert( details::traits::AllOf<details::traits::TmpContains<Element, F>,
+                                              details::traits::TmpContains<Element, Fs>...>::value,
                        "enabled facades must be part of the config object" );
 #endif
         std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
-        projection_.set( details::traits::index_in<F, Facades...>::value );
+        projection_.set( details::traits::IndexIn<F, Facades...>::value );
         (void)std::initializer_list<bool> {
-          ( projection_.set( details::traits::index_in<Fs, Facades...>::value ), false )...
+          ( projection_.set( details::traits::IndexIn<Fs, Facades...>::value ), false )...
         };
         return *this;
       }
@@ -344,19 +341,19 @@ namespace pace {
       template<template<typename...> class F, template<typename...> class... Fs>
       BasicConfig&& enable() && noexcept
 #ifdef __cpp_concepts
-        requires( details::traits::contains_tmp<Element, F>::value
-                  && ( details::traits::contains_tmp<Element, Fs>::value && ... ) )
+        requires( details::traits::TmpContains<Element, F>::value
+                  && ( details::traits::TmpContains<Element, Fs>::value && ... ) )
 #endif
       {
 #ifndef __cpp_concepts
-        static_assert( details::traits::all_of<details::traits::contains_tmp<Element, F>,
-                                               details::traits::contains_tmp<Element, Fs>...>::value,
+        static_assert( details::traits::AllOf<details::traits::TmpContains<Element, F>,
+                                              details::traits::TmpContains<Element, Fs>...>::value,
                        "enabled facades must be part of the config object" );
 #endif
         std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
-        projection_.set( details::traits::index_in<F, Facades...>::value );
+        projection_.set( details::traits::IndexIn<F, Facades...>::value );
         (void)std::initializer_list<bool> {
-          ( projection_.set( details::traits::index_in<Fs, Facades...>::value ), false )...
+          ( projection_.set( details::traits::IndexIn<Fs, Facades...>::value ), false )...
         };
         return std::move( *this );
       }
@@ -365,19 +362,19 @@ namespace pace {
       template<template<typename...> class F, template<typename...> class... Fs>
       BasicConfig& disable() & noexcept
 #ifdef __cpp_concepts
-        requires( details::traits::contains_tmp<Element, F>::value
-                  && ( details::traits::contains_tmp<Element, Fs>::value && ... ) )
+        requires( details::traits::TmpContains<Element, F>::value
+                  && ( details::traits::TmpContains<Element, Fs>::value && ... ) )
 #endif
       {
 #ifndef __cpp_concepts
-        static_assert( details::traits::all_of<details::traits::contains_tmp<Element, F>,
-                                               details::traits::contains_tmp<Element, Fs>...>::value,
+        static_assert( details::traits::AllOf<details::traits::TmpContains<Element, F>,
+                                              details::traits::TmpContains<Element, Fs>...>::value,
                        "disabled facades must be part of the config object" );
 #endif
         std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
-        projection_.reset( details::traits::index_in<F, Facades...>::value );
+        projection_.reset( details::traits::IndexIn<F, Facades...>::value );
         (void)std::initializer_list<bool> {
-          ( projection_.reset( details::traits::index_in<Fs, Facades...>::value ), false )...
+          ( projection_.reset( details::traits::IndexIn<Fs, Facades...>::value ), false )...
         };
         return *this;
       }
@@ -385,19 +382,19 @@ namespace pace {
       template<template<typename...> class F, template<typename...> class... Fs>
       BasicConfig&& disable() && noexcept
 #ifdef __cpp_concepts
-        requires( details::traits::contains_tmp<Element, F>::value
-                  && ( details::traits::contains_tmp<Element, Fs>::value && ... ) )
+        requires( details::traits::TmpContains<Element, F>::value
+                  && ( details::traits::TmpContains<Element, Fs>::value && ... ) )
 #endif
       {
 #ifndef __cpp_concepts
-        static_assert( details::traits::all_of<details::traits::contains_tmp<Element, F>,
-                                               details::traits::contains_tmp<Element, Fs>...>::value,
+        static_assert( details::traits::AllOf<details::traits::TmpContains<Element, F>,
+                                              details::traits::TmpContains<Element, Fs>...>::value,
                        "disabled facades must be part of the config object" );
 #endif
         std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
-        projection_.reset( details::traits::index_in<F, Facades...>::value );
+        projection_.reset( details::traits::IndexIn<F, Facades...>::value );
         (void)std::initializer_list<bool> {
-          ( projection_.reset( details::traits::index_in<Fs, Facades...>::value ), false )...
+          ( projection_.reset( details::traits::IndexIn<Fs, Facades...>::value ), false )...
         };
         return std::move( *this );
       }
@@ -410,7 +407,7 @@ namespace pace {
 
         using std::swap;
         swap( projection_, other.projection_ );
-        Layout::swap( other );
+        layout::swap( other );
       }
       friend PACE__CXX23_CNSTXPR void swap( BasicConfig& a, BasicConfig& b ) noexcept { a.swap( b ); }
 
@@ -453,8 +450,8 @@ namespace pace {
         static constexpr std::false_type check( ... );
 
       public:
-        using result = all_of<neg<std::is_reference<C>>,
-                              decltype( check( std::declval<typename std::remove_cv<C>::type>() ) )>;
+        using result = AllOf<Not<std::is_reference<C>>,
+                             decltype( check( std::declval<typename std::remove_cv<C>::type>() ) )>;
       };
       template<typename C>
       using is_config = typename _impl_is_config<C>::result;

@@ -19,34 +19,34 @@ namespace pace {
 
       // Resolves and links behaviors into a linear inheritance hierarchy.
       template<typename Config>
-      struct link_entailments;
+      struct EntailmentLinker;
       template<typename Config>
-      using link_entailments_t = typename link_entailments<Config>::type;
+      using EntailmentLinker_t = typename EntailmentLinker<Config>::type;
 
       template<template<template<typename...> class...> class AnyConfig,
                template<typename...> class... Facades>
-      struct link_entailments<AnyConfig<Facades...>> {
+      struct EntailmentLinker<AnyConfig<Facades...>> {
       private:
         template<typename /* TypeSet<...> */ Result, typename /* Relation<...> */ Behaviors>
-        struct flat_map;
+        struct FlatMap;
         template<typename /* TypeSet<...> */ Result>
-        struct flat_map<Result, traits::Relation<>> : traits::Identity<Result> {};
+        struct FlatMap<Result, traits::Relation<>> : traits::Identity<Result> {};
         template<typename /* TypeSet<...> */ Result,
                  template<typename...> class Behavior,
                  template<typename...> class... Behaviors>
-        struct flat_map<Result, traits::Relation<Behavior, Behaviors...>>
-          : flat_map<traits::append_tp_t<Result, traits::InheritOrder_t<Behavior>>,
-                     traits::Relation<Behaviors...>> {};
+        struct FlatMap<Result, traits::Relation<Behavior, Behaviors...>>
+          : FlatMap<traits::TpAppend_t<Result, traits::InheritOrder_t<Behavior>>,
+                    traits::Relation<Behaviors...>> {};
 
         template<typename /* TypeSet<Relation<...>, ...> */ VBLists>
-        struct helper;
+        struct Helper;
         template<typename... VBLists>
-        struct helper<traits::TypeSet<VBLists...>> : traits::c3_merge<VBLists...> {};
+        struct Helper<traits::TypeSet<VBLists...>> : traits::C3Merge<VBLists...> {};
 
       public:
-        using type = typename helper<
-          typename flat_map<traits::TypeSet<>,
-                            traits::merge_t<traits::Relation<>, EntailOn_t<Facades>...>>::type>::type;
+        using type = typename Helper<
+          typename FlatMap<traits::TypeSet<>,
+                           traits::Merge_t<traits::Relation<>, EntailOn_t<Facades>...>>::type>::type;
       };
     } // namespace aspects
   } // namespace details

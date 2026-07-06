@@ -74,19 +74,19 @@ namespace pace {
         PACE__CXX20_CNSTXPR Bar( traits::TypeSet<Options...> tag ) : Base( tag )
         {
           using OptionSet = traits::TypeSet<Options...>;
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::Starting>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::Starting>::value )
             unpack( *this, config::provide_for<Derived, option::Starting>() );
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::Ending>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::Ending>::value )
             unpack( *this, config::provide_for<Derived, option::Ending>() );
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::BarWidth>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::BarWidth>::value )
             unpack( *this, config::provide_for<Derived, option::BarWidth>() );
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::StartForecolor>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::StartForecolor>::value )
             unpack( *this, config::provide_for<Derived, option::StartForecolor>() );
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::StartBackcolor>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::StartBackcolor>::value )
             unpack( *this, config::provide_for<Derived, option::StartBackcolor>() );
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::EndForecolor>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::EndForecolor>::value )
             unpack( *this, config::provide_for<Derived, option::EndForecolor>() );
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::EndBackcolor>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::EndBackcolor>::value )
             unpack( *this, config::provide_for<Derived, option::EndBackcolor>() );
         }
 

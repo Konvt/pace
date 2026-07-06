@@ -22,7 +22,7 @@ namespace pace {
       template<types::Size I, typename T, typename Tuple>
       PACE__FORCEINLINE constexpr auto pick_or( Tuple&& )
         noexcept( std::is_nothrow_default_constructible<T>::value ) -> typename std::enable_if<
-          traits::all_of<
+          traits::AllOf<
             traits::BoolConstant<( I >= std::tuple_size<typename std::decay<Tuple>::type>::value )>,
             std::is_default_constructible<T>>::value,
           T>::type

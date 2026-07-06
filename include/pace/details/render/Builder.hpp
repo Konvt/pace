@@ -14,9 +14,9 @@ namespace pace {
       private:
         using Config = prefab::BasicConfig<Facades...>;
         using Base   = Assembler<Config>;
-        static_assert( traits::all_of<traits::is_instance_of<Config, aspects::Prefix>,
-                                      traits::is_instance_of<Config, aspects::Postfix>,
-                                      traits::is_instance_of<Config, aspects::Segment>>::value,
+        static_assert( traits::AllOf<traits::is_instance_of<Config, aspects::Prefix>,
+                                     traits::is_instance_of<Config, aspects::Postfix>,
+                                     traits::is_instance_of<Config, aspects::Segment>>::value,
                        "the config type must contains the Prefix, Postfix and Segment" );
 
       public:
@@ -31,11 +31,11 @@ namespace pace {
                                         params.style_off_ )
                      << this->l_border_;
           }
-          this->traits::base_of_t<typename Config::Layout, aspects::Prefix>::build( pipeline, params );
+          this->traits::BaseOf_t<typename Config::layout, aspects::Prefix>::build( pipeline, params );
 
           this->template render_each<Facades...>( pipeline, params );
 
-          this->traits::base_of_t<typename Config::Layout, aspects::Postfix>::build( pipeline, params );
+          this->traits::BaseOf_t<typename Config::layout, aspects::Postfix>::build( pipeline, params );
           if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() ) {
             pipeline << this->clear_then_dye(
               console::Dualcolor( this->info_forecolor_, this->info_backcolor_ ),

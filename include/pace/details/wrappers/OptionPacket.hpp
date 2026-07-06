@@ -57,12 +57,12 @@ namespace pace {
 
       // Resolves and links option declarations into a list.
       template<typename ComponentList>
-      struct link_options;
+      struct OptionLinker;
       template<typename ComponentList>
-      using link_options_t = typename link_options<ComponentList>::type;
+      using OptionLinker_t = typename OptionLinker<ComponentList>::type;
 
       template<template<typename...> class... Components>
-      struct link_options<TemplateSet<Components...>> : merge<TypeSet<>, OptionOf_t<Components>...> {};
+      struct OptionLinker<TemplateSet<Components...>> : Merge<TypeSet<>, OptionOf_t<Components>...> {};
     } // namespace traits
   } // namespace details
 } // namespace pace

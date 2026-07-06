@@ -21,18 +21,18 @@ namespace pace {
 #endif
     {
       static_assert( details::traits::is_sized_range<View>::value, "only available for bounded ranges" );
-      static_assert( details::traits::all_of<std::is_copy_constructible<UIRef>,
-                                             details::traits::is_pointer_like<UIRef>>::value,
+      static_assert( details::traits::AllOf<std::is_copy_constructible<UIRef>,
+                                            details::traits::is_pointer_like<UIRef>>::value,
                      "must be a copyable pointer-like bar reference" );
       static_assert(
-        details::traits::is_iterable_bar<details::traits::pointee_of_t<UIRef>>::value,
+        details::traits::is_iterable_bar<details::traits::PointeeOf_t<UIRef>>::value,
         "must have a method to configure the iteration count for the object's configuration type" );
 
       UIRef ui_;
       View view_;
 
-      using Itr = details::traits::iterator_of_t<View>;
-      using Snt = details::traits::sentinel_of_t<View>;
+      using Itr = details::traits::IteratorOf_t<View>;
+      using Snt = details::traits::SentinelOf_t<View>;
 
       class Sentry {
         UIRef ui_;
@@ -40,8 +40,8 @@ namespace pace {
 
       public:
         constexpr Sentry( Snt endpoint, UIRef ui_ref )
-          noexcept( details::traits::all_of<std::is_nothrow_move_constructible<Snt>,
-                                            std::is_nothrow_move_constructible<UIRef>>::value )
+          noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<Snt>,
+                                           std::is_nothrow_move_constructible<UIRef>>::value )
           : ui_ { std::move( ui_ref ) }, snt_ { std::move( endpoint ) }
         {}
         constexpr Snt base() const noexcept { return snt_; }
@@ -55,28 +55,28 @@ namespace pace {
 
       public:
         using iterator_category = typename std::conditional<
-          std::is_same<details::traits::iter_category_t<Itr>, std::output_iterator_tag>::value,
-          details::traits::iter_category_t<Itr>,
+          std::is_same<details::traits::IterCategory_t<Itr>, std::output_iterator_tag>::value,
+          details::traits::IterCategory_t<Itr>,
           std::input_iterator_tag>::type;
-        using value_type      = details::traits::iter_value_t<Itr>;
-        using difference_type = details::traits::iter_difference_t<Itr>;
-        using reference       = details::traits::iter_reference_t<Itr>;
+        using value_type      = details::traits::IterValue_t<Itr>;
+        using difference_type = details::traits::IterDifference_t<Itr>;
+        using reference       = details::traits::IterReference_t<Itr>;
         using pointer         = Itr;
 
         constexpr iterator() = default;
         PACE__CXX17_CNSTXPR iterator( Itr itr, UIRef ui_ref )
-          noexcept( details::traits::all_of<std::is_nothrow_move_constructible<Itr>,
-                                            std::is_nothrow_move_constructible<UIRef>>::value )
+          noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<Itr>,
+                                           std::is_nothrow_move_constructible<UIRef>>::value )
           : ui_ { std::move( ui_ref ) }, itr_ { std::move( itr ) }
         {}
         PACE__CXX17_CNSTXPR iterator( iterator&& rhs )
-          noexcept( details::traits::all_of<std::is_nothrow_move_constructible<View>,
-                                            std::is_nothrow_move_constructible<UIRef>>::value )
+          noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<View>,
+                                           std::is_nothrow_move_constructible<UIRef>>::value )
           : iterator( std::move( rhs.itr_ ), std::move( rhs.ui_ ) )
         {}
         PACE__CXX17_CNSTXPR iterator& operator=( iterator&& rhs ) & noexcept(
-          details::traits::all_of<std::is_nothrow_move_assignable<View>,
-                                  std::is_nothrow_move_assignable<UIRef>>::value )
+          details::traits::AllOf<std::is_nothrow_move_assignable<View>,
+                                 std::is_nothrow_move_assignable<UIRef>>::value )
         {
           PACE__TRUST( this != &rhs );
           itr_ = std::move( rhs.itr_ );
@@ -116,25 +116,25 @@ namespace pace {
         { return b != a; }
         template<typename S>
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr typename std::enable_if<
-          details::traits::all_of<std::is_same<S, Snt>, details::traits::neg<std::is_same<Itr, Snt>>>::value,
+          details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator==( const iterator& a, const S& b )
         { return a.itr_ == b; }
         template<typename S>
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr typename std::enable_if<
-          details::traits::all_of<std::is_same<S, Snt>, details::traits::neg<std::is_same<Itr, Snt>>>::value,
+          details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator==( const S& ir, const iterator& itr )
         { return itr == ir; }
         template<typename S>
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr typename std::enable_if<
-          details::traits::all_of<std::is_same<S, Snt>, details::traits::neg<std::is_same<Itr, Snt>>>::value,
+          details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator!=( const iterator& itr, const S& ir )
         { return !( itr == ir ); }
         template<typename S>
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr typename std::enable_if<
-          details::traits::all_of<std::is_same<S, Snt>, details::traits::neg<std::is_same<Itr, Snt>>>::value,
+          details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator!=( const S& snt, const iterator& itr )
         { return !( itr == snt ); }
@@ -167,18 +167,18 @@ namespace pace {
 
       constexpr TrackedSpan() = default;
       PACE__CXX17_CNSTXPR TrackedSpan( View view, UIRef ui )
-        noexcept( details::traits::all_of<std::is_nothrow_move_constructible<View>,
-                                          std::is_nothrow_move_constructible<UIRef>>::value )
+        noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<View>,
+                                         std::is_nothrow_move_constructible<UIRef>>::value )
         : ui_ { std::move( ui ) }, view_ { std::move( view ) }
       {}
       PACE__CXX17_CNSTXPR TrackedSpan( TrackedSpan&& rhs )
-        noexcept( details::traits::all_of<std::is_nothrow_move_constructible<View>,
-                                          std::is_nothrow_move_constructible<UIRef>>::value )
+        noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<View>,
+                                         std::is_nothrow_move_constructible<UIRef>>::value )
         : TrackedSpan( std::move( rhs.view_ ), std::move( rhs.ui_ ) )
       {}
       PACE__CXX17_CNSTXPR TrackedSpan& operator=( TrackedSpan&& rhs ) & noexcept(
-        details::traits::all_of<std::is_nothrow_move_constructible<View>,
-                                std::is_nothrow_move_constructible<UIRef>>::value )
+        details::traits::AllOf<std::is_nothrow_move_constructible<View>,
+                               std::is_nothrow_move_constructible<UIRef>>::value )
       {
         PACE__TRUST( this != &rhs );
         view_ = std::move( rhs.view_ );
@@ -189,12 +189,12 @@ namespace pace {
       PACE__CXX20_CNSTXPR ~TrackedSpan() = default;
 
       PACE__CXX14_CNSTXPR View replace( View view ) & noexcept(
-        details::traits::all_of<std::is_nothrow_move_constructible<View>,
-                                std::is_nothrow_move_assignable<View>>::value )
+        details::traits::AllOf<std::is_nothrow_move_constructible<View>,
+                               std::is_nothrow_move_assignable<View>>::value )
       { return details::utils::exchange( view_, view ); }
       PACE__CXX14_CNSTXPR UIRef replace( UIRef ui ) & noexcept(
-        details::traits::all_of<std::is_nothrow_move_constructible<UIRef>,
-                                std::is_nothrow_move_assignable<UIRef>>::value )
+        details::traits::AllOf<std::is_nothrow_move_constructible<UIRef>,
+                               std::is_nothrow_move_assignable<UIRef>>::value )
       { return details::utils::exchange( ui_, ui ); }
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX17_CNSTXPR bool empty() const noexcept

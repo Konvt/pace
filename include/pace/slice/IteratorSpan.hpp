@@ -23,9 +23,8 @@ namespace pace {
     {
       static_assert( details::traits::is_sized_cursor<Itr, Snt>::value,
                      "only available for sized iterator and sentinel pair" );
-      static_assert(
-        std::is_convertible<details::traits::iter_difference_t<Itr>, details::types::Size>::value,
-        "the difference_type must be convertible to Size" );
+      static_assert( std::is_convertible<details::traits::IterDifference_t<Itr>, details::types::Size>::value,
+                     "the difference_type must be convertible to Size" );
 
       details::types::Size size_;
       Itr start_;
@@ -55,14 +54,14 @@ namespace pace {
 
       public:
         using iterator_category = typename std::conditional<
-          details::traits::any_of<
-            std::is_same<details::traits::iter_category_t<Itr>, std::input_iterator_tag>,
-            std::is_same<details::traits::iter_category_t<Itr>, std::output_iterator_tag>>::value,
-          details::traits::iter_category_t<Itr>,
+          details::traits::AnyOf<
+            std::is_same<details::traits::IterCategory_t<Itr>, std::input_iterator_tag>,
+            std::is_same<details::traits::IterCategory_t<Itr>, std::output_iterator_tag>>::value,
+          details::traits::IterCategory_t<Itr>,
           std::forward_iterator_tag>::type;
-        using value_type      = details::traits::iter_value_t<Itr>;
-        using difference_type = details::traits::iter_difference_t<Itr>;
-        using reference       = details::traits::iter_reference_t<Itr>;
+        using value_type      = details::traits::IterValue_t<Itr>;
+        using difference_type = details::traits::IterDifference_t<Itr>;
+        using reference       = details::traits::IterReference_t<Itr>;
         using pointer         = Itr;
 
         constexpr iterator() = default;
@@ -109,25 +108,25 @@ namespace pace {
         { return !( itr == ir ); }
         template<typename S>
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr typename std::enable_if<
-          details::traits::all_of<std::is_same<S, Snt>, details::traits::neg<std::is_same<Itr, Snt>>>::value,
+          details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator==( const iterator& a, const S& b )
         { return a.current_ == b; }
         template<typename S>
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr typename std::enable_if<
-          details::traits::all_of<std::is_same<S, Snt>, details::traits::neg<std::is_same<Itr, Snt>>>::value,
+          details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator==( const Snt& a, const iterator& b )
         { return b == a; }
         template<typename S>
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr typename std::enable_if<
-          details::traits::all_of<std::is_same<S, Snt>, details::traits::neg<std::is_same<Itr, Snt>>>::value,
+          details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator!=( const iterator& a, const Snt& b )
         { return !( a == b ); }
         template<typename S>
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr typename std::enable_if<
-          details::traits::all_of<std::is_same<S, Snt>, details::traits::neg<std::is_same<Itr, Snt>>>::value,
+          details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator!=( const Snt& a, const iterator& b )
         { return !( b == a ); }
@@ -177,12 +176,12 @@ namespace pace {
       PACE__CXX20_CNSTXPR ~IteratorSpan()                                  = default;
 
       PACE__NODISCARD PACE__FORCEINLINE constexpr iterator begin() const
-        noexcept( details::traits::all_of<std::is_nothrow_move_constructible<Itr>,
-                                          std::is_nothrow_copy_constructible<Itr>>::value )
+        noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<Itr>,
+                                         std::is_nothrow_copy_constructible<Itr>>::value )
       { return { this->start_ }; }
       PACE__NODISCARD PACE__FORCEINLINE constexpr sentinel end() const
-        noexcept( details::traits::all_of<std::is_nothrow_move_constructible<sentinel>,
-                                          std::is_nothrow_copy_constructible<sentinel>>::value )
+        noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<sentinel>,
+                                         std::is_nothrow_copy_constructible<sentinel>>::value )
       { return { this->end_ }; }
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR typename iterator::reference front()

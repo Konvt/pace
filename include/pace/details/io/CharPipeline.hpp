@@ -87,8 +87,8 @@ namespace pace {
 
         template<typename T>
         friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR typename std::enable_if<
-          traits::any_of<std::is_convertible<T, charcodes::StringView>,
-                         std::is_same<typename std::decay<T>::type, types::Char>>::value,
+          traits::AnyOf<std::is_convertible<T, charcodes::StringView>,
+                        std::is_same<typename std::decay<T>::type, types::Char>>::value,
           CharPipeline&>::type
           operator<<( CharPipeline& stream, T&& info )
         { return stream.append( std::forward<T>( info ) ); }

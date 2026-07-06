@@ -9,32 +9,32 @@ namespace pace {
   namespace details {
     namespace traits {
       template<template<typename...> class Template, typename T, types::Size N>
-      struct fill_with {
+      struct FillWith {
       private:
         template<typename List>
-        struct helper;
+        struct Helper;
         template<typename... Elements>
-        struct helper<TypeList<Elements...>> : Identity<Template<Elements...>> {};
+        struct Helper<TypeList<Elements...>> : Identity<Template<Elements...>> {};
 
       public:
-        using type = typename helper<fill_tp_t<T, N>>::type;
+        using type = typename Helper<TpFill_t<T, N>>::type;
       };
       template<template<typename...> class Template, typename T, types::Size N>
-      using fill_with_t = typename fill_with<Template, T, N>::type;
+      using FillWith_t = typename FillWith<Template, T, N>::type;
 
       template<typename T>
-      struct pointee_of {
+      struct PointeeOf {
         static_assert( is_pointer_like<T>::value, "invalid type" );
         using type = typename std::remove_reference<decltype( *std::declval<T&>() )>::type;
       };
       template<typename T>
-      using pointee_of_t = typename pointee_of<T>::type;
+      using PointeeOf_t = typename PointeeOf<T>::type;
 
       template<typename P>
-      struct pointee_of<P*> : Identity<P> {};
+      struct PointeeOf<P*> : Identity<P> {};
 
       template<typename Src, typename Dst>
-      using copy_const_t = typename std::conditional<std::is_const<Src>::value, const Dst, Dst>::type;
+      using CopyConst_t = typename std::conditional<std::is_const<Src>::value, const Dst, Dst>::type;
     } // namespace traits
   } // namespace details
 } // namespace pace

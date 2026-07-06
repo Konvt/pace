@@ -25,8 +25,8 @@ namespace pace {
       R* rnge_;
 
     public:
-      using iterator = details::traits::iterator_of_t<R>;
-      using sentinel = details::traits::sentinel_of_t<R>;
+      using iterator = details::traits::IteratorOf_t<R>;
+      using sentinel = details::traits::SentinelOf_t<R>;
 
       PACE__CXX17_CNSTXPR SizedSpan( R& rnge ) noexcept : rnge_ { std::addressof( rnge ) } {}
 
@@ -41,10 +41,10 @@ namespace pace {
         noexcept( noexcept( details::utils::end( *rnge_ ) ) )
       { return details::utils::end( *rnge_ ); }
 
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR details::traits::iter_reference_t<iterator>
-        front() const
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR details::traits::IterReference_t<iterator> front()
+        const
       { return *begin(); }
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX17_CNSTXPR details::traits::iter_reference_t<iterator> back()
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX17_CNSTXPR details::traits::IterReference_t<iterator> back()
         const
       { return *std::next( begin(), size() - 1 ); }
       PACE__NODISCARD PACE__FORCEINLINE constexpr details::types::Size step() const noexcept { return 1; }

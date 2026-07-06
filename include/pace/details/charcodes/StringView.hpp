@@ -99,9 +99,9 @@ namespace pace {
           : data_ { s }, length_ { count }
         {}
         template<typename P,
-                 typename = typename std::enable_if<traits::all_of<
+                 typename = typename std::enable_if<traits::AllOf<
                    std::is_convertible<P, const_pointer>,
-                   traits::neg<std::is_array<typename std::remove_reference<P>::type>>>::value>::type>
+                   traits::Not<std::is_array<typename std::remove_reference<P>::type>>>::value>::type>
         PACE__CXX17_CNSTXPR BasicStringView( P&& s ) noexcept : data_ { s }, length_ { Traits::length( s ) }
         {}
 

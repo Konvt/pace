@@ -120,11 +120,11 @@ namespace pace {
                 && Bar::zone == Zone && std::is_constructible_v<Bar, Options && ...> )
 #else
       -> typename std::enable_if<
-        details::traits::all_of<details::traits::is_bar<Bar>,
-                                std::is_constructible<Bar, Options&&...>,
-                                details::traits::BoolConstant<( Bar::sink == Sink )>,
-                                details::traits::BoolConstant<( Bar::mode == Mode )>,
-                                details::traits::BoolConstant<( Bar::zone == Zone )>>::value,
+        details::traits::AllOf<details::traits::is_bar<Bar>,
+                               std::is_constructible<Bar, Options&&...>,
+                               details::traits::BoolConstant<( Bar::sink == Sink )>,
+                               details::traits::BoolConstant<( Bar::mode == Mode )>,
+                               details::traits::BoolConstant<( Bar::zone == Zone )>>::value,
         std::unique_ptr<Bar>>::type
 #endif
     {
@@ -140,8 +140,8 @@ namespace pace {
       -> std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>
       requires( details::traits::is_config<Config>::value && std::is_constructible_v<Config, Options && ...> )
 #else
-      -> typename std::enable_if<details::traits::all_of<details::traits::is_config<Config>,
-                                                         std::is_constructible<Config, Options&&...>>::value,
+      -> typename std::enable_if<details::traits::AllOf<details::traits::is_config<Config>,
+                                                        std::is_constructible<Config, Options&&...>>::value,
                                  std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>::type
 #endif
     {
@@ -174,8 +174,8 @@ namespace pace {
     requires( details::traits::is_config<Config>::value
               && ( details::traits::is_config<Configs>::value && ... ) )
 #else
-    -> typename std::enable_if<details::traits::all_of<details::traits::is_config<Config>,
-                                                       details::traits::is_config<Configs>...>::value,
+    -> typename std::enable_if<details::traits::AllOf<details::traits::is_config<Config>,
+                                                      details::traits::is_config<Configs>...>::value,
                                std::tuple<std::unique_ptr<prefab::BasicBar<Config, S, M, Z>>,
                                           std::unique_ptr<prefab::BasicBar<Configs, S, M, Z>>...>>::type
 #endif
@@ -195,8 +195,8 @@ namespace pace {
               && ( details::traits::is_config<std::decay_t<Configs>>::value && ... ) )
 #else
     -> typename std::enable_if<
-      details::traits::all_of<details::traits::is_config<typename std::decay<Config>::type>,
-                              details::traits::is_config<typename std::decay<Configs>::type>...>::value,
+      details::traits::AllOf<details::traits::is_config<typename std::decay<Config>::type>,
+                             details::traits::is_config<typename std::decay<Configs>::type>...>::value,
       std::tuple<
         std::unique_ptr<prefab::BasicBar<typename std::decay<Config>::type, Sink, Mode, Zone>>,
         std::unique_ptr<prefab::BasicBar<typename std::decay<Configs>::type, Sink, Mode, Zone>>...>>::type
@@ -275,13 +275,13 @@ namespace pace {
                    || ( std::is_same<typename Bar::config_type, std::decay_t<Objs>>::value && ... ) ) )
 #else
     -> typename std::enable_if<
-      details::traits::all_of<
+      details::traits::AllOf<
         details::traits::is_bar<Bar>,
-        details::traits::any_of<
-          details::traits::all_of<
+        details::traits::AnyOf<
+          details::traits::AllOf<
             std::is_same<typename std::remove_cv<Bar>::type, typename std::remove_cv<Objs>::type>...,
-            details::traits::neg<details::traits::any_of<std::is_lvalue_reference<Objs&&>...>>>,
-          details::traits::all_of<
+            details::traits::Not<details::traits::AnyOf<std::is_lvalue_reference<Objs&&>...>>>,
+          details::traits::AllOf<
             std::is_same<typename Bar::config_type, typename std::decay<Objs>::type>...>>>::value,
       std::vector<std::unique_ptr<Bar>>>::type
 #endif
@@ -326,7 +326,7 @@ namespace pace {
               && ( std::is_same_v<std::remove_cv_t<Config>, std::decay_t<Configs>> && ... ) )
 #else
     -> typename std::enable_if<
-      details::traits::all_of<
+      details::traits::AllOf<
         details::traits::is_config<Config>,
         std::is_same<typename std::remove_cv<Config>::type, typename std::decay<Configs>::type>...>::value,
       std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
@@ -373,8 +373,8 @@ namespace pace {
               && ( std::is_same_v<Config, std::decay_t<Configs>> && ... ) )
 #else
     -> typename std::enable_if<
-      details::traits::all_of<details::traits::is_config<Config>,
-                              std::is_same<Config, typename std::decay<Configs>::type>...>::value,
+      details::traits::AllOf<details::traits::is_config<Config>,
+                             std::is_same<Config, typename std::decay<Configs>::type>...>::value,
       std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {

@@ -106,11 +106,11 @@ namespace pace {
         PACE__CXX20_CNSTXPR Frame( traits::TypeSet<Options...> tag ) : Base( tag )
         {
           using OptionSet = traits::TypeSet<Options...>;
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::Lead>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::Lead>::value )
             unpack( *this, config::provide_for<Derived, option::Lead>() );
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::LeadForecolor>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::LeadForecolor>::value )
             unpack( *this, config::provide_for<Derived, option::LeadForecolor>() );
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::LeadBackcolor>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::LeadBackcolor>::value )
             unpack( *this, config::provide_for<Derived, option::LeadBackcolor>() );
         }
 

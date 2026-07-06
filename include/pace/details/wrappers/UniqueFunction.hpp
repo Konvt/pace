@@ -73,7 +73,7 @@ namespace pace {
         };
 
         template<typename T>
-        using is_inlinable = traits::all_of<
+        using is_inlinable = traits::AllOf<
           std::is_nothrow_move_constructible<T>,
           traits::BoolConstant<( sizeof( AnyFn::sso_ ) >= sizeof( T ) && alignof( AnyFn ) >= alignof( T ) )>>;
 
@@ -195,8 +195,8 @@ namespace pace {
         }
         template<typename F>
         PACE__CXX23_CNSTXPR void reset( F&& fn )
-          noexcept( traits::all_of<is_inlinable<typename std::decay<F>::type>,
-                                   std::is_nothrow_constructible<typename std::decay<F>::type, F>>::value )
+          noexcept( traits::AllOf<is_inlinable<typename std::decay<F>::type>,
+                                  std::is_nothrow_constructible<typename std::decay<F>::type, F>>::value )
         {
           VTable vtable;
           AnyFn tmp;
@@ -279,18 +279,18 @@ namespace pace {
 
         constexpr UniqueFunction( std::nullptr_t ) noexcept : UniqueFunction() {}
         template<typename F,
-                 typename = typename std::enable_if<traits::all_of<
+                 typename = typename std::enable_if<traits::AllOf<
                    // It's so strange that even if we have a no-template overload here,
                    // using an earlier standard (c++14) in msvc still causes compile error
                    // because the compiler attempts to instantiate the template version with std::nullptr_t.
                    // Therefore we need to add a SFINAE below to prevent the instantiation.
-                   traits::neg<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
+                   traits::Not<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
                    // And it's not available for std::is_null_pointer in c++11 libc++.
                    std::is_constructible<typename std::decay<F>::type, F>,
                    traits::is_invocable_r<R, typename Base::template Fn_t<F>, Params...>>::value>::type>
         PACE__CXX23_CNSTXPR UniqueFunction( F&& fn )
-          noexcept( traits::all_of<typename Base::template is_inlinable<typename std::decay<F>::type>,
-                                   std::is_nothrow_constructible<typename std::decay<F>::type, F>>::value )
+          noexcept( traits::AllOf<typename Base::template is_inlinable<typename std::decay<F>::type>,
+                                  std::is_nothrow_constructible<typename std::decay<F>::type, F>>::value )
         {
           Base::template store<typename std::decay<F>::type>( this->vtable_,
                                                               this->callee_,
@@ -301,13 +301,13 @@ namespace pace {
 
         template<typename F>
         PACE__CXX23_CNSTXPR typename std::enable_if<
-          traits::all_of<traits::neg<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
-                         std::is_constructible<typename std::decay<F>::type, F>,
-                         traits::is_invocable_r<R, typename Base::template Fn_t<F>, Params...>>::value,
+          traits::AllOf<traits::Not<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
+                        std::is_constructible<typename std::decay<F>::type, F>,
+                        traits::is_invocable_r<R, typename Base::template Fn_t<F>, Params...>>::value,
           UniqueFunction&>::type
           operator=( F&& fn ) & noexcept(
-            traits::all_of<typename Base::template is_inlinable<typename std::decay<F>::type>,
-                           std::is_nothrow_constructible<typename std::decay<F>::type, F>>::value )
+            traits::AllOf<typename Base::template is_inlinable<typename std::decay<F>::type>,
+                          std::is_nothrow_constructible<typename std::decay<F>::type, F>>::value )
         {
           this->reset( std::forward<F>( fn ) );
           return *this;

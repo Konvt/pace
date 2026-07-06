@@ -97,8 +97,8 @@ namespace pace {
                     && std::is_constructible_v<wrappers::UniqueFunction<void()>, F &&> )
 #else
           -> typename std::enable_if<
-            traits::all_of<traits::neg<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
-                           std::is_constructible<wrappers::UniqueFunction<void()>, F&&>>::value,
+            traits::AllOf<traits::Not<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
+                          std::is_constructible<wrappers::UniqueFunction<void()>, F&&>>::value,
             Derived&>::type
 #endif
         { PACE__METHOD( hook_.on_, Nullary, Derived& ); }
@@ -111,8 +111,8 @@ namespace pace {
                     && std::is_constructible_v<wrappers::UniqueFunction<void()>, F &&> )
 #else
           -> typename std::enable_if<
-            traits::all_of<traits::neg<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
-                           std::is_constructible<wrappers::UniqueFunction<void()>, F&&>>::value,
+            traits::AllOf<traits::Not<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
+                          std::is_constructible<wrappers::UniqueFunction<void()>, F&&>>::value,
             Derived&&>::type
 #endif
         { PACE__METHOD( hook_.on_, Nullary, Derived&& ); }
@@ -125,8 +125,8 @@ namespace pace {
                     && std::is_constructible_v<wrappers::UniqueFunction<void( Derived& )>, F &&> )
 #else
           -> typename std::enable_if<
-            traits::all_of<traits::neg<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
-                           std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>::value,
+            traits::AllOf<traits::Not<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
+                          std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>::value,
             Derived&>::type
 #endif
         { PACE__METHOD( hook_.on_self_, Unary, Derived& ); }
@@ -139,8 +139,8 @@ namespace pace {
                     && std::is_constructible_v<wrappers::UniqueFunction<void( Derived& )>, F &&> )
 #else
           -> typename std::enable_if<
-            traits::all_of<traits::neg<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
-                           std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>::value,
+            traits::AllOf<traits::Not<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
+                          std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>::value,
             Derived&&>::type
 #endif
         { PACE__METHOD( hook_.on_self_, Unary, Derived&& ); }
@@ -165,10 +165,10 @@ namespace pace {
           requires( std::is_constructible_v<wrappers::UniqueFunction<void()>, F &&>
                     || std::is_constructible_v<wrappers::UniqueFunction<void( Derived& )>, F &&> )
 #else
-          -> typename std::enable_if<traits::all_of<
-            traits::neg<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
-            traits::any_of<std::is_constructible<wrappers::UniqueFunction<void()>, F&&>,
-                           std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>>::value>::
+          -> typename std::enable_if<traits::AllOf<
+            traits::Not<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
+            traits::AnyOf<std::is_constructible<wrappers::UniqueFunction<void()>, F&&>,
+                          std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>>::value>::
             type
 #endif
         { bar.action( std::forward<F>( fn ) ); }
@@ -180,9 +180,9 @@ namespace pace {
                     || std::is_constructible_v<wrappers::UniqueFunction<void( Derived& )>, F &&> )
 #else
           -> typename std::enable_if<
-            traits::all_of<
-              traits::any_of<std::is_constructible<wrappers::UniqueFunction<void()>, F&&>,
-                             std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>>::value,
+            traits::AllOf<
+              traits::AnyOf<std::is_constructible<wrappers::UniqueFunction<void()>, F&&>,
+                            std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>>::value,
             Derived&>::type
 #endif
         { return bar.action( std::forward<F>( fn ) ); }
@@ -194,9 +194,9 @@ namespace pace {
                     || std::is_constructible_v<wrappers::UniqueFunction<void( Derived& )>, F &&> )
 #else
           -> typename std::enable_if<
-            traits::all_of<
-              traits::any_of<std::is_constructible<wrappers::UniqueFunction<void()>, F&&>,
-                             std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>>::value,
+            traits::AllOf<
+              traits::AnyOf<std::is_constructible<wrappers::UniqueFunction<void()>, F&&>,
+                            std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>>::value,
             Derived&&>::type
 #endif
         { return std::move( bar.action( std::forward<F>( fn ) ) ); }

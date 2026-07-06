@@ -45,11 +45,11 @@ namespace pace {
         PACE__CXX20_CNSTXPR Remain( traits::TypeSet<Options...> tag ) : Base( tag )
         {
           using OptionSet = traits::TypeSet<Options...>;
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::Remain>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::Remain>::value )
             unpack( *this, config::provide_for<Derived, option::Remain>() );
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::RemainForecolor>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::RemainForecolor>::value )
             unpack( *this, config::provide_for<Derived, option::RemainForecolor>() );
-          if PACE__CXX17_CNSTXPR ( !traits::contains_tp<OptionSet, option::RemainBackcolor>::value )
+          if PACE__CXX17_CNSTXPR ( !traits::TpContains<OptionSet, option::RemainBackcolor>::value )
             unpack( *this, config::provide_for<Derived, option::RemainForecolor>() );
         }
 

@@ -14,7 +14,7 @@ namespace pace {
       using IndexSequence = std::integer_sequence<types::Size, Ns...>;
 
       template<types::Size N>
-      using make_index_sequence = std::make_integer_sequence<types::Size, N>;
+      using MakeIndexSequence = std::make_integer_sequence<types::Size, N>;
 #else
       template<types::Size... Ns>
       struct IndexSequence {};
@@ -40,7 +40,7 @@ namespace pace {
       struct _make_index_seq_helper<1> : Identity<IndexSequence<0>> {};
 
       template<types::Size N>
-      using make_index_sequence = typename _make_index_seq_helper<N>::type;
+      using MakeIndexSequence = typename _make_index_seq_helper<N>::type;
 #endif
 
 #ifdef __cpp_lib_bool_constant
@@ -63,13 +63,13 @@ namespace pace {
 
 #ifdef __cpp_lib_logical_traits
       template<typename... Preds>
-      using all_of = std::conjunction<Preds...>;
+      using AllOf = std::conjunction<Preds...>;
 
       template<typename... Preds>
-      using any_of = std::disjunction<Preds...>;
+      using AnyOf = std::disjunction<Preds...>;
 
       template<typename Pred>
-      using neg = std::negation<Pred>;
+      using Not = std::negation<Pred>;
 #else
       template<typename, typename Pred, typename... Preds>
       struct _impl_all_of : Identity<Pred> {};
@@ -77,9 +77,9 @@ namespace pace {
       struct _impl_all_of<typename std::enable_if<bool( Pred1::value )>::type, Pred1, Pred2, Preds...>
         : _impl_all_of<void, Pred2, Preds...> {};
       template<typename... Preds>
-      struct all_of : _impl_all_of<void, Preds...>::type {};
+      struct AllOf : _impl_all_of<void, Preds...>::type {};
       template<>
-      struct all_of<> : std::true_type {};
+      struct AllOf<> : std::true_type {};
 
       template<typename, typename Pred, typename... Preds>
       struct _impl_any_of : Identity<Pred> {};
@@ -87,12 +87,12 @@ namespace pace {
       struct _impl_any_of<typename std::enable_if<!bool( Pred1::value )>::type, Pred1, Pred2, Preds...>
         : _impl_any_of<void, Pred2, Preds...> {};
       template<typename... Preds>
-      struct any_of : _impl_any_of<void, Preds...>::type {};
+      struct AnyOf : _impl_any_of<void, Preds...>::type {};
       template<>
-      struct any_of<> : std::false_type {};
+      struct AnyOf<> : std::false_type {};
 
       template<typename Pred>
-      using neg = BoolConstant<!bool( Pred::value )>;
+      using Not = BoolConstant<!bool( Pred::value )>;
 #endif
 
 #ifdef __cpp_lib_is_nothrow_convertible

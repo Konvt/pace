@@ -29,9 +29,9 @@ namespace pace {
        * when resolving highly complex inheritance dependencies.
        */
       template<typename /* Relation<...> */ VBs>
-      struct c3;
+      struct C3;
       template<template<typename...> class VB, template<typename...> class... VBs>
-      using c3_t = typename c3<Relation<VB, VBs...>>::type;
+      using C3_t = typename C3<Relation<VB, VBs...>>::type;
 
       // The structure that records the inheritance order of Node includes itself,
       // just like Python's MRO.
@@ -47,25 +47,25 @@ namespace pace {
 #define PACE__INHERIT_REGISTER( Node, ... )        \
   template<>                                       \
   struct pace::details::traits::InheritOrder<Node> \
-    : pace::details::traits::Identity<pace::details::traits::prepend_tmp_t<c3_t<__VA_ARGS__>, Node>> {}
+    : pace::details::traits::Identity<pace::details::traits::TmpPrepend_t<C3_t<__VA_ARGS__>, Node>> {}
 
       // The implementation of the "merge" function in the C3 algorithm.
       template<typename... VBLists>
-      struct c3_merge {
+      struct C3Merge {
       private:
         // Check whether Candidate is the top priority within AnotherVBs.
         template<template<typename...> class Candidate, typename /* Relation<...> */ AnotherVBs>
-        struct preferred_within;
+        struct is_preferred_within;
 
         template<template<typename...> class Candidate>
-        struct preferred_within<Candidate, Relation<>> : std::true_type {};
+        struct is_preferred_within<Candidate, Relation<>> : std::true_type {};
         template<template<typename...> class Candidate, template<typename...> class... Rests>
-        struct preferred_within<Candidate, Relation<Candidate, Rests...>> : std::true_type {};
+        struct is_preferred_within<Candidate, Relation<Candidate, Rests...>> : std::true_type {};
         template<template<typename...> class Candidate,
                  template<typename...> class Head,
                  template<typename...> class... Rests>
-        struct preferred_within<Candidate, Relation<Head, Rests...>>
-          : neg<contains_tmp<Relation<Rests...>, Candidate>> {};
+        struct is_preferred_within<Candidate, Relation<Head, Rests...>>
+          : Not<TmpContains<Relation<Rests...>, Candidate>> {};
 
         //////////////////////////////////////////////////
 
@@ -83,128 +83,129 @@ namespace pace {
                  template<typename...> class... Rests,
                  typename... MergedLists>
         struct is_feasible<Relation<Candidate, Rests...>, MergedLists...>
-          : all_of<preferred_within<Candidate, MergedLists>...> {};
+          : AllOf<is_preferred_within<Candidate, MergedLists>...> {};
 
         // Pick out the index of the candidate from the MergedList.
         template<typename... MergedLists>
-        struct pick_candidate {
+        struct PickCandidate {
         private:
           template<types::Size I>
-          struct helper;
+          struct Helper;
 
           template<bool Cond, types::Size Pos>
-          struct select : std::integral_constant<types::Size, Pos> {};
+          struct Choice : std::integral_constant<types::Size, Pos> {};
           template<types::Size Pos>
-          struct select<false, Pos> : helper<Pos + 1> {};
+          struct Choice<false, Pos> : Helper<Pos + 1> {};
 
           template<types::Size I>
-          struct helper : select<is_feasible<type_at_t<I, MergedLists...>, MergedLists...>::value, I> {};
+          struct Helper : Choice<is_feasible<TypeAt_t<I, MergedLists...>, MergedLists...>::value, I> {};
 
         public:
-          static constexpr types::Size value = helper<0>::value;
+          static constexpr types::Size value = Helper<0>::value;
         };
 
         //////////////////////////////////////////////////
 
         // Remove the Candidate from the list (if exists).
         template<template<typename...> class Candidate, typename /* Relation<...> */ List>
-        struct drop_candidate;
+        struct DropCandidate;
         template<template<typename...> class Candidate, typename List>
-        using drop_candidate_t = typename drop_candidate<Candidate, List>::type;
+        using DropCandidate_t = typename DropCandidate<Candidate, List>::type;
 
         template<template<typename...> class Candidate, template<typename...> class... Rests>
-        struct drop_candidate<Candidate, Relation<Candidate, Rests...>> : Identity<Relation<Rests...>> {};
+        struct DropCandidate<Candidate, Relation<Candidate, Rests...>> : Identity<Relation<Rests...>> {};
         template<template<typename...> class Candidate, template<typename...> class... Rests>
-        struct drop_candidate<Candidate, Relation<Rests...>> : Identity<Relation<Rests...>> {};
+        struct DropCandidate<Candidate, Relation<Rests...>> : Identity<Relation<Rests...>> {};
 
         //////////////////////////////////////////////////
 
         template<typename /* Relation<...> */ Sorted, typename... /* Relation<...>... */ MergedLists>
-        struct make_mro {
+        struct MakeMRO {
         private:
           template<typename Selected>
-          struct helper;
+          struct Helper;
           template<template<typename...> class Candidate, template<typename...> class... Others>
-          struct helper<Relation<Candidate, Others...>>
-            : make_mro<append_tmp_t<Sorted, Candidate>, drop_candidate_t<Candidate, MergedLists>...> {};
+          struct Helper<Relation<Candidate, Others...>>
+            : MakeMRO<TmpAppend_t<Sorted, Candidate>, DropCandidate_t<Candidate, MergedLists>...> {};
 
         public:
-          using type =
-            typename helper<type_at_t<pick_candidate<MergedLists...>::value, MergedLists...>>::type;
+          using type = typename Helper<TypeAt_t<PickCandidate<MergedLists...>::value, MergedLists...>>::type;
         };
         template<typename Sorted, typename... MergedLists>
-        using make_mro_t = typename make_mro<Sorted, MergedLists...>::type;
+        using MakeMro_t = typename MakeMRO<Sorted, MergedLists...>::type;
 
         template<typename Sorted>
-        struct make_mro<Sorted> : Identity<Sorted> {};
+        struct MakeMRO<Sorted> : Identity<Sorted> {};
         template<typename Sorted, typename... OtherLists>
-        struct make_mro<Sorted, Relation<>, OtherLists...> : make_mro<Sorted, OtherLists...> {};
+        struct MakeMRO<Sorted, Relation<>, OtherLists...> : MakeMRO<Sorted, OtherLists...> {};
         template<typename Sorted, typename... OtherLists>
-        struct make_mro<Sorted, Relation<>, Relation<>, OtherLists...> : make_mro<Sorted, OtherLists...> {};
+        struct MakeMRO<Sorted, Relation<>, Relation<>, OtherLists...> : MakeMRO<Sorted, OtherLists...> {};
         template<typename Sorted, typename... OtherLists>
-        struct make_mro<Sorted, Relation<>, Relation<>, Relation<>, OtherLists...>
-          : make_mro<Sorted, OtherLists...> {};
+        struct MakeMRO<Sorted, Relation<>, Relation<>, Relation<>, OtherLists...>
+          : MakeMRO<Sorted, OtherLists...> {};
         template<typename Sorted, typename... OtherLists>
-        struct make_mro<Sorted, Relation<>, Relation<>, Relation<>, Relation<>, Relation<>, OtherLists...>
-          : make_mro<Sorted, OtherLists...> {};
+        struct MakeMRO<Sorted, Relation<>, Relation<>, Relation<>, Relation<>, Relation<>, OtherLists...>
+          : MakeMRO<Sorted, OtherLists...> {};
 
       public:
-        using type = make_mro_t<Relation<>, VBLists...>;
+        using type = MakeMro_t<Relation<>, VBLists...>;
       };
       template<typename... VBLists>
-      using c3_merge_t = typename c3_merge<VBLists...>::type;
+      using C3Merge_t = typename C3Merge<VBLists...>::type;
 
       template<template<typename...> class VB, template<typename...> class... VBs>
-      struct c3<Relation<VB, VBs...>>
-        : c3_merge<InheritOrder_t<VB>, InheritOrder_t<VBs>..., Relation<VB, VBs...>> {};
+      struct C3<Relation<VB, VBs...>>
+        : C3Merge<InheritOrder_t<VB>, InheritOrder_t<VBs>..., Relation<VB, VBs...>> {};
 
       /**
+       * Linearization of Inheritance.
+       *
        * Linearize the input types using the C3 algorithm,
        * then iterate through the resulting sorted list and fill in their template types.
 
        * It relies on the template `InheritOrder` and `c3` classes to work.
        */
       template<typename VBs>
-      struct linearize {
+      struct LI {
       private:
         template<typename Linearized, typename RBC, typename... Args>
-        struct helper;
+        struct Helper;
         template<typename Linearized, typename RBC, typename... Args>
-        using Helper_t = typename helper<Linearized, RBC, Args...>::type;
+        using Helper_t = typename Helper<Linearized, RBC, Args...>::type;
 
         template<typename RBC, typename... Args>
-        struct helper<Relation<>, RBC, Args...> : Identity<RBC> {};
+        struct Helper<Relation<>, RBC, Args...> : Identity<RBC> {};
         template<template<typename...> class Head,
                  template<typename...> class... Tail,
                  typename RBC,
                  typename... Args>
-        struct helper<Relation<Head, Tail...>, RBC, Args...>
+        struct Helper<Relation<Head, Tail...>, RBC, Args...>
           : Identity<Head<Helper_t<Relation<Tail...>, RBC, Args...>, Args...>> {};
 
       public:
         // RBC: Root Base Class.
         template<typename RBC, typename... Args>
-        using type = Helper_t<typename c3<VBs>::type, RBC, Args...>;
+        using type = Helper_t<typename C3<VBs>::type, RBC, Args...>;
       };
 
       template<template<typename...> class VB, template<typename...> class... VBs>
-      struct linearize_t {
+      struct LI_t {
         template<typename RBC, typename... Args>
-        using type = typename linearize<Relation<VB, VBs...>>::template type<RBC, Args...>;
+        using type = typename LI<Relation<VB, VBs...>>::template type<RBC, Args...>;
       };
 
       template<typename Linearized, template<typename...> class Target>
-      struct base_of;
+      struct BaseOf;
       template<typename Linearized, template<typename...> class Target>
-      using base_of_t = typename base_of<Linearized, Target>::type;
+      using BaseOf_t = typename BaseOf<Linearized, Target>::type;
 
       template<template<typename...> class Target, typename Base, typename... Rest>
-      struct base_of<Target<Base, Rest...>, Target> : Identity<Target<Base, Rest...>> {};
+      struct BaseOf<Target<Base, Rest...>, Target> : Identity<Target<Base, Rest...>> {};
       template<template<typename...> class Linearized,
                typename Base,
                typename... Rest,
                template<typename...> class Target>
-      struct base_of<Linearized<Base, Rest...>, Target> : Identity<base_of_t<Base, Target>> {};
+      struct BaseOf<Linearized<Base, Rest...>, Target> : Identity<BaseOf_t<Base, Target>> {};
     } // namespace traits
   } // namespace details
 } // namespace pace

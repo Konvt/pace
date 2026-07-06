@@ -12,40 +12,40 @@ namespace pace {
       struct TemplateSet : TemplateList<Ts>... {};
 
       template<template<typename...> class... Es, template<typename...> class T>
-      struct contains_tmp<TemplateSet<Es...>, T> : std::is_base_of<TemplateList<T>, TemplateSet<Es...>> {};
+      struct TmpContains<TemplateSet<Es...>, T> : std::is_base_of<TemplateList<T>, TemplateSet<Es...>> {};
 
       template<template<typename...> class... Es, template<typename...> class T>
-      struct prepend_tmp<TemplateSet<Es...>, T> {
+      struct TmpPrepend<TemplateSet<Es...>, T> {
       private:
         template<bool Cond, template<typename...> class NewOne>
-        struct select : Identity<TemplateSet<Es...>> {};
+        struct Choice : Identity<TemplateSet<Es...>> {};
         template<template<typename...> class NewOne>
-        struct select<false, NewOne> : Identity<TemplateSet<NewOne, Es...>> {};
+        struct Choice<false, NewOne> : Identity<TemplateSet<NewOne, Es...>> {};
 
       public:
-        using type = typename select<contains_tmp<TemplateSet<Es...>, T>::value, T>::type;
+        using type = typename Choice<TmpContains<TemplateSet<Es...>, T>::value, T>::type;
       };
 
       template<template<typename...> class... Es, template<typename...> class T>
-      struct append_tmp<TemplateSet<Es...>, T> {
+      struct TmpAppend<TemplateSet<Es...>, T> {
       private:
         template<bool Cond, template<typename...> class NewOne>
-        struct select : Identity<TemplateSet<Es...>> {};
+        struct Choice : Identity<TemplateSet<Es...>> {};
         template<template<typename...> class NewOne>
-        struct select<false, NewOne> : Identity<TemplateSet<Es..., NewOne>> {};
+        struct Choice<false, NewOne> : Identity<TemplateSet<Es..., NewOne>> {};
 
       public:
-        using type = typename select<contains_tmp<TemplateSet<Es...>, T>::value, T>::type;
+        using type = typename Choice<TmpContains<TemplateSet<Es...>, T>::value, T>::type;
       };
 
       template<template<typename...> class... Es, template<template<typename...> class...> class Collection>
-      struct combine<TemplateSet<Es...>, Collection<>> : Identity<TemplateSet<Es...>> {};
+      struct Combine<TemplateSet<Es...>, Collection<>> : Identity<TemplateSet<Es...>> {};
       template<template<typename...> class... Es,
                template<template<typename...> class...> class Collection,
                template<typename...> class T,
                template<typename...> class... Ts>
-      struct combine<TemplateSet<Es...>, Collection<T, Ts...>>
-        : combine<append_tmp_t<TemplateSet<Es...>, T>, Collection<Ts...>> {};
+      struct Combine<TemplateSet<Es...>, Collection<T, Ts...>>
+        : Combine<TmpAppend_t<TemplateSet<Es...>, T>, Collection<Ts...>> {};
 
       template<bool Cond, typename Visited, template<typename...> class... Elements>
       struct _impl_is_unique_tmp : std::false_type {};
@@ -53,7 +53,7 @@ namespace pace {
       struct _impl_is_unique_tmp<false, Visited> : std::true_type {};
       template<typename Visited, template<typename...> class U, template<typename...> class... Us>
       struct _impl_is_unique_tmp<false, Visited, U, Us...>
-        : _impl_is_unique_tmp<contains_tmp<Visited, U>::value, append_tmp_t<Visited, U>, Us...> {};
+        : _impl_is_unique_tmp<TmpContains<Visited, U>::value, TmpAppend_t<Visited, U>, Us...> {};
       template<template<typename...> class... Elements>
       struct is_unique<TemplateList<Elements...>> : _impl_is_unique_tmp<false, TemplateSet<>, Elements...> {};
     } // namespace traits

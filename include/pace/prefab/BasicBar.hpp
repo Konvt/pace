@@ -14,9 +14,9 @@ namespace pace {
              Policy Mode  = Policy::Async,
              Region Zone  = Region::Fixed>
     class BasicBar
-      : public details::traits::linearize<details::aspects::link_entailments_t<Soul>>::
+      : public details::traits::LI<details::aspects::EntailmentLinker_t<Soul>>::
           template type<Indicator, BasicBar<Soul, Sink, Mode, Zone>> {
-      using Base = typename details::traits::linearize<details::aspects::link_entailments_t<Soul>>::
+      using Base = typename details::traits::LI<details::aspects::EntailmentLinker_t<Soul>>::
         template type<Indicator, BasicBar<Soul, Sink, Mode, Zone>>;
 
     public:
@@ -34,8 +34,8 @@ namespace pace {
                   && std::is_constructible_v<Soul, Args && ...> )
 #else
                ,
-               typename = typename std::enable_if<details::traits::all_of<
-                 details::traits::neg<std::is_same<typename std::decay<Args>::type, Soul>>...,
+               typename = typename std::enable_if<details::traits::AllOf<
+                 details::traits::Not<std::is_same<typename std::decay<Args>::type, Soul>>...,
                  std::is_constructible<Soul, Args&&...>>::value>::type>
 #endif
       constexpr BasicBar( Args&&... args ) noexcept( std::is_nothrow_constructible<Base, Args&&...>::value )
@@ -70,15 +70,15 @@ namespace pace {
         static constexpr std::false_type check( ... );
 
       public:
-        using result = all_of<neg<std::is_reference<B>>,
-                              decltype( check( std::declval<typename std::remove_cv<B>::type>() ) )>;
+        using result = AllOf<Not<std::is_reference<B>>,
+                             decltype( check( std::declval<typename std::remove_cv<B>::type>() ) )>;
       };
       template<typename B>
       using is_bar = typename _impl_is_bar<B>::result;
       template<typename B>
-      using is_iterable_bar = all_of<is_bar<B>, is_instance_of<B, behaviors::Incremental>>;
+      using is_iterable_bar = AllOf<is_bar<B>, is_instance_of<B, behaviors::Incremental>>;
       template<typename B>
-      using is_reactive_bar = all_of<is_bar<B>, is_instance_of<B, behaviors::Reactive>>;
+      using is_reactive_bar = AllOf<is_bar<B>, is_instance_of<B, behaviors::Reactive>>;
     } // namespace traits
   } // namespace details
 
@@ -89,9 +89,9 @@ namespace pace {
     requires( std::is_arithmetic_v<N> && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> )
 #else
-    typename std::enable_if<details::traits::all_of<std::is_arithmetic<N>,
-                                                    details::traits::is_iterable_bar<Bar>,
-                                                    std::is_constructible<Bar, Options&&...>>::value,
+    typename std::enable_if<details::traits::AllOf<std::is_arithmetic<N>,
+                                                   details::traits::is_iterable_bar<Bar>,
+                                                   std::is_constructible<Bar, Options&&...>>::value,
                             slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
@@ -116,14 +116,13 @@ namespace pace {
       && std::is_constructible_v<Bar, Options && ...> )
 #else
     typename std::enable_if<
-      details::traits::all_of<
-        std::is_arithmetic<N>,
-        details::traits::is_iterable_bar<Bar>,
-        details::traits::is_reactive_bar<Bar>,
-        std::is_same<
-          typename std::remove_reference<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-          Bar>,
-        std::is_constructible<Bar, Options&&...>>::value,
+      details::traits::AllOf<std::is_arithmetic<N>,
+                             details::traits::is_iterable_bar<Bar>,
+                             details::traits::is_reactive_bar<Bar>,
+                             std::is_same<typename std::remove_reference<
+                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
+                                          Bar>,
+                             std::is_constructible<Bar, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
@@ -138,7 +137,7 @@ namespace pace {
     requires( std::is_arithmetic_v<N> && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> && requires( N ele, Proc&& op ) { op( ele ); } )
 #else
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       std::is_arithmetic<N>,
       details::traits::is_iterable_bar<Bar>,
       std::is_constructible<Bar, Options&&...>,
@@ -163,14 +162,14 @@ namespace pace {
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
-    -> typename std::enable_if<details::traits::all_of<
-      std::is_arithmetic<N>,
-      details::traits::is_iterable_bar<Bar>,
-      details::traits::is_reactive_bar<Bar>,
-      std::is_same<
-        typename std::remove_reference<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-        Bar>,
-      std::is_constructible<Bar, Options&&...>>::value>::type
+    -> typename std::enable_if<
+      details::traits::AllOf<std::is_arithmetic<N>,
+                             details::traits::is_iterable_bar<Bar>,
+                             details::traits::is_reactive_bar<Bar>,
+                             std::is_same<typename std::remove_reference<
+                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
+                                          Bar>,
+                             std::is_constructible<Bar, Options&&...>>::value>::type
 #endif
   {
     ( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) )
@@ -190,15 +189,15 @@ namespace pace {
 #else
            ,
            typename std::enable_if<
-             details::traits::all_of<std::is_arithmetic<N>, details::traits::is_config<Config>>::value,
+             details::traits::AllOf<std::is_arithmetic<N>, details::traits::is_config<Config>>::value,
              bool>::type = 0>
 
 #endif
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, N step, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<
-      details::traits::all_of<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
-                              std::is_constructible<Config, Options&&...>>::value,
+      details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+                             std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
@@ -228,7 +227,7 @@ namespace pace {
 #else
            ,
            typename std::enable_if<
-             details::traits::all_of<std::is_arithmetic<N>, details::traits::is_config<Config>>::value,
+             details::traits::AllOf<std::is_arithmetic<N>, details::traits::is_config<Config>>::value,
              bool>::type = 0>
 #endif
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N startpoint,
@@ -238,7 +237,7 @@ namespace pace {
                                                   Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<
-      details::traits::all_of<
+      details::traits::AllOf<
         details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_same<
@@ -272,12 +271,12 @@ namespace pace {
 #else
            ,
            typename std::enable_if<
-             details::traits::all_of<std::is_arithmetic<N>, details::traits::is_config<Config>>::value,
+             details::traits::AllOf<std::is_arithmetic<N>, details::traits::is_config<Config>>::value,
              bool>::type = 0>
 #endif
   PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, N step, Proc&& op, Options&&... options )
 #ifndef __cpp_concepts
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>,
       std::is_void<decltype( std::declval<Proc&&>( std::declval<N>() ), void() )>>::value>::type
@@ -310,7 +309,7 @@ namespace pace {
 #else
            ,
            typename std::enable_if<
-             details::traits::all_of<std::is_arithmetic<N>, details::traits::is_config<Config>>::value,
+             details::traits::AllOf<std::is_arithmetic<N>, details::traits::is_config<Config>>::value,
              bool>::type = 0>
 #endif
   PACE__FORCEINLINE auto iterate( N startpoint,
@@ -320,7 +319,7 @@ namespace pace {
                                   Act&& act,
                                   Options&&... options )
 #ifndef __cpp_concepts
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
@@ -347,9 +346,9 @@ namespace pace {
     requires( std::is_floating_point_v<N> && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> )
 #else
-    typename std::enable_if<details::traits::all_of<std::is_floating_point<N>,
-                                                    details::traits::is_iterable_bar<Bar>,
-                                                    std::is_constructible<Bar, Options&&...>>::value,
+    typename std::enable_if<details::traits::AllOf<std::is_floating_point<N>,
+                                                   details::traits::is_iterable_bar<Bar>,
+                                                   std::is_constructible<Bar, Options&&...>>::value,
                             slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
@@ -370,14 +369,13 @@ namespace pace {
       && std::is_constructible_v<Bar, Options && ...> )
 #else
     typename std::enable_if<
-      details::traits::all_of<
-        std::is_floating_point<N>,
-        details::traits::is_iterable_bar<Bar>,
-        details::traits::is_reactive_bar<Bar>,
-        std::is_same<
-          typename std::remove_reference<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-          Bar>,
-        std::is_constructible<Bar, Options&&...>>::value,
+      details::traits::AllOf<std::is_floating_point<N>,
+                             details::traits::is_iterable_bar<Bar>,
+                             details::traits::is_reactive_bar<Bar>,
+                             std::is_same<typename std::remove_reference<
+                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
+                                          Bar>,
+                             std::is_constructible<Bar, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
@@ -392,7 +390,7 @@ namespace pace {
     requires( std::is_floating_point_v<N> && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> && requires( N ele, Proc&& op ) { op( ele ); } )
 #else
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       std::is_floating_point<N>,
       details::traits::is_iterable_bar<Bar>,
       std::is_constructible<Bar, Options&&...>,
@@ -409,14 +407,14 @@ namespace pace {
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
-    -> typename std::enable_if<details::traits::all_of<
-      std::is_floating_point<N>,
-      details::traits::is_iterable_bar<Bar>,
-      details::traits::is_reactive_bar<Bar>,
-      std::is_same<
-        typename std::remove_reference<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-        Bar>,
-      std::is_constructible<Bar, Options&&...>>::value>::type
+    -> typename std::enable_if<
+      details::traits::AllOf<std::is_floating_point<N>,
+                             details::traits::is_iterable_bar<Bar>,
+                             details::traits::is_reactive_bar<Bar>,
+                             std::is_same<typename std::remove_reference<
+                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
+                                          Bar>,
+                             std::is_constructible<Bar, Options&&...>>::value>::type
 #endif
   {
     ( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) )
@@ -436,16 +434,16 @@ namespace pace {
 #else
            ,
            typename std::enable_if<
-             details::traits::all_of<std::is_floating_point<N>, details::traits::is_config<Config>>::value,
+             details::traits::AllOf<std::is_floating_point<N>, details::traits::is_config<Config>>::value,
              bool>::type = 0>
 #endif
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N endpoint, N step, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<
-      details::traits::all_of<std::is_floating_point<N>,
-                              details::traits::is_config<Config>,
-                              details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
-                              std::is_constructible<Config, Options&&...>>::value,
+      details::traits::AllOf<std::is_floating_point<N>,
+                             details::traits::is_config<Config>,
+                             details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+                             std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
@@ -474,13 +472,13 @@ namespace pace {
 #else
            ,
            typename std::enable_if<
-             details::traits::all_of<std::is_floating_point<N>, details::traits::is_config<Config>>::value,
+             details::traits::AllOf<std::is_floating_point<N>, details::traits::is_config<Config>>::value,
              bool>::type = 0>
 #endif
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N endpoint, N step, Act&& act, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<
-      details::traits::all_of<
+      details::traits::AllOf<
         details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_same<
@@ -513,12 +511,12 @@ namespace pace {
 #else
            ,
            typename std::enable_if<
-             details::traits::all_of<std::is_floating_point<N>, details::traits::is_config<Config>>::value,
+             details::traits::AllOf<std::is_floating_point<N>, details::traits::is_config<Config>>::value,
              bool>::type = 0>
 #endif
   PACE__FORCEINLINE auto iterate( N endpoint, N step, Proc&& op, Options&&... options )
 #ifndef __cpp_concepts
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>,
       std::is_void<decltype( std::declval<Proc&&>( std::declval<N>() ), void() )>>::value>::type
@@ -550,12 +548,12 @@ namespace pace {
 #else
            ,
            typename std::enable_if<
-             details::traits::all_of<std::is_floating_point<N>, details::traits::is_config<Config>>::value,
+             details::traits::AllOf<std::is_floating_point<N>, details::traits::is_config<Config>>::value,
              bool>::type = 0>
 #endif
   PACE__FORCEINLINE auto iterate( N endpoint, N step, Proc&& op, Act&& act, Options&&... options )
 #ifndef __cpp_concepts
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
@@ -581,9 +579,9 @@ namespace pace {
     requires( std::is_integral_v<N> && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> )
 #else
-    typename std::enable_if<details::traits::all_of<std::is_integral<N>,
-                                                    details::traits::is_iterable_bar<Bar>,
-                                                    std::is_constructible<Bar, Options&&...>>::value,
+    typename std::enable_if<details::traits::AllOf<std::is_integral<N>,
+                                                   details::traits::is_iterable_bar<Bar>,
+                                                   std::is_constructible<Bar, Options&&...>>::value,
                             slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
@@ -605,13 +603,12 @@ namespace pace {
       && std::is_constructible_v<Bar, Options && ...> )
 #else
     typename std::enable_if<
-      details::traits::all_of<
-        std::is_integral<N>,
-        details::traits::is_iterable_bar<Bar>,
-        std::is_same<
-          typename std::remove_reference<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-          Bar>,
-        std::is_constructible<Bar, Options&&...>>::value,
+      details::traits::AllOf<std::is_integral<N>,
+                             details::traits::is_iterable_bar<Bar>,
+                             std::is_same<typename std::remove_reference<
+                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
+                                          Bar>,
+                             std::is_constructible<Bar, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
@@ -626,7 +623,7 @@ namespace pace {
     requires( std::is_integral_v<N> && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> && requires( N ele, Proc&& op ) { op( ele ); } )
 #else
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       std::is_integral<N>,
       details::traits::is_iterable_bar<Bar>,
       std::is_constructible<Bar, Options&&...>,
@@ -643,13 +640,13 @@ namespace pace {
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
-    -> typename std::enable_if<details::traits::all_of<
-      std::is_integral<N>,
-      details::traits::is_iterable_bar<Bar>,
-      std::is_same<
-        typename std::remove_reference<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-        Bar>,
-      std::is_constructible<Bar, Options&&...>>::value>::type
+    -> typename std::enable_if<
+      details::traits::AllOf<std::is_integral<N>,
+                             details::traits::is_iterable_bar<Bar>,
+                             std::is_same<typename std::remove_reference<
+                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
+                                          Bar>,
+                             std::is_constructible<Bar, Options&&...>>::value>::type
 #endif
   {
     ( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) )
@@ -669,14 +666,14 @@ namespace pace {
 #else
            ,
            typename std::enable_if<
-             details::traits::all_of<std::is_integral<N>, details::traits::is_config<Config>>::value,
+             details::traits::AllOf<std::is_integral<N>, details::traits::is_config<Config>>::value,
              bool>::type = 0>
 #endif
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<
-      details::traits::all_of<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
-                              std::is_constructible<Config, Options&&...>>::value,
+      details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+                             std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
@@ -705,13 +702,13 @@ namespace pace {
 #else
            ,
            typename std::enable_if<
-             details::traits::all_of<std::is_integral<N>, details::traits::is_config<Config>>::value,
+             details::traits::AllOf<std::is_integral<N>, details::traits::is_config<Config>>::value,
              bool>::type = 0>
 #endif
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, Act&& act, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<
-      details::traits::all_of<
+      details::traits::AllOf<
         details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_same<
@@ -744,12 +741,12 @@ namespace pace {
 #else
            ,
            typename std::enable_if<
-             details::traits::all_of<std::is_integral<N>, details::traits::is_config<Config>>::value,
+             details::traits::AllOf<std::is_integral<N>, details::traits::is_config<Config>>::value,
              bool>::type = 0>
 #endif
   PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, Proc&& op, Options&&... options )
 #ifndef __cpp_concepts
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>,
       std::is_void<decltype( std::declval<Proc&&>( std::declval<N>() ), void() )>>::value>::type
@@ -781,12 +778,12 @@ namespace pace {
 #else
            ,
            typename std::enable_if<
-             details::traits::all_of<std::is_integral<N>, details::traits::is_config<Config>>::value,
+             details::traits::AllOf<std::is_integral<N>, details::traits::is_config<Config>>::value,
              bool>::type = 0>
 #endif
   PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, Proc&& op, Act&& act, Options&&... options )
 #ifndef __cpp_concepts
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
@@ -812,9 +809,9 @@ namespace pace {
     requires( std::is_integral_v<N> && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> )
 #else
-    typename std::enable_if<details::traits::all_of<std::is_integral<N>,
-                                                    details::traits::is_iterable_bar<Bar>,
-                                                    std::is_constructible<Bar, Options&&...>>::value,
+    typename std::enable_if<details::traits::AllOf<std::is_integral<N>,
+                                                   details::traits::is_iterable_bar<Bar>,
+                                                   std::is_constructible<Bar, Options&&...>>::value,
                             slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   { return { { endpoint }, std::make_shared<Bar>( std::forward<Options>( options )... ) }; }
@@ -830,14 +827,13 @@ namespace pace {
       && std::is_constructible_v<Bar, Options && ...> )
 #else
     typename std::enable_if<
-      details::traits::all_of<
-        std::is_integral<N>,
-        details::traits::is_iterable_bar<Bar>,
-        details::traits::is_reactive_bar<Bar>,
-        std::is_same<
-          typename std::remove_reference<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-          Bar>,
-        std::is_constructible<Bar, Options&&...>>::value,
+      details::traits::AllOf<std::is_integral<N>,
+                             details::traits::is_iterable_bar<Bar>,
+                             details::traits::is_reactive_bar<Bar>,
+                             std::is_same<typename std::remove_reference<
+                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
+                                          Bar>,
+                             std::is_constructible<Bar, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
@@ -850,7 +846,7 @@ namespace pace {
     requires( std::is_integral_v<N> && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> && requires( N ele, Proc&& op ) { op( ele ); } )
 #else
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       std::is_integral<N>,
       details::traits::is_iterable_bar<Bar>,
       std::is_constructible<Bar, Options&&...>,
@@ -867,14 +863,14 @@ namespace pace {
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
-    -> typename std::enable_if<details::traits::all_of<
-      std::is_integral<N>,
-      details::traits::is_iterable_bar<Bar>,
-      details::traits::is_reactive_bar<Bar>,
-      std::is_same<
-        typename std::remove_reference<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-        Bar>,
-      std::is_constructible<Bar, Options&&...>>::value>::type
+    -> typename std::enable_if<
+      details::traits::AllOf<std::is_integral<N>,
+                             details::traits::is_iterable_bar<Bar>,
+                             details::traits::is_reactive_bar<Bar>,
+                             std::is_same<typename std::remove_reference<
+                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
+                                          Bar>,
+                             std::is_constructible<Bar, Options&&...>>::value>::type
 #endif
   {
     ( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) )
@@ -894,14 +890,14 @@ namespace pace {
 #else
            ,
            typename std::enable_if<
-             details::traits::all_of<std::is_integral<N>, details::traits::is_config<Config>>::value,
+             details::traits::AllOf<std::is_integral<N>, details::traits::is_config<Config>>::value,
              bool>::type = 0>
 #endif
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N endpoint, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<
-      details::traits::all_of<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
-                              std::is_constructible<Config, Options&&...>>::value,
+      details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+                             std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
@@ -929,13 +925,13 @@ namespace pace {
 #else
            ,
            typename std::enable_if<
-             details::traits::all_of<std::is_integral<N>, details::traits::is_config<Config>>::value,
+             details::traits::AllOf<std::is_integral<N>, details::traits::is_config<Config>>::value,
              bool>::type = 0>
 #endif
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N endpoint, Act&& act, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<
-      details::traits::all_of<
+      details::traits::AllOf<
         details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_same<
@@ -967,12 +963,12 @@ namespace pace {
 #else
            ,
            typename std::enable_if<
-             details::traits::all_of<std::is_integral<N>, details::traits::is_config<Config>>::value,
+             details::traits::AllOf<std::is_integral<N>, details::traits::is_config<Config>>::value,
              bool>::type = 0>
 #endif
   PACE__FORCEINLINE auto iterate( N endpoint, Proc&& op, Options&&... options )
 #ifndef __cpp_concepts
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>,
       std::is_void<decltype( std::declval<Proc&&>( std::declval<N>() ), void() )>>::value>::type
@@ -1003,12 +999,12 @@ namespace pace {
 #else
            ,
            typename std::enable_if<
-             details::traits::all_of<std::is_integral<N>, details::traits::is_config<Config>>::value,
+             details::traits::AllOf<std::is_integral<N>, details::traits::is_config<Config>>::value,
              bool>::type = 0>
 #endif
   PACE__FORCEINLINE auto iterate( N endpoint, Proc&& op, Act&& act, Options&&... options )
 #ifndef __cpp_concepts
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
@@ -1034,9 +1030,9 @@ namespace pace {
               && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> )
 #else
-    typename std::enable_if<details::traits::all_of<details::traits::is_sized_cursor<Itr, Snt>,
-                                                    details::traits::is_iterable_bar<Bar>,
-                                                    std::is_constructible<Bar, Options&&...>>::value,
+    typename std::enable_if<details::traits::AllOf<details::traits::is_sized_cursor<Itr, Snt>,
+                                                   details::traits::is_iterable_bar<Bar>,
+                                                   std::is_constructible<Bar, Options&&...>>::value,
                             slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>, std::shared_ptr<Bar>>>::type
 #endif
   {
@@ -1060,14 +1056,13 @@ namespace pace {
       && std::is_constructible_v<Bar, Options && ...> )
 #else
     typename std::enable_if<
-      details::traits::all_of<
-        details::traits::is_sized_cursor<Itr, Snt>,
-        details::traits::is_iterable_bar<Bar>,
-        details::traits::is_reactive_bar<Bar>,
-        std::is_same<
-          typename std::remove_reference<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-          Bar>,
-        std::is_constructible<Bar, Options&&...>>::value,
+      details::traits::AllOf<details::traits::is_sized_cursor<Itr, Snt>,
+                             details::traits::is_iterable_bar<Bar>,
+                             details::traits::is_reactive_bar<Bar>,
+                             std::is_same<typename std::remove_reference<
+                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
+                                          Bar>,
+                             std::is_constructible<Bar, Options&&...>>::value,
       slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>, std::shared_ptr<Bar>>>::type
 #endif
   {
@@ -1081,13 +1076,13 @@ namespace pace {
 #ifdef __cpp_concepts
     requires( details::traits::is_sized_cursor<Itr, Snt>::value
               && details::traits::is_iterable_bar<Bar>::value && std::is_constructible_v<Bar, Options && ...>
-              && requires( details::traits::iter_value_t<Itr> ele, Proc&& op ) { op( ele ); } )
+              && requires( details::traits::IterValue_t<Itr> ele, Proc&& op ) { op( ele ); } )
 #else
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       details::traits::is_sized_cursor<Itr, Snt>,
       details::traits::is_iterable_bar<Bar>,
       std::is_constructible<Bar, Options&&...>,
-      std::is_void<decltype( std::declval<Proc&&>( std::declval<details::traits::iter_value_t<Itr>>() ),
+      std::is_void<decltype( std::declval<Proc&&>( std::declval<details::traits::IterValue_t<Itr>>() ),
                              void() )>>::value>::type
 #endif
   {
@@ -1104,14 +1099,14 @@ namespace pace {
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
-    -> typename std::enable_if<details::traits::all_of<
-      details::traits::is_sized_cursor<Itr, Snt>,
-      details::traits::is_iterable_bar<Bar>,
-      details::traits::is_reactive_bar<Bar>,
-      std::is_same<
-        typename std::remove_reference<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-        Bar>,
-      std::is_constructible<Bar, Options&&...>>::value>::type
+    -> typename std::enable_if<
+      details::traits::AllOf<details::traits::is_sized_cursor<Itr, Snt>,
+                             details::traits::is_iterable_bar<Bar>,
+                             details::traits::is_reactive_bar<Bar>,
+                             std::is_same<typename std::remove_reference<
+                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
+                                          Bar>,
+                             std::is_constructible<Bar, Options&&...>>::value>::type
 #endif
   {
     ( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) )
@@ -1131,15 +1126,15 @@ namespace pace {
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
-           typename std::enable_if<details::traits::all_of<details::traits::is_sized_cursor<Itr, Snt>,
-                                                           details::traits::is_config<Config>>::value,
+           typename std::enable_if<details::traits::AllOf<details::traits::is_sized_cursor<Itr, Snt>,
+                                                          details::traits::is_config<Config>>::value,
                                    bool>::type = 0>
 #endif
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( Itr startpoint, Snt endpoint, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<
-      details::traits::all_of<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
-                              std::is_constructible<Config, Options&&...>>::value,
+      details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+                             std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
@@ -1168,8 +1163,8 @@ namespace pace {
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
-           typename std::enable_if<details::traits::all_of<details::traits::is_sized_cursor<Itr, Snt>,
-                                                           details::traits::is_config<Config>>::value,
+           typename std::enable_if<details::traits::AllOf<details::traits::is_sized_cursor<Itr, Snt>,
+                                                          details::traits::is_config<Config>>::value,
                                    bool>::type = 0>
 #endif
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( Itr startpoint,
@@ -1178,7 +1173,7 @@ namespace pace {
                                                   Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<
-      details::traits::all_of<
+      details::traits::AllOf<
         details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_same<
@@ -1208,19 +1203,19 @@ namespace pace {
     requires( details::traits::is_sized_cursor<Itr, Snt>::value && details::traits::is_config<Config>::value
               && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_constructible_v<Config, Options && ...>
-              && requires( details::traits::iter_value_t<Itr> ele, Proc&& op ) { op( ele ); } )
+              && requires( details::traits::IterValue_t<Itr> ele, Proc&& op ) { op( ele ); } )
 #else
            ,
-           typename std::enable_if<details::traits::all_of<details::traits::is_sized_cursor<Itr, Snt>,
-                                                           details::traits::is_config<Config>>::value,
+           typename std::enable_if<details::traits::AllOf<details::traits::is_sized_cursor<Itr, Snt>,
+                                                          details::traits::is_config<Config>>::value,
                                    bool>::type = 0>
 #endif
   PACE__FORCEINLINE auto iterate( Itr startpoint, Snt endpoint, Proc&& op, Options&&... options )
 #ifndef __cpp_concepts
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>,
-      std::is_void<decltype( std::declval<Proc&&>( std::declval<details::traits::iter_value_t<Itr>>() ),
+      std::is_void<decltype( std::declval<Proc&&>( std::declval<details::traits::IterValue_t<Itr>>() ),
                              void() )>>::value>::type
 #endif
   {
@@ -1250,13 +1245,13 @@ namespace pace {
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
-           typename std::enable_if<details::traits::all_of<details::traits::is_sized_cursor<Itr, Snt>,
-                                                           details::traits::is_config<Config>>::value,
+           typename std::enable_if<details::traits::AllOf<details::traits::is_sized_cursor<Itr, Snt>,
+                                                          details::traits::is_config<Config>>::value,
                                    bool>::type = 0>
 #endif
   PACE__FORCEINLINE auto iterate( Itr startpoint, Snt endpoint, Proc&& op, Act&& act, Options&&... options )
 #ifndef __cpp_concepts
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
@@ -1283,9 +1278,9 @@ namespace pace {
               && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> )
 #else
-    typename std::enable_if<details::traits::all_of<details::traits::is_sized_range<R>,
-                                                    details::traits::is_iterable_bar<Bar>,
-                                                    std::is_constructible<Bar, Options&&...>>::value,
+    typename std::enable_if<details::traits::AllOf<details::traits::is_sized_range<R>,
+                                                   details::traits::is_iterable_bar<Bar>,
+                                                   std::is_constructible<Bar, Options&&...>>::value,
                             slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
                                                std::shared_ptr<Bar>>>::type
 #endif
@@ -1302,14 +1297,13 @@ namespace pace {
       && std::is_constructible_v<Bar, Options && ...> )
 #else
     typename std::enable_if<
-      details::traits::all_of<
-        details::traits::is_sized_range<R>,
-        details::traits::is_iterable_bar<Bar>,
-        details::traits::is_reactive_bar<Bar>,
-        std::is_same<
-          typename std::remove_reference<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-          Bar>,
-        std::is_constructible<Bar, Options&&...>>::value,
+      details::traits::AllOf<details::traits::is_sized_range<R>,
+                             details::traits::is_iterable_bar<Bar>,
+                             details::traits::is_reactive_bar<Bar>,
+                             std::is_same<typename std::remove_reference<
+                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
+                                          Bar>,
+                             std::is_constructible<Bar, Options&&...>>::value,
       slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
                          std::shared_ptr<Bar>>>::type
 #endif
@@ -1344,16 +1338,16 @@ namespace pace {
 #ifdef __cpp_concepts
     requires( details::traits::is_sized_range<R>::value && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...>
-              && requires( details::traits::iter_value_t<details::traits::iterator_of_t<R>> ele, Proc&& op ) {
+              && requires( details::traits::IterValue_t<details::traits ::IteratorOf_t<R>> ele, Proc&& op ) {
                    op( ele );
                  } )
 #else
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       details::traits::is_sized_range<R>,
       details::traits::is_iterable_bar<Bar>,
       std::is_constructible<Bar, Options&&...>,
-      std::is_void<decltype( std::declval<Proc&&>( std::declval<details::traits::iter_value_t<
-                                                     details::traits::iterator_of_t<R>>>() ),
+      std::is_void<decltype( std::declval<Proc&&>( std::declval<details::traits::IterValue_t<
+                                                     details::traits::IteratorOf_t<R>>>() ),
                              void() )>>::value>::type
 #endif
   {
@@ -1369,14 +1363,14 @@ namespace pace {
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
-    -> typename std::enable_if<details::traits::all_of<
-      details::traits::is_sized_range<R>,
-      details::traits::is_iterable_bar<Bar>,
-      details::traits::is_reactive_bar<Bar>,
-      std::is_same<
-        typename std::remove_reference<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-        Bar>,
-      std::is_constructible<Bar, Options&&...>>::value>::type
+    -> typename std::enable_if<
+      details::traits::AllOf<details::traits::is_sized_range<R>,
+                             details::traits::is_iterable_bar<Bar>,
+                             details::traits::is_reactive_bar<Bar>,
+                             std::is_same<typename std::remove_reference<
+                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
+                                          Bar>,
+                             std::is_constructible<Bar, Options&&...>>::value>::type
 #endif
   {
     ( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) )
@@ -1396,15 +1390,15 @@ namespace pace {
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
-           typename std::enable_if<details::traits::all_of<details::traits::is_sized_range<R>,
-                                                           details::traits::is_config<Config>>::value,
+           typename std::enable_if<details::traits::AllOf<details::traits::is_sized_range<R>,
+                                                          details::traits::is_config<Config>>::value,
                                    bool>::type = 0>
 #endif
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( R&& range, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<
-      details::traits::all_of<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
-                              std::is_constructible<Config, Options&&...>>::value,
+      details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
+                             std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
@@ -1432,14 +1426,14 @@ namespace pace {
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
-           typename std::enable_if<details::traits::all_of<details::traits::is_sized_range<R>,
-                                                           details::traits::is_config<Config>>::value,
+           typename std::enable_if<details::traits::AllOf<details::traits::is_sized_range<R>,
+                                                          details::traits::is_config<Config>>::value,
                                    bool>::type = 0>
 #endif
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( R&& range, Act&& act, Options&&... options )
 #ifndef __cpp_concepts
     -> typename std::enable_if<
-      details::traits::all_of<
+      details::traits::AllOf<
         details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_same<
@@ -1512,21 +1506,21 @@ namespace pace {
     requires( details::traits::is_sized_range<R>::value && details::traits::is_config<Config>::value
               && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_constructible_v<Config, Options && ...>
-              && requires( details::traits::iter_value_t<details::traits::iterator_of_t<R>> ele,
+              && requires( details::traits::IterValue_t<details::traits::IteratorOf_t<R>> ele,
                            Proc&& op ) { op( ele ); } )
 #else
            ,
-           typename std::enable_if<details::traits::all_of<details::traits::is_sized_range<R>,
-                                                           details::traits::is_config<Config>>::value,
+           typename std::enable_if<details::traits::AllOf<details::traits::is_sized_range<R>,
+                                                          details::traits::is_config<Config>>::value,
                                    bool>::type = 0>
 #endif
   PACE__FORCEINLINE auto iterate( R&& range, Proc&& op, Options&&... options )
 #ifndef __cpp_concepts
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>,
-      std::is_void<decltype( std::declval<Proc&&>( std::declval<details::traits::iter_value_t<
-                                                     details::traits::iterator_of_t<R>>>() ),
+      std::is_void<decltype( std::declval<Proc&&>( std::declval<details::traits::IterValue_t<
+                                                     details::traits::IteratorOf_t<R>>>() ),
                              void() )>>::value>::type
 #endif
   {
@@ -1554,13 +1548,13 @@ namespace pace {
               && std::is_constructible_v<Config, Options && ...> )
 #else
            ,
-           typename std::enable_if<details::traits::all_of<details::traits::is_sized_range<R>,
-                                                           details::traits::is_config<Config>>::value,
+           typename std::enable_if<details::traits::AllOf<details::traits::is_sized_range<R>,
+                                                          details::traits::is_config<Config>>::value,
                                    bool>::type = 0>
 #endif
   PACE__FORCEINLINE auto iterate( R&& range, Proc&& op, Act&& act, Options&&... options )
 #ifndef __cpp_concepts
-    -> typename std::enable_if<details::traits::all_of<
+    -> typename std::enable_if<details::traits::AllOf<
       details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
