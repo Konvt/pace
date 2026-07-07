@@ -20,7 +20,7 @@ namespace pace {
         template type<Indicator, BasicBar<Soul, Sink, Mode, Zone>>;
 
     public:
-      using config_type             = Soul;
+      using config                  = Soul;
       static constexpr Channel sink = Sink;
       static constexpr Policy mode  = Mode;
       static constexpr Region zone  = Zone;
@@ -111,24 +111,25 @@ namespace pace {
     requires(
       std::is_arithmetic_v<N> && details::traits::is_iterable_bar<Bar>::value
       && details::traits::is_reactive_bar<Bar>::value
-      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>,
+      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>,
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
     typename std::enable_if<
-      details::traits::AllOf<std::is_arithmetic<N>,
-                             details::traits::is_iterable_bar<Bar>,
-                             details::traits::is_reactive_bar<Bar>,
-                             std::is_same<typename std::remove_reference<
-                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-                                          Bar>,
-                             std::is_constructible<Bar, Options&&...>>::value,
+      details::traits::AllOf<
+        std::is_arithmetic<N>,
+        details::traits::is_iterable_bar<Bar>,
+        details::traits::is_reactive_bar<Bar>,
+        std::is_same<
+          typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
+          Bar>,
+        std::is_constructible<Bar, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
     return {
       { startpoint, endpoint, step },
-      std::make_shared<Bar>( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) )
+      std::make_shared<Bar>( Bar( std::forward<Options>( options )... ) << std::forward<Act>( act ) )
     };
   }
   template<typename Bar, typename N, typename Proc, typename... Options>
@@ -158,21 +159,21 @@ namespace pace {
     requires(
       std::is_arithmetic_v<N> && details::traits::is_iterable_bar<Bar>::value
       && details::traits::is_reactive_bar<Bar>::value
-      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>,
+      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>,
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
-    -> typename std::enable_if<
-      details::traits::AllOf<std::is_arithmetic<N>,
-                             details::traits::is_iterable_bar<Bar>,
-                             details::traits::is_reactive_bar<Bar>,
-                             std::is_same<typename std::remove_reference<
-                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-                                          Bar>,
-                             std::is_constructible<Bar, Options&&...>>::value>::type
+    -> typename std::enable_if<details::traits::AllOf<
+      std::is_arithmetic<N>,
+      details::traits::is_iterable_bar<Bar>,
+      details::traits::is_reactive_bar<Bar>,
+      std::is_same<
+        typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
+        Bar>,
+      std::is_constructible<Bar, Options&&...>>::value>::type
 #endif
   {
-    ( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) )
+    ( Bar( std::forward<Options>( options )... ) << std::forward<Act>( act ) )
       .iterate( startpoint, endpoint, step, std::forward<Proc>( op ) );
   }
   template<typename Config,
@@ -221,7 +222,7 @@ namespace pace {
               && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
                 std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                  | std::declval<Act &&>() )>,
+                                                  << std::declval<Act &&>() )>,
                 prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
@@ -242,7 +243,7 @@ namespace pace {
         details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_same<
           typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                   | std::declval<Act&&>() )>::type,
+                                                   << std::declval<Act&&>() )>::type,
           prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>,
@@ -303,7 +304,7 @@ namespace pace {
               && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
                 std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                  | std::declval<Act &&>() )>,
+                                                  << std::declval<Act &&>() )>,
                 prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
@@ -324,7 +325,7 @@ namespace pace {
       details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
         typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                 | std::declval<Act&&>() )>::type,
+                                                 << std::declval<Act&&>() )>::type,
         prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>>::value>::type
 #endif
@@ -364,24 +365,25 @@ namespace pace {
     requires(
       std::is_floating_point_v<N> && details::traits::is_iterable_bar<Bar>::value
       && details::traits::is_reactive_bar<Bar>::value
-      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>,
+      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>,
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
     typename std::enable_if<
-      details::traits::AllOf<std::is_floating_point<N>,
-                             details::traits::is_iterable_bar<Bar>,
-                             details::traits::is_reactive_bar<Bar>,
-                             std::is_same<typename std::remove_reference<
-                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-                                          Bar>,
-                             std::is_constructible<Bar, Options&&...>>::value,
+      details::traits::AllOf<
+        std::is_floating_point<N>,
+        details::traits::is_iterable_bar<Bar>,
+        details::traits::is_reactive_bar<Bar>,
+        std::is_same<
+          typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
+          Bar>,
+        std::is_constructible<Bar, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
     return {
       { {}, endpoint, step },
-      std::make_shared<Bar>( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) )
+      std::make_shared<Bar>( Bar( std::forward<Options>( options )... ) << std::forward<Act>( act ) )
     };
   }
   template<typename Bar, typename N, typename Proc, typename... Options>
@@ -403,21 +405,21 @@ namespace pace {
     requires(
       std::is_floating_point_v<N> && details::traits::is_iterable_bar<Bar>::value
       && details::traits::is_reactive_bar<Bar>::value
-      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>,
+      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>,
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
-    -> typename std::enable_if<
-      details::traits::AllOf<std::is_floating_point<N>,
-                             details::traits::is_iterable_bar<Bar>,
-                             details::traits::is_reactive_bar<Bar>,
-                             std::is_same<typename std::remove_reference<
-                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-                                          Bar>,
-                             std::is_constructible<Bar, Options&&...>>::value>::type
+    -> typename std::enable_if<details::traits::AllOf<
+      std::is_floating_point<N>,
+      details::traits::is_iterable_bar<Bar>,
+      details::traits::is_reactive_bar<Bar>,
+      std::is_same<
+        typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
+        Bar>,
+      std::is_constructible<Bar, Options&&...>>::value>::type
 #endif
   {
-    ( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) )
+    ( Bar( std::forward<Options>( options )... ) << std::forward<Act>( act ) )
       .iterate( endpoint, step, std::forward<Proc>( op ) );
   }
   template<typename Config,
@@ -466,7 +468,7 @@ namespace pace {
               && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
                 std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                  | std::declval<Act &&>() )>,
+                                                  << std::declval<Act &&>() )>,
                 prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
@@ -483,7 +485,7 @@ namespace pace {
         details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_same<
           typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                   | std::declval<Act&&>() )>::type,
+                                                   << std::declval<Act&&>() )>::type,
           prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>,
@@ -542,7 +544,7 @@ namespace pace {
               && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
                 std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                  | std::declval<Act &&>() )>,
+                                                  << std::declval<Act &&>() )>,
                 prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
@@ -558,7 +560,7 @@ namespace pace {
       details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
         typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                 | std::declval<Act&&>() )>::type,
+                                                 << std::declval<Act&&>() )>::type,
         prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>>::value>::type
 #endif
@@ -598,23 +600,24 @@ namespace pace {
     requires(
       std::is_integral_v<N> && details::traits::is_iterable_bar<Bar>::value
       && details::traits::is_reactive_bar<Bar>::value
-      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>,
+      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>,
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
     typename std::enable_if<
-      details::traits::AllOf<std::is_integral<N>,
-                             details::traits::is_iterable_bar<Bar>,
-                             std::is_same<typename std::remove_reference<
-                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-                                          Bar>,
-                             std::is_constructible<Bar, Options&&...>>::value,
+      details::traits::AllOf<
+        std::is_integral<N>,
+        details::traits::is_iterable_bar<Bar>,
+        std::is_same<
+          typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
+          Bar>,
+        std::is_constructible<Bar, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
     return {
       { startpoint, endpoint },
-      std::make_shared<Bar>( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) )
+      std::make_shared<Bar>( Bar( std::forward<Options>( options )... ) << std::forward<Act>( act ) )
     };
   }
   template<typename Bar, typename N, typename Proc, typename... Options>
@@ -636,20 +639,20 @@ namespace pace {
     requires(
       std::is_integral_v<N> && details::traits::is_iterable_bar<Bar>::value
       && details::traits::is_reactive_bar<Bar>::value
-      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>,
+      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>,
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
-    -> typename std::enable_if<
-      details::traits::AllOf<std::is_integral<N>,
-                             details::traits::is_iterable_bar<Bar>,
-                             std::is_same<typename std::remove_reference<
-                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-                                          Bar>,
-                             std::is_constructible<Bar, Options&&...>>::value>::type
+    -> typename std::enable_if<details::traits::AllOf<
+      std::is_integral<N>,
+      details::traits::is_iterable_bar<Bar>,
+      std::is_same<
+        typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
+        Bar>,
+      std::is_constructible<Bar, Options&&...>>::value>::type
 #endif
   {
-    ( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) )
+    ( Bar( std::forward<Options>( options )... ) << std::forward<Act>( act ) )
       .iterate( startpoint, endpoint, std::forward<Proc>( op ) );
   }
   template<typename Config,
@@ -696,7 +699,7 @@ namespace pace {
               && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
                 std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                  | std::declval<Act &&>() )>,
+                                                  << std::declval<Act &&>() )>,
                 prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
@@ -713,7 +716,7 @@ namespace pace {
         details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_same<
           typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                   | std::declval<Act&&>() )>::type,
+                                                   << std::declval<Act&&>() )>::type,
           prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>,
@@ -772,7 +775,7 @@ namespace pace {
               && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
                 std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                  | std::declval<Act &&>() )>,
+                                                  << std::declval<Act &&>() )>,
                 prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
@@ -788,7 +791,7 @@ namespace pace {
       details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
         typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                 | std::declval<Act&&>() )>::type,
+                                                 << std::declval<Act&&>() )>::type,
         prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>>::value>::type
 #endif
@@ -822,23 +825,25 @@ namespace pace {
     requires(
       std::is_integral_v<N> && details::traits::is_iterable_bar<Bar>::value
       && details::traits::is_reactive_bar<Bar>::value
-      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>,
+      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>,
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
     typename std::enable_if<
-      details::traits::AllOf<std::is_integral<N>,
-                             details::traits::is_iterable_bar<Bar>,
-                             details::traits::is_reactive_bar<Bar>,
-                             std::is_same<typename std::remove_reference<
-                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-                                          Bar>,
-                             std::is_constructible<Bar, Options&&...>>::value,
+      details::traits::AllOf<
+        std::is_integral<N>,
+        details::traits::is_iterable_bar<Bar>,
+        details::traits::is_reactive_bar<Bar>,
+        std::is_same<
+          typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
+          Bar>,
+        std::is_constructible<Bar, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
     return { { endpoint },
-             std::make_shared<Bar>( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) ) };
+             std::make_shared<Bar>( Bar( std::forward<Options>( options )... )
+                                    << std::forward<Act>( act ) ) };
   }
   template<typename Bar, typename N, typename Proc, typename... Options>
   PACE__FORCEINLINE auto iterate( N endpoint, Proc&& op, Options&&... options )
@@ -859,21 +864,21 @@ namespace pace {
     requires(
       std::is_integral_v<N> && details::traits::is_iterable_bar<Bar>::value
       && details::traits::is_reactive_bar<Bar>::value
-      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>,
+      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>,
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
-    -> typename std::enable_if<
-      details::traits::AllOf<std::is_integral<N>,
-                             details::traits::is_iterable_bar<Bar>,
-                             details::traits::is_reactive_bar<Bar>,
-                             std::is_same<typename std::remove_reference<
-                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-                                          Bar>,
-                             std::is_constructible<Bar, Options&&...>>::value>::type
+    -> typename std::enable_if<details::traits::AllOf<
+      std::is_integral<N>,
+      details::traits::is_iterable_bar<Bar>,
+      details::traits::is_reactive_bar<Bar>,
+      std::is_same<
+        typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
+        Bar>,
+      std::is_constructible<Bar, Options&&...>>::value>::type
 #endif
   {
-    ( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) )
+    ( Bar( std::forward<Options>( options )... ) << std::forward<Act>( act ) )
       .iterate( endpoint, std::forward<Proc>( op ) );
   }
   template<typename Config,
@@ -919,7 +924,7 @@ namespace pace {
               && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
                 std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                  | std::declval<Act &&>() )>,
+                                                  << std::declval<Act &&>() )>,
                 prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
@@ -936,7 +941,7 @@ namespace pace {
         details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_same<
           typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                   | std::declval<Act&&>() )>::type,
+                                                   << std::declval<Act&&>() )>::type,
           prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::NumericSpan<N>,
@@ -993,7 +998,7 @@ namespace pace {
               && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
                 std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                  | std::declval<Act &&>() )>,
+                                                  << std::declval<Act &&>() )>,
                 prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
@@ -1009,7 +1014,7 @@ namespace pace {
       details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
         typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                 | std::declval<Act&&>() )>::type,
+                                                 << std::declval<Act&&>() )>::type,
         prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>>::value>::type
 #endif
@@ -1051,24 +1056,25 @@ namespace pace {
     requires(
       details::traits::is_sized_cursor<Itr, Snt>::value && details::traits::is_iterable_bar<Bar>::value
       && details::traits::is_reactive_bar<Bar>::value
-      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>,
+      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>,
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
     typename std::enable_if<
-      details::traits::AllOf<details::traits::is_sized_cursor<Itr, Snt>,
-                             details::traits::is_iterable_bar<Bar>,
-                             details::traits::is_reactive_bar<Bar>,
-                             std::is_same<typename std::remove_reference<
-                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-                                          Bar>,
-                             std::is_constructible<Bar, Options&&...>>::value,
+      details::traits::AllOf<
+        details::traits::is_sized_cursor<Itr, Snt>,
+        details::traits::is_iterable_bar<Bar>,
+        details::traits::is_reactive_bar<Bar>,
+        std::is_same<
+          typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
+          Bar>,
+        std::is_constructible<Bar, Options&&...>>::value,
       slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>, std::shared_ptr<Bar>>>::type
 #endif
   {
     return {
       { std::move( startpoint ), std::move( endpoint ) },
-      std::make_shared<Bar>( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) )
+      std::make_shared<Bar>( Bar( std::forward<Options>( options )... ) << std::forward<Act>( act ) )
     };
   }
   template<typename Bar, typename Itr, typename Snt, typename Proc, typename... Options>
@@ -1095,21 +1101,21 @@ namespace pace {
     requires(
       details::traits::is_sized_cursor<Itr, Snt>::value && details::traits::is_iterable_bar<Bar>::value
       && details::traits::is_reactive_bar<Bar>::value
-      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>,
+      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>,
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
-    -> typename std::enable_if<
-      details::traits::AllOf<details::traits::is_sized_cursor<Itr, Snt>,
-                             details::traits::is_iterable_bar<Bar>,
-                             details::traits::is_reactive_bar<Bar>,
-                             std::is_same<typename std::remove_reference<
-                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-                                          Bar>,
-                             std::is_constructible<Bar, Options&&...>>::value>::type
+    -> typename std::enable_if<details::traits::AllOf<
+      details::traits::is_sized_cursor<Itr, Snt>,
+      details::traits::is_iterable_bar<Bar>,
+      details::traits::is_reactive_bar<Bar>,
+      std::is_same<
+        typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
+        Bar>,
+      std::is_constructible<Bar, Options&&...>>::value>::type
 #endif
   {
-    ( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) )
+    ( Bar( std::forward<Options>( options )... ) << std::forward<Act>( act ) )
       .iterate( std::move( startpoint ), std::move( endpoint ), std::forward<Proc>( op ) );
   }
   template<typename Config,
@@ -1158,7 +1164,7 @@ namespace pace {
               && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
                 std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                  | std::declval<Act &&>() )>,
+                                                  << std::declval<Act &&>() )>,
                 prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
@@ -1178,7 +1184,7 @@ namespace pace {
         details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_same<
           typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                   | std::declval<Act&&>() )>::type,
+                                                   << std::declval<Act&&>() )>::type,
           prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>,
@@ -1240,7 +1246,7 @@ namespace pace {
               && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
                 std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                  | std::declval<Act &&>() )>,
+                                                  << std::declval<Act &&>() )>,
                 prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
@@ -1256,7 +1262,7 @@ namespace pace {
       details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
         typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                 | std::declval<Act&&>() )>::type,
+                                                 << std::declval<Act&&>() )>::type,
         prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>>::value>::type
 #endif
@@ -1292,24 +1298,26 @@ namespace pace {
     requires(
       details::traits::is_sized_range<R>::value && !std::ranges::view<std::remove_reference_t<R>>
       && details::traits::is_iterable_bar<Bar>::value && details::traits::is_reactive_bar<Bar>::value
-      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>,
+      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>,
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
     typename std::enable_if<
-      details::traits::AllOf<details::traits::is_sized_range<R>,
-                             details::traits::is_iterable_bar<Bar>,
-                             details::traits::is_reactive_bar<Bar>,
-                             std::is_same<typename std::remove_reference<
-                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-                                          Bar>,
-                             std::is_constructible<Bar, Options&&...>>::value,
+      details::traits::AllOf<
+        details::traits::is_sized_range<R>,
+        details::traits::is_iterable_bar<Bar>,
+        details::traits::is_reactive_bar<Bar>,
+        std::is_same<
+          typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
+          Bar>,
+        std::is_constructible<Bar, Options&&...>>::value,
       slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
                          std::shared_ptr<Bar>>>::type
 #endif
   {
     return { { std::forward<R>( range ) },
-             std::make_shared<Bar>( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) ) };
+             std::make_shared<Bar>( Bar( std::forward<Options>( options )... )
+                                    << std::forward<Act>( act ) ) };
   }
 #ifdef __cpp_concepts
   template<typename Bar, class R, typename... Options>
@@ -1325,12 +1333,13 @@ namespace pace {
     requires(
       details::traits::is_sized_range<R>::value && std::ranges::view<R>
       && details::traits::is_iterable_bar<Bar>::value && details::traits::is_reactive_bar<Bar>::value
-      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>,
+      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>,
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
   {
     return { std::move( view ),
-             std::make_shared<Bar>( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) ) };
+             std::make_shared<Bar>( Bar( std::forward<Options>( options )... )
+                                    << std::forward<Act>( act ) ) };
   }
 #endif
   template<typename Bar, class R, typename Proc, typename... Options>
@@ -1359,21 +1368,21 @@ namespace pace {
     requires(
       details::traits::is_sized_range<R>::value && details::traits::is_iterable_bar<Bar>::value
       && details::traits::is_reactive_bar<Bar>::value
-      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() | std::forward<Act>( act ) )>,
+      && std::is_same_v<std::remove_reference_t<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>,
                         Bar>
       && std::is_constructible_v<Bar, Options && ...> )
 #else
-    -> typename std::enable_if<
-      details::traits::AllOf<details::traits::is_sized_range<R>,
-                             details::traits::is_iterable_bar<Bar>,
-                             details::traits::is_reactive_bar<Bar>,
-                             std::is_same<typename std::remove_reference<
-                                            decltype( std::declval<Bar>() | std::forward<Act>( act ) )>::type,
-                                          Bar>,
-                             std::is_constructible<Bar, Options&&...>>::value>::type
+    -> typename std::enable_if<details::traits::AllOf<
+      details::traits::is_sized_range<R>,
+      details::traits::is_iterable_bar<Bar>,
+      details::traits::is_reactive_bar<Bar>,
+      std::is_same<
+        typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
+        Bar>,
+      std::is_constructible<Bar, Options&&...>>::value>::type
 #endif
   {
-    ( Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) )
+    ( Bar( std::forward<Options>( options )... ) << std::forward<Act>( act ) )
       .iterate( std::forward<R>( range ), std::forward<Proc>( op ) );
   }
   template<typename Config,
@@ -1421,7 +1430,7 @@ namespace pace {
               && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
                 std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                  | std::declval<Act &&>() )>,
+                                                  << std::declval<Act &&>() )>,
                 prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
@@ -1438,7 +1447,7 @@ namespace pace {
         details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_same<
           typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                   | std::declval<Act&&>() )>::type,
+                                                   << std::declval<Act&&>() )>::type,
           prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
       slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
@@ -1485,13 +1494,13 @@ namespace pace {
               && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
                 std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                  | std::forward<Act>( act ) )>,
+                                                  << std::forward<Act>( act ) )>,
                 prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
   {
     return { std::move( view ),
              std::make_shared<prefab::BasicBar<Config, Sink, Mode, Zone>>(
-               Bar( std::forward<Options>( options )... ) | std::forward<Act>( act ) ) };
+               Bar( std::forward<Options>( options )... ) << std::forward<Act>( act ) ) };
   }
 #endif
   template<typename Config,
@@ -1543,7 +1552,7 @@ namespace pace {
               && details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_same_v<
                 std::remove_reference_t<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                  | std::declval<Act &&>() )>,
+                                                  << std::declval<Act &&>() )>,
                 prefab::BasicBar<Config, Sink, Mode, Zone>>
               && std::is_constructible_v<Config, Options && ...> )
 #else
@@ -1559,7 +1568,7 @@ namespace pace {
       details::traits::is_reactive_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_same<
         typename std::remove_reference<decltype( std::declval<prefab::BasicBar<Config, Sink, Mode, Zone>>()
-                                                 | std::declval<Act&&>() )>::type,
+                                                 << std::declval<Act&&>() )>::type,
         prefab::BasicBar<Config, Sink, Mode, Zone>>,
       std::is_constructible<Config, Options&&...>>::value>::type
 #endif

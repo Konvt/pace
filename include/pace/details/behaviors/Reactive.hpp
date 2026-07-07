@@ -159,21 +159,7 @@ namespace pace {
 #undef PACE__METHOD
 
         template<typename F>
-        friend PACE__FORCEINLINE auto operator|=( Reactive& bar, F&& fn )
-#ifdef __cpp_concepts
-          -> decltype( auto )
-          requires( std::is_constructible_v<wrappers::UniqueFunction<void()>, F &&>
-                    || std::is_constructible_v<wrappers::UniqueFunction<void( Derived& )>, F &&> )
-#else
-          -> typename std::enable_if<traits::AllOf<
-            traits::Not<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
-            traits::AnyOf<std::is_constructible<wrappers::UniqueFunction<void()>, F&&>,
-                          std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>>::value>::
-            type
-#endif
-        { bar.action( std::forward<F>( fn ) ); }
-        template<typename F>
-        friend PACE__FORCEINLINE auto operator|( Reactive& bar, F&& fn )
+        friend PACE__FORCEINLINE auto operator<<( Reactive& bar, F&& fn )
 #ifdef __cpp_concepts
           -> decltype( auto )
           requires( std::is_constructible_v<wrappers::UniqueFunction<void()>, F &&>
@@ -187,7 +173,7 @@ namespace pace {
 #endif
         { return bar.action( std::forward<F>( fn ) ); }
         template<typename F>
-        friend PACE__FORCEINLINE auto operator|( Reactive&& bar, F&& fn )
+        friend PACE__FORCEINLINE auto operator<<( Reactive&& bar, F&& fn )
 #ifdef __cpp_concepts
           -> decltype( auto )
           requires( std::is_constructible_v<wrappers::UniqueFunction<void()>, F &&>
@@ -201,11 +187,9 @@ namespace pace {
 #endif
         { return std::move( bar.action( std::forward<F>( fn ) ) ); }
 
-        friend PACE__FORCEINLINE void operator|=( Reactive& bar, std::nullptr_t ) noexcept
-        { bar.action(); }
-        friend PACE__FORCEINLINE Derived& operator|( Reactive& bar, std::nullptr_t ) noexcept
+        friend PACE__FORCEINLINE Derived& operator<<( Reactive& bar, std::nullptr_t ) noexcept
         { return bar.action(); }
-        friend PACE__FORCEINLINE Derived&& operator|( Reactive&& bar, std::nullptr_t ) noexcept
+        friend PACE__FORCEINLINE Derived&& operator<<( Reactive&& bar, std::nullptr_t ) noexcept
         { return std::move( bar.action() ); }
 
         void swap( Reactive& other ) noexcept

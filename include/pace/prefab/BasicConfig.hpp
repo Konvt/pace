@@ -412,15 +412,7 @@ namespace pace {
       friend PACE__CXX23_CNSTXPR void swap( BasicConfig& a, BasicConfig& b ) noexcept { a.swap( b ); }
 
       template<typename Option>
-      friend auto operator|=( BasicConfig& cfg, Option&& opt )
-#ifdef __cpp_concepts
-        requires is_setting<std::decay_t<Option>>::value
-#else
-        -> typename std::enable_if<is_setting<typename std::decay<Option>::type>::value>::type
-#endif
-      { cfg.with( std::forward<Option>( opt ) ); }
-      template<typename Option>
-      friend auto operator|( BasicConfig& cfg, Option&& opt )
+      friend auto operator<<( BasicConfig& cfg, Option&& opt )
 #ifdef __cpp_concepts
         -> decltype( auto )
         requires is_setting<Option>::value
@@ -429,7 +421,7 @@ namespace pace {
 #endif
       { return cfg.with( std::forward<Option>( opt ) ); }
       template<typename Option>
-      friend auto operator|( BasicConfig&& cfg, Option&& opt )
+      friend auto operator<<( BasicConfig&& cfg, Option&& opt )
 #ifdef __cpp_concepts
         -> decltype( auto )
         requires is_setting<std::decay_t<Option>>::value

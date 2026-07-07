@@ -229,9 +229,9 @@ config2.quota( 100 )
 auto config3 = config2; // variadic template parameters can still be used after construction
 config3.with( pace::option::Prefix( "Do something" ), pace::option::PrefixForecolor( 0xFFE211 ) );
 
-// The configuration type overloads operator| and operator|=,
-// allowing parameters to be passed in a pipeline-like manner
-auto config4 = pace::config::Line() | pace::option::Quota( 114514 ) | pace::option::Magnitude( 1024 );
+// The configuration type overloads operator<<,
+// allowing parameters to be passed in a stream object manner
+auto config4 = pace::config::Line() << pace::option::Quota( 114514 ) << pace::option::Magnitude( 1024 );
 ```
 ### Component switch
 It is not difficult to observe that a progress bar type is composed of multiple components, and these components collectively determine the final appearance of a progress bar.
@@ -477,7 +477,7 @@ This callback is invoked when the progress bar object calls its `reset()` method
 
 Likewise, if the progress bar runs and terminates normally, the progress bar type will internally call `reset()` on its own, and the callback will still be invoked before termination.
 
-All progress bar objects that support `action` also provide `operator|` and `operator|=` overloads, allowing callbacks to be passed directly through these operators.
+All progress bar objects that support `action` also provide `operator<<` overloads, allowing callbacks to be passed directly through these operators.
 
 ```cxx
 pace::ProgressBar<> bar;
@@ -491,9 +491,7 @@ auto callback = [&]( pace::ProgressBar<>& self ) {
 
 bar.action( callback );
 // or
-bar |= callback;
-// or
-bar | callback;
+bar << callback;
 ```
 
 The callback type passed in must satisfy `std::is_move_constructible`; moreover, methods that *modify the internal state of the progress bar object itself* (such as `tick` or `reset`, but excluding `config`) should **never** be called inside the callback, otherwise a *deadlock* may occur.
@@ -1451,9 +1449,9 @@ protected:
   Clock( pace::details::traits::TypeSet<Option...> tag ) : Base( tag )
   {
     using OptionSet = pace::details::traits::TypeSet<Option...>;
-    if constexpr ( !pace::details::traits::TpContain<OptionSet, TimeFormat>::value )
+    if constexpr ( !pace::details::traits::TpContains<OptionSet, TimeFormat>::value )
       unpack( *this, pace::config::provide_for<Derived, TimeFormat>() );
-    if constexpr ( !pace::details::traits::TpContain<OptionSet, ClockColor>::value )
+    if constexpr ( !pace::details::traits::TpContains<OptionSet, ClockColor>::value )
       unpack( *this, pace::config::provide_for<Derived, ClockColor>() );
   }
 };

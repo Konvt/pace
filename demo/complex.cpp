@@ -29,7 +29,7 @@ int main()
   pool.emplace_back( [&]() {
     bool flag = true;
     // Bind a callback executed at the end of the iteration below.
-    bar.at<0>() |= [&]( pace::ProgressBar<>& self ) {
+    bar.at<0>() << [&]( pace::ProgressBar<>& self ) {
       if ( flag )
         self.config().prefix( "✔ Mission Accomplished" ).prefix_forecolor( pace::Color::Green );
       else
@@ -43,7 +43,7 @@ int main()
   } );
   pool.emplace_back( [&]() {
     bool flag = true;
-    bar.at<1>() |= [&]( pace::BlockBar<>& self ) {
+    bar.at<1>() << [&]( pace::BlockBar<>& self ) {
       if ( flag )
         self.config().prefix( "✔ Mission Accomplished" ).prefix_forecolor( pace::Color::Green );
       else

@@ -43,14 +43,14 @@ namespace pace {
 #if defined( PACE_INTTY ) || PACE__UNKNOWN
             return true;
 #elif PACE__WIN
-            HANDLE hConsole;
+            HANDLE h_con;
             if PACE__CXX17_CNSTXPR ( Sink == Channel::Stdout )
-              hConsole = GetStdHandle( STD_OUTPUT_HANDLE );
+              h_con = GetStdHandle( STD_OUTPUT_HANDLE );
             else
-              hConsole = GetStdHandle( STD_ERROR_HANDLE );
-            if ( hConsole == INVALID_HANDLE_VALUE )
+              h_con = GetStdHandle( STD_ERROR_HANDLE );
+            if ( h_con == INVALID_HANDLE_VALUE )
               PACE__UNLIKELY return false;
-            return GetFileType( hConsole ) == FILE_TYPE_CHAR;
+            return GetFileType( h_con ) == FILE_TYPE_CHAR;
 #else
             return isatty( static_cast<int>( Sink ) );
 #endif
@@ -70,16 +70,19 @@ namespace pace {
 #if PACE__WIN && !defined( PACE_NOSTYLE ) && defined( ENABLE_VIRTUAL_TERMINAL_PROCESSING )
           static std::once_flag flag;
           std::call_once( flag, []() noexcept {
-            HANDLE stream_handle =
-              GetStdHandle( Sink == Channel::Stderr ? STD_ERROR_HANDLE : STD_OUTPUT_HANDLE );
-            if ( stream_handle == INVALID_HANDLE_VALUE )
+            HANDLE h_con;
+            if PACE__CXX17_CNSTXPR ( Sink == Channel::Stdout )
+              h_con = GetStdHandle( STD_OUTPUT_HANDLE );
+            else
+              h_con = GetStdHandle( STD_ERROR_HANDLE );
+            if ( h_con == INVALID_HANDLE_VALUE )
               PACE__UNLIKELY return;
 
             DWORD mode {};
-            if ( !GetConsoleMode( stream_handle, &mode ) )
+            if ( !GetConsoleMode( h_con, &mode ) )
               PACE__UNLIKELY return;
             mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-            SetConsoleMode( stream_handle, mode );
+            SetConsoleMode( h_con, mode );
           } );
 #endif
         }

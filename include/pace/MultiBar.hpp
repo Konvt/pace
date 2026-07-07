@@ -186,12 +186,12 @@ namespace pace {
       template<types::Size Cnt, Channel S, Policy M, Region Z, typename B, types::Size... Is>
       PACE__NODISCARD PACE__FORCEINLINE typename std::enable_if<
         traits::is_bar<typename std::decay<B>::type>::value,
-        MultiBar_t<prefab::BasicBar<typename std::decay<B>::type::config_type, S, M, Z>, Cnt>>::type
+        MultiBar_t<prefab::BasicBar<typename std::decay<B>::type::config, S, M, Z>, Cnt>>::type
         make_multi_helper( B&& bar, traits::IndexSequence<Is...> )
           noexcept( traits::BoolConstant<( Cnt == 1 )>::value )
       {
         using Bar = typename std::decay<B>::type;
-        std::array<typename Bar::config_type, Cnt - 1> cfgs { { ( (void)( Is ), bar.config() )... } };
+        std::array<typename Bar::config, Cnt - 1> cfgs { { ( (void)( Is ), bar.config() )... } };
         return { std::forward<B>( bar ), Bar( std::move( cfgs[Is] ) )... };
       }
       template<types::Size Cnt, Channel S, Policy M, Region Z, typename C, types::Size... Is>
@@ -264,7 +264,7 @@ namespace pace {
     requires( Cnt > 0 && sizeof...( Objs ) <= Cnt && details::traits::is_bar<Bar>::value
               && ( ( ( std::is_same_v<std::remove_cv_t<Bar>, std::decay_t<Objs>> && ... )
                      && !( std::is_lvalue_reference_v<Objs &&> || ... ) )
-                   || ( std::is_same_v<typename Bar::config_type, std::decay_t<Objs>> && ... ) ) )
+                   || ( std::is_same_v<typename Bar::config, std::decay_t<Objs>> && ... ) ) )
 #else
     -> typename std::enable_if<
       details::traits::AllOf<
@@ -275,8 +275,8 @@ namespace pace {
           details::traits::AllOf<
             std::is_same<typename std::remove_cv<Bar>::type, typename std::decay<Objs>::type>...,
             details::traits::Not<details::traits::AnyOf<std::is_lvalue_reference<Objs&&>...>>>,
-          details::traits::AllOf<
-            std::is_same<typename Bar::config_type, typename std::decay<Objs>::type>...>>>::value,
+          details::traits::AllOf<std::is_same<typename Bar::config, typename std::decay<Objs>::type>...>>>::
+        value,
       MultiBar_t<Bar, Cnt>>::type
 #endif
   { return { std::forward<Objs>( objs )... }; }

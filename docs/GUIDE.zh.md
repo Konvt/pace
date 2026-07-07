@@ -225,8 +225,8 @@ config2.quota( 100 )
 auto config3 = config2; // 构造后也能使用可变模板参数调整
 config3.with( pace::option::Prefix( "Do something" ), pace::option::PrefixForecolor( 0xFFE211 ) );
 
-// 配置类型重载了 operator| 和 operator|=，因此可以像使用管道一样传递参数
-auto config4 = pace::config::Line() | pace::option::Quota( 114514 ) | pace::option::Magnitude( 1024 );
+// 配置类型重载了 operator<<，因此可以像使用流对象一样传递参数
+auto config4 = pace::config::Line() << pace::option::Quota( 114514 ) << pace::option::Magnitude( 1024 );
 ```
 ### 组件开关
 不难发现，一个进度条类型是由多个组件构成的，这些组件共同决定了一个进度条的形态。
@@ -284,7 +284,7 @@ pace 不要求 `pace::option::SpeedUnit` 的单位数量与倍率累计上限严
 
 且当选取的进位比较大时，倍率累计过程发生了乘法上溢出，则会固定使用最后一个可达单位并输出 `inf`。
 ### Elapsed 与 ETA
-支持 `pace::facade::Elapsed` 或 `pace::facade::Elapsed` 的进度条都可以使用一个格式字符串定义时钟格式；且这两个功能共享同一个格式字符串解析逻辑。
+支持 `pace::facade::Elapsed` 或 `pace::facade::ETA` 的进度条都可以使用一个格式字符串定义时钟格式；且这两个功能共享同一个格式字符串解析逻辑。
 
 格式字符串的语法结构为：`%[ ':' <fill-char> ][ <width> ]<unit>`。
 
@@ -461,7 +461,7 @@ pace 的所有进度条类型都提供了一个 `action` 方法，该方法可�
 
 同样的，如果进度条正常运行且正常终止，那么进度条类型会在内部自己调用 `reset()` 方法，此时回调函数依然会在进度条终止之前被调用。
 
-支持 `action` 的进度条对象都包含了 `operator|` 和 `operator|=` 重载，可以使用该运算符直接传递回调。
+支持 `action` 的进度条对象都包含了 `operator<<` 重载，可以使用该运算符直接传递回调。
 
 ```cxx
 pace::ProgressBar<> bar;
@@ -475,9 +475,7 @@ auto callback = [&]( pace::ProgressBar<>& self ) {
 
 bar.action( callback );
 // or
-bar |= callback;
-// or
-bar | callback;
+bar << callback;
 ```
 
 传递的回调函数类型必须满足 `std::is_move_constructible`；而且**绝对不应该**在回调内部调用*修改进度条对象自身状态*的方法（例如 `tick` 或 `reset`，但 `config` 除外），否则会导致*死锁*。
@@ -1425,9 +1423,9 @@ protected:
   Clock( pace::details::traits::TypeSet<Option...> tag ) : Base( tag )
   {
     using OptionSet = pace::details::traits::TypeSet<Option...>;
-    if constexpr ( !pace::details::traits::TpContain<OptionSet, TimeFormat>::value )
+    if constexpr ( !pace::details::traits::TpContains<OptionSet, TimeFormat>::value )
       unpack( *this, pace::config::provide_for<Derived, TimeFormat>() );
-    if constexpr ( !pace::details::traits::TpContain<OptionSet, ClockColor>::value )
+    if constexpr ( !pace::details::traits::TpContains<OptionSet, ClockColor>::value )
       unpack( *this, pace::config::provide_for<Derived, ClockColor>() );
   }
 };
