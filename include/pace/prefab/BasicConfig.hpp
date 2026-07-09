@@ -121,7 +121,7 @@ namespace pace {
                ,
                typename = typename std::enable_if<details::traits::AllOf<is_setting<Args>...>::value>::type>
 #endif
-      PACE__CXX23_CNSTXPR BasicConfig( details::traits::TypeSet<Args...> tag ) : layout( tag )
+      PACE__CXX23_CNSTXPR BasicConfig( details::traits::TypeSet<Args...> tag ) : layout_type( tag )
       {
         // Projection is only used for injecting default values.
         if PACE__CXX17_CNSTXPR ( !details::traits::AnyOf<details::traits::is_selection<Args>...>::value )
@@ -129,7 +129,7 @@ namespace pace {
       }
 
     public:
-      using layout =
+      using layout_type =
         typename details::traits::LI_t<details::aspects::Prefix,
                                        details::aspects::Postfix,
                                        details::aspects::Segment,
@@ -196,21 +196,21 @@ namespace pace {
         : BasicConfig( details::traits::TypeSet<typename std::decay<Args>::type...>() )
       { (void)std::initializer_list<bool> { ( unpack( *this, std::move( args ) ), false )... }; }
 
-      BasicConfig( const BasicConfig& other ) noexcept( std::is_nothrow_copy_assignable<layout>::value )
+      BasicConfig( const BasicConfig& other ) noexcept( std::is_nothrow_copy_assignable<layout_type>::value )
       {
         std::lock_guard<details::concurrent::SharedMutex> lock { other.rw_mtx_ };
-        layout::operator=( other );
+        layout_type::operator=( other );
         projection_ = other.projection_;
       }
       BasicConfig( BasicConfig&& rhs ) noexcept
       {
         std::lock_guard<details::concurrent::SharedMutex> lock { rhs.rw_mtx_ };
-        layout::operator=( std::move( rhs ) );
+        layout_type::operator=( std::move( rhs ) );
         using std::swap;
         swap( projection_, rhs.projection_ );
       }
       BasicConfig& operator=( const BasicConfig& other ) & noexcept(
-        std::is_nothrow_copy_assignable<layout>::value )
+        std::is_nothrow_copy_assignable<layout_type>::value )
       {
         PACE__TRUST( this != &other );
         details::concurrent::SharedLock<details::concurrent::SharedMutex> lock1 { other.rw_mtx_,
@@ -219,7 +219,7 @@ namespace pace {
         std::lock_guard<details::concurrent::SharedMutex> lock2 { this->rw_mtx_, std::adopt_lock };
 
         projection_ = other.projection_;
-        layout::operator=( other );
+        layout_type::operator=( other );
         return *this;
       }
       BasicConfig& operator=( BasicConfig&& rhs ) & noexcept
@@ -232,7 +232,7 @@ namespace pace {
         PACE__TRUST( this != &rhs );
         using std::swap;
         swap( projection_, rhs.projection_ );
-        layout::operator=( std::move( rhs ) );
+        layout_type::operator=( std::move( rhs ) );
         return *this;
       }
       /**
@@ -407,7 +407,7 @@ namespace pace {
 
         using std::swap;
         swap( projection_, other.projection_ );
-        layout::swap( other );
+        layout_type::swap( other );
       }
       friend PACE__CXX23_CNSTXPR void swap( BasicConfig& a, BasicConfig& b ) noexcept { a.swap( b ); }
 

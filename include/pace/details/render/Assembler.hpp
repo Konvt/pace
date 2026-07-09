@@ -40,7 +40,7 @@ namespace pace {
             pipeline << this->clear_then_dye(
               console::Dualcolor( this->info_forecolor_, this->info_backcolor_ ),
               params.style_off_ );
-            this->traits::BaseOf_t<typename Base::layout, Element>::build( pipeline, params );
+            this->traits::BaseOf_t<typename Base::layout_type, Element>::build( pipeline, params );
             if ( any_more<Elements...>() )
               pipeline << this->clear_then_dye(
                 console::Dualcolor( this->info_forecolor_, this->info_backcolor_ ),
@@ -65,15 +65,17 @@ namespace pace {
           (void)std::initializer_list<bool> { (
             num_enabled += this->projection_.test( details::traits::IndexIn<Facades, Facades...>::value ),
             width += ( this->projection_.test( details::traits::IndexIn<Facades, Facades...>::value )
-                         ? details::traits::BaseOf_t<typename Base::layout, Facades>::fixed_length()
+                         ? details::traits::BaseOf_t<typename Base::layout_type, Facades>::fixed_length()
                          : 0 ),
             false )... };
           // Before the first element and the last element, we do not set a divider.
           return width
-               + details::traits::BaseOf_t<typename Base::layout, details::aspects::Prefix>::fixed_length()
-               + details::traits::BaseOf_t<typename Base::layout, details::aspects::Postfix>::fixed_length()
-               + details::traits::BaseOf_t<typename Base::layout, details::aspects::Segment>::fixed_length(
-                   num_enabled );
+               + details::traits::BaseOf_t<typename Base::layout_type,
+                                           details::aspects::Prefix>::fixed_length()
+               + details::traits::BaseOf_t<typename Base::layout_type,
+                                           details::aspects::Postfix>::fixed_length()
+               + details::traits::BaseOf_t<typename Base::layout_type,
+                                           details::aspects::Segment>::fixed_length( num_enabled );
         }
       };
     } // namespace render

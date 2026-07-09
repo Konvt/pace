@@ -116,20 +116,21 @@ namespace pace {
     PACE__NODISCARD auto insert( Options&&... options )
 #ifdef __cpp_concepts
       -> std::unique_ptr<Bar>
-      requires( details::traits::is_bar<Bar>::value && Bar::sink == Sink && Bar::mode == Mode
-                && Bar::zone == Zone && std::is_constructible_v<Bar, Options && ...> )
+      requires( details::traits::is_bar<Bar>::value && Bar::channel_value == Sink && Bar::policy_value == Mode
+                && Bar::region_value == Zone && std::is_constructible_v<Bar, Options && ...> )
 #else
       -> typename std::enable_if<
         details::traits::AllOf<details::traits::is_bar<Bar>,
                                std::is_constructible<Bar, Options&&...>,
-                               details::traits::BoolConstant<( Bar::sink == Sink )>,
-                               details::traits::BoolConstant<( Bar::mode == Mode )>,
-                               details::traits::BoolConstant<( Bar::zone == Zone )>>::value,
+                               details::traits::BoolConstant<( Bar::channel_value == Sink )>,
+                               details::traits::BoolConstant<( Bar::policy_value == Mode )>,
+                               details::traits::BoolConstant<( Bar::region_value == Zone )>>::value,
         std::unique_ptr<Bar>>::type
 #endif
     {
       setup_if_null();
-      return details::utils::make_unique<details::assets::ManagedBar<typename Bar::config, Sink, Mode, Zone>>(
+      return details::utils::make_unique<
+        details::assets::ManagedBar<typename Bar::config_type, Sink, Mode, Zone>>(
         core_,
         std::forward<Options>( options )... );
     }
@@ -271,7 +272,7 @@ namespace pace {
     requires( details::traits::is_bar<Bar>::value
               && ( ( ( std::is_same_v<std::remove_cv_t<Bar>, std::remove_cv_t<Objs>> && ... )
                      && !( std::is_lvalue_reference_v<Objs &&> || ... ) )
-                   || ( std::is_same<typename Bar::config, std::decay_t<Objs>>::value && ... ) ) )
+                   || ( std::is_same<typename Bar::config_type, std::decay_t<Objs>>::value && ... ) ) )
 #else
     -> typename std::enable_if<
       details::traits::AllOf<
@@ -280,8 +281,8 @@ namespace pace {
           details::traits::AllOf<
             std::is_same<typename std::remove_cv<Bar>::type, typename std::remove_cv<Objs>::type>...,
             details::traits::Not<details::traits::AnyOf<std::is_lvalue_reference<Objs&&>...>>>,
-          details::traits::AllOf<std::is_same<typename Bar::config, typename std::decay<Objs>::type>...>>>::
-        value,
+          details::traits::AllOf<
+            std::is_same<typename Bar::config_type, typename std::decay<Objs>::type>...>>>::value,
       std::vector<std::unique_ptr<Bar>>>::type
 #endif
   {
@@ -300,7 +301,7 @@ namespace pace {
         throw exception::InvalidArgument( std::move( message ) );
       }
 
-    DynamicBar<Bar::sink, Bar::mode, Bar::zone> factory;
+    DynamicBar<Bar::channel_value, Bar::policy_value, Bar::region_value> factory;
     (void)std::initializer_list<bool> {
       ( products.emplace_back( factory.insert( std::forward<Objs>( objs ) ) ), false )...
     };

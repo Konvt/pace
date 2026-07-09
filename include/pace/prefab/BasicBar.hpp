@@ -20,10 +20,10 @@ namespace pace {
         template type<Indicator, BasicBar<Soul, Sink, Mode, Zone>>;
 
     public:
-      using config                  = Soul;
-      static constexpr Channel sink = Sink;
-      static constexpr Policy mode  = Mode;
-      static constexpr Region zone  = Zone;
+      using config_type                      = Soul;
+      static constexpr Channel channel_value = Sink;
+      static constexpr Policy policy_value   = Mode;
+      static constexpr Region region_value   = Zone;
 
       using Base::Base;
       constexpr BasicBar() = default;

@@ -90,10 +90,10 @@ namespace pace {
                      << this->l_border_;
           }
           // For SpinBar, we manually remove the divider between the Lead and the Percent.
-          this->traits::BaseOf_t<typename Config::layout, aspects::Prefix>::build( pipeline, params );
+          this->traits::BaseOf_t<typename Config::layout_type, aspects::Prefix>::build( pipeline, params );
           if ( this->projection_.test( 0 ) ) {
             // zero is facade::SpinPlot
-            this->traits::BaseOf_t<typename Config::layout, facade::SpinPlot>::build( pipeline, params );
+            this->traits::BaseOf_t<typename Config::layout_type, facade::SpinPlot>::build( pipeline, params );
             pipeline << ' ';
           }
 
@@ -103,7 +103,7 @@ namespace pace {
                                      facade::Elapsed,
                                      facade::ETA>( pipeline, params );
 
-          this->traits::BaseOf_t<typename Config::layout, aspects::Postfix>::build( pipeline, params );
+          this->traits::BaseOf_t<typename Config::layout_type, aspects::Postfix>::build( pipeline, params );
           if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() ) {
             pipeline << this->clear_then_dye(
               console::Dualcolor( this->info_forecolor_, this->info_backcolor_ ),
