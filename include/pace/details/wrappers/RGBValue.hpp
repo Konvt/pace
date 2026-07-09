@@ -79,8 +79,8 @@ namespace pace {
         PACE__CXX20_CNSTXPR RGBValue( SV&& hex_str ) : RGBValue()
         { from_str( std::forward<SV>( hex_str ) ); }
 
-        constexpr RGBValue( const RGBValue& other )                        = default;
-        PACE__CXX14_CNSTXPR RGBValue& operator=( const RGBValue& other ) & = default;
+        constexpr RGBValue( const RGBValue& )                        = default;
+        PACE__CXX14_CNSTXPR RGBValue& operator=( const RGBValue& ) & = default;
 
         PACE__CXX14_CNSTXPR RGBValue& operator=( types::HexRGB hex_val ) & noexcept
         {

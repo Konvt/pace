@@ -45,8 +45,8 @@ namespace pace {
           void ( *const move_ )( AnyFn& dst, AnyFn& src ) noexcept;
 
 # if PACE__CXX20
-          friend constexpr bool operator==( const Life& a, const Life& b ) = default;
-          friend constexpr bool operator!=( const Life& a, const Life& b ) = default;
+          friend constexpr bool operator==( const Life&, const Life& ) = default;
+          friend constexpr bool operator!=( const Life&, const Life& ) = default;
 # else
           friend constexpr bool operator==( const Life& a, const Life& b ) noexcept
           { return a.destroy_ == b.destroy_ && a.move_ == b.move_; }
@@ -62,8 +62,8 @@ namespace pace {
           const Life* life_;
 
 # if PACE__CXX20
-          friend constexpr bool operator==( const VTable& a, const VTable& b ) = default;
-          friend constexpr bool operator!=( const VTable& a, const VTable& b ) = default;
+          friend constexpr bool operator==( const VTable&, const VTable& ) = default;
+          friend constexpr bool operator!=( const VTable&, const VTable& ) = default;
 # else
           friend constexpr bool operator==( const VTable& a, const VTable& b ) noexcept
           { return a.invoke_ == b.invoke_ && a.life_ == b.life_; }

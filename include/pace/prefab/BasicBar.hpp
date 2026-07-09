@@ -45,9 +45,9 @@ namespace pace {
       BasicBar( const BasicBar& )            = delete;
       BasicBar& operator=( const BasicBar& ) = delete;
 
-      constexpr BasicBar( BasicBar&& )                            = default;
-      PACE__CXX14_CNSTXPR BasicBar& operator=( BasicBar&& rhs ) & = default;
-      PACE__CXX20_CNSTXPR virtual ~BasicBar()                     = default;
+      constexpr BasicBar( BasicBar&& )                        = default;
+      PACE__CXX14_CNSTXPR BasicBar& operator=( BasicBar&& ) & = default;
+      PACE__CXX20_CNSTXPR virtual ~BasicBar()                 = default;
 
       void swap( BasicBar& other ) noexcept
       {

@@ -73,11 +73,11 @@ namespace pace {
       : package_ { std::move( bar ), std::move( bars )... }
     {}
 
-    MultiBar( const MultiBar& )                      = delete;
-    MultiBar& operator=( const MultiBar& ) &         = delete;
-    MultiBar( MultiBar&& rhs ) noexcept              = default;
-    MultiBar& operator=( MultiBar&& rhs ) & noexcept = default;
-    ~MultiBar()                                      = default;
+    MultiBar( const MultiBar& )                  = delete;
+    MultiBar& operator=( const MultiBar& ) &     = delete;
+    MultiBar( MultiBar&& ) noexcept              = default;
+    MultiBar& operator=( MultiBar&& ) & noexcept = default;
+    ~MultiBar()                                  = default;
 
     // Reset all the progress bars.
     PACE__FORCEINLINE void reset() { package_.shut(); }
