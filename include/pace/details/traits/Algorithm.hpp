@@ -59,9 +59,9 @@ namespace pace {
       template<typename Collection>
       struct Split;
       template<typename Collection>
-      using Split_l = typename Split<Collection>::left;
+      using Split_l = typename Split<Collection>::left_type;
       template<typename Collection>
-      using Split_r = typename Split<Collection>::right;
+      using Split_r = typename Split<Collection>::right_type;
 
       template<template<typename...> class Collection, typename... Ts>
       struct Split<Collection<Ts...>> {
@@ -70,16 +70,16 @@ namespace pace {
         struct Helper;
         template<types::Size... L, types::Size... R>
         struct Helper<IndexSequence<L...>, IndexSequence<R...>> {
-          using left  = Collection<TypeAt_t<L, Ts...>...>;
-          using right = Collection<TypeAt_t<( sizeof...( Ts ) / 2 ) + R, Ts...>...>;
+          using left_type  = Collection<TypeAt_t<L, Ts...>...>;
+          using right_type = Collection<TypeAt_t<( sizeof...( Ts ) / 2 ) + R, Ts...>...>;
         };
 
-        using result = Helper<MakeIndexSequence<( sizeof...( Ts ) / 2 )>,
-                              MakeIndexSequence<( sizeof...( Ts ) - ( sizeof...( Ts ) / 2 ) )>>;
+        using result_type = Helper<MakeIndexSequence<( sizeof...( Ts ) / 2 )>,
+                                   MakeIndexSequence<( sizeof...( Ts ) - ( sizeof...( Ts ) / 2 ) )>>;
 
       public:
-        using left  = typename result::left;
-        using right = typename result::right;
+        using left_type  = typename result_type::left_type;
+        using right_type = typename result_type::right_type;
       };
 
       template<typename Collection, typename Element>

@@ -26,26 +26,28 @@ namespace pace {
       static_assert( std::is_convertible<details::traits::IterDifference_t<Itr>, details::types::Size>::value,
                      "the difference_type must be convertible to Size" );
 
-      details::types::Size size_;
+      details::types::Size size_ = 0;
       Itr start_;
       Snt end_;
 
-      class Sentry {
+#if __cpp_range_based_for >= 201603L
+      class Sentinel {
         friend class iterator;
 
         Snt endpoint_;
 
       public:
-        constexpr Sentry() = default;
-        constexpr Sentry( Snt&& endpoint ) noexcept( std::is_nothrow_move_constructible<Snt>::value )
+        constexpr Sentinel() = default;
+        constexpr Sentinel( Snt&& endpoint ) noexcept( std::is_nothrow_move_constructible<Snt>::value )
           : endpoint_ { std::move( endpoint ) }
         {}
       };
+#endif
 
     public:
       class iterator;
-#if PACE__CXX17
-      using sentinel = std::conditional_t<std::is_same_v<Itr, Snt>, iterator, Sentry>;
+#if __cpp_range_based_for >= 201603L
+      using sentinel = std::conditional_t<std::is_same_v<Itr, Snt>, iterator, Sentinel>;
 #else
       using sentinel = iterator;
 #endif
@@ -68,11 +70,7 @@ namespace pace {
         constexpr iterator( Itr startpoint ) noexcept( std::is_nothrow_move_constructible<Itr>::value )
           : current_ { std::move( startpoint ) }
         {}
-        constexpr iterator( const iterator& )                        = default;
-        constexpr iterator( iterator&& )                             = default;
-        PACE__CXX14_CNSTXPR iterator& operator=( const iterator& ) & = default;
-        PACE__CXX14_CNSTXPR iterator& operator=( iterator&& ) &      = default;
-        PACE__CXX20_CNSTXPR ~iterator()                              = default;
+        PACE__CXX20_CNSTXPR ~iterator() = default;
 
         PACE__FORCEINLINE PACE__CXX14_CNSTXPR iterator& operator++() &
         {
@@ -139,26 +137,28 @@ namespace pace {
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr difference_type operator-( const iterator& a,
                                                                                       const iterator& b )
         { return details::utils::distance( a.current_, b.current_ ); }
+#if __cpp_range_based_for >= 201603L
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( const iterator& a,
-                                                                            const Sentry& b )
+                                                                            const Sentinel& b )
         { return a.current_ == b.endpoint_; }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( const iterator& a,
-                                                                            const Sentry& b )
+                                                                            const Sentinel& b )
         { return !( a == b ); }
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( const Sentry& a,
+        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( const Sentinel& a,
                                                                             const iterator& b )
         { return b == a; }
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( const Sentry& a,
+        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( const Sentinel& a,
                                                                             const iterator& b )
         { return !( b == a ); }
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr difference_type operator-( const Sentry& a,
+        PACE__NODISCARD friend PACE__FORCEINLINE constexpr difference_type operator-( const Sentinel& a,
                                                                                       const iterator& b )
-        { return b - a; }
-
-        explicit constexpr operator bool() const { return current_ != Itr(); }
+        { return details::utils::distance( a, b.current_ ); }
+        PACE__NODISCARD friend PACE__FORCEINLINE constexpr difference_type operator-( const iterator& a,
+                                                                                      const Sentinel& b )
+        { return details::utils::distance( a.current_, b ); }
+#endif
       };
 
-      constexpr IteratorSpan() = default;
       PACE__CXX17_CNSTXPR IteratorSpan( Itr startpoint, Snt endpoint )
         : start_ { std::move( startpoint ) }, end_ { std::move( endpoint ) }
       {
@@ -168,12 +168,7 @@ namespace pace {
             details::charcodes::make_literal( "pace: negative iterator range" ) );
         size_ = static_cast<details::types::Size>( length );
       }
-      PACE__CXX17_CNSTXPR IteratorSpan( const IteratorSpan& )              = default;
-      PACE__CXX17_CNSTXPR IteratorSpan( IteratorSpan&& )                   = default;
-      PACE__CXX17_CNSTXPR IteratorSpan& operator=( const IteratorSpan& ) & = default;
-      PACE__CXX17_CNSTXPR IteratorSpan& operator=( IteratorSpan&& ) &      = default;
-      // Intentional non-virtual destructors.
-      PACE__CXX20_CNSTXPR ~IteratorSpan()                                  = default;
+      PACE__CXX20_CNSTXPR ~IteratorSpan() = default;
 
       PACE__NODISCARD PACE__FORCEINLINE constexpr iterator begin() const
         noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<Itr>,
@@ -193,7 +188,7 @@ namespace pace {
       PACE__NODISCARD PACE__FORCEINLINE constexpr details::types::Size size() const noexcept { return size_; }
       PACE__NODISCARD PACE__FORCEINLINE constexpr bool empty() const noexcept { return size_ == 0; }
 
-      PACE__CXX20_CNSTXPR void swap( IteratorSpan<Itr>& lhs ) noexcept
+      PACE__CXX20_CNSTXPR void swap( IteratorSpan& lhs ) noexcept
       {
         PACE__TRUST( this != &lhs );
         using std::swap;
@@ -201,8 +196,7 @@ namespace pace {
         swap( end_, lhs.end_ );
         swap( size_, lhs.size_ );
       }
-      friend PACE__CXX20_CNSTXPR void swap( IteratorSpan<Itr>& a, IteratorSpan<Itr>& b ) noexcept
-      { a.swap( b ); }
+      friend PACE__CXX20_CNSTXPR void swap( IteratorSpan& a, IteratorSpan& b ) noexcept { a.swap( b ); }
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX17_CNSTXPR typename iterator::reference operator[](
         details::types::Size inc ) const

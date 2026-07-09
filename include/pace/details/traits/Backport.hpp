@@ -105,22 +105,22 @@ namespace pace {
         static constexpr void implicit_conversion( ... ) noexcept( false );
 
       public:
-        using result = BoolConstant<noexcept( implicit_conversion( std::declval<From>() ) )>;
+        using result_type = BoolConstant<noexcept( implicit_conversion( std::declval<From>() ) )>;
       };
       template<typename From>
       struct _impl_is_nothrow_convertible<From, void> {
-        using result = std::false_type;
+        using result_type = std::false_type;
       };
       template<typename To>
       struct _impl_is_nothrow_convertible<void, To> {
-        using result = std::false_type;
+        using result_type = std::false_type;
       };
       template<>
       struct _impl_is_nothrow_convertible<void, void> {
-        using result = std::true_type;
+        using result_type = std::true_type;
       };
       template<typename From, typename To>
-      using is_nothrow_convertible = typename _impl_is_nothrow_convertible<From, To>::result;
+      using is_nothrow_convertible = typename _impl_is_nothrow_convertible<From, To>::result_type;
 #endif
 
 #ifdef __cpp_lib_is_implicit_lifetime

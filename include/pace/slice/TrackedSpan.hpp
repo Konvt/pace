@@ -21,8 +21,8 @@ namespace pace {
 #endif
     {
       static_assert( details::traits::is_sized_range<View>::value, "only available for bounded ranges" );
-      static_assert( details::traits::AllOf<std::is_copy_constructible<UIRef>,
-                                            details::traits::is_pointer_like<UIRef>>::value,
+      static_assert( details::traits::AllOf<details::traits::is_pointer_like<UIRef>,
+                                            std::is_copy_constructible<UIRef>>::value,
                      "must be a copyable pointer-like bar reference" );
       static_assert(
         details::traits::is_iterable_bar<details::traits::PointeeOf_t<UIRef>>::value,
@@ -34,18 +34,20 @@ namespace pace {
       using Itr = details::traits::IteratorOf_t<View>;
       using Snt = details::traits::SentinelOf_t<View>;
 
-      class Sentry {
+#if __cpp_range_based_for >= 201603L
+      class Sentinel {
         UIRef ui_;
         Snt snt_;
 
       public:
-        constexpr Sentry( Snt endpoint, UIRef ui_ref )
+        constexpr Sentinel( Snt endpoint, UIRef ui_ref )
           noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<Snt>,
                                            std::is_nothrow_move_constructible<UIRef>>::value )
           : ui_ { std::move( ui_ref ) }, snt_ { std::move( endpoint ) }
         {}
         constexpr Snt base() const noexcept { return snt_; }
       };
+#endif
 
     public:
       class iterator {
@@ -63,26 +65,12 @@ namespace pace {
         using reference       = details::traits::IterReference_t<Itr>;
         using pointer         = Itr;
 
-        constexpr iterator() = default;
-        PACE__CXX17_CNSTXPR iterator( Itr itr, UIRef ui_ref )
+        constexpr iterator( Itr itr, UIRef ui_ref )
           noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<Itr>,
                                            std::is_nothrow_move_constructible<UIRef>>::value )
           : ui_ { std::move( ui_ref ) }, itr_ { std::move( itr ) }
         {}
-        PACE__CXX17_CNSTXPR iterator( iterator&& rhs )
-          noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<View>,
-                                           std::is_nothrow_move_constructible<UIRef>>::value )
-          : iterator( std::move( rhs.itr_ ), std::move( rhs.ui_ ) )
-        {}
-        PACE__CXX17_CNSTXPR iterator& operator=( iterator&& rhs ) & noexcept(
-          details::traits::AllOf<std::is_nothrow_move_assignable<View>,
-                                 std::is_nothrow_move_assignable<UIRef>>::value )
-        {
-          PACE__TRUST( this != &rhs );
-          itr_ = std::move( rhs.itr_ );
-          ui_  = std::move( rhs.ui_ );
-          return *this;
-        }
+
         PACE__CXX20_CNSTXPR ~iterator() noexcept
         {
           if ( used_ )
@@ -144,47 +132,33 @@ namespace pace {
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( const iterator& a,
                                                                             const iterator& b )
         { return !( a == b ); }
+#if __cpp_range_based_for >= 201603L
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( const iterator& a,
-                                                                            const Sentry& b )
+                                                                            const Sentinel& b )
         { return a.itr_ == b.base(); }
         PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( const iterator& a,
-                                                                            const Sentry& b )
+                                                                            const Sentinel& b )
         { return !( a == b ); }
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( const Sentry& a,
+        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( const Sentinel& a,
                                                                             const iterator& b )
         { return b == a; }
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( const Sentry& a,
+        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( const Sentinel& a,
                                                                             const iterator& b )
         { return !( b == a ); }
-
-        explicit constexpr operator bool() const noexcept { return static_cast<bool>( ui_ ); }
+#endif
       };
-#if PACE__CXX17
-      using sentinel = std::conditional_t<std::is_same_v<Itr, Snt>, iterator, Sentry>;
+
+#if __cpp_range_based_for >= 201603L
+      using sentinel = std::conditional_t<std::is_same_v<Itr, Snt>, iterator, Sentinel>;
 #else
       using sentinel = iterator;
 #endif
 
-      constexpr TrackedSpan() = default;
-      PACE__CXX17_CNSTXPR TrackedSpan( View view, UIRef ui )
+      constexpr TrackedSpan( View view, UIRef ui )
         noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<View>,
                                          std::is_nothrow_move_constructible<UIRef>>::value )
         : ui_ { std::move( ui ) }, view_ { std::move( view ) }
       {}
-      PACE__CXX17_CNSTXPR TrackedSpan( TrackedSpan&& rhs )
-        noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<View>,
-                                         std::is_nothrow_move_constructible<UIRef>>::value )
-        : TrackedSpan( std::move( rhs.view_ ), std::move( rhs.ui_ ) )
-      {}
-      PACE__CXX17_CNSTXPR TrackedSpan& operator=( TrackedSpan&& rhs ) & noexcept(
-        details::traits::AllOf<std::is_nothrow_move_constructible<View>,
-                               std::is_nothrow_move_constructible<UIRef>>::value )
-      {
-        PACE__TRUST( this != &rhs );
-        view_ = std::move( rhs.view_ );
-        ui_   = std::move( rhs.ui_ );
-        return *this;
-      }
       // Intentional non-virtual destructors.
       PACE__CXX20_CNSTXPR ~TrackedSpan() = default;
 
@@ -197,8 +171,6 @@ namespace pace {
                                std::is_nothrow_move_assignable<UIRef>>::value )
       { return details::utils::exchange( ui_, ui ); }
 
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX17_CNSTXPR bool empty() const noexcept
-      { return view_.empty() && static_cast<bool>( ui_ ); }
       // This function will CHANGE the state of the pace object it holds.
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX17_CNSTXPR iterator begin() &
       {
@@ -207,17 +179,6 @@ namespace pace {
       }
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX17_CNSTXPR sentinel end() const
       { return { details::utils::end( view_ ), ui_ }; }
-
-      PACE__CXX14_CNSTXPR void swap( TrackedSpan& lhs ) noexcept
-      {
-        PACE__TRUST( this != &lhs );
-        using std::swap;
-        std::swap( ui_, lhs.ui_ );
-        swap( view_, lhs.view_ );
-      }
-      friend PACE__CXX14_CNSTXPR void swap( TrackedSpan& a, TrackedSpan& b ) noexcept { a.swap( b ); }
-
-      explicit constexpr operator bool() const noexcept { return !empty(); }
     };
   } // namespace slice
 } // namespace pace

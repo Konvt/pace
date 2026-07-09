@@ -22,17 +22,14 @@ namespace pace {
       static_assert( details::traits::is_sized_range<R>::value, "only available for bounded ranges" );
 #endif
 
-      R* rnge_;
+      R* rnge_ = nullptr;
 
     public:
       using iterator = details::traits::IteratorOf_t<R>;
       using sentinel = details::traits::SentinelOf_t<R>;
 
       PACE__CXX17_CNSTXPR SizedSpan( R& rnge ) noexcept : rnge_ { std::addressof( rnge ) } {}
-
-      PACE__CXX14_CNSTXPR SizedSpan( const SizedSpan& )              = default;
-      PACE__CXX14_CNSTXPR SizedSpan& operator=( const SizedSpan& ) & = default;
-      PACE__CXX20_CNSTXPR ~SizedSpan()                               = default;
+      PACE__CXX20_CNSTXPR ~SizedSpan() = default;
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR iterator begin() const
         noexcept( noexcept( details::utils::begin( *rnge_ ) ) )

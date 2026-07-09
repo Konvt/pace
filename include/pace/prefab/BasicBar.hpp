@@ -70,11 +70,11 @@ namespace pace {
         static constexpr std::false_type check( ... );
 
       public:
-        using result = AllOf<Not<std::is_reference<B>>,
-                             decltype( check( std::declval<typename std::remove_cv<B>::type>() ) )>;
+        using result_type = AllOf<Not<std::is_reference<B>>,
+                                  decltype( check( std::declval<typename std::remove_cv<B>::type>() ) )>;
       };
       template<typename B>
-      using is_bar = typename _impl_is_bar<B>::result;
+      using is_bar = typename _impl_is_bar<B>::result_type;
       template<typename B>
       using is_iterable_bar = AllOf<is_bar<B>, is_instance_of<B, behaviors::Incremental>>;
       template<typename B>

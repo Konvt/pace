@@ -4,7 +4,6 @@
 #include "../../slice/IteratorSpan.hpp"
 #include "../../slice/NumericSpan.hpp"
 #include "../../slice/SizedSpan.hpp"
-#include "../wrappers/MovableRef.hpp"
 
 namespace pace {
   namespace slice {
@@ -91,19 +90,18 @@ namespace pace {
         template<typename N>
         PACE__NODISCARD auto iterate( N startpoint, N endpoint, N step ) &
 #ifdef __cpp_concepts
-          -> slice::TrackedSpan<slice::NumericSpan<N>, wrappers::MovableRef<Derived>>
+          -> slice::TrackedSpan<slice::NumericSpan<N>, Derived*>
           requires std::is_arithmetic_v<N>
 #else
-          -> typename std::enable_if<
-            std::is_arithmetic<N>::value,
-            slice::TrackedSpan<slice::NumericSpan<N>, wrappers::MovableRef<Derived>>>::type
+          -> typename std::enable_if<std::is_arithmetic<N>::value,
+                                     slice::TrackedSpan<slice::NumericSpan<N>, Derived*>>::type
 #endif
         { // default parameter will cause ambiguous overloads
           // so we have to write them all
           throw_if_active();
           return {
             { startpoint, endpoint, step },
-            wrappers::mref( static_cast<Derived&>( *this ) )
+            static_cast<Derived*>( this )
           };
         }
         template<typename N, typename Proc>
@@ -121,18 +119,17 @@ namespace pace {
         template<typename N>
         PACE__NODISCARD auto iterate( N endpoint, N step ) &
 #ifdef __cpp_concepts
-          -> slice::TrackedSpan<slice::NumericSpan<N>, wrappers::MovableRef<Derived>>
+          -> slice::TrackedSpan<slice::NumericSpan<N>, Derived*>
           requires std::is_floating_point_v<N>
 #else
-          -> typename std::enable_if<
-            std::is_floating_point<N>::value,
-            slice::TrackedSpan<slice::NumericSpan<N>, wrappers::MovableRef<Derived>>>::type
+          -> typename std::enable_if<std::is_floating_point<N>::value,
+                                     slice::TrackedSpan<slice::NumericSpan<N>, Derived*>>::type
 #endif
         {
           throw_if_active();
           return {
             { {}, endpoint, step },
-            wrappers::mref( static_cast<Derived&>( *this ) )
+            static_cast<Derived*>( this )
           };
         }
         template<typename N, typename Proc>
@@ -151,18 +148,17 @@ namespace pace {
         template<typename N>
         PACE__NODISCARD auto iterate( N startpoint, N endpoint ) &
 #ifdef __cpp_concepts
-          -> slice::TrackedSpan<slice::NumericSpan<N>, wrappers::MovableRef<Derived>>
+          -> slice::TrackedSpan<slice::NumericSpan<N>, Derived*>
           requires std::is_integral_v<N>
 #else
-          -> typename std::enable_if<
-            std::is_integral<N>::value,
-            slice::TrackedSpan<slice::NumericSpan<N>, wrappers::MovableRef<Derived>>>::type
+          -> typename std::enable_if<std::is_integral<N>::value,
+                                     slice::TrackedSpan<slice::NumericSpan<N>, Derived*>>::type
 #endif
         {
           throw_if_active();
           return {
             { startpoint, endpoint },
-            wrappers::mref( static_cast<Derived&>( *this ) )
+            static_cast<Derived*>( this )
           };
         }
         template<typename N, typename Proc>
@@ -180,16 +176,15 @@ namespace pace {
         template<typename N>
         PACE__NODISCARD auto iterate( N endpoint ) &
 #ifdef __cpp_concepts
-          -> slice::TrackedSpan<slice::NumericSpan<N>, wrappers::MovableRef<Derived>>
+          -> slice::TrackedSpan<slice::NumericSpan<N>, Derived*>
           requires std::is_integral_v<N>
 #else
-          -> typename std::enable_if<
-            std::is_integral<N>::value,
-            slice::TrackedSpan<slice::NumericSpan<N>, wrappers::MovableRef<Derived>>>::type
+          -> typename std::enable_if<std::is_integral<N>::value,
+                                     slice::TrackedSpan<slice::NumericSpan<N>, Derived*>>::type
 #endif
         {
           throw_if_active();
-          return { { endpoint }, wrappers::mref( static_cast<Derived&>( *this ) ) };
+          return { { endpoint }, static_cast<Derived*>( this ) };
         }
         template<typename N, typename Proc>
         auto iterate( N endpoint, Proc&& op )
@@ -209,18 +204,17 @@ namespace pace {
           traits::AllOf<std::is_nothrow_move_constructible<Itr>,
                         std::is_nothrow_move_constructible<Snt>>::value )
 #ifdef __cpp_concepts
-          -> slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>, wrappers::MovableRef<Derived>>
+          -> slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>, Derived*>
           requires traits::is_sized_cursor<Itr, Snt>::value
 #else
-          -> typename std::enable_if<
-            traits::is_sized_cursor<Itr, Snt>::value,
-            slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>, wrappers::MovableRef<Derived>>>::type
+          -> typename std::enable_if<traits::is_sized_cursor<Itr, Snt>::value,
+                                     slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>, Derived*>>::type
 #endif
         {
           throw_if_active();
           return {
             { std::move( startpoint ), std::move( endpoint ) },
-            wrappers::mref( static_cast<Derived&>( *this ) )
+            static_cast<Derived*>( this )
           };
         }
         template<typename Itr, typename Snt, typename Proc>
@@ -240,26 +234,25 @@ namespace pace {
         template<class R>
         PACE__NODISCARD auto iterate( R& container ) &
 #ifdef __cpp_concepts
-          -> slice::TrackedSpan<slice::SizedSpan<std::remove_reference_t<R>>, wrappers::MovableRef<Derived>>
+          -> slice::TrackedSpan<slice::SizedSpan<std::remove_reference_t<R>>, Derived*>
           requires( traits::is_sized_range<std::remove_reference_t<R>>::value
                     && !std::ranges::view<std::remove_reference_t<R>> )
 #else
           -> typename std::enable_if<
             traits::is_sized_range<typename std::remove_reference<R>::type>::value,
-            slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
-                               wrappers::MovableRef<Derived>>>::type
+            slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>, Derived*>>::type
 #endif
         {
           throw_if_active();
-          return { { container }, wrappers::mref( static_cast<Derived&>( *this ) ) };
+          return { { container }, static_cast<Derived*>( this ) };
         }
 #ifdef __cpp_concepts
         template<class R>
           requires( traits::is_sized_range<R>::value && std::ranges::view<R> )
-        PACE__NODISCARD slice::TrackedSpan<R, wrappers::MovableRef<Derived>> iterate( R view ) &
+        PACE__NODISCARD slice::TrackedSpan<R, Derived*> iterate( R view ) &
         {
           throw_if_active();
-          return { std::move( view ), wrappers::mref( static_cast<Derived&>( *this ) ) };
+          return { std::move( view ), static_cast<Derived*>( this ) };
         }
 #endif
         template<class R, typename Proc>

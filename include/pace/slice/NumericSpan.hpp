@@ -28,7 +28,7 @@ namespace pace {
     {
       static_assert( std::is_arithmetic<N>::value, "only available for arithmetic types" );
 
-      N start_, end_, step_;
+      N start_ = 0, end_ = 0, step_ = 1;
 
     public:
       class iterator {
@@ -140,14 +140,13 @@ namespace pace {
       };
       using sentinel = iterator;
 
-      constexpr NumericSpan() noexcept : start_ {}, end_ {}, step_ { 1 } {}
       /**
        * @throw exception::InvalidArgument
        *
        * If the `startpoint` is greater than `endpoint` while `step` is positive,
        * or the `startpoint` is less than `endpoint` while `step` is negative.
        */
-      PACE__CXX20_CNSTXPR NumericSpan( N startpoint, N endpoint, N step ) : NumericSpan()
+      PACE__CXX20_CNSTXPR NumericSpan( N startpoint, N endpoint, N step )
       {
         if ( step > 0 && startpoint > endpoint )
           PACE__UNLIKELY
@@ -223,7 +222,7 @@ namespace pace {
       }
       PACE__NODISCARD PACE__FORCEINLINE constexpr bool empty() const noexcept { return size() == 0; }
 
-      PACE__CXX14_CNSTXPR void swap( NumericSpan<N>& lhs ) noexcept
+      PACE__CXX14_CNSTXPR void swap( NumericSpan& lhs ) noexcept
       {
         PACE__TRUST( this != &lhs );
         using std::swap;
@@ -231,7 +230,7 @@ namespace pace {
         swap( end_, lhs.end_ );
         swap( step_, lhs.step_ );
       }
-      friend PACE__CXX14_CNSTXPR void swap( NumericSpan<N>& a, NumericSpan<N>& b ) noexcept { a.swap( b ); }
+      friend PACE__CXX14_CNSTXPR void swap( NumericSpan& a, NumericSpan& b ) noexcept { a.swap( b ); }
 
       PACE__NODISCARD PACE__FORCEINLINE constexpr typename iterator::reference operator[](
         typename iterator::difference_type inc ) const noexcept

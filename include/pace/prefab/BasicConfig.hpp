@@ -50,11 +50,11 @@ namespace pace {
         static constexpr std::false_type check( ... );
 
       public:
-        using result = AllOf<Not<std::is_reference<S>>,
-                             decltype( check( std::declval<typename std::remove_cv<S>::type>() ) )>;
+        using result_type = AllOf<Not<std::is_reference<S>>,
+                                  decltype( check( std::declval<typename std::remove_cv<S>::type>() ) )>;
       };
       template<typename S>
-      using is_selection = typename _impl_is_selection<S>::result;
+      using is_selection = typename _impl_is_selection<S>::result_type;
     } // namespace traits
   } // namespace details
 
@@ -442,11 +442,11 @@ namespace pace {
         static constexpr std::false_type check( ... );
 
       public:
-        using result = AllOf<Not<std::is_reference<C>>,
-                             decltype( check( std::declval<typename std::remove_cv<C>::type>() ) )>;
+        using result_type = AllOf<Not<std::is_reference<C>>,
+                                  decltype( check( std::declval<typename std::remove_cv<C>::type>() ) )>;
       };
       template<typename C>
-      using is_config = typename _impl_is_config<C>::result;
+      using is_config = typename _impl_is_config<C>::result_type;
     } // namespace traits
   } // namespace details
 } // namespace pace

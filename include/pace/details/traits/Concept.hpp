@@ -100,11 +100,12 @@ namespace pace {
         static constexpr std::false_type check( ... );
 
       public:
-        using result = AllOf<Not<std::is_reference<Instance>>,
-                             decltype( check( std::declval<typename std::remove_cv<Instance>::type>() ) )>;
+        using result_type =
+          AllOf<Not<std::is_reference<Instance>>,
+                decltype( check( std::declval<typename std::remove_cv<Instance>::type>() ) )>;
       };
       template<typename Instance, template<typename...> class Tmp>
-      using is_instance_of = typename _impl_is_instance_of<Instance, Tmp>::result;
+      using is_instance_of = typename _impl_is_instance_of<Instance, Tmp>::result_type;
 
 #ifdef __cpp_lib_concepts
       template<typename Itr, typename Snt = Itr>
