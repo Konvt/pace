@@ -292,7 +292,7 @@ namespace pace {
     else if ( count < sizeof...( Objs ) )
       PACE__UNLIKELY
       {
-        details::charcodes::CoWString message =
+        details::charcodes::SharedString message =
           details::charcodes::make_literal( "pace: provided object count (" );
         details::utils::format_to( std::back_inserter( message ), sizeof...( Objs ) );
         message.append( ") exceeds the specified count (" );
@@ -338,7 +338,7 @@ namespace pace {
     else if ( count < sizeof...( Configs ) )
       PACE__UNLIKELY
       {
-        details::charcodes::CoWString message =
+        details::charcodes::SharedString message =
           details::charcodes::make_literal( "pace: provided configs count (" );
         details::utils::format_to( std::back_inserter( message ), sizeof...( Configs ) );
         message.append( ") exceeds the specified count (" );
@@ -384,7 +384,7 @@ namespace pace {
     else if ( count < sizeof...( Configs ) )
       PACE__UNLIKELY
       {
-        details::charcodes::CoWString message =
+        details::charcodes::SharedString message =
           details::charcodes::make_literal( "pace: provided bar count (" );
         details::utils::format_to( std::back_inserter( message ), sizeof...( Configs ) );
         message.append( ") exceeds the specified count (" );

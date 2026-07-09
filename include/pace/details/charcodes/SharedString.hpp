@@ -1,5 +1,5 @@
-#ifndef PACE_COW_STRING
-#define PACE_COW_STRING
+#ifndef PACE_SHARED_STRING
+#define PACE_SHARED_STRING
 
 #include "../traits/Backport.hpp"
 #include "../traits/Util.hpp"
@@ -272,11 +272,11 @@ namespace pace {
       };
 
       template<typename Char, typename Traits = std::char_traits<Char>, typename Alloc = std::allocator<Char>>
-      class BasicCoWString
+      class BasicSharedString
         : public CoWAllocator<Alloc>
-        , private CoWCopyAlloc<Alloc, BasicCoWString<Char, Traits, Alloc>>
-        , private CoWMoveAlloc<Alloc, BasicCoWString<Char, Traits, Alloc>>
-        , private CoWSwapAlloc<Alloc, BasicCoWString<Char, Traits, Alloc>> {
+        , private CoWCopyAlloc<Alloc, BasicSharedString<Char, Traits, Alloc>>
+        , private CoWMoveAlloc<Alloc, BasicSharedString<Char, Traits, Alloc>>
+        , private CoWSwapAlloc<Alloc, BasicSharedString<Char, Traits, Alloc>> {
         static_assert( traits::is_implicit_lifetime<Char>::value, "Char must be an implicit-lifetime type" );
 
         using CoWRef = std::atomic<std::uint64_t>;
@@ -309,16 +309,16 @@ namespace pace {
 
         static constexpr size_type npos = static_cast<size_type>( -1 );
 
-        class iterator : public CoWIterator<BasicCoWString, iterator> {
+        class iterator : public CoWIterator<BasicSharedString, iterator> {
         public:
-          using CoWIterator<BasicCoWString, iterator>::CoWIterator;
+          using CoWIterator<BasicSharedString, iterator>::CoWIterator;
         };
-        class const_iterator : public CoWIterator<const BasicCoWString, const_iterator> {
+        class const_iterator : public CoWIterator<const BasicSharedString, const_iterator> {
         public:
-          using CoWIterator<const BasicCoWString, const_iterator>::CoWIterator;
+          using CoWIterator<const BasicSharedString, const_iterator>::CoWIterator;
 
           constexpr const_iterator( iterator itr ) noexcept
-            : CoWIterator<const BasicCoWString, const_iterator>( *itr.owner(), itr.offset() )
+            : CoWIterator<const BasicSharedString, const_iterator>( *itr.owner(), itr.offset() )
           {}
         };
         using reverse_iterator       = std::reverse_iterator<iterator>;
@@ -784,7 +784,7 @@ namespace pace {
             destroy_cow( as_.remote_ );
         }
         template<bool PropagativeAlloc>
-        PACE__FORCEINLINE PACE__CXX20_CNSTXPR void propagate_self( const BasicCoWString& other )
+        PACE__FORCEINLINE PACE__CXX20_CNSTXPR void propagate_self( const BasicSharedString& other )
           noexcept( std::allocator_traits<Alloc>::is_always_equal::value || PropagativeAlloc )
         {
           switch ( other.tag_ ) {
@@ -815,21 +815,21 @@ namespace pace {
 
       public:
         template<typename A>
-        PACE__CXX20_CNSTXPR BasicCoWString( const std::basic_string<Char, Traits, A>& str )
-          : BasicCoWString( str.data(), str.size() )
+        PACE__CXX20_CNSTXPR BasicSharedString( const std::basic_string<Char, Traits, A>& str )
+          : BasicSharedString( str.data(), str.size() )
         {}
         template<typename A>
-        PACE__CXX20_CNSTXPR BasicCoWString& operator=( const std::basic_string<Char, Traits, A>& str ) &
+        PACE__CXX20_CNSTXPR BasicSharedString& operator=( const std::basic_string<Char, Traits, A>& str ) &
         { return assign( str.data(), str.size() ); }
         template<typename A>
-        PACE__CXX20_CNSTXPR BasicCoWString& assign( const std::basic_string<Char, Traits, A>& str ) &
+        PACE__CXX20_CNSTXPR BasicSharedString& assign( const std::basic_string<Char, Traits, A>& str ) &
         { return assign( str.data(), str.size() ); }
-        constexpr BasicCoWString( Literal<Char> literal_str ) noexcept
+        constexpr BasicSharedString( Literal<Char> literal_str ) noexcept
           : as_ { literal_str.data() }, length_ { literal_str.size() }, tag_ { Kind::Literal }
         {}
-        PACE__CXX14_CNSTXPR BasicCoWString& operator=( Literal<Char> literal_str ) noexcept
+        PACE__CXX14_CNSTXPR BasicSharedString& operator=( Literal<Char> literal_str ) noexcept
         { return assign( std::move( literal_str ) ); }
-        PACE__CXX14_CNSTXPR BasicCoWString& assign( Literal<Char> literal_str ) noexcept
+        PACE__CXX14_CNSTXPR BasicSharedString& assign( Literal<Char> literal_str ) noexcept
         {
           switch ( tag_ ) {
           case Kind::Literal: as_.literal_ = literal_str.data(); break;
@@ -843,10 +843,10 @@ namespace pace {
         }
 
         template<typename A>
-        PACE__CXX20_CNSTXPR BasicCoWString& insert( size_type index,
-                                                    const std::basic_string<Char, Traits, A>& str,
-                                                    size_type str_index,
-                                                    size_type count = npos )
+        PACE__CXX20_CNSTXPR BasicSharedString& insert( size_type index,
+                                                       const std::basic_string<Char, Traits, A>& str,
+                                                       size_type str_index,
+                                                       size_type count = npos )
         {
           count = (std::min)( count, str.size() - str_index );
           if ( index == length_ )
@@ -857,27 +857,27 @@ namespace pace {
           return insert( index, str.data() + str_index, count );
         }
         template<typename A>
-        PACE__CXX20_CNSTXPR BasicCoWString& insert( size_type index,
-                                                    const std::basic_string<Char, Traits, A>& str )
+        PACE__CXX20_CNSTXPR BasicSharedString& insert( size_type index,
+                                                       const std::basic_string<Char, Traits, A>& str )
         { return insert( index, str, 0 ); }
         template<typename A>
-        PACE__CXX20_CNSTXPR BasicCoWString& append( const std::basic_string<Char, Traits, A>& str,
-                                                    size_type pos,
-                                                    size_type count = npos )
+        PACE__CXX20_CNSTXPR BasicSharedString& append( const std::basic_string<Char, Traits, A>& str,
+                                                       size_type pos,
+                                                       size_type count = npos )
         {
           if ( pos > str.size() )
             PACE__UNLIKELY throw std::out_of_range( "pace: append a std::string with an invalid subrange" );
           return append( str.data() + pos, (std::min)( count, str.size() - pos ) );
         }
         template<typename A>
-        PACE__CXX20_CNSTXPR BasicCoWString& append( const std::basic_string<Char, Traits, A>& str )
+        PACE__CXX20_CNSTXPR BasicSharedString& append( const std::basic_string<Char, Traits, A>& str )
         { return append( str, 0 ); }
         template<typename A>
-        PACE__CXX20_CNSTXPR BasicCoWString& replace( size_type pos,
-                                                     size_type count,
-                                                     const std::basic_string<Char, Traits, A>& str,
-                                                     size_type str_pos,
-                                                     size_type str_count = npos )
+        PACE__CXX20_CNSTXPR BasicSharedString& replace( size_type pos,
+                                                        size_type count,
+                                                        const std::basic_string<Char, Traits, A>& str,
+                                                        size_type str_pos,
+                                                        size_type str_count = npos )
         {
           if ( pos == length_ )
             return append( str, str_pos, str_count );
@@ -889,9 +889,9 @@ namespace pace {
           return replace( pos, count, str.data() + str_pos, str_count );
         }
         template<typename A>
-        PACE__CXX20_CNSTXPR BasicCoWString& replace( size_type pos,
-                                                     size_type count,
-                                                     const std::basic_string<Char, Traits, A>& str )
+        PACE__CXX20_CNSTXPR BasicSharedString& replace( size_type pos,
+                                                        size_type count,
+                                                        const std::basic_string<Char, Traits, A>& str )
         { return replace( pos, count, str, 0, str.size() ); }
 
         PACE__NODISCARD PACE__CXX14_CNSTXPR bool unique() const noexcept
@@ -905,7 +905,7 @@ namespace pace {
           default:            return true;
           }
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& isolate() &
+        PACE__CXX20_CNSTXPR BasicSharedString& isolate() &
         {
           reserve( 0 );
           return *this;
@@ -928,34 +928,34 @@ namespace pace {
         PACE__NODISCARD constexpr const_reverse_iterator unsafe_rend() const&& noexcept { return rend(); }
 
         template<typename A>
-        PACE__CXX20_CNSTXPR BasicCoWString& operator+=( const std::basic_string<Char, Traits, A>& str )
+        PACE__CXX20_CNSTXPR BasicSharedString& operator+=( const std::basic_string<Char, Traits, A>& str )
         { return append( str.data(), str.size() ); }
         template<typename A>
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString
-          operator+( const BasicCoWString& a, const std::basic_string<Char, Traits, A>& b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString
+          operator+( const BasicSharedString& a, const std::basic_string<Char, Traits, A>& b )
         {
           auto ret = a;
           ret += b;
           return ret;
         }
         template<typename A>
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString
-          operator+( const std::basic_string<Char, Traits, A>& a, const BasicCoWString& b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString
+          operator+( const std::basic_string<Char, Traits, A>& a, const BasicSharedString& b )
         {
-          BasicCoWString ret = a;
+          BasicSharedString ret = a;
           ret.append( b );
           return ret;
         }
         template<typename A>
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString
-          operator+( BasicCoWString&& a, const std::basic_string<Char, Traits, A>& b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString
+          operator+( BasicSharedString&& a, const std::basic_string<Char, Traits, A>& b )
         {
           a += b;
           return std::move( a );
         }
         template<typename A>
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString
-          operator+( const std::basic_string<Char, Traits, A>& a, BasicCoWString&& b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString
+          operator+( const std::basic_string<Char, Traits, A>& a, BasicSharedString&& b )
         {
           b.insert( 0, a.data(), a.size() );
           return std::move( b );
@@ -963,28 +963,28 @@ namespace pace {
 
         template<typename A>
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator==(
-          const BasicCoWString& a,
+          const BasicSharedString& a,
           const std::basic_string<Char, Traits, A>& b ) noexcept
         { return a.compare( 0, a.length_, b.data(), b.size() ) == 0; }
         template<typename A>
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator==(
           const std::basic_string<Char, Traits, A>& a,
-          const BasicCoWString& b ) noexcept
+          const BasicSharedString& b ) noexcept
         { return b == a; }
         template<typename A>
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator!=(
-          const BasicCoWString& a,
+          const BasicSharedString& a,
           const std::basic_string<Char, Traits, A>& b ) noexcept
         { return !( a == b ); }
         template<typename A>
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator!=(
           const std::basic_string<Char, Traits, A>& a,
-          const BasicCoWString& b ) noexcept
+          const BasicSharedString& b ) noexcept
         { return b != a; }
 #ifdef __cpp_lib_three_way_comparison
         template<typename A>
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR auto operator<=>(
-          const BasicCoWString& a,
+          const BasicSharedString& a,
           const std::basic_string<Char, Traits, A>& b ) noexcept
         {
           return static_cast<traits::ComparisonCategory_t<Traits>>(
@@ -993,56 +993,57 @@ namespace pace {
 #else
         template<typename A>
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator<(
-          const BasicCoWString& a,
+          const BasicSharedString& a,
           const std::basic_string<Char, Traits, A>& b )
         { return a.compare( 0, a.length_, b.data(), b.size() ) < 0; }
         template<typename A>
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator<=(
-          const BasicCoWString& a,
+          const BasicSharedString& a,
           const std::basic_string<Char, Traits, A>& b )
         { return a.compare( 0, a.length_, b.data(), b.size() ) <= 0; }
         template<typename A>
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator>(
-          const BasicCoWString& a,
+          const BasicSharedString& a,
           const std::basic_string<Char, Traits, A>& b )
         { return a.compare( 0, a.length_, b.data(), b.size() ) > 0; }
         template<typename A>
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator>=(
-          const BasicCoWString& a,
+          const BasicSharedString& a,
           const std::basic_string<Char, Traits, A>& b )
         { return a.compare( 0, a.length_, b.data(), b.size() ) >= 0; }
         template<typename A>
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator<(
           const std::basic_string<Char, Traits, A>& a,
-          const BasicCoWString& b )
+          const BasicSharedString& b )
         { return !( b >= a ); }
         template<typename A>
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator<=(
           const std::basic_string<Char, Traits, A>& a,
-          const BasicCoWString& b )
+          const BasicSharedString& b )
         { return !( b > a ); }
         template<typename A>
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator>(
           const std::basic_string<Char, Traits, A>& a,
-          const BasicCoWString& b )
+          const BasicSharedString& b )
         { return !( b <= a ); }
         template<typename A>
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator>=(
           const std::basic_string<Char, Traits, A>& a,
-          const BasicCoWString& b )
+          const BasicSharedString& b )
         { return !( b < a ); }
 #endif
 
         PACE__NODISCARD explicit PACE__CXX20_CNSTXPR operator std::basic_string<Char, Traits, Alloc>() const
         { return { data(), length_ }; }
 
-        PACE__CXX14_CNSTXPR BasicCoWString() noexcept( noexcept( Alloc() ) ) : BasicCoWString( Alloc() ) {}
-        explicit PACE__CXX14_CNSTXPR BasicCoWString( const Alloc& alloc )
+        PACE__CXX14_CNSTXPR BasicSharedString() noexcept( noexcept( Alloc() ) ) : BasicSharedString( Alloc() )
+        {}
+        explicit PACE__CXX14_CNSTXPR BasicSharedString( const Alloc& alloc )
           noexcept( std::is_nothrow_copy_constructible<Alloc>::value )
           : CoWAllocator<Alloc>( alloc ), as_ {}, length_ { 0 }, tag_ { Kind::Inline }
         { Traits::assign( utils::launder_as<Char>( &as_ )[0], Char() ); }
-        PACE__CXX20_CNSTXPR BasicCoWString( size_type count, Char ch, const Alloc& alloc = Alloc() )
-          : BasicCoWString( alloc )
+        PACE__CXX20_CNSTXPR BasicSharedString( size_type count, Char ch, const Alloc& alloc = Alloc() )
+          : BasicSharedString( alloc )
         { assign( count, ch ); }
         template<typename InputIt
 #ifdef __cpp_lib_concepts
@@ -1052,8 +1053,8 @@ namespace pace {
                  ,
                  typename std::enable_if<is_legacy_input_iterator<InputIt>::value, bool>::type = 0>
 #endif
-        PACE__CXX20_CNSTXPR BasicCoWString( InputIt first, InputIt last, const Alloc& alloc = Alloc() )
-          : BasicCoWString( alloc )
+        PACE__CXX20_CNSTXPR BasicSharedString( InputIt first, InputIt last, const Alloc& alloc = Alloc() )
+          : BasicSharedString( alloc )
         {
           bool transfered = false;
           size_type cap = small_capacity() + 1, length = 0;
@@ -1117,8 +1118,8 @@ namespace pace {
                                                      bool>>::value,
                    bool>::type = 0>
 #endif
-        PACE__CXX20_CNSTXPR BasicCoWString( ForwardIt first, ForwardIt last, const Alloc& alloc = Alloc() )
-          : BasicCoWString( alloc )
+        PACE__CXX20_CNSTXPR BasicSharedString( ForwardIt first, ForwardIt last, const Alloc& alloc = Alloc() )
+          : BasicSharedString( alloc )
         {
           const auto length = static_cast<size_type>( utils::distance( first, last ) );
           if ( length > small_capacity() ) {
@@ -1140,14 +1141,14 @@ namespace pace {
 #ifdef __cpp_lib_containers_ranges
         template<std::ranges::input_range R>
           requires( std::convertible_to<std::ranges::range_reference_t<R>, value_type> )
-        PACE__CXX20_CNSTXPR BasicCoWString( std::from_range_t, R&& rg, const Alloc& alloc )
-          : BasicCoWString( std::ranges::begin( rg ), std::ranges::end( rg ), alloc )
+        PACE__CXX20_CNSTXPR BasicSharedString( std::from_range_t, R&& rg, const Alloc& alloc )
+          : BasicSharedString( std::ranges::begin( rg ), std::ranges::end( rg ), alloc )
         {}
         template<std::ranges::forward_range R>
           requires( std::ranges::sized_range<R>
                     && std::convertible_to<std::ranges::range_reference_t<R>, value_type> )
-        PACE__CXX20_CNSTXPR BasicCoWString( std::from_range_t, R&& rg, const Alloc& alloc )
-          : BasicCoWString( alloc )
+        PACE__CXX20_CNSTXPR BasicSharedString( std::from_range_t, R&& rg, const Alloc& alloc )
+          : BasicSharedString( alloc )
         {
           const auto length = static_cast<size_type>( utils::size( rg ) );
           if ( length > small_capacity() ) {
@@ -1167,42 +1168,42 @@ namespace pace {
           length_ = length;
         }
 #endif
-        PACE__CXX20_CNSTXPR BasicCoWString( const_pointer cstr,
-                                            size_type count,
-                                            const Alloc& alloc = Alloc() )
-          : BasicCoWString( alloc )
+        PACE__CXX20_CNSTXPR BasicSharedString( const_pointer cstr,
+                                               size_type count,
+                                               const Alloc& alloc = Alloc() )
+          : BasicSharedString( alloc )
         { assign( cstr, count ); }
-        constexpr BasicCoWString( const_pointer cstr, const Alloc& alloc = Alloc() )
-          : BasicCoWString( cstr, Traits::length( cstr ), alloc )
+        constexpr BasicSharedString( const_pointer cstr, const Alloc& alloc = Alloc() )
+          : BasicSharedString( cstr, Traits::length( cstr ), alloc )
         {}
-        BasicCoWString( std::nullptr_t ) = delete;
+        BasicSharedString( std::nullptr_t ) = delete;
 #ifdef __cpp_lib_string_view
         template<typename StringViewLike,
                  typename = typename std::enable_if<is_string_view_like<StringViewLike>::value>::type>
-        explicit PACE__CXX20_CNSTXPR BasicCoWString( const StringViewLike& str_v,
-                                                     const Alloc& alloc = Alloc() )
-          : BasicCoWString( alloc )
+        explicit PACE__CXX20_CNSTXPR BasicSharedString( const StringViewLike& str_v,
+                                                        const Alloc& alloc = Alloc() )
+          : BasicSharedString( alloc )
         {
           std::basic_string_view<Char, Traits> sv = str_v;
           assign( sv.data(), sv.size() );
         }
         template<typename StringViewLike,
                  typename = typename std::enable_if<is_string_view_like<StringViewLike>::value>::type>
-        PACE__CXX20_CNSTXPR BasicCoWString( const StringViewLike& str_v,
-                                            size_type pos,
-                                            size_type count,
-                                            const Alloc& alloc = Alloc() )
-          : BasicCoWString( alloc )
+        PACE__CXX20_CNSTXPR BasicSharedString( const StringViewLike& str_v,
+                                               size_type pos,
+                                               size_type count,
+                                               const Alloc& alloc = Alloc() )
+          : BasicSharedString( alloc )
         { assign( str_v, pos, count ); }
 #endif
-        PACE__CXX20_CNSTXPR BasicCoWString( const BasicCoWString& other )
+        PACE__CXX20_CNSTXPR BasicSharedString( const BasicSharedString& other )
           noexcept( std::is_nothrow_copy_constructible<Alloc>::value
                     && noexcept( std::allocator_traits<Alloc>::select_on_container_copy_construction(
                       other.allocator() ) ) )
-          : BasicCoWString(
+          : BasicSharedString(
               std::allocator_traits<Alloc>::select_on_container_copy_construction( other.allocator() ) )
         { assign( other ); }
-        PACE__CXX20_CNSTXPR BasicCoWString( BasicCoWString&& rhs ) noexcept
+        PACE__CXX20_CNSTXPR BasicSharedString( BasicSharedString&& rhs ) noexcept
           : CoWAllocator<Alloc>( std::move( rhs.allocator() ) ), as_ {}, length_ { 0 }, tag_ { Kind::Inline }
         {
           PACE__TRUST( this != &rhs );
@@ -1220,10 +1221,10 @@ namespace pace {
           tag_    = utils::exchange( rhs.tag_, Kind::Inline );
           Traits::assign( utils::launder_as<Char>( &rhs.as_ )[0], Char() );
         }
-        PACE__CXX20_CNSTXPR BasicCoWString( const BasicCoWString& other, const Alloc& alloc )
+        PACE__CXX20_CNSTXPR BasicSharedString( const BasicSharedString& other, const Alloc& alloc )
           noexcept( traits::AllOf<std::is_nothrow_copy_constructible<Alloc>,
                                   typename std::allocator_traits<Alloc>::is_always_equal>::value )
-          : BasicCoWString( alloc )
+          : BasicSharedString( alloc )
         {
           switch ( other.tag_ ) {
           case Kind::Literal: utils::construct_at( &as_.literal_, other.as_.literal_ ); break;
@@ -1246,10 +1247,10 @@ namespace pace {
           tag_    = other.tag_;
           length_ = other.length_;
         }
-        PACE__CXX20_CNSTXPR BasicCoWString( BasicCoWString&& rhs, const Alloc& alloc )
+        PACE__CXX20_CNSTXPR BasicSharedString( BasicSharedString&& rhs, const Alloc& alloc )
           noexcept( traits::AllOf<std::is_nothrow_copy_constructible<Alloc>,
                                   typename std::allocator_traits<Alloc>::is_always_equal>::value )
-          : BasicCoWString( alloc )
+          : BasicSharedString( alloc )
         {
           switch ( rhs.tag_ ) {
           case Kind::Literal: utils::construct_at( &as_.literal_, rhs.as_.literal_ ); break;
@@ -1277,17 +1278,19 @@ namespace pace {
           rhs.length_ = 0;
           rhs.tag_    = Kind::Inline;
         }
-        constexpr BasicCoWString( const BasicCoWString& other, size_type pos, const Alloc& alloc = Alloc() )
-          : BasicCoWString( other, pos, npos, alloc )
+        constexpr BasicSharedString( const BasicSharedString& other,
+                                     size_type pos,
+                                     const Alloc& alloc = Alloc() )
+          : BasicSharedString( other, pos, npos, alloc )
         {}
-        constexpr BasicCoWString( BasicCoWString&& rhs, size_type pos, const Alloc& alloc = Alloc() )
-          : BasicCoWString( std::move( rhs ), pos, npos, alloc )
+        constexpr BasicSharedString( BasicSharedString&& rhs, size_type pos, const Alloc& alloc = Alloc() )
+          : BasicSharedString( std::move( rhs ), pos, npos, alloc )
         {}
-        PACE__CXX20_CNSTXPR BasicCoWString( const BasicCoWString& other,
-                                            size_type pos,
-                                            size_type count,
-                                            const Alloc& alloc = Alloc() )
-          : BasicCoWString( alloc )
+        PACE__CXX20_CNSTXPR BasicSharedString( const BasicSharedString& other,
+                                               size_type pos,
+                                               size_type count,
+                                               const Alloc& alloc = Alloc() )
+          : BasicSharedString( alloc )
         {
           if ( pos > other.length_ )
             PACE__UNLIKELY throw std::out_of_range(
@@ -1323,11 +1326,11 @@ namespace pace {
           }
           length_ = count;
         }
-        PACE__CXX20_CNSTXPR BasicCoWString( BasicCoWString&& rhs,
-                                            size_type pos,
-                                            size_type count,
-                                            const Alloc& alloc = Alloc() )
-          : BasicCoWString( alloc )
+        PACE__CXX20_CNSTXPR BasicSharedString( BasicSharedString&& rhs,
+                                               size_type pos,
+                                               size_type count,
+                                               const Alloc& alloc = Alloc() )
+          : BasicSharedString( alloc )
         {
           if ( pos > rhs.length_ )
             PACE__UNLIKELY throw std::out_of_range(
@@ -1369,37 +1372,37 @@ namespace pace {
           rhs.length_ = 0;
           rhs.tag_    = Kind::Inline;
         }
-        // BasicCoWString( std::initializer_list<Char>, const Alloc&  = Alloc() ) = delete;
+        // BasicSharedString( std::initializer_list<Char>, const Alloc&  = Alloc() ) = delete;
 
-        PACE__CXX20_CNSTXPR ~BasicCoWString() noexcept { destroy_self(); }
+        PACE__CXX20_CNSTXPR ~BasicSharedString() noexcept { destroy_self(); }
 
-        PACE__CXX20_CNSTXPR BasicCoWString& operator=( const BasicCoWString& other ) & noexcept(
+        PACE__CXX20_CNSTXPR BasicSharedString& operator=( const BasicSharedString& other ) & noexcept(
           traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_copy_assignment,
                         typename std::allocator_traits<Alloc>::is_always_equal>::value )
         { return assign( other ); }
-        PACE__CXX20_CNSTXPR BasicCoWString& operator=( BasicCoWString&& rhs ) & noexcept(
+        PACE__CXX20_CNSTXPR BasicSharedString& operator=( BasicSharedString&& rhs ) & noexcept(
           traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_move_assignment,
                         typename std::allocator_traits<Alloc>::is_always_equal>::value )
         { return assign( std::move( rhs ) ); }
-        PACE__CXX20_CNSTXPR BasicCoWString& operator=( const_pointer cstr ) & { return assign( cstr ); }
-        PACE__CXX20_CNSTXPR BasicCoWString& operator=( Char ch ) & noexcept( small_capacity() >= 1 )
+        PACE__CXX20_CNSTXPR BasicSharedString& operator=( const_pointer cstr ) & { return assign( cstr ); }
+        PACE__CXX20_CNSTXPR BasicSharedString& operator=( Char ch ) & noexcept( small_capacity() >= 1 )
         { return assign( 1, ch ); }
-        // BasicCoWString& operator=( std::initializer_list<Char> ) = delete;
+        // BasicSharedString& operator=( std::initializer_list<Char> ) = delete;
 #ifdef __cpp_lib_string_view
         template<typename StringViewLike>
         PACE__CXX20_CNSTXPR
-          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicCoWString&>::type
+          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicSharedString&>::type
           operator=( const StringViewLike& str_v ) &
         { return assign( str_v ); }
 #endif
-        BasicCoWString& operator=( std::nullptr_t ) = delete;
+        BasicSharedString& operator=( std::nullptr_t ) = delete;
 
-        PACE__CXX20_CNSTXPR BasicCoWString& assign( const BasicCoWString& other ) & noexcept(
+        PACE__CXX20_CNSTXPR BasicSharedString& assign( const BasicSharedString& other ) & noexcept(
           traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_copy_assignment,
                         typename std::allocator_traits<Alloc>::is_always_equal>::value )
         { // self-assignment without extra parameters is invalid
           PACE__TRUST( this != &other );
-          this->CoWCopyAlloc<Alloc, BasicCoWString>::operator=( other );
+          this->CoWCopyAlloc<Alloc, BasicSharedString>::operator=( other );
           propagate_self<
             traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_copy_assignment,
                           typename std::allocator_traits<Alloc>::is_always_equal>::value>( other );
@@ -1407,19 +1410,19 @@ namespace pace {
           tag_    = other.tag_;
           return *this;
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& assign( BasicCoWString&& rhs ) & noexcept(
+        PACE__CXX20_CNSTXPR BasicSharedString& assign( BasicSharedString&& rhs ) & noexcept(
           traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_move_assignment,
                         typename std::allocator_traits<Alloc>::is_always_equal>::value )
         {
           PACE__TRUST( this != &rhs );
-          this->CoWMoveAlloc<Alloc, BasicCoWString>::operator=( std::move( rhs ) );
+          this->CoWMoveAlloc<Alloc, BasicSharedString>::operator=( std::move( rhs ) );
           propagate_self<std::allocator_traits<Alloc>::is_always_equal::value>( rhs );
           length_ = utils::exchange( rhs.length_, 0 );
           tag_    = utils::exchange( rhs.tag_, Kind::Inline );
           Traits::assign( utils::launder_as<Char>( &rhs.as_ )[0], Char() );
           return *this;
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& assign( size_type count, Char ch ) &
+        PACE__CXX20_CNSTXPR BasicSharedString& assign( size_type count, Char ch ) &
         {
           switch ( tag_ ) {
           case Kind::Literal: PACE__FALLTHROUGH;
@@ -1446,7 +1449,7 @@ namespace pace {
           length_ = count;
           return *this;
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& assign( const_pointer cstr, size_type count ) &
+        PACE__CXX20_CNSTXPR BasicSharedString& assign( const_pointer cstr, size_type count ) &
         {
           PACE__TRUST( cstr != nullptr );
           switch ( tag_ ) {
@@ -1474,7 +1477,7 @@ namespace pace {
           length_ = count;
           return *this;
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& assign( const_pointer cstr ) &
+        PACE__CXX20_CNSTXPR BasicSharedString& assign( const_pointer cstr ) &
         {
           PACE__TRUST( cstr != nullptr );
           return assign( cstr, Traits::length( cstr ) );
@@ -1482,7 +1485,7 @@ namespace pace {
 #ifdef __cpp_lib_string_view
         template<typename StringViewLike>
         PACE__CXX20_CNSTXPR
-          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicCoWString&>::type
+          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicSharedString&>::type
           assign( const StringViewLike& str_v, size_type pos, size_type count = npos ) &
         {
           std::basic_string_view<Char, Traits> sv = str_v;
@@ -1492,7 +1495,7 @@ namespace pace {
         }
         template<typename StringViewLike>
         PACE__CXX20_CNSTXPR
-          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicCoWString&>::type
+          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicSharedString&>::type
           assign( const StringViewLike& str_v ) &
         {
           std::basic_string_view<Char, Traits> sv = str_v;
@@ -1503,9 +1506,9 @@ namespace pace {
           return assign( sv.data(), sv.size() );
         }
 #endif
-        PACE__CXX20_CNSTXPR BasicCoWString& assign( const BasicCoWString& other,
-                                                    size_type pos,
-                                                    size_type count = npos ) &
+        PACE__CXX20_CNSTXPR BasicSharedString& assign( const BasicSharedString& other,
+                                                       size_type pos,
+                                                       size_type count = npos ) &
         {
           if ( pos > other.length_ )
             PACE__UNLIKELY throw std::out_of_range(
@@ -1561,21 +1564,21 @@ namespace pace {
         template<typename InputIt>
 #ifdef __cpp_lib_concepts
           requires( std::input_iterator<InputIt> && std::equality_comparable<InputIt> )
-        PACE__CXX20_CNSTXPR BasicCoWString&
+        PACE__CXX20_CNSTXPR BasicSharedString&
 #else
         PACE__CXX20_CNSTXPR
-          typename std::enable_if<is_legacy_input_iterator<InputIt>::value, BasicCoWString&>::type
+          typename std::enable_if<is_legacy_input_iterator<InputIt>::value, BasicSharedString&>::type
 #endif
           assign( InputIt first, InputIt last ) &
-        { return assign( BasicCoWString( std::move( first ), std::move( last ), this->allocator() ) ); }
-        // BasicCoWString& assign( std::initializer_list<Char> ) = delete;
+        { return assign( BasicSharedString( std::move( first ), std::move( last ), this->allocator() ) ); }
+        // BasicSharedString& assign( std::initializer_list<Char> ) = delete;
 
 #ifdef __cpp_lib_containers_ranges
         template<typename R>
           requires( std::ranges::input_range<R>
                     && std::convertible_to<std::ranges::range_reference_t<R>, Char> )
-        PACE__CXX20_CNSTXPR BasicCoWString& assign_range( R&& rg )
-        { return assign( BasicCoWString( std::from_range, std::forward<R>( rg ), this->allocator() ) ); }
+        PACE__CXX20_CNSTXPR BasicSharedString& assign_range( R&& rg )
+        { return assign( BasicSharedString( std::from_range, std::forward<R>( rg ), this->allocator() ) ); }
 #endif
 
         constexpr allocator_type get_allocator() const { return this->allocator(); }
@@ -1743,7 +1746,7 @@ namespace pace {
           length_ = 0;
         }
 
-        PACE__CXX20_CNSTXPR BasicCoWString& insert( size_type index, const_pointer cstr, size_type count )
+        PACE__CXX20_CNSTXPR BasicSharedString& insert( size_type index, const_pointer cstr, size_type count )
         {
           if ( index > length_ )
             PACE__UNLIKELY throw std::out_of_range( "pace: insert c-style string at an invalid position" );
@@ -1817,12 +1820,12 @@ namespace pace {
           length_ = total_length;
           return *this;
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& insert( size_type index, const_pointer cstr )
+        PACE__CXX20_CNSTXPR BasicSharedString& insert( size_type index, const_pointer cstr )
         { return insert( index, cstr, Traits::length( cstr ) ); }
-        PACE__CXX20_CNSTXPR BasicCoWString& insert( size_type index,
-                                                    const BasicCoWString& other,
-                                                    size_type other_index,
-                                                    size_type count = npos )
+        PACE__CXX20_CNSTXPR BasicSharedString& insert( size_type index,
+                                                       const BasicSharedString& other,
+                                                       size_type other_index,
+                                                       size_type count = npos )
         {
           count = (std::min)( count, other.length_ - other_index );
           if ( index == length_ )
@@ -1833,9 +1836,9 @@ namespace pace {
 
           return insert( index, other.data() + other_index, count );
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& insert( size_type index, const BasicCoWString& other )
+        PACE__CXX20_CNSTXPR BasicSharedString& insert( size_type index, const BasicSharedString& other )
         { return insert( index, other, 0 ); }
-        PACE__CXX20_CNSTXPR BasicCoWString& insert( size_type index, size_type count, Char ch )
+        PACE__CXX20_CNSTXPR BasicSharedString& insert( size_type index, size_type count, Char ch )
         {
           if ( index > length_ )
             PACE__UNLIKELY throw std::out_of_range( "pace: insert characters at an invalid position" );
@@ -1895,21 +1898,21 @@ namespace pace {
         template<typename InputIt>
 #ifdef __cpp_lib_concepts
           requires( std::input_iterator<InputIt> && std::equality_comparable<InputIt> )
-        PACE__CXX20_CNSTXPR BasicCoWString&
+        PACE__CXX20_CNSTXPR BasicSharedString&
 #else
         PACE__CXX20_CNSTXPR
-          typename std::enable_if<is_legacy_input_iterator<InputIt>::value, BasicCoWString&>::type
+          typename std::enable_if<is_legacy_input_iterator<InputIt>::value, BasicSharedString&>::type
 #endif
           insert( const_iterator pos, InputIt first, InputIt last )
         {
           insert( pos - cbegin(),
-                  BasicCoWString( std::move( first ), std::move( last ), this->allocator() ) );
+                  BasicSharedString( std::move( first ), std::move( last ), this->allocator() ) );
         }
         // iterator insert(const_iterator, std::initializer_list<Char> ) = delete;
 #ifdef __cpp_lib_string_view
         template<typename StringViewLike>
         PACE__CXX20_CNSTXPR
-          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicCoWString&>::type
+          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicSharedString&>::type
           insert( size_type index, const StringViewLike str_v, size_type sv_index, size_type count = npos )
         {
           std::basic_string_view<Char, Traits> sv = str_v;
@@ -1921,7 +1924,7 @@ namespace pace {
         }
         template<typename StringViewLike>
         PACE__CXX20_CNSTXPR
-          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicCoWString&>::type
+          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicSharedString&>::type
           insert( size_type index, const StringViewLike str_v )
         {
           std::basic_string_view<Char, Traits> sv = str_v;
@@ -1933,14 +1936,14 @@ namespace pace {
         template<typename R>
           requires( std::ranges::input_range<R>
                     && std::convertible_to<std::ranges::range_reference_t<R>, Char> )
-        PACE__CXX20_CNSTXPR BasicCoWString& insert_range( const_iterator pos, R&& rg )
+        PACE__CXX20_CNSTXPR BasicSharedString& insert_range( const_iterator pos, R&& rg )
         {
           return insert( pos - cbegin(),
-                         BasicCoWString( std::from_range, std::forward<R>( rg ), this->allocator() ) );
+                         BasicSharedString( std::from_range, std::forward<R>( rg ), this->allocator() ) );
         }
 #endif
 
-        PACE__CXX20_CNSTXPR BasicCoWString& erase( size_type index = 0, size_type count = npos )
+        PACE__CXX20_CNSTXPR BasicSharedString& erase( size_type index = 0, size_type count = npos )
         {
           if ( index > length_ )
             PACE__UNLIKELY throw std::out_of_range( "pace: the erased range is invalid" );
@@ -2009,7 +2012,7 @@ namespace pace {
         PACE__CXX20_CNSTXPR void push_back( Char ch ) & { append( 1, ch ); }
         PACE__CXX20_CNSTXPR void pop_back() noexcept { erase( cend() - 1 ); }
 
-        PACE__CXX20_CNSTXPR BasicCoWString& append( const_pointer cstr, size_type count )
+        PACE__CXX20_CNSTXPR BasicSharedString& append( const_pointer cstr, size_type count )
         {
           const auto total_length = count + length_;
           switch ( tag_ ) {
@@ -2041,9 +2044,9 @@ namespace pace {
           length_ = total_length;
           return *this;
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& append( const_pointer cstr )
+        PACE__CXX20_CNSTXPR BasicSharedString& append( const_pointer cstr )
         { return append( cstr, Traits::length( cstr ) ); }
-        PACE__CXX20_CNSTXPR BasicCoWString& append( size_type count, Char ch )
+        PACE__CXX20_CNSTXPR BasicSharedString& append( size_type count, Char ch )
         {
           const auto total_length = count + length_;
           switch ( tag_ ) {
@@ -2090,7 +2093,7 @@ namespace pace {
 #ifdef __cpp_lib_string_view
         template<typename StringViewLike>
         PACE__CXX20_CNSTXPR
-          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicCoWString&>::type
+          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicSharedString&>::type
           append( const StringViewLike& str_v, size_type pos, size_type count = npos )
         {
           std::basic_string_view<Char, Traits> sv = str_v;
@@ -2100,16 +2103,16 @@ namespace pace {
         }
         template<typename StringViewLike>
         PACE__CXX20_CNSTXPR
-          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicCoWString&>::type
+          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicSharedString&>::type
           append( const StringViewLike& str_v )
         {
           std::basic_string_view<Char, Traits> sv = str_v;
           return append( sv.data(), sv.size() );
         }
 #endif
-        PACE__CXX20_CNSTXPR BasicCoWString& append( const BasicCoWString& other,
-                                                    size_type pos,
-                                                    size_type count = npos )
+        PACE__CXX20_CNSTXPR BasicSharedString& append( const BasicSharedString& other,
+                                                       size_type pos,
+                                                       size_type count = npos )
         {
           if ( pos > other.length_ )
             PACE__UNLIKELY throw std::out_of_range(
@@ -2117,32 +2120,32 @@ namespace pace {
 
           return append( other.data() + pos, count );
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& append( const BasicCoWString& other )
+        PACE__CXX20_CNSTXPR BasicSharedString& append( const BasicSharedString& other )
         { return append( other, 0 ); }
         template<typename InputIt>
 #ifdef __cpp_lib_concepts
           requires( std::input_iterator<InputIt> && std::equality_comparable<InputIt> )
-        PACE__CXX20_CNSTXPR BasicCoWString&
+        PACE__CXX20_CNSTXPR BasicSharedString&
 #else
         PACE__CXX20_CNSTXPR
-          typename std::enable_if<is_legacy_input_iterator<InputIt>::value, BasicCoWString&>::type
+          typename std::enable_if<is_legacy_input_iterator<InputIt>::value, BasicSharedString&>::type
 #endif
           append( InputIt first, InputIt last )
-        { return append( BasicCoWString( std::move( first ), std::move( last ), this->allocator() ) ); }
-        // BasicCoWString& append( std::initializer_list<Char> ) = delete;
+        { return append( BasicSharedString( std::move( first ), std::move( last ), this->allocator() ) ); }
+        // BasicSharedString& append( std::initializer_list<Char> ) = delete;
 
 #ifdef __cpp_lib_containers_ranges
         template<typename R>
           requires( std::ranges::input_range<R>
                     && std::convertible_to<std::ranges::range_reference_t<R>, Char> )
-        PACE__CXX20_CNSTXPR BasicCoWString& append_range( R&& rg )
-        { return append( BasicCoWString( std::from_range, std::forward<R>( rg ), this->allocator() ) ); }
+        PACE__CXX20_CNSTXPR BasicSharedString& append_range( R&& rg )
+        { return append( BasicSharedString( std::from_range, std::forward<R>( rg ), this->allocator() ) ); }
 #endif
 
-        PACE__CXX20_CNSTXPR BasicCoWString& replace( size_type pos,
-                                                     size_type count,
-                                                     const_pointer cstr,
-                                                     size_type cstr_count )
+        PACE__CXX20_CNSTXPR BasicSharedString& replace( size_type pos,
+                                                        size_type count,
+                                                        const_pointer cstr,
+                                                        size_type cstr_count )
         {
           if ( pos == length_ )
             return append( cstr, cstr_count );
@@ -2258,32 +2261,32 @@ namespace pace {
           length_ = total_length;
           return *this;
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& replace( size_type pos, size_type count, const_pointer cstr )
+        PACE__CXX20_CNSTXPR BasicSharedString& replace( size_type pos, size_type count, const_pointer cstr )
         { return replace( pos, count, cstr, Traits::length( cstr ) ); }
-        PACE__CXX20_CNSTXPR BasicCoWString& replace( const_iterator first,
-                                                     const_iterator last,
-                                                     const_pointer cstr,
-                                                     size_type cstr_count )
+        PACE__CXX20_CNSTXPR BasicSharedString& replace( const_iterator first,
+                                                        const_iterator last,
+                                                        const_pointer cstr,
+                                                        size_type cstr_count )
         {
           PACE__ASSERT( this == first.owner() );
           PACE__ASSERT( this == last.owner() );
           PACE__ASSERT( first.offset() < length_ );
           return replace( first.offset(), last - first, cstr, cstr_count );
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& replace( const_iterator first,
-                                                     const_iterator last,
-                                                     const_pointer cstr )
+        PACE__CXX20_CNSTXPR BasicSharedString& replace( const_iterator first,
+                                                        const_iterator last,
+                                                        const_pointer cstr )
         {
           PACE__ASSERT( this == first.owner() );
           PACE__ASSERT( this == last.owner() );
           PACE__ASSERT( first.offset() < length_ );
           return replace( first.offset(), last - first, cstr, Traits::length( cstr ) );
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& replace( size_type pos,
-                                                     size_type count,
-                                                     const BasicCoWString& other,
-                                                     size_type other_pos,
-                                                     size_type other_count = npos )
+        PACE__CXX20_CNSTXPR BasicSharedString& replace( size_type pos,
+                                                        size_type count,
+                                                        const BasicSharedString& other,
+                                                        size_type other_pos,
+                                                        size_type other_count = npos )
         {
           if ( pos == length_ )
             return append( other, other_pos, other_count );
@@ -2294,23 +2297,23 @@ namespace pace {
 
           return replace( pos, count, other.data() + other_pos, other_count );
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& replace( size_type pos,
-                                                     size_type count,
-                                                     const BasicCoWString& other )
+        PACE__CXX20_CNSTXPR BasicSharedString& replace( size_type pos,
+                                                        size_type count,
+                                                        const BasicSharedString& other )
         { return replace( pos, count, other, 0, other.length_ ); }
-        PACE__CXX20_CNSTXPR BasicCoWString& replace( const_iterator first,
-                                                     const_iterator last,
-                                                     const BasicCoWString& other )
+        PACE__CXX20_CNSTXPR BasicSharedString& replace( const_iterator first,
+                                                        const_iterator last,
+                                                        const BasicSharedString& other )
         {
           PACE__ASSERT( this == first.owner() );
           PACE__ASSERT( this == last.owner() );
           PACE__ASSERT( first.offset() < length_ );
           return replace( first.offset(), last - first, other, 0, other.length_ );
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& replace( size_type pos,
-                                                     size_type count,
-                                                     size_type ch_count,
-                                                     Char ch )
+        PACE__CXX20_CNSTXPR BasicSharedString& replace( size_type pos,
+                                                        size_type count,
+                                                        size_type ch_count,
+                                                        Char ch )
         {
           if ( pos == length_ )
             return append( ch_count, ch );
@@ -2371,10 +2374,10 @@ namespace pace {
           }
           return *this;
         }
-        PACE__CXX20_CNSTXPR BasicCoWString& replace( const_iterator first,
-                                                     const_iterator last,
-                                                     size_type ch_count,
-                                                     Char ch )
+        PACE__CXX20_CNSTXPR BasicSharedString& replace( const_iterator first,
+                                                        const_iterator last,
+                                                        size_type ch_count,
+                                                        Char ch )
         {
           PACE__ASSERT( this == first.owner() );
           PACE__ASSERT( this == last.owner() );
@@ -2384,27 +2387,27 @@ namespace pace {
         template<typename InputIt>
 #ifdef __cpp_lib_concepts
           requires( std::input_iterator<InputIt> && std::equality_comparable<InputIt> )
-        PACE__CXX20_CNSTXPR BasicCoWString&
+        PACE__CXX20_CNSTXPR BasicSharedString&
 #else
         PACE__CXX20_CNSTXPR
-          typename std::enable_if<is_legacy_input_iterator<InputIt>::value, BasicCoWString&>::type
+          typename std::enable_if<is_legacy_input_iterator<InputIt>::value, BasicSharedString&>::type
 #endif
           replace( const_iterator first, const_iterator last, InputIt in_first, InputIt in_last )
         {
           return replace( first.offset(),
                           last - first,
-                          BasicCoWString( std::move( in_first ), std::move( in_last ) ) );
+                          BasicSharedString( std::move( in_first ), std::move( in_last ) ) );
         }
-        // BasicCoWString& replace( const_iterator, const_iterator, std::initializer_list<Char> ) = delete;
+        // BasicSharedString& replace( const_iterator, const_iterator, std::initializer_list<Char> ) = delete;
 #ifdef __cpp_lib_string_view
         template<typename StringViewLike>
         PACE__CXX20_CNSTXPR
-          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicCoWString&>::type replace(
-            size_type pos,
-            size_type count,
-            const StringViewLike& str_v,
-            size_type sv_pos,
-            size_type sv_count = npos )
+          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicSharedString&>::type
+          replace( size_type pos,
+                   size_type count,
+                   const StringViewLike& str_v,
+                   size_type sv_pos,
+                   size_type sv_count = npos )
         {
           std::basic_string_view<Char, Traits> sv = str_v;
           if ( sv_pos > sv.size() )
@@ -2416,7 +2419,7 @@ namespace pace {
         }
         template<typename StringViewLike>
         PACE__CXX20_CNSTXPR
-          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicCoWString&>::type
+          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicSharedString&>::type
           replace( size_type pos, size_type count, const StringViewLike& str_v )
         {
           std::basic_string_view<Char, Traits> sv = str_v;
@@ -2424,7 +2427,7 @@ namespace pace {
         }
         template<typename StringViewLike>
         PACE__CXX20_CNSTXPR
-          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicCoWString&>::type
+          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicSharedString&>::type
           replace( const_iterator first, const_iterator last, const StringViewLike& str_v )
         {
           PACE__ASSERT( this == first.owner() );
@@ -2438,13 +2441,13 @@ namespace pace {
         template<typename R>
           requires( std::ranges::input_range<R>
                     && std::convertible_to<std::ranges::range_reference_t<R>, Char> )
-        PACE__CXX20_CNSTXPR BasicCoWString& replace_with_range( const_iterator first,
-                                                                const_iterator last,
-                                                                R&& rg )
+        PACE__CXX20_CNSTXPR BasicSharedString& replace_with_range( const_iterator first,
+                                                                   const_iterator last,
+                                                                   R&& rg )
         {
           return replace( first,
                           last,
-                          BasicCoWString( std::from_range, std::forward<R>( rg ), this->allocator() ) );
+                          BasicSharedString( std::from_range, std::forward<R>( rg ), this->allocator() ) );
         }
 #endif
 
@@ -2539,7 +2542,7 @@ namespace pace {
         { return compare( cstr, Traits::length( cstr ) ); }
         PACE__NODISCARD PACE__CXX20_CNSTXPR int compare( size_type pos,
                                                          size_type count,
-                                                         const BasicCoWString& other,
+                                                         const BasicSharedString& other,
                                                          size_type other_pos,
                                                          size_type other_count = npos ) const
         {
@@ -2552,9 +2555,9 @@ namespace pace {
         }
         PACE__NODISCARD PACE__CXX20_CNSTXPR int compare( size_type pos,
                                                          size_type count,
-                                                         const BasicCoWString& other ) const
+                                                         const BasicSharedString& other ) const
         { return compare( pos, count, other, 0 ); }
-        PACE__NODISCARD PACE__CXX20_CNSTXPR int compare( const BasicCoWString& other ) const noexcept
+        PACE__NODISCARD PACE__CXX20_CNSTXPR int compare( const BasicSharedString& other ) const noexcept
         { return compare( 0, npos, other, 0 ); }
 #ifdef __cpp_lib_string_view
         template<typename StringViewLike>
@@ -2587,18 +2590,18 @@ namespace pace {
         { return compare( 0, npos, str_v, 0 ); }
 #endif
 
-        PACE__NODISCARD constexpr BasicCoWString substr( size_type pos = 0, size_type count = npos ) const&
+        PACE__NODISCARD constexpr BasicSharedString substr( size_type pos = 0, size_type count = npos ) const&
         { return { *this, pos, count }; }
-        PACE__NODISCARD PACE__CXX14_CNSTXPR BasicCoWString substr( size_type pos   = 0,
-                                                                   size_type count = npos ) &&
+        PACE__NODISCARD PACE__CXX14_CNSTXPR BasicSharedString substr( size_type pos   = 0,
+                                                                      size_type count = npos ) &&
         { return { std::move( *this ), pos, count }; }
 
-        PACE__CXX20_CNSTXPR void swap( BasicCoWString& other )
+        PACE__CXX20_CNSTXPR void swap( BasicSharedString& other )
           noexcept( traits::AnyOf<typename std::allocator_traits<Alloc>::is_always_equal,
                                   typename std::allocator_traits<Alloc>::propagate_on_container_swap>::value )
         {
           PACE__TRUST( this != &other );
-          this->CoWSwapAlloc<Alloc, BasicCoWString>::swap( other );
+          this->CoWSwapAlloc<Alloc, BasicSharedString>::swap( other );
           switch ( tag_ ) {
           case Kind::Literal: {
             const auto lit = as_.literal_;
@@ -2646,196 +2649,204 @@ namespace pace {
           std::swap( length_, other.length_ );
           std::swap( tag_, other.tag_ );
         }
-        friend PACE__CXX14_CNSTXPR void swap( BasicCoWString& a, BasicCoWString& b ) noexcept { a.swap( b ); }
+        friend PACE__CXX14_CNSTXPR void swap( BasicSharedString& a, BasicSharedString& b ) noexcept
+        { a.swap( b ); }
 
-        PACE__CXX20_CNSTXPR BasicCoWString& operator+=( const BasicCoWString& str ) { return append( str ); }
-        PACE__CXX20_CNSTXPR BasicCoWString& operator+=( Char ch ) { return append( 1, ch ); }
-        PACE__CXX20_CNSTXPR BasicCoWString& operator+=( const_pointer cstr ) { return append( cstr ); }
-        // BasicCoWString& operator+=( std::initializer_list<Char> ) = delete;
+        PACE__CXX20_CNSTXPR BasicSharedString& operator+=( const BasicSharedString& str )
+        { return append( str ); }
+        PACE__CXX20_CNSTXPR BasicSharedString& operator+=( Char ch ) { return append( 1, ch ); }
+        PACE__CXX20_CNSTXPR BasicSharedString& operator+=( const_pointer cstr ) { return append( cstr ); }
+        // BasicSharedString& operator+=( std::initializer_list<Char> ) = delete;
 #ifdef __cpp_lib_string_view
         template<typename StringViewLike>
         PACE__CXX20_CNSTXPR
-          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicCoWString&>::type
+          typename std::enable_if<is_string_view_like<StringViewLike>::value, BasicSharedString&>::type
           operator+=( const StringViewLike& str_v )
         { return append( str_v ); }
 #endif
 
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( const BasicCoWString& a,
-                                                                             const BasicCoWString& b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString operator+( const BasicSharedString& a,
+                                                                                const BasicSharedString& b )
         {
           auto ret = a;
           ret.append( b );
           return ret;
         }
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( BasicCoWString&& a,
-                                                                             BasicCoWString&& b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString operator+( BasicSharedString&& a,
+                                                                                BasicSharedString&& b )
         {
           a.append( std::move( b ) );
           // Strictly speaking, function parameters are not entities that NRVO would consider,
           // so it is necessary to use std::move on the return value here.
           return std::move( a );
         }
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( BasicCoWString&& a,
-                                                                             const BasicCoWString& b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString operator+( BasicSharedString&& a,
+                                                                                const BasicSharedString& b )
         {
           a.append( b );
           return std::move( a );
         }
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( const BasicCoWString& a,
-                                                                             BasicCoWString&& b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString operator+( const BasicSharedString& a,
+                                                                                BasicSharedString&& b )
         {
           b.insert( 0, a );
           return std::move( b );
         }
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( const BasicCoWString& a,
-                                                                             const_pointer b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString operator+( const BasicSharedString& a,
+                                                                                const_pointer b )
         {
           auto ret = a;
           ret.append( b );
           return ret;
         }
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( BasicCoWString&& a,
-                                                                             const_pointer b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString operator+( BasicSharedString&& a,
+                                                                                const_pointer b )
         {
           a.append( b );
           return std::move( a );
         }
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( const_pointer a,
-                                                                             const BasicCoWString& b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString operator+( const_pointer a,
+                                                                                const BasicSharedString& b )
         {
-          auto ret = BasicCoWString(
+          auto ret = BasicSharedString(
             a,
             std::allocator_traits<Alloc>::select_on_container_copy_construction( b.get_allocator() ) );
           ret.append( b );
           return ret;
         }
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( const_pointer a,
-                                                                             BasicCoWString&& b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString operator+( const_pointer a,
+                                                                                BasicSharedString&& b )
         {
           b.insert( 0, a );
           return std::move( b );
         }
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( const BasicCoWString& a, Char b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString operator+( const BasicSharedString& a,
+                                                                                Char b )
         {
           auto ret = a;
           a.push_back( b );
           return ret;
         }
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( BasicCoWString&& a, Char b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString operator+( BasicSharedString&& a,
+                                                                                Char b )
         {
           a.push_back( b );
           return std::move( a );
         }
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( Char a, const BasicCoWString& b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString operator+( Char a,
+                                                                                const BasicSharedString& b )
         {
-          auto ret = BasicCoWString(
+          auto ret = BasicSharedString(
             1,
             a,
             std::allocator_traits<Alloc>::select_on_container_copy_construction( b.get_allocator() ) );
           ret.append( b );
           return ret;
         }
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString operator+( Char a, BasicCoWString&& b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString operator+( Char a,
+                                                                                BasicSharedString&& b )
         {
           b.insert( 0, 1, a );
           return std::move( b );
         }
 #if defined( __cpp_lib_string_view ) && defined( __cpp_lib_type_identity )
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString
-          operator+( const BasicCoWString& a, std::type_identity_t<std::basic_string_view<Char, Traits>> b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString
+          operator+( const BasicSharedString& a,
+                     std::type_identity_t<std::basic_string_view<Char, Traits>> b )
         {
           auto ret = a;
           a.append( b );
         }
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString
-          operator+( std::type_identity_t<std::basic_string_view<Char, Traits>> a, const BasicCoWString& b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString
+          operator+( std::type_identity_t<std::basic_string_view<Char, Traits>> a,
+                     const BasicSharedString& b )
         {
-          auto ret = BasicCoWString(
+          auto ret = BasicSharedString(
             a,
             std::allocator_traits<Alloc>::select_on_container_copy_construction( b.get_allocator() ) );
           ret.append( b );
           return ret;
         }
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString
-          operator+( BasicCoWString&& a, std::type_identity_t<std::basic_string_view<Char, Traits>> b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString
+          operator+( BasicSharedString&& a, std::type_identity_t<std::basic_string_view<Char, Traits>> b )
         {
           a.append( b );
           return std::move( a );
         }
-        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicCoWString
-          operator+( std::type_identity_t<std::basic_string_view<Char, Traits>> a, BasicCoWString&& b )
+        PACE__NODISCARD friend PACE__CXX20_CNSTXPR BasicSharedString
+          operator+( std::type_identity_t<std::basic_string_view<Char, Traits>> a, BasicSharedString&& b )
         {
           b.insert( 0, a );
           return std::move( b );
         }
 #endif
 
-        PACE__NODISCARD friend constexpr bool operator==( const BasicCoWString& a,
-                                                          const BasicCoWString& b ) noexcept
+        PACE__NODISCARD friend constexpr bool operator==( const BasicSharedString& a,
+                                                          const BasicSharedString& b ) noexcept
         { return a.compare( b ) == 0; }
-        PACE__NODISCARD friend constexpr bool operator==( const BasicCoWString& a, const_pointer b )
+        PACE__NODISCARD friend constexpr bool operator==( const BasicSharedString& a, const_pointer b )
         { return a.compare( b ) == 0; }
-        PACE__NODISCARD friend constexpr bool operator==( const_pointer a, const BasicCoWString& b )
+        PACE__NODISCARD friend constexpr bool operator==( const_pointer a, const BasicSharedString& b )
         { return b == a; }
-        PACE__NODISCARD friend constexpr bool operator!=( const BasicCoWString& a,
-                                                          const BasicCoWString& b ) noexcept
+        PACE__NODISCARD friend constexpr bool operator!=( const BasicSharedString& a,
+                                                          const BasicSharedString& b ) noexcept
         { return a.compare( b ) != 0; }
-        PACE__NODISCARD friend constexpr bool operator!=( const BasicCoWString& a, const_pointer b )
+        PACE__NODISCARD friend constexpr bool operator!=( const BasicSharedString& a, const_pointer b )
         { return a.compare( b ) != 0; }
-        PACE__NODISCARD friend constexpr bool operator!=( const_pointer a, const BasicCoWString& b )
+        PACE__NODISCARD friend constexpr bool operator!=( const_pointer a, const BasicSharedString& b )
         { return b != a; }
 
 #ifdef __cpp_lib_three_way_comparison
-        PACE__NODISCARD friend constexpr auto operator<=>( const BasicCoWString& a,
-                                                           const BasicCoWString& b ) noexcept
+        PACE__NODISCARD friend constexpr auto operator<=>( const BasicSharedString& a,
+                                                           const BasicSharedString& b ) noexcept
         { return static_cast<traits::ComparisonCategory_t<Traits>>( a.compare( b ) <=> 0 ); }
-        PACE__NODISCARD friend constexpr auto operator<=>( const BasicCoWString& a, const_pointer b )
+        PACE__NODISCARD friend constexpr auto operator<=>( const BasicSharedString& a, const_pointer b )
         { return static_cast<traits::ComparisonCategory_t<Traits>>( a.compare( b ) <=> 0 ); }
 #else
-        PACE__NODISCARD friend constexpr bool operator<( const BasicCoWString& a,
-                                                         const BasicCoWString& b ) noexcept
+        PACE__NODISCARD friend constexpr bool operator<( const BasicSharedString& a,
+                                                         const BasicSharedString& b ) noexcept
         { return a.compare( b ) < 0; }
-        PACE__NODISCARD friend constexpr bool operator<=( const BasicCoWString& a,
-                                                          const BasicCoWString& b ) noexcept
+        PACE__NODISCARD friend constexpr bool operator<=( const BasicSharedString& a,
+                                                          const BasicSharedString& b ) noexcept
         { return a.compare( b ) <= 0; }
-        PACE__NODISCARD friend constexpr bool operator>( const BasicCoWString& a,
-                                                         const BasicCoWString& b ) noexcept
+        PACE__NODISCARD friend constexpr bool operator>( const BasicSharedString& a,
+                                                         const BasicSharedString& b ) noexcept
         { return a.compare( b ) > 0; }
-        PACE__NODISCARD friend constexpr bool operator>=( const BasicCoWString& a,
-                                                          const BasicCoWString& b ) noexcept
+        PACE__NODISCARD friend constexpr bool operator>=( const BasicSharedString& a,
+                                                          const BasicSharedString& b ) noexcept
         { return a.compare( b ) >= 0; }
-        PACE__NODISCARD friend constexpr bool operator<( const BasicCoWString& a, const_pointer b )
+        PACE__NODISCARD friend constexpr bool operator<( const BasicSharedString& a, const_pointer b )
         { return a.compare( b ) < 0; }
-        PACE__NODISCARD friend constexpr bool operator<=( const BasicCoWString& a, const_pointer b )
+        PACE__NODISCARD friend constexpr bool operator<=( const BasicSharedString& a, const_pointer b )
         { return a.compare( b ) <= 0; }
-        PACE__NODISCARD friend constexpr bool operator>( const BasicCoWString& a, const_pointer b )
+        PACE__NODISCARD friend constexpr bool operator>( const BasicSharedString& a, const_pointer b )
         { return a.compare( b ) > 0; }
-        PACE__NODISCARD friend constexpr bool operator>=( const BasicCoWString& a, const_pointer b )
+        PACE__NODISCARD friend constexpr bool operator>=( const BasicSharedString& a, const_pointer b )
         { return a.compare( b ) >= 0; }
-        PACE__NODISCARD friend constexpr bool operator<( const_pointer a, const BasicCoWString& b )
+        PACE__NODISCARD friend constexpr bool operator<( const_pointer a, const BasicSharedString& b )
         { return !( b >= a ); }
-        PACE__NODISCARD friend constexpr bool operator<=( const_pointer a, const BasicCoWString& b )
+        PACE__NODISCARD friend constexpr bool operator<=( const_pointer a, const BasicSharedString& b )
         { return !( b > a ); }
-        PACE__NODISCARD friend constexpr bool operator>( const_pointer a, const BasicCoWString& b )
+        PACE__NODISCARD friend constexpr bool operator>( const_pointer a, const BasicSharedString& b )
         { return !( b <= a ); }
-        PACE__NODISCARD friend constexpr bool operator>=( const_pointer a, const BasicCoWString& b )
+        PACE__NODISCARD friend constexpr bool operator>=( const_pointer a, const BasicSharedString& b )
         { return !( b < a ); }
 #endif
       };
 
 #if defined( __cpp_deduction_guides ) && defined( __cpp_lib_containers_ranges )
       template<std::ranges::input_range R, typename Alloc = std::allocator<std::ranges::range_value_t<R>>>
-      BasicCoWString( std::from_range_t, R&&, Alloc = Alloc() )
-        -> BasicCoWString<std::ranges::range_value_t<R>,
-                          std::char_traits<std::ranges::range_value_t<R>>,
-                          Alloc>;
+      BasicSharedString( std::from_range_t, R&&, Alloc = Alloc() )
+        -> BasicSharedString<std::ranges::range_value_t<R>,
+                             std::char_traits<std::ranges::range_value_t<R>>,
+                             Alloc>;
 #endif
 
       // For now, we have only used the char type.
-      using CoWString = BasicCoWString<types::Char>;
+      using SharedString = BasicSharedString<types::Char>;
 
-      PACE__FORCEINLINE PACE__CXX20_CNSTXPR CoWString operator""_cow( const types::Char* str,
-                                                                      types::Size len ) noexcept
+      PACE__FORCEINLINE PACE__CXX20_CNSTXPR SharedString operator""_cow( const types::Char* str,
+                                                                         types::Size len ) noexcept
       { return { make_literal( str, len ) }; }
     } // namespace charcodes
   } // namespace details

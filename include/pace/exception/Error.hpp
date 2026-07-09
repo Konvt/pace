@@ -1,7 +1,7 @@
 #ifndef PACE_ERROR
 #define PACE_ERROR
 
-#include "../details/charcodes/CoWString.hpp"
+#include "../details/charcodes/SharedString.hpp"
 #include <exception>
 #include <system_error>
 
@@ -10,10 +10,10 @@ namespace pace {
     // The base exception class.
     class Error : public std::exception {
     protected:
-      details::charcodes::CoWString message_;
+      details::charcodes::SharedString message_;
 
     public:
-      Error( details::charcodes::CoWString mes ) noexcept : message_ { std::move( mes ) } {}
+      Error( details::charcodes::SharedString mes ) noexcept : message_ { std::move( mes ) } {}
       ~Error() override = default;
       PACE__NODISCARD const char* what() const noexcept override { return message_.c_str(); }
     };
@@ -38,7 +38,7 @@ namespace pace {
       std::error_code err_;
 
     public:
-      SystemError( std::error_code err, details::charcodes::CoWString mes ) noexcept
+      SystemError( std::error_code err, details::charcodes::SharedString mes ) noexcept
         : Error( std::move( mes ) ), err_ { err }
       {}
       ~SystemError() override = default;

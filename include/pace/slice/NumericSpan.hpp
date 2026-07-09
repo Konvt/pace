@@ -152,7 +152,8 @@ namespace pace {
         if ( step > 0 && startpoint > endpoint )
           PACE__UNLIKELY
           {
-            details::charcodes::CoWString message = details::charcodes::make_literal( "pace: 'endpoint (" );
+            details::charcodes::SharedString message =
+              details::charcodes::make_literal( "pace: 'endpoint (" );
             details::utils::format_to( std::back_inserter( message ), endpoint );
             message.append( ")' is less than 'startpoint (" );
             details::utils::format_to( std::back_inserter( message ), startpoint );
@@ -164,7 +165,8 @@ namespace pace {
         else if ( step < 0 && startpoint < endpoint )
           PACE__UNLIKELY
           {
-            details::charcodes::CoWString message = details::charcodes::make_literal( "pace: 'endpoint (" );
+            details::charcodes::SharedString message =
+              details::charcodes::make_literal( "pace: 'endpoint (" );
             details::utils::format_to( std::back_inserter( message ), endpoint );
             message.append( ")' is greater than 'startpoint (" );
             details::utils::format_to( std::back_inserter( message ), startpoint );

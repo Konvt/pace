@@ -28,7 +28,8 @@ namespace pace {
           for ( types::Size i = 1; i < hex_str.size(); i++ ) {
             if ( ( hex_str[i] < '0' || hex_str[i] > '9' ) && ( hex_str[i] < 'A' || hex_str[i] > 'F' )
                  && ( hex_str[i] < 'a' || hex_str[i] > 'f' ) ) {
-              charcodes::CoWString message = charcodes::make_literal( "pace: invalid hexadecimal letter (" );
+              charcodes::SharedString message =
+                charcodes::make_literal( "pace: invalid hexadecimal letter (" );
               message.append( 1, hex_str[i] ).append( 1, ')' );
               throw exception::InvalidArgument( std::move( message ) );
             }
