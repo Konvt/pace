@@ -242,8 +242,10 @@ namespace pace {
 #endif
 
 #ifdef __cpp_lib_ranges
+      using std::ranges::empty;
       using std::ranges::size;
 #elif defined( __cpp_lib_nonmember_container_access )
+      using std::empty;
       using std::size;
 #else
       template<typename Range>
@@ -251,9 +253,17 @@ namespace pace {
         noexcept( noexcept( std::forward<Range>( rn ).size() ) )
           -> decltype( std::forward<Range>( rn ).size() )
       { return std::forward<Range>( rn ).size(); }
-      template<typename Range, types::Size N>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr types::Size size( const Range ( & )[N] ) noexcept
+      template<typename Range, std::size_t N>
+      PACE__NODISCARD PACE__FORCEINLINE constexpr std::size_t size( const Range ( & )[N] ) noexcept
       { return N; }
+
+      template<typename T, std::size_t N>
+      PACE__NODISCARD PACE__FORCEINLINE constexpr bool empty( const T ( & )[N] ) noexcept
+      { return false; }
+      template<typename C>
+      PACE__NODISCARD PACE__FORCEINLINE constexpr auto empty( const C& c ) noexcept( noexcept( c.empty() ) )
+        -> decltype( c.empty() )
+      { return c.empty(); }
 #endif
 
 #if PACE__CXX20
@@ -333,7 +343,7 @@ namespace pace {
 #else
 # define PACE__METHOD( Qualifier )                                                                   \
    template<typename T>                                                                              \
-   PACE__FORCEINLINE constexpr T* start_lifetime_as_array( Qualifier void* p, types::Size ) noexcept \
+   PACE__FORCEINLINE constexpr T* start_lifetime_as_array( Qualifier void* p, std::size_t ) noexcept \
    { return static_cast<T*>( p ); }
       PACE__METHOD()
       PACE__METHOD( const )

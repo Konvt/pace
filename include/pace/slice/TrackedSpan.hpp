@@ -20,7 +20,7 @@ namespace pace {
       : public std::ranges::view_interface<TrackedSpan<View, UIRef>>
 #endif
     {
-      static_assert( details::traits::is_sized_range<View>::value, "only available for bounded ranges" );
+      static_assert( details::traits::is_sized_range<View>::value, "only available for sized ranges" );
       static_assert( details::traits::AllOf<details::traits::is_pointer_like<UIRef>,
                                             std::is_copy_constructible<UIRef>>::value,
                      "must be a copyable pointer-like bar reference" );
@@ -28,7 +28,7 @@ namespace pace {
         details::traits::is_iterable_bar<details::traits::PointeeOf_t<UIRef>>::value,
         "must have a method to configure the iteration count for the object's configuration type" );
 
-      UIRef ui_;
+      UIRef ui_ {};
       View view_;
 
       using Itr = details::traits::IteratorOf_t<View>;
@@ -53,7 +53,6 @@ namespace pace {
       class iterator {
         UIRef ui_;
         Itr itr_;
-        bool used_ { false };
 
       public:
         using iterator_category = typename std::conditional<
@@ -71,17 +70,12 @@ namespace pace {
           : ui_ { std::move( ui_ref ) }, itr_ { std::move( itr ) }
         {}
 
-        PACE__CXX20_CNSTXPR ~iterator() noexcept
-        {
-          if ( used_ )
-            ui_->abort();
-        }
+        PACE__CXX20_CNSTXPR ~iterator() = default;
 
         PACE__FORCEINLINE PACE__CXX14_CNSTXPR iterator& operator++() &
         {
-          itr_ = std::next( itr_, 1 );
+          itr_ = std::next( itr_ );
           ui_->tick();
-          used_ = true;
           return *this;
         }
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR iterator operator++( int ) &
@@ -159,7 +153,10 @@ namespace pace {
                                          std::is_nothrow_move_constructible<UIRef>>::value )
         : ui_ { std::move( ui ) }, view_ { std::move( view ) }
       {}
-      // Intentional non-virtual destructors.
+
+      constexpr TrackedSpan( TrackedSpan&& rhs )                        = default;
+      PACE__CXX14_CNSTXPR TrackedSpan& operator=( TrackedSpan&& rhs ) & = default;
+
       PACE__CXX20_CNSTXPR ~TrackedSpan() = default;
 
       PACE__CXX14_CNSTXPR View replace( View view ) & noexcept(
@@ -182,5 +179,11 @@ namespace pace {
     };
   } // namespace slice
 } // namespace pace
+
+#ifdef __cpp_lib_ranges
+template<typename View, typename UIRef>
+inline constexpr bool std::ranges::enable_borrowed_range<pace::slice::TrackedSpan<View, UIRef>> =
+  std::ranges::borrowed_range<View>;
+#endif
 
 #endif

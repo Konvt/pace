@@ -1135,9 +1135,9 @@ void swap( NumericSpan& ) noexcept; // 交换两个数值范围
 迭代器的有效迭代次数与 `pace::slice::NumericSpan` 的方法 `size()` 返回的值相同；特别的，如果步长大于数值范围，那么迭代器在前进一步后的值将会超出数值范围的终止点。
 
 ## IteratorSpan
-`pace::slice::IteratorSpan` 是一个模板类型，它被用于表达两个迭代器所划定的抽象范围；可以被视作是 `std::views::ref_view` 的极度简化版本。
+`pace::slice::IteratorSpan` 是一个模板类型，它被用于表达两个迭代器所划定的抽象范围；可以被视作是 `std::ranges::subrange` 的简化版本。
 
-`pace::slice::IteratorSpan` 要求传入的迭代器类型必须满足复制构造或移动构造，并且必须能够计算两个迭代器对象之间的距离，否则会导致编译失败。
+`pace::slice::IteratorSpan` 要求传入的迭代器类型必须满足复制构造，并且必须能够计算两个迭代器对象之间的距离，否则会导致编译失败。
 
 如果传入的迭代器是一组非逆序类型的逆序迭代器，那么会抛出异常 `pace::exception::InvalidArgument`。
 
@@ -1161,17 +1161,12 @@ auto reverse_span2 =
 iterator begin() const noexcept; // 返回一个指向抽象范围起点的迭代器
 iterator end() const noexcept;   // 返回一个指向抽象范围终点的迭代器
 
-/* reference */ front() const noexcept; // 返回抽象范围起点迭代器指向的元素的引用
-/* reference */ back() const noexcept;  // 返回抽象范围终点迭代器指向的前一个元素的引用
-/* size_t */ step() const noexcept;     // 返回当前步长，通常是编译期常数 1
 /* size_t */ size() const noexcept;     // 返回当前抽象范围的大小
 
 void swap( IteratorSpan& ) noexcept; // 交换两个抽象范围
 ```
 ### 迭代器类型
-`pace::slice::IteratorSpan::iterator` 属于前向迭代器，重载了包括但不限于 `operator++()`、`operator++( int )`、`operator+=()`、`operator*()` 和判等运算符在内的运算符函数。
-
-由于是前向迭代器且没有提供自减运算符，因此所有逆序操作都依赖于迭代器类型实现。
+`pace::slice::IteratorSpan` 的迭代器类型与传入的相同。
 
 ## SizedSpan
 `pace::slice::SizedSpan` 是一个模板类型，它用于表示满足概念 `std::ranges::sized_range` 且不满足概念 `std::ranges::view` 的迭代范围。
@@ -1183,9 +1178,6 @@ void swap( IteratorSpan& ) noexcept; // 交换两个抽象范围
 /* iterator */ begin() const; // 返回一个指向抽象范围起点的迭代器
 /* sentinel */ end() const;   // 返回一个指向抽象范围终点的迭代器
 
-/* reference */ front() const;      // 返回抽象范围起点迭代器指向的元素的引用
-/* reference */ back() const;       // 返回抽象范围终点迭代器指向的前一个元素的引用
-/* size_t */ step() const noexcept; // 返回当前步长，通常是编译期常数 1
 /* size_t */ size() const;          // 返回当前抽象范围的大小
 
 void swap( SizedSpan& ) noexcept; // 交换两个抽象范围
@@ -1257,7 +1249,6 @@ pace::iterate<pace::config::Block, pace::Channel::Stderr, pace::Policy::Sync>( a
  std::this_thread::sleep_for( 300ms );
 } );
 ```
-
 
 # 组合模型
 实际上，pace 库的所有进度条类型以及配置类型都是在编译期生成的。

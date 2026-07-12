@@ -38,7 +38,7 @@ namespace pace {
       public:
         using iterator_category = std::random_access_iterator_tag;
         using value_type        = N;
-        using difference_type   = std::ptrdiff_t;
+        using difference_type   = typename std::make_signed<value_type>::type;
         using pointer           = value_type*;
         using reference         = value_type;
 
@@ -94,7 +94,7 @@ namespace pace {
         {
           return ( a.itr_start_ != b.itr_start_ || a.itr_step_ != b.itr_step_ )
                  ? ( std::numeric_limits<difference_type>::max )()
-                 : a.itr_cnt_ - b.itr_cnt_;
+                 : static_cast<difference_type>( a.itr_cnt_ ) - static_cast<difference_type>( b.itr_cnt_ );
         }
         friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR iterator& operator+=( iterator& itr,
                                                                            difference_type inc ) noexcept
@@ -239,5 +239,10 @@ namespace pace {
     };
   } // namespace slice
 } // namespace pace
+
+#ifdef __cpp_lib_ranges
+template<typename N>
+inline constexpr bool std::ranges::enable_borrowed_range<pace::slice::NumericSpan<N>> = true;
+#endif
 
 #endif

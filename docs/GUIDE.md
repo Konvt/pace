@@ -1156,9 +1156,9 @@ void swap( NumericSpan& ) noexcept; // swaps two numerical ranges
 The number of valid iterations corresponds to the value returned by `pace::slice::NumericSpan::size()`. In particular, if the step size exceeds the numerical range, advancing the iterator may produce values beyond the end of the range.
 
 ## IteratorSpan
-`pace::slice::IteratorSpan` is a template type used to represent an abstract range defined by two iterators. It can be regarded as a heavily simplified version of `std::views::ref_view`.
+`pace::slice::IteratorSpan` is a template type used to represent an abstract range defined by two iterators. It can be regarded as a simplified version of `std::ranges::subrange`.
 
-`pace::slice::IteratorSpan` requires that the provided iterator type must be copy-constructible or move-constructible, and must support computing the distance between two iterator instances; otherwise, compilation will fail.
+`pace::slice::IteratorSpan` requires that the provided iterator type must be copy-constructible, and must support computing the distance between two iterator instances; otherwise, compilation will fail.
 
 If the provided iterators are a pair of reverse iterators over a non-reversible type, an exception `pace::exception::InvalidArgument` will be thrown.
 
@@ -1182,17 +1182,12 @@ auto reverse_span2 =
 iterator begin() const noexcept; // returns an iterator pointing to the start of the abstract range
 iterator end() const noexcept;   // returns an iterator pointing to the end of the abstract range
 
-/* reference */ front() const noexcept; // returns a reference to the element at the start iterator
-/* reference */ back() const noexcept;  // returns a reference to the element before the end iterator
-/* size_t */ step() const noexcept;     // returns the current step size, usually a compile-time constant 1
 /* size_t */ size() const noexcept;     // returns the size of the current abstract range
 
 void swap( IteratorSpan& ) noexcept; // swaps two abstract ranges
 ```
 ### Iterator type
-`pace::slice::IteratorSpan::iterator` is a forward iterator. It overloads, but is not limited to, operators such as `operator++()`, `operator++( int )`, `operator+=()`, `operator*()`, and equality comparison operators.
-
-Since it is a forward iterator and does not provide decrement operators, all reverse operations depend on the implementation of the underlying iterator type.
+The iterator type of `pace::slice::IteratorSpan` is the same as the one passed in.
 
 ## SizedSpan
 `pace::slice::SizedSpan` is a template type used to represent an iterable range that satisfies the concept `std::ranges::sized_range` and does not satisfy the concept `std::ranges::view`.
@@ -1205,9 +1200,6 @@ In simple terms, `pace::slice::SizedSpan` can be regarded as a simplified versio
 /* iterator */ begin() const; // Returns an iterator pointing to the beginning of the abstract range
 /* sentinel */ end() const;   // Returns a sentinel pointing to the end of the abstract range
 
-/* reference */ front() const; // Returns a reference to the element pointed to by the begin iterator of the abstract range
-/* reference */ back() const;  // Returns a reference to the element before the end iterator of the abstract range
-/* size_t */ step() const noexcept; // Returns the current step size, usually a compile-time constant 1
 /* size_t */ size() const;          // Returns the size of the current abstract range
 
 void swap(SizedSpan&) noexcept; // Swaps two abstract ranges

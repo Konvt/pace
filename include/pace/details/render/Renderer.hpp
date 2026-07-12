@@ -283,9 +283,11 @@ namespace pace {
 #endif
             }
           } else if PACE__CXX17_CNSTXPR ( Mode == Policy::Sync ) {
-            std::lock_guard<std::mutex> lock { res_mtx_ };
-            // To ensure that only one thread is rendering the bar to the OStream.
-            task_();
+            if ( res_mtx_.try_lock() ) {
+              std::lock_guard<std::mutex> lock { res_mtx_, std::adopt_lock };
+              // To ensure that only one thread is rendering the bar to the OStream.
+              task_();
+            }
           }
         }
 
