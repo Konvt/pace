@@ -2,7 +2,6 @@
 #define PACE_MULTI_BAR
 
 #include "details/assets/StaticLayout.hpp"
-#include "details/core/Core.hpp"
 
 namespace pace {
   template<typename Bar, typename... Bars>
@@ -16,18 +15,16 @@ namespace pace {
     template<details::types::Size Pos>
     using ConfigAt_t = details::traits::TypeAt_t<Pos, Config, Configs...>;
     template<details::types::Size Pos>
-    using BarAt_t = details::traits::
-      TypeAt_t<Pos, prefab::BasicBar<Config, S, M, Z>, prefab::BasicBar<Configs, S, M, Z>...>;
+    using BarAt_t = prefab::BasicBar<ConfigAt_t<Pos>, S, M, Z>;
 
-    details::assets::StaticLayout<details::traits::MakeIndexSequence<sizeof...( Configs ) + 1>,
-                                  prefab::BasicBar<Config, S, M, Z>,
-                                  prefab::BasicBar<Configs, S, M, Z>...>
-      package_;
+    details::assets::
+      StaticLayout<S, M, Z, details::traits::MakeIndexSequence<sizeof...( Configs ) + 1>, Config, Configs...>
+        package_;
 
   public:
-    static constexpr Channel sink = S;
-    static constexpr Policy mode  = M;
-    static constexpr Region zone  = Z;
+    static constexpr Channel channel_value = S;
+    static constexpr Policy policy_value   = M;
+    static constexpr Region region_value   = Z;
 
     MultiBar() = default;
 

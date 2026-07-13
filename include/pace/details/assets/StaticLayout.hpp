@@ -1,27 +1,25 @@
 #ifndef PACE_STATIC_LAYOUT
 #define PACE_STATIC_LAYOUT
 
-#include "../../prefab/BasicBar.hpp"
+#include "../assets/PackagedBar.hpp"
 #include "../io/OStream.hpp"
 #include "../utils/Util.hpp"
-#include "../wrappers/TuplePacket.hpp"
 #include <initializer_list>
 #include <tuple>
 
 namespace pace {
   namespace details {
     namespace assets {
-      template<typename Seq, typename... Bars>
+      template<Channel, Policy, Region, typename, typename...>
       class StaticLayout;
-      template<types::Size... Tags, Channel Sink, Policy Mode, Region Zone, typename... Configs>
-      class StaticLayout<traits::IndexSequence<Tags...>, prefab::BasicBar<Configs, Sink, Mode, Zone>...> final
-        : public wrappers::TuplePacket<prefab::BasicBar<Configs, Sink, Mode, Zone>, Tags>... {
+      template<Channel Sink, Policy Mode, Region Zone, types::Size... Tags, typename... Configs>
+      class StaticLayout<Sink, Mode, Zone, traits::IndexSequence<Tags...>, Configs...> final
+        : public assets::PackagedBar<Configs, Sink, Mode, Zone, Tags>... {
         static_assert( sizeof...( Tags ) == sizeof...( Configs ), "unexpected type mismatch" );
         static_assert( sizeof...( Configs ) > 0, "the number of progress bars cannot be zero" );
 
         template<types::Size Pos>
-        using ElementAt_t =
-          traits::TypeAt_t<Pos, wrappers::TuplePacket<prefab::BasicBar<Configs, Sink, Mode, Zone>, Tags>...>;
+        using ElementAt_t = traits::TypeAt_t<Pos, assets::PackagedBar<Configs, Sink, Mode, Zone, Tags>...>;
 
         std::atomic<types::Size> alive_cnt_;
         mutable std::mutex mtx_;
@@ -33,22 +31,23 @@ namespace pace {
         // Bitmask indicating which bars produced output in the current render pass.
         std::array<Locus, sizeof...( Configs )> stages_;
 
-        template<types::Size Pos>
+        template<types::Size Pos, typename... Args>
         PACE__FORCEINLINE PACE__CXX14_CNSTXPR typename std::enable_if<( Pos >= sizeof...( Configs ) )>::type
-          do_render( bool, bool ) &
+          do_render( Args&&... ) &
         {}
         template<types::Size Pos = 0>
-        typename std::enable_if<( Pos < sizeof...( Configs ) )>::type do_render( bool istty,
+        typename std::enable_if<( Pos < sizeof...( Configs ) )>::type do_render( io::CharPipeline& pipeline,
+                                                                                 bool istty,
+                                                                                 bool style_off,
                                                                                  bool hide_done ) &
         {
           PACE__ASSERT( online() );
-          auto& ostream = io::OStream<Sink>::itself();
           switch ( stages_[Pos] ) {
           case Locus::Echo: {
             if ( !istty || hide_done )
               stages_[Pos] = Locus::Offstage;
             else if ( !at<Pos>().active() ) {
-              ostream << console::nextline;
+              pipeline << console::nextline;
               break;
             }
           }
@@ -70,10 +69,10 @@ namespace pace {
           }
             PACE__FALLTHROUGH;
           case Locus::Onstage: {
-            draw_content( at<Pos>() );
+            at<Pos>().draw( pipeline, style_off );
 
             if ( istty )
-              ostream << console::linewipe;
+              pipeline << console::linewipe;
             if ( !at<Pos>().active() ) {
               /**
                * Here are the scenarios where a newline character is output:
@@ -85,23 +84,23 @@ namespace pace {
                *    it should be output whenever Pos-th has just been rendered.
                */
               if ( istty && hide_done )
-                ostream << console::linestart;
+                pipeline << console::linestart;
               else
-                ostream << console::nextline;
+                pipeline << console::nextline;
               if ( istty && !hide_done )
                 stages_[Pos] = Locus::Echo;
               else
                 stages_[Pos] = Locus::Offstage;
             } else
-              ostream << console::nextline;
+              pipeline << console::nextline;
             if ( istty && hide_done )
-              ostream << console::linewipe;
+              pipeline << console::linewipe;
           } break;
 
           default: utils::unreachable();
           }
 
-          return do_render<Pos + 1>( istty, hide_done ); // tail recursive
+          return do_render<Pos + 1>( pipeline, istty, style_off, hide_done ); // tail recursive
         }
 
         void do_halt( bool forced ) noexcept final
@@ -129,8 +128,9 @@ namespace pace {
           std::lock_guard<std::mutex> lock { mtx_ };
           if ( state_.load( std::memory_order_relaxed ) == Phase::Stop ) {
             if ( !executor.try_appoint( [this]() {
-                   auto& ostream    = io::OStream<Sink>::itself();
-                   const auto istty = console::TermContext<Sink>::itself().connected();
+                   auto& ostream        = io::OStream<Sink>::itself();
+                   const auto istty     = console::TermContext<Sink>::itself().connected();
+                   const auto style_off = !istty && config::auto_style_off();
                    switch ( state_.load( std::memory_order_relaxed ) ) {
                    case Phase::Awake: {
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
@@ -140,7 +140,7 @@ namespace pace {
                      // all access to stages_ always occurs within a same thread,
                      // so we do not need to use a mutex to protect it.
                      std::fill( stages_.begin(), stages_.end(), Locus::Offstage );
-                     do_render( console::TermContext<Sink>::itself().connected(), config::hide_completed() );
+                     do_render( ostream, istty, style_off, config::hide_completed() );
                      ostream << io::flush;
 
                      auto expected = Phase::Awake;
@@ -159,7 +159,7 @@ namespace pace {
                                      []( Locus stage ) noexcept { return stage != Locus::Offstage; } ) )
                            .apply( console::linestart );
                      }
-                     do_render( console::TermContext<Sink>::itself().connected(), config::hide_completed() );
+                     do_render( ostream, istty, style_off, config::hide_completed() );
                      ostream << io::flush;
                    } break;
                    default: break;
@@ -168,6 +168,7 @@ namespace pace {
               PACE__UNLIKELY throw exception::InvalidState(
                 charcodes::make_literal( "pace: another progress bar instance is already running" ) );
 
+            (void)console::TermContext<Sink>::itself().detect();
             io::OStream<Sink>::itself() << io::release;
             state_.store( Phase::Awake, std::memory_order_relaxed );
 
@@ -195,7 +196,7 @@ namespace pace {
 
       public:
         template<types::Size... Is, typename... Cs, Channel S, Policy M, Region Z>
-        StaticLayout( const wrappers::TuplePacket<prefab::BasicBar<Cs, S, M, Z>, Is>&... ) = delete;
+        StaticLayout( const assets::PackagedBar<Cs, S, M, Z, Is>&... ) = delete;
 
         // SFINAE is used here to prevent infinite recursive matching of errors.
         template<typename Cfg,
@@ -218,7 +219,7 @@ namespace pace {
         StaticLayout( const StaticLayout& )            = delete;
         StaticLayout& operator=( const StaticLayout& ) = delete;
         StaticLayout( StaticLayout&& rhs ) noexcept
-          : wrappers::TuplePacket<prefab::BasicBar<Configs, Sink, Mode, Zone>, Tags>( std::move( rhs ) )...
+          : assets::PackagedBar<Configs, Sink, Mode, Zone, Tags>( std::move( rhs ) )...
         { PACE__ASSERT( rhs.online() == false ); }
         StaticLayout& operator=( StaticLayout&& rhs ) & noexcept
         { // The thread insecurity here is deliberately designed.
@@ -227,10 +228,9 @@ namespace pace {
           PACE__TRUST( this != &rhs );
           PACE__ASSERT( online() == false );
           PACE__ASSERT( rhs.online() == false );
-          (void)std::initializer_list<bool> { (
-            wrappers::TuplePacket<prefab::BasicBar<Configs, Sink, Mode, Zone>, Tags>::operator=(
-              std::move( rhs ) ),
-            false )... };
+          (void)std::initializer_list<bool> {
+            ( assets::PackagedBar<Configs, Sink, Mode, Zone, Tags>::operator=( std::move( rhs ) ), false )...
+          };
           return *this;
         }
         ~StaticLayout() noexcept { kill(); }

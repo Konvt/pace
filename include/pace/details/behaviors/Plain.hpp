@@ -12,30 +12,30 @@ namespace pace {
                template<typename, Channel, Policy, Region> class Derived,
                typename Soul,
                Channel Sink,
-               Policy Mode,
-               Region Zone>
-      class Plain<Base, Derived<Soul, Sink, Mode, Zone>> : public Base {
+               Policy M,
+               Region Z>
+      class Plain<Base, Derived<Soul, Sink, M, Z>> : public Base {
         template<typename, typename>
         friend class Renderable;
 
-        PACE__FORCEINLINE void prologue() &
+        PACE__FORCEINLINE void prologue( io::CharPipeline& pipeline, bool style_off ) &
         {
-          monologue();
+          monologue( pipeline, style_off );
           auto expected = Base::Phase::Awake;
           this->state_.compare_exchange_strong( expected, Base::Phase::Refresh, std::memory_order_release );
         }
-        PACE__FORCEINLINE void monologue() &
+        PACE__FORCEINLINE void monologue( io::CharPipeline& pipeline, bool style_off ) &
         {
           PACE__ASSERT( this->task_cnt_ <= this->task_end_ );
-          this->config_.build( io::OStream<Sink>::itself(),
+          this->config_.build( pipeline,
                                render::Parameter( this->task_end_,
                                                   this->task_cnt_.load( std::memory_order_relaxed ),
                                                   this->zero_point_,
-                                                  !config::intty( Sink ) && config::auto_style_off() ) );
+                                                  style_off ) );
         }
-        PACE__FORCEINLINE void epilogue() &
+        PACE__FORCEINLINE void epilogue( io::CharPipeline& pipeline, bool style_off ) &
         {
-          monologue();
+          monologue( pipeline, style_off );
           this->state_.store( Base::Phase::Stop, std::memory_order_release );
         }
 

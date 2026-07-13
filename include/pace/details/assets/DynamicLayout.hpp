@@ -13,23 +13,23 @@ namespace pace {
         struct Slot final {
         private:
           template<typename Derived>
-          static void render( Indicator* item )
+          static void render( Indicator* item, io::CharPipeline& pipeline, bool style_off )
           {
             static_assert( traits::AllOf<std::is_base_of<Indicator, Derived>, traits::is_bar<Derived>>::value,
                            "Derived must inherit from Indicator" );
             PACE__TRUST( item != nullptr );
-            draw_content( static_cast<Derived&>( *item ) );
+            static_cast<Derived*>( item )->draw( pipeline, style_off );
           }
 
         public:
-          void ( *render_ )( Indicator* );
+          void ( *render_ )( Indicator*, io::CharPipeline&, bool );
           Indicator* target_;
           // Only the active bar will be constructed as a slot, hence, the default value is Onstage.
           Locus stage_ { Locus::Onstage };
 
           template<typename Config>
           Slot( assets::ManagedBar<Config, Sink, Mode, Zone>* item ) noexcept
-            : render_ { render<prefab::BasicBar<Config, Sink, Mode, Zone>> }, target_ { item }
+            : render_ { render<assets::ManagedBar<Config, Sink, Mode, Zone>> }, target_ { item }
           {}
         };
 
@@ -51,6 +51,7 @@ namespace pace {
         {
           auto& ostream        = io::OStream<Sink>::itself();
           const auto istty     = console::TermContext<Sink>::itself().connected();
+          const auto style_off = !istty && config::auto_style_off();
           const auto hide_done = config::hide_completed();
 
           for ( types::Size i = 0; i < items_.size(); ++i ) {
@@ -76,7 +77,7 @@ namespace pace {
                   items_[i].stage_ = Locus::Offstage;
                 break;
               }
-              ( *items_[i].render_ )( items_[i].target_ );
+              ( *items_[i].render_ )( items_[i].target_, ostream, style_off );
 
               if ( istty )
                 ostream << console::linewipe;
@@ -227,6 +228,7 @@ namespace pace {
               PACE__UNLIKELY throw exception::InvalidState(
                 charcodes::make_literal( "pace: another progress bar instance is already running" ) );
 
+            (void)console::TermContext<Sink>::itself().detect();
             io::OStream<Sink>::itself() << io::release;
             state_.store( Phase::Awake, std::memory_order_relaxed );
 

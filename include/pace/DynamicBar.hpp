@@ -25,9 +25,9 @@ namespace pace {
     }
 
   public:
-    static constexpr Channel sink = Sink;
-    static constexpr Policy mode  = Mode;
-    static constexpr Region zone  = Zone;
+    static constexpr Channel channel_value = Sink;
+    static constexpr Policy policy_value   = Mode;
+    static constexpr Region region_value   = Zone;
 
     DynamicBar()                               = default;
     DynamicBar( const DynamicBar& )            = delete;

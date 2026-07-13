@@ -33,25 +33,6 @@ namespace pace {
         friend class Reactive;
         using MostDerived = Derived<Soul, Sink, Mode, Zone>;
 
-        friend PACE__FORCEINLINE void draw_content( Renderable& self ) { self.draw_content(); }
-
-      protected:
-        render::Builder<Soul> config_;
-        mutable std::mutex mtx_;
-        enum class Phase : std::uint8_t { Stop, Awake, Refresh, Finish };
-        std::atomic<Phase> state_ { Phase::Stop };
-
-      private:
-        PACE__FORCEINLINE void draw_content()
-        {
-          switch ( state_.load( std::memory_order_relaxed ) ) {
-          case Phase::Awake:   static_cast<MostDerived*>( this )->prologue(); break;
-          case Phase::Refresh: static_cast<MostDerived*>( this )->monologue(); break;
-          case Phase::Finish:  static_cast<MostDerived*>( this )->epilogue(); break;
-          default:             return;
-          }
-        }
-
         virtual void do_halt( bool forced = false ) noexcept
         {
           auto& executor = render::Renderer<Sink>::itself();
@@ -65,15 +46,16 @@ namespace pace {
           auto& executor = render::Renderer<Sink>::itself();
           if ( !executor.try_appoint( [this]() {
                  // No exceptions are caught here, this should be done by the thread manager.
-                 auto& ostream    = io::OStream<Sink>::itself();
-                 const auto istty = console::TermContext<Sink>::itself().connected();
+                 auto& ostream        = io::OStream<Sink>::itself();
+                 const auto istty     = console::TermContext<Sink>::itself().connected();
+                 const auto style_off = !istty && config::auto_style_off();
                  switch ( state_.load( std::memory_order_relaxed ) ) {
                  case Phase::Awake: {
                    if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                      if ( istty )
                        ostream << console::savecursor;
 
-                   static_cast<MostDerived*>( this )->prologue();
+                   static_cast<MostDerived*>( this )->prologue( ostream, style_off );
 
                    if ( istty )
                      ostream << console::linewipe;
@@ -88,7 +70,7 @@ namespace pace {
                        ostream << console::prevline << console::linestart;
                    }
 
-                   static_cast<MostDerived*>( this )->monologue();
+                   static_cast<MostDerived*>( this )->monologue( ostream, style_off );
 
                    if ( istty )
                      ostream << console::linewipe;
@@ -103,7 +85,7 @@ namespace pace {
                        ostream << console::prevline << console::linestart;
                    }
 
-                   static_cast<MostDerived*>( this )->epilogue();
+                   static_cast<MostDerived*>( this )->epilogue( ostream, style_off );
 
                    if ( istty && config::hide_completed() )
                      ostream << console::linestart << console::linewipe;
@@ -120,12 +102,28 @@ namespace pace {
             PACE__UNLIKELY throw exception::InvalidState(
               charcodes::make_literal( "pace: another progress bar instance is already running" ) );
 
+          (void)console::TermContext<Sink>::itself().detect();
           io::OStream<Sink>::itself() << io::release; // reset the state.
           auto guard = utils::make_scope_fail( [&executor]() noexcept { executor.dismiss(); } );
           executor.template activate<Mode>();
         }
 
       protected:
+        render::Builder<Soul> config_;
+        mutable std::mutex mtx_;
+        enum class Phase : std::uint8_t { Stop, Awake, Refresh, Finish };
+        std::atomic<Phase> state_ { Phase::Stop };
+
+        PACE__FORCEINLINE void draw( io::CharPipeline& pipeline, bool style_off )
+        {
+          switch ( state_.load( std::memory_order_relaxed ) ) {
+          case Phase::Awake:   static_cast<MostDerived*>( this )->prologue( pipeline, style_off ); break;
+          case Phase::Refresh: static_cast<MostDerived*>( this )->monologue( pipeline, style_off ); break;
+          case Phase::Finish:  static_cast<MostDerived*>( this )->epilogue( pipeline, style_off ); break;
+          default:             return;
+          }
+        }
+
         template<bool Forced>
         PACE__FORCEINLINE void do_reset() noexcept( Forced )
         {

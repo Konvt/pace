@@ -51,6 +51,8 @@ namespace pace {
          * So even if the base class destructor calls `abort` again, it is safe.
          */
         virtual ~ManagedBar() noexcept { this->abort(); }
+
+        using Base::draw;
       };
     } // namespace assets
   } // namespace details

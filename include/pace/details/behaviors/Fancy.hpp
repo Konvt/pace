@@ -9,38 +9,31 @@ namespace pace {
   namespace details {
     namespace behaviors {
       template<typename Base, typename Derived>
-      class Fancy;
-      template<typename Base,
-               template<typename, Channel, Policy, Region> class Derived,
-               typename Soul,
-               Channel Sink,
-               Policy Mode,
-               Region Zone>
-      class Fancy<Base, Derived<Soul, Sink, Mode, Zone>> : public Base {
+      class Fancy : public Base {
         template<typename, typename>
         friend class Renderable;
 
-        PACE__FORCEINLINE void prologue() &
+        PACE__FORCEINLINE void prologue( io::CharPipeline& pipeline, bool style_off ) &
         {
           this->frame_cnt_ = 0;
-          monologue();
+          monologue( pipeline, style_off );
           auto expected = Base::Phase::Awake;
           this->state_.compare_exchange_strong( expected, Base::Phase::Refresh, std::memory_order_release );
         }
-        PACE__FORCEINLINE void monologue() &
+        PACE__FORCEINLINE void monologue( io::CharPipeline& pipeline, bool style_off ) &
         {
           PACE__ASSERT( this->task_cnt_ <= this->task_end_ );
-          this->config_.build( io::OStream<Sink>::itself(),
+          this->config_.build( pipeline,
                                render::Parameter( this->task_end_,
                                                   this->task_cnt_.load( std::memory_order_relaxed ),
                                                   this->zero_point_,
                                                   this->frame_cnt_,
-                                                  !config::intty( Sink ) && config::auto_style_off() ) );
+                                                  style_off ) );
           ++this->frame_cnt_;
         }
-        PACE__FORCEINLINE void epilogue() &
+        PACE__FORCEINLINE void epilogue( io::CharPipeline& pipeline, bool style_off ) &
         {
-          monologue();
+          monologue( pipeline, style_off );
           this->state_.store( Base::Phase::Stop, std::memory_order_release );
         }
 

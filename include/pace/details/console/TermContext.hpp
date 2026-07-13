@@ -20,9 +20,9 @@ namespace pace {
     namespace console {
       template<Channel Sink>
       class TermContext {
-        std::atomic<bool> cache_;
+        std::atomic<bool> cache_ { true };
 
-        TermContext() noexcept { detect(); }
+        TermContext() = default;
 
       public:
         TermContext( const TermContext& )            = delete;
