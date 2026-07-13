@@ -90,7 +90,7 @@ namespace pace {
         static_assert(
           details::traits::AllOf<
             details::traits::TmpContains<details::traits::TemplateSet<Facades...>, Fs>...>::value,
-          "try to modifiy an unkonwn Facade" );
+          "try to modifiy an unknown Facade" );
         self.projection_.reset();
         (void)std::initializer_list<bool> {
           ( self.projection_.set( details::traits::IndexIn<Fs, Facades...>::value ), false )...
@@ -103,7 +103,7 @@ namespace pace {
         static_assert(
           details::traits::AllOf<
             details::traits::TmpContains<details::traits::TemplateSet<Facades...>, Fs>...>::value,
-          "try to modifiy an unkonwn Facade" );
+          "try to modifiy an unknown Facade" );
         self.projection_.set();
         (void)std::initializer_list<bool> {
           ( self.projection_.reset( details::traits::IndexIn<Fs, Facades...>::value ), false )...
@@ -150,7 +150,7 @@ namespace pace {
         static_assert(
           details::traits::AllOf<
             details::traits::TmpContains<details::traits::TemplateSet<Facades...>, Fs>...>::value,
-          "try to modifiy an unkonwn Facade" );
+          "try to modifiy an unknown Facade" );
         std::vector<bool> projection;
         projection.assign( sizeof...( Facades ), false );
         (void)std::initializer_list<bool> { ( projection[details::traits::IndexIn<Fs, Facades...>::value] =
@@ -173,7 +173,7 @@ namespace pace {
         static_assert(
           details::traits::AllOf<
             details::traits::TmpContains<details::traits::TemplateSet<Facades...>, Fs>...>::value,
-          "try to modifiy an unkonwn Facade" );
+          "try to modifiy an unknown Facade" );
         std::vector<bool> projection;
         projection.assign( sizeof...( Facades ), true );
         (void)std::initializer_list<bool> { ( projection[details::traits::IndexIn<Fs, Facades...>::value] =

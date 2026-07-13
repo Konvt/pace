@@ -41,6 +41,7 @@ namespace pace {
   PACE__PROVIDE_FOR( config::Line, option::Ending, "]" );
   PACE__PROVIDE_FOR( config::Line, option::Remain, " " );
   PACE__PROVIDE_FOR( config::Line, option::Filler, "=" );
+  PACE__PROVIDE_FOR( config::Line, option::Lead, ">" );
   PACE__PROVIDE_FOR( config::Line, option::Divider, " | " );
   PACE__PROVIDE_FOR( config::Line, option::InfoForecolor, Color::Cyan );
   template<>
@@ -62,10 +63,6 @@ namespace pace {
   template<>
   struct config::ProvideFor<config::Line, option::Projection> {
     static option::Projection provide() { return config::Line::bake( option::Except<>() ); }
-  };
-  template<>
-  struct config::ProvideFor<config::Line, option::Lead> {
-    static option::Lead provide() { return { ">" }; }
   };
   template<>
   struct config::ProvideFor<config::Line, option::SpeedUnit> {
