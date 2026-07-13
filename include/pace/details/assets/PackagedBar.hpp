@@ -24,8 +24,6 @@ namespace pace {
           Base::operator=( std::move( rhs ) );
           return *this;
         }
-
-        using Base::draw;
       };
     } // namespace assets
   } // namespace details

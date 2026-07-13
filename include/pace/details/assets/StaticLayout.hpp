@@ -46,14 +46,14 @@ namespace pace {
           case Locus::Echo: {
             if ( !istty || hide_done )
               stages_[Pos] = Locus::Offstage;
-            else if ( !at<Pos>().active() ) {
+            else if ( !this->ElementAt_t<Pos>::active() ) {
               pipeline << console::nextline;
               break;
             }
           }
             PACE__FALLTHROUGH;
           case Locus::Offstage: {
-            if ( !at<Pos>().active() )
+            if ( !this->ElementAt_t<Pos>::active() )
               break;
             /**
              * The newly added progress bar needs to obtain a screen line,
@@ -69,11 +69,11 @@ namespace pace {
           }
             PACE__FALLTHROUGH;
           case Locus::Onstage: {
-            at<Pos>().draw( pipeline, style_off );
+            this->ElementAt_t<Pos>::draw( pipeline, style_off );
 
             if ( istty )
               pipeline << console::linewipe;
-            if ( !at<Pos>().active() ) {
+            if ( !this->ElementAt_t<Pos>::active() ) {
               /**
                * Here are the scenarios where a newline character is output:
                * 1. If the output stream is bound to a terminal and the completed progress bar does not need
