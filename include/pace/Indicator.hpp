@@ -16,7 +16,7 @@ namespace pace {
     static constexpr bool _default_hide_completed = false;
     static constexpr bool _default_auto_style_off = true;
 
-#if PACE__CXX17
+#ifdef __cpp_inline_variables
     static std::atomic<bool> _hide_completed;
     static std::atomic<bool> _auto_style_off;
 #else
@@ -50,7 +50,7 @@ namespace pace {
     virtual void tick() &                                = 0;
     PACE__NODISCARD virtual bool active() const noexcept = 0;
   };
-#if PACE__CXX17
+#ifdef __cpp_inline_variables
   PACE__CXX17_INLINE std::atomic<bool> Indicator::_hide_completed { Indicator::_default_hide_completed };
   PACE__CXX17_INLINE std::atomic<bool> Indicator::_auto_style_off { Indicator::_default_auto_style_off };
 #endif
@@ -58,7 +58,7 @@ namespace pace {
   namespace config {
     inline void hide_completed( bool flag ) noexcept
     {
-#if PACE__CXX17
+#ifdef __cpp_inline_variables
       Indicator::_hide_completed.store( flag, std::memory_order_relaxed );
 #else
       Indicator::_hide_completed().store( flag, std::memory_order_relaxed );
@@ -66,7 +66,7 @@ namespace pace {
     }
     inline bool hide_completed() noexcept
     {
-#if PACE__CXX17
+#ifdef __cpp_inline_variables
       return Indicator::_hide_completed.load( std::memory_order_relaxed );
 #else
       return Indicator::_hide_completed().load( std::memory_order_relaxed );
@@ -78,7 +78,7 @@ namespace pace {
      */
     inline void auto_style_off( bool flag ) noexcept
     {
-#if PACE__CXX17
+#ifdef __cpp_inline_variables
       Indicator::_auto_style_off.store( flag, std::memory_order_relaxed );
 #else
       Indicator::_auto_style_off().store( flag, std::memory_order_relaxed );
@@ -86,7 +86,7 @@ namespace pace {
     }
     inline bool auto_style_off() noexcept
     {
-#if PACE__CXX17
+#ifdef __cpp_inline_variables
       return Indicator::_auto_style_off;
 #else
       return Indicator::_auto_style_off().load( std::memory_order_relaxed );

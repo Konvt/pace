@@ -25,7 +25,7 @@ namespace pace {
         static constexpr auto _default_working_interval =
           std::chrono::duration_cast<types::Tempus>( std::chrono::milliseconds( 40 ) );
 
-#if PACE__CXX17
+#ifdef __cpp_inline_variables
         static std::atomic<types::Tempus> _working_interval;
 #else
         static std::atomic<types::Tempus>& _working_interval() noexcept
@@ -382,7 +382,7 @@ namespace pace {
           return task_ == nullptr;
         }
       };
-#if PACE__CXX17
+#ifdef __cpp_inline_variables
       template<Channel Tag>
       PACE__CXX17_INLINE std::atomic<types::Tempus> Renderer<Tag>::_working_interval {
         Renderer<Tag>::_default_working_interval
