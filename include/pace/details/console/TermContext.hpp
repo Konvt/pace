@@ -1,8 +1,8 @@
 #ifndef PACE_TERM_CONTEXT
 #define PACE_TERM_CONTEXT
 
-#include "../core/Core.hpp"
 #include "../core/Types.hpp"
+#include "../utils/Singleton.hpp"
 #include <atomic>
 #if PACE__WIN
 # include <mutex>
@@ -19,22 +19,15 @@ namespace pace {
   namespace details {
     namespace console {
       template<Channel Sink>
-      class TermContext {
+      class TermContext final : public utils::Singleton<TermContext<Sink>> {
+        friend class utils::Singleton<TermContext>;
+
         std::atomic<bool> cache_ { true };
 
         TermContext() = default;
 
       public:
-        TermContext( const TermContext& )            = delete;
-        TermContext& operator=( const TermContext& ) = delete;
-
         ~TermContext() = default;
-
-        static TermContext& itself() noexcept
-        {
-          static TermContext self;
-          return self;
-        }
 
         // Detect whether the specified output stream is bound to a terminal.
         bool detect() noexcept

@@ -5,6 +5,7 @@
 #include "../concurrent/Util.hpp"
 #include "../console/TermContext.hpp"
 #include "../utils/ScopeGuard.hpp"
+#include "../utils/Singleton.hpp"
 #include "../wrappers/UniqueFunction.hpp"
 #include <atomic>
 #include <thread>
@@ -18,7 +19,9 @@ namespace pace {
       // A global renderer;
       // It ensures that only one thread is executing the rendering at any given time.
       template<Channel Tag>
-      class Renderer final {
+      class Renderer final : public utils::Singleton<Renderer<Tag>> {
+        friend class utils::Singleton<Renderer>;
+
         static constexpr auto _default_working_interval =
           std::chrono::duration_cast<types::Tempus>( std::chrono::milliseconds( 40 ) );
 
@@ -33,15 +36,15 @@ namespace pace {
 #endif
 
         std::atomic<std::uint64_t> quota_ { 0 };
-        concurrent::ExceptionBox box_ {};
-        wrappers::UniqueFunction<void()> task_ {};
-        std::thread runner_ {};
+        concurrent::ExceptionBox box_;
+        wrappers::UniqueFunction<void()> task_;
+        std::thread runner_;
 
 #ifndef __cpp_lib_atomic_wait
-        mutable std::condition_variable cond_var_ {};
-        mutable std::mutex sched_mtx_ {};
+        mutable std::condition_variable cond_var_;
+        mutable std::mutex sched_mtx_;
 #endif
-        mutable std::mutex res_mtx_ {};
+        mutable std::mutex res_mtx_;
 
         /***********************************************************
           Dead
@@ -213,14 +216,6 @@ namespace pace {
 #endif
         }
 
-        static Renderer& itself() noexcept
-        {
-          static Renderer instance;
-          return instance;
-        }
-
-        Renderer( const Renderer& )            = delete;
-        Renderer& operator=( const Renderer& ) = delete;
         ~Renderer() noexcept { shutdown(); }
 
         // `activate` guarantees to perform the render task at least once.

@@ -2,6 +2,7 @@
 #define PACE_OSTREAM
 
 #include "../../exception/Error.hpp"
+#include "../utils/Singleton.hpp"
 #include "CharPipeline.hpp"
 #include <cerrno>
 #ifdef __cpp_lib_span
@@ -44,7 +45,11 @@ namespace pace {
        * the class still uses the method `write` of `std::ostream` in standard library.
        */
       template<Channel Sink>
-      class OStream final : public CharPipeline {
+      class OStream final
+        : public CharPipeline
+        , public utils::Singleton<OStream<Sink>> {
+        friend class utils::Singleton<OStream>;
+
 #if PACE__WIN && !defined( PACE_UTF8 )
         std::vector<WCHAR> wb_buffer_;
         std::vector<types::Char> localized_;
@@ -58,12 +63,6 @@ namespace pace {
 #else
         using SinkBuffer = const std::vector<types::Char>&;
 #endif
-
-        static OStream& itself() noexcept( std::is_nothrow_default_constructible<CharPipeline>::value )
-        {
-          static OStream instance;
-          return instance;
-        }
 
         static PACE__FORCEINLINE void writeout( SinkBuffer bytes )
         {
@@ -110,10 +109,7 @@ namespace pace {
 #endif
         }
 
-        PACE__CXX20_CNSTXPR OStream( const OStream& )            = delete;
-        PACE__CXX20_CNSTXPR OStream& operator=( const OStream& ) = delete;
-        // Intentional non-virtual destructors.
-        PACE__CXX20_CNSTXPR ~OStream()                           = default;
+        PACE__CXX20_CNSTXPR ~OStream() = default;
 
 #if PACE__WIN && !defined( PACE_UTF8 )
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR void release() noexcept
