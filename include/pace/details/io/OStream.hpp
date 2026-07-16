@@ -5,9 +5,6 @@
 #include "../utils/Singleton.hpp"
 #include "CharPipeline.hpp"
 #include <cerrno>
-#ifdef __cpp_lib_span
-# include <span>
-#endif
 #if PACE__WIN
 # include "../console/TermContext.hpp"
 # ifndef NOMINMAX
@@ -29,7 +26,7 @@ namespace pace {
       OStream<Sink>& flush( OStream<Sink>& stream )
       { return stream.flush(); }
       template<Channel Sink>
-      PACE__CXX20_CNSTXPR OStream<Sink>& release( OStream<Sink>& stream ) noexcept
+      PACE__CXX23_CNSTXPR OStream<Sink>& release( OStream<Sink>& stream ) noexcept
       {
         stream.release();
         return stream;
@@ -55,16 +52,10 @@ namespace pace {
         std::vector<types::Char> localized_;
 #endif
 
-        PACE__CXX20_CNSTXPR OStream() = default;
+        PACE__CXX23_CNSTXPR OStream() = default;
 
       public:
-#ifdef __cpp_lib_span
-        using SinkBuffer = std::span<const types::Char>;
-#else
-        using SinkBuffer = const std::vector<types::Char>&;
-#endif
-
-        static PACE__FORCEINLINE void writeout( SinkBuffer bytes )
+        static PACE__FORCEINLINE void writeout( const types::Char* first, types::Size num_to_write )
         {
 #if PACE__WIN
           types::Size total_written = 0;
@@ -81,18 +72,17 @@ namespace pace {
                 std::error_code( errno, std::generic_category() ),
                 charcodes::make_literal( "pace: cannot open the standard output stream" ) );
             WriteFile( ostream,
-                       bytes.data() + total_written,
-                       static_cast<DWORD>( bytes.size() - total_written ),
+                       first + total_written,
+                       static_cast<DWORD>( num_to_write - total_written ),
                        &num_written,
                        nullptr );
             total_written += static_cast<types::Size>( num_written );
-          } while ( total_written < bytes.size() );
+          } while ( total_written < num_to_write );
 #elif PACE__UNIX
           types::Size total_written = 0;
           do {
-            ssize_t num_written = write( utils::to_underlying( Sink ),
-                                         bytes.data() + total_written,
-                                         bytes.size() - total_written );
+            ssize_t num_written =
+              write( utils::to_underlying( Sink ), first + total_written, num_to_write - total_written );
             if ( errno == EINTR )
               num_written = (std::max<ssize_t>)( 0, num_written );
             else if ( num_written < 0 )
@@ -100,30 +90,30 @@ namespace pace {
                 std::error_code( errno, std::generic_category() ),
                 charcodes::make_literal( "pace: write to output stream failed" ) );
             total_written += static_cast<types::Size>( num_written );
-          } while ( total_written < bytes.size() );
+          } while ( total_written < num_to_write );
 #else
           if PACE__CXX17_CNSTXPR ( Sink == Channel::Stdout )
-            std::cout.write( bytes.data(), bytes.size() ).flush();
+            std::cout.write( first, num_to_write ).flush();
           else
-            std::cerr.write( bytes.data(), bytes.size() ).flush();
+            std::cerr.write( first, num_to_write ).flush();
 #endif
         }
 
         PACE__CXX20_CNSTXPR ~OStream() = default;
 
 #if PACE__WIN && !defined( PACE_UTF8 )
-        PACE__FORCEINLINE PACE__CXX20_CNSTXPR void release() noexcept
+        PACE__FORCEINLINE PACE__CXX23_CNSTXPR void release() noexcept
         {
-          CharPipeline::release();
+          this->CharPipeline::release();
           wb_buffer_.clear();
           wb_buffer_.shrink_to_fit();
           localized_.clear();
           localized_.shrink_to_fit();
         }
 
-        PACE__FORCEINLINE PACE__CXX20_CNSTXPR void clear() & noexcept
+        PACE__FORCEINLINE PACE__CXX23_CNSTXPR void clear() & noexcept
         {
-          CharPipeline::clear();
+          this->CharPipeline::clear();
           wb_buffer_.clear();
           localized_.clear();
         }
@@ -131,35 +121,26 @@ namespace pace {
 
         OStream& flush() &
         {
-          if ( this->buffer_.empty() )
+          if ( this->empty() )
             return *this;
 
 #if PACE__WIN && !defined( PACE_UTF8 )
-          if ( !console::TermContext<Sink>::itself().connected() ) {
-            writeout( this->buffer_ );
-            CharPipeline::clear();
-            return *this;
-          }
           const auto codepage = GetConsoleOutputCP();
           if ( codepage == CP_UTF8 ) {
-            writeout( this->buffer_ );
-            CharPipeline::clear();
+            writeout( this->data(), this->size() );
+            this->CharPipeline::clear();
             return *this;
           }
 
           // The target type char is not subject to strict alias restrictions.
-          const auto wlen = MultiByteToWideChar( CP_UTF8,
-                                                 0,
-                                                 reinterpret_cast<LPCCH>( buffer_.data() ),
-                                                 static_cast<int>( buffer_.size() ),
-                                                 nullptr,
-                                                 0 );
+          const auto wlen =
+            MultiByteToWideChar( CP_UTF8, 0, this->data(), static_cast<int>( this->size() ), nullptr, 0 );
           PACE__TRUST( wlen > 0 );
           wb_buffer_.resize( static_cast<types::Size>( wlen ) );
           MultiByteToWideChar( CP_UTF8,
                                0,
-                               reinterpret_cast<LPCCH>( buffer_.data() ),
-                               static_cast<int>( buffer_.size() ),
+                               this->data(),
+                               static_cast<int>( this->size() ),
                                wb_buffer_.data(),
                                wlen );
 
@@ -175,15 +156,15 @@ namespace pace {
                                mblen,
                                nullptr,
                                nullptr );
-          writeout( localized_ );
+          writeout( localized_.data(), localized_.size() );
 #else
-          writeout( this->buffer_ );
+          writeout( this->data(), this->size() );
 #endif
           clear();
           return *this;
         }
 
-        friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR OStream& operator<<( OStream& stream,
+        friend PACE__FORCEINLINE PACE__CXX23_CNSTXPR OStream& operator<<( OStream& stream,
                                                                           OStream& ( *fnptr )(OStream&))
         {
           PACE__TRUST( fnptr != nullptr );

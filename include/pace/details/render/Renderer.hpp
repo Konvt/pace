@@ -181,7 +181,7 @@ namespace pace {
 
         void shutdown() noexcept
         {
-          concurrent::atomic_commit_all( state_, Phase::Dead, std::memory_order_acq_rel );
+          concurrent::atomic_commit_all( state_, Phase::Dead );
 #ifndef __cpp_lib_atomic_wait
           {
             std::lock_guard<std::mutex> lock { sched_mtx_ };

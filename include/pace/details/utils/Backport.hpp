@@ -30,8 +30,15 @@ namespace pace {
       using std::make_unique;
 #else
       template<typename T, typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX23_CNSTXPR std::unique_ptr<T> make_unique( Args&&... args )
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX23_CNSTXPR
+        typename std::enable_if<!std::is_array<T>::value, std::unique_ptr<T>>::type make_unique(
+          Args&&... args )
       { return std::unique_ptr<T>( ::new T( std::forward<Args>( args )... ) ); }
+      template<typename T, typename... Args>
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX23_CNSTXPR
+        typename std::enable_if<std::is_array<T>::value, std::unique_ptr<T>>::type
+        make_unique( size_t n )
+      { return std::unique_ptr<T>( ::new typename std::remove_extent<T>::type[n] ); }
 #endif
 
 #if PACE__CXX14

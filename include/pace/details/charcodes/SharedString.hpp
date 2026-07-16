@@ -422,7 +422,7 @@ namespace pace {
           PACE__CXX20_CNSTXPR ~CoWBlock() = default;
 
           // it's extremely surprising that the type alias `pointer` of the allocator can be a fancy pointer
-          PACE__FORCEINLINE constexpr pointer str() const noexcept { return utils::to_address( ptr_ ); }
+          PACE__FORCEINLINE constexpr pointer str() const noexcept { return ptr_; }
         };
         union Payload {
           Char _; // this memeber is only used to control alignment

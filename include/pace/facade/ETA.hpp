@@ -100,7 +100,7 @@ namespace pace {
           return pipeline << unkown_char();
 
         bool overflow = false;
-        details::types::Tempus remaining_time;
+        details::types::Tempus remaining_time {};
         if ( params.task_quota_ > 0 && params.tasks_completed_ > 0 ) {
           auto time_per_task = params.elapsed_time_ / params.tasks_completed_;
           if ( time_per_task.count() == 0 )

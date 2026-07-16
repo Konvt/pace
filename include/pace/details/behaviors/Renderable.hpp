@@ -153,6 +153,7 @@ namespace pace {
               this->do_boot();
             }
           }
+            PACE__FALLTHROUGH;
           case Phase::Awake:   PACE__FALLTHROUGH;
           case Phase::Refresh: {
             std::forward<F>( ticker )();
