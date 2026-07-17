@@ -23,9 +23,9 @@ namespace pace {
         frame_cnt %= this->lead_.size();
         PACE__ASSERT( this->len_longest_lead_ >= this->lead_[frame_cnt].width() );
 
-        pipeline << this->clear_then_dye(
-          details::console::Dualcolor( this->lead_forecolor_, this->lead_backcolor_ ),
-          params.style_off_ );
+        if ( !params.style_off_ && this->colorful() )
+          pipeline << details::console::resetfgcolor << details::console::resetbgcolor
+                   << details::console::Dualcolor( this->lead_forecolor_, this->lead_backcolor_ );
         details::render::align_to<details::render::TextAlign::Left>( std::back_inserter( pipeline ),
                                                                      this->lead_[frame_cnt],
                                                                      this->len_longest_lead_ );

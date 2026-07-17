@@ -24,10 +24,10 @@ namespace pace {
 
         const auto frame_cnt = static_cast<std::uint64_t>( params.frame_count_ * this->shift_factor_ );
 
-        pipeline << this->clear_then_dye(
-          details::console::Dualcolor( this->start_forecolor_, this->start_backcolor_ ),
-          params.style_off_ )
-                 << this->starting_;
+        if ( !params.style_off_ && this->colorful() )
+          pipeline << details::console::resetfgcolor << details::console::resetbgcolor
+                   << details::console::Dualcolor( this->start_forecolor_, this->start_backcolor_ );
+        pipeline << this->starting_;
 
         PACE__ASSERT( this->filler_.width() > 0 );
         if ( !this->lead_.empty() ) {
@@ -43,18 +43,18 @@ namespace pace {
             if ( current_lead.width() <= len_vacancy ) {
               const auto len_right_fill = len_vacancy - current_lead.width();
 
-              pipeline << this->clear_then_dye(
-                details::console::Dualcolor( this->filler_forecolor_, this->filler_backcolor_ ),
-                params.style_off_ );
+              if ( !params.style_off_ && this->colorful() )
+                pipeline << details::console::resetfgcolor << details::console::resetbgcolor
+                         << details::console::Dualcolor( this->filler_forecolor_, this->filler_backcolor_ );
               pipeline.append( this->filler_, virtual_point / this->filler_.width() )
                 .append( ' ', virtual_point % this->filler_.width() );
-              pipeline << this->clear_then_dye(
-                details::console::Dualcolor( this->lead_forecolor_, this->lead_backcolor_ ),
-                params.style_off_ )
-                       << current_lead
-                       << this->clear_then_dye(
-                            details::console::Dualcolor( this->filler_forecolor_, this->filler_backcolor_ ),
-                            params.style_off_ );
+              if ( !params.style_off_ && this->colorful() )
+                pipeline << details::console::resetfgcolor << details::console::resetbgcolor
+                         << details::console::Dualcolor( this->lead_forecolor_, this->lead_backcolor_ );
+              pipeline << current_lead;
+              if ( !params.style_off_ && this->colorful() )
+                pipeline << details::console::resetfgcolor << details::console::resetbgcolor
+                         << details::console::Dualcolor( this->filler_forecolor_, this->filler_backcolor_ );
               pipeline.append( ' ', len_right_fill % this->filler_.width() )
                 .append( this->filler_, len_right_fill / this->filler_.width() );
             } else {
@@ -66,19 +66,19 @@ namespace pace {
 #endif
               const auto len_left_fill = virtual_point - right_part.width();
 
-              pipeline << this->clear_then_dye(
-                details::console::Dualcolor( this->lead_forecolor_, this->lead_backcolor_ ),
-                params.style_off_ )
-                       << right_part
-                       << this->clear_then_dye(
-                            details::console::Dualcolor( this->filler_forecolor_, this->filler_backcolor_ ),
-                            params.style_off_ );
+              if ( !params.style_off_ && this->colorful() )
+                pipeline << details::console::resetfgcolor << details::console::resetbgcolor
+                         << details::console::Dualcolor( this->lead_forecolor_, this->lead_backcolor_ );
+              pipeline << right_part;
+              if ( !params.style_off_ && this->colorful() )
+                pipeline << details::console::resetfgcolor << details::console::resetbgcolor
+                         << details::console::Dualcolor( this->filler_forecolor_, this->filler_backcolor_ );
               pipeline.append( ' ', len_left_fill % this->filler_.width() )
                 .append( this->filler_, len_left_fill / this->filler_.width() );
 
-              pipeline << this->clear_then_dye(
-                details::console::Dualcolor( this->lead_forecolor_, this->lead_backcolor_ ),
-                params.style_off_ );
+              if ( !params.style_off_ && this->colorful() )
+                pipeline << details::console::resetfgcolor << details::console::resetbgcolor
+                         << details::console::Dualcolor( this->lead_forecolor_, this->lead_backcolor_ );
               pipeline.append( left_part ).append( ' ', len_vacancy - left_part.width() );
             }
           } else
@@ -86,17 +86,17 @@ namespace pace {
         } else if ( this->filler_.empty() )
           pipeline.append( ' ', this->bar_width_ );
         else {
-          pipeline << this->clear_then_dye(
-            details::console::Dualcolor( this->filler_forecolor_, this->filler_backcolor_ ),
-            params.style_off_ );
+          if ( !params.style_off_ && this->colorful() )
+            pipeline << details::console::resetfgcolor << details::console::resetbgcolor
+                     << details::console::Dualcolor( this->filler_forecolor_, this->filler_backcolor_ );
           pipeline.append( this->filler_, this->bar_width_ / this->filler_.width() )
             .append( ' ', this->bar_width_ % this->filler_.width() );
         }
 
-        return pipeline << this->clear_then_dye(
-                 details::console::Dualcolor( this->end_forecolor_, this->end_backcolor_ ),
-                 params.style_off_ )
-                        << this->ending_;
+        if ( !params.style_off_ && this->colorful() )
+          pipeline << details::console::resetfgcolor << details::console::resetbgcolor
+                   << details::console::Dualcolor( this->end_forecolor_, this->end_backcolor_ );
+        return pipeline << this->ending_;
       }
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR details::types::Size fixed_length() const noexcept

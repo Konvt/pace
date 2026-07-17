@@ -422,7 +422,9 @@ namespace pace {
           PACE__CXX20_CNSTXPR ~CoWBlock() = default;
 
           // it's extremely surprising that the type alias `pointer` of the allocator can be a fancy pointer
-          PACE__FORCEINLINE constexpr const Char* str() const noexcept { return utils::to_address( ptr_ ); }
+          PACE__FORCEINLINE PACE__CXX14_CNSTXPR Char* str() & noexcept { return utils::to_address( ptr_ ); }
+          PACE__FORCEINLINE PACE__CXX14_CNSTXPR Char* str() && noexcept { return utils::to_address( ptr_ ); }
+          PACE__FORCEINLINE constexpr const Char* str() const& noexcept { return utils::to_address( ptr_ ); }
         };
         union Payload {
           Char _; // this memeber is only used to control alignment
@@ -531,7 +533,7 @@ namespace pace {
                                                                size_type capacity )
         {
           PACE__TRUST( capacity > count );
-          const auto cow = make_cow( capacity );
+          auto cow = make_cow( capacity );
           Traits::copy( cow.str(), first, count );
           Traits::assign( cow.str()[count], Char() );
           return cow;

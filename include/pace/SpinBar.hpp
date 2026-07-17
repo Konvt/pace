@@ -85,9 +85,9 @@ namespace pace {
           this->font_effect( pipeline, params.style_off_ );
 
           if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() ) {
-            pipeline << this->with_dye( console::Dualcolor( this->info_forecolor_, this->info_backcolor_ ),
-                                        params.style_off_ )
-                     << this->l_border_;
+            if ( !params.style_off_ && this->colorful() )
+              pipeline << console::Dualcolor( this->info_forecolor_, this->info_backcolor_ );
+            pipeline << this->l_border_;
           }
           // For SpinBar, we manually remove the divider between the Lead and the Percent.
           this->traits::BaseOf_t<typename Config::layout_type, aspects::Prefix>::build( pipeline, params );
@@ -105,10 +105,10 @@ namespace pace {
 
           this->traits::BaseOf_t<typename Config::layout_type, aspects::Postfix>::build( pipeline, params );
           if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() ) {
-            pipeline << this->clear_then_dye(
-              console::Dualcolor( this->info_forecolor_, this->info_backcolor_ ),
-              params.style_off_ )
-                     << this->r_border_;
+            if ( !params.style_off_ && this->colorful() )
+              pipeline << console::resetfgcolor << console::resetbgcolor
+                       << console::Dualcolor( this->info_forecolor_, this->info_backcolor_ );
+            pipeline << this->r_border_;
           }
 
           return this->reset_style( pipeline, params.style_off_ );

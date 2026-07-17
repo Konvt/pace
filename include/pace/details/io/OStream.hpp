@@ -165,11 +165,8 @@ namespace pace {
         }
 
         friend PACE__FORCEINLINE PACE__CXX23_CNSTXPR OStream& operator<<( OStream& stream,
-                                                                          OStream& ( *fnptr )(OStream&))
-        {
-          PACE__TRUST( fnptr != nullptr );
-          return fnptr( stream );
-        }
+                                                                          OStream& ( &manipulator )(OStream&))
+        { return manipulator( stream ); }
       };
     } // namespace io
   } // namespace details

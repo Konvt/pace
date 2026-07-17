@@ -4,9 +4,7 @@
 #include "../../config/Provider.hpp"
 #include "../concurrent/SharedLock.hpp"
 #include "../concurrent/SharedMutex.hpp"
-#include "../console/Colorize.hpp"
 #include "../console/Escode.hpp"
-#include "../wrappers/Brush.hpp"
 #include "../wrappers/OptionPacket.hpp"
 #include <bitset>
 #include <mutex>
@@ -69,8 +67,7 @@ namespace pace {
         std::bitset<8> rules_;
 
       protected:
-        PACE__FORCEINLINE PACE__CXX20_CNSTXPR io::CharPipeline& font_effect( io::CharPipeline& pipeline,
-                                                                             bool style_off ) const
+        PACE__CXX20_CNSTXPR io::CharPipeline& font_effect( io::CharPipeline& pipeline, bool style_off ) const
         { // This method should only be called by the rendering engine
 #ifdef PACE_NOSTYLE
           (void)style_off;
@@ -78,19 +75,19 @@ namespace pace {
           if ( style_off )
             return pipeline;
           if ( rules_[utils::to_underlying( Chroma::Bold )] )
-            pipeline << console::fontbold();
+            pipeline << console::fontbold;
           if ( rules_[utils::to_underlying( Chroma::Faint )] )
-            pipeline << console::fontfaint();
+            pipeline << console::fontfaint;
           if ( rules_[utils::to_underlying( Chroma::Italic )] )
-            pipeline << console::fontitalic();
+            pipeline << console::fontitalic;
           if ( rules_[utils::to_underlying( Chroma::Underline )] )
-            pipeline << console::fontunderline();
+            pipeline << console::fontunderline;
           if ( rules_[utils::to_underlying( Chroma::Inverse )] )
-            pipeline << console::fontinverse();
+            pipeline << console::fontinverse;
           if ( rules_[utils::to_underlying( Chroma::Hidden )] )
-            pipeline << console::fonthidden();
+            pipeline << console::fonthidden;
           if ( rules_[utils::to_underlying( Chroma::Crossed )] )
-            pipeline << console::fontcrossed();
+            pipeline << console::fontcrossed;
 #endif
           return pipeline;
         }
@@ -101,59 +98,13 @@ namespace pace {
           (void)style_off;
 #else
           if ( !style_off && rules_.any() )
-            pipeline << console::resetstyle();
+            pipeline << console::resetstyle;
 #endif
           return pipeline;
         }
 
-        template<typename Op>
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
-          typename std::enable_if<traits::AnyOf<std::is_same<Op, console::Forecolor>,
-                                                std::is_same<Op, console::Backcolor>,
-                                                std::is_same<Op, console::Dualcolor>>::value,
-                                  wrappers::Brush<Op>>::type
-          with_dye( Op rgb, bool style_off ) const
-        {
-#ifdef PACE_NOSTYLE
-          (void)rgb;
-          (void)style_off;
-#else
-          if ( !style_off && rules_[utils::to_underlying( Chroma::Colored )] )
-            return { std::move( rgb ) };
-#endif
-          return {};
-        }
-
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
-          wrappers::Brush<console::Escode, wrappers::Brush<console::Escode>>
-          with_clear( bool style_off ) const
-        {
-#ifdef PACE_NOSTYLE
-          (void)style_off;
-#else
-          if ( !style_off && rules_[utils::to_underlying( Chroma::Colored )] )
-            return { console::resetfgcolor(), { console::resetbgcolor() } };
-#endif
-          return { {} };
-        }
-
-        template<typename Op>
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR typename std::enable_if<
-          traits::AnyOf<std::is_same<Op, console::Forecolor>,
-                        std::is_same<Op, console::Backcolor>,
-                        std::is_same<Op, console::Dualcolor>>::value,
-          wrappers::Brush<console::Escode, wrappers::Brush<console::Escode, wrappers::Brush<Op>>>>::type
-          clear_then_dye( Op rgb, bool style_off ) const
-        {
-#ifdef PACE_NOSTYLE
-          (void)rgb;
-          (void)style_off;
-#else
-          if ( !style_off && rules_[utils::to_underlying( Chroma::Colored )] )
-            return with_clear( style_off ).append( std::move( rgb ) );
-#endif
-          return { { {} } };
-        }
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR bool colorful() const noexcept
+        { return rules_[utils::to_underlying( Chroma::Colored )]; }
 
         template<typename... Options>
         PACE__CXX14_CNSTXPR RenderRule( traits::TypeSet<Options...> tag ) : Base( tag )

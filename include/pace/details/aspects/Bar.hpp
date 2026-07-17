@@ -2,6 +2,7 @@
 #define PACE_BAR
 
 #include "../charcodes/U8Raw.hpp"
+#include "../console/TrueColor.hpp"
 #include "../traits/C3.hpp"
 #include "RenderRule.hpp"
 

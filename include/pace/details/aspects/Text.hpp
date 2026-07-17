@@ -65,9 +65,10 @@ namespace pace {
         {
           if ( prefix_.empty() )
             return pipeline;
-          return pipeline << this->clear_then_dye( console::Dualcolor( prfx_forecolor_, prfx_backcolor_ ),
-                                                   params.style_off_ )
-                          << prefix_ << ' ';
+          if ( !params.style_off_ && this->colorful() )
+            pipeline << console::resetfgcolor << console::resetbgcolor
+                     << console::Dualcolor( prfx_forecolor_, prfx_backcolor_ );
+          return pipeline << prefix_ << ' ';
         }
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length() const noexcept
@@ -148,9 +149,10 @@ namespace pace {
         {
           if ( postfix_.empty() )
             return pipeline;
-          return pipeline << this->clear_then_dye( console::Dualcolor( pstfx_forecolor_, pstfx_backcolor_ ),
-                                                   params.style_off_ )
-                          << ' ' << postfix_;
+          if ( !params.style_off_ && this->colorful() )
+            pipeline << console::resetfgcolor << console::resetbgcolor
+                     << console::Dualcolor( pstfx_forecolor_, pstfx_backcolor_ );
+          return pipeline << ' ' << postfix_;
         }
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length() const noexcept

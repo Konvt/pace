@@ -3,6 +3,7 @@
 
 #include "../charcodes/U8Text.hpp"
 #include "../concurrent/SharedMutex.hpp"
+#include "../console/TrueColor.hpp"
 #include "../traits/C3.hpp"
 #include "../wrappers/OptionPacket.hpp"
 #include "Animation.hpp"

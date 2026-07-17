@@ -4,6 +4,7 @@
 #include "../details/aspects/Schema.hpp"
 #include "../details/aspects/Segment.hpp"
 #include "../details/aspects/Text.hpp"
+#include <vector>
 
 namespace pace {
   namespace option {

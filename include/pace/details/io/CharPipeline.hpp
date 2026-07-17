@@ -55,7 +55,7 @@ namespace pace {
         { return start_.get(); }
         PACE__FORCEINLINE PACE__CXX23_CNSTXPR types::Char* data() & noexcept { return start_.get(); }
         PACE__FORCEINLINE PACE__CXX23_CNSTXPR types::Char* data() && noexcept { return start_.get(); }
-        PACE__FORCEINLINE PACE__CXX23_CNSTXPR types::Size size() const noexcept
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX23_CNSTXPR types::Size size() const noexcept
         { return static_cast<types::Size>( current_ - start_.get() ); }
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX23_CNSTXPR bool empty() const noexcept
         { return start_.get() == current_; }
@@ -121,21 +121,19 @@ namespace pace {
           return *this;
         }
 
-        PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& apply( CharPipeline& ( *fnptr )(CharPipeline&),
-                                                                   types::Size num = 1 ) &
+        PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& apply(
+          CharPipeline& ( &manipulator )(CharPipeline&),
+          types::Size num = 1 ) &
         {
           while ( num-- )
-            fnptr( *this );
+            manipulator( *this );
           return *this;
         }
 
         friend PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& operator<<(
           CharPipeline& stream,
-          CharPipeline& ( *fnptr )(CharPipeline&))
-        {
-          PACE__TRUST( fnptr != nullptr );
-          return fnptr( stream );
-        }
+          CharPipeline& ( &manipulator )(CharPipeline&))
+        { return manipulator( stream ); }
 
         template<typename T>
         friend PACE__FORCEINLINE PACE__CXX23_CNSTXPR typename std::enable_if<
