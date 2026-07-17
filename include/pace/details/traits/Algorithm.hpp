@@ -144,7 +144,7 @@ namespace pace {
         template<typename First, typename... Rests>
         struct Helper : Identity<First> {};
         template<typename First, typename Second, typename... Tail>
-        struct Helper<First, Second, Tail...> : merge<Combine_t<First, Second>, Tail...> {};
+        struct Helper<First, Second, Tail...> : Merge<Combine_t<First, Second>, Tail...> {};
 
       public:
         using type = typename Helper<FirstCollection, TailCollections...>::type;

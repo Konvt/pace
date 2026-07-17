@@ -143,10 +143,8 @@ namespace pace {
                 } break;
 
                 case Phase::Shot: {
-                  {
-                    std::lock_guard<std::mutex> lock { res_mtx_ };
-                    task_();
-                  }
+                  std::lock_guard<std::mutex> lock { res_mtx_ };
+                  task_();
                   concurrent::atomic_commit_all( state_,
                                                  Phase::Shot,
                                                  Phase::Idle,
@@ -235,7 +233,7 @@ namespace pace {
           PACE__ASSERT( task_ != nullptr );
           // The operations below are all thread safe without locking.
           box_.rethrow();
-          const auto desired = +[]() noexcept {
+          PACE__CXX17_CNSTXPR const auto desired = []() noexcept {
             if PACE__CXX17_CNSTXPR ( Mode == Policy::Async )
               return Phase::Warmup;
             else if PACE__CXX17_CNSTXPR ( Mode == Policy::Signal )
@@ -251,7 +249,10 @@ namespace pace {
 #ifdef __cpp_lib_atomic_wait
               state_.wait( desired(), std::memory_order_relaxed );
 #else
-              cond_var_.notify_one();
+              {
+                std::lock_guard<std::mutex> lock { sched_mtx_ };
+                cond_var_.notify_one();
+              }
               concurrent::spin_wait(
                 [&]() noexcept { return state_.load( std::memory_order_relaxed ) != desired(); } );
 #endif
@@ -308,7 +309,10 @@ namespace pace {
 #else
           const auto state_transfer = [this]( Phase expected, Phase desired ) noexcept {
             if ( state_.compare_exchange_strong( expected, desired, std::memory_order_acquire ) ) {
-              cond_var_.notify_one();
+              {
+                std::lock_guard<std::mutex> lock { sched_mtx_ };
+                cond_var_.notify_one();
+              }
               concurrent::spin_wait(
                 [&]() noexcept { return state_.load( std::memory_order_relaxed ) != desired; } );
             }
@@ -339,7 +343,10 @@ namespace pace {
 #ifdef __cpp_lib_atomic_wait
             state_.wait( Phase::Asleep, std::memory_order_relaxed );
 #else
-            cond_var_.notify_all();
+            {
+              std::lock_guard<std::mutex> lock { sched_mtx_ };
+              cond_var_.notify_all();
+            }
             concurrent::spin_wait(
               [this]() noexcept { return state_.load( std::memory_order_relaxed ) != Phase::Asleep; } );
 #endif

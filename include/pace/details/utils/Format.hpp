@@ -32,7 +32,7 @@ namespace pace {
         auto pos        = buffer.size();
         const bool sign = std::is_signed<Integer>::value && val < 0;
         if ( sign )
-          val = ( -( val + 1 ) ) + 1;
+          val = ( Integer( 0 ) - ( val + 1 ) ) + 1;
         do {
           buffer[--pos] = static_cast<types::Char>( '0' + ( val % 10 ) );
           val /= 10;
