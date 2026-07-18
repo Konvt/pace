@@ -39,7 +39,7 @@ namespace pace {
           PACE__ASSERT( executor.empty() == false );
           if ( !forced )
             executor.template trigger<Mode>();
-          executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().release(); } );
+          executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().reset(); } );
         }
         virtual void do_boot() &
         {

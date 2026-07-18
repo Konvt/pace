@@ -28,7 +28,7 @@ namespace pace {
       template<Channel Sink>
       PACE__CXX23_CNSTXPR OStream<Sink>& release( OStream<Sink>& stream ) noexcept
       {
-        stream.release();
+        stream.reset();
         return stream;
       }
 
@@ -102,9 +102,9 @@ namespace pace {
         PACE__CXX20_CNSTXPR ~OStream() = default;
 
 #if PACE__WIN && !defined( PACE_UTF8 )
-        PACE__FORCEINLINE PACE__CXX23_CNSTXPR void release() noexcept
+        PACE__FORCEINLINE PACE__CXX23_CNSTXPR void reset() noexcept
         {
-          this->CharPipeline::release();
+          this->CharPipeline::reset();
           wb_buffer_.clear();
           wb_buffer_.shrink_to_fit();
           localized_.clear();

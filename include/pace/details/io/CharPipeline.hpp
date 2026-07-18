@@ -17,7 +17,7 @@ namespace pace {
 
         PACE__CXX23_CNSTXPR void grow( types::Size desired )
         {
-          PACE__ASSERT( desired > 0 );
+          PACE__TRUST( desired > 0 );
           const auto capacity = static_cast<types::Size>( end_ - start_.get() );
           auto new_capacity   = capacity == 0 ? _bootstrap_cap : capacity * 2;
           while ( new_capacity < capacity + desired )
@@ -54,7 +54,9 @@ namespace pace {
         PACE__FORCEINLINE PACE__CXX23_CNSTXPR const types::Char* data() const& noexcept
         { return start_.get(); }
         PACE__FORCEINLINE PACE__CXX23_CNSTXPR types::Char* data() & noexcept { return start_.get(); }
-        PACE__FORCEINLINE PACE__CXX23_CNSTXPR types::Char* data() && noexcept { return start_.get(); }
+
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX23_CNSTXPR types::Size capacity() const noexcept
+        { return static_cast<types::Size>( end_ - start_.get() ); }
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX23_CNSTXPR types::Size size() const noexcept
         { return static_cast<types::Size>( current_ - start_.get() ); }
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX23_CNSTXPR bool empty() const noexcept
@@ -62,7 +64,7 @@ namespace pace {
 
         PACE__FORCEINLINE PACE__CXX23_CNSTXPR void clear() & noexcept { current_ = start_.get(); }
         // Releases the buffer space completely
-        PACE__FORCEINLINE PACE__CXX23_CNSTXPR void release() noexcept
+        PACE__FORCEINLINE PACE__CXX23_CNSTXPR void reset() noexcept
         {
           start_.reset();
           end_ = current_ = nullptr;

@@ -119,7 +119,7 @@ namespace pace {
           std::lock_guard<std::mutex> lock { mtx_ };
           if ( alive_cnt_.load( std::memory_order_relaxed ) == 0 ) {
             state_.store( Phase::Stop, std::memory_order_relaxed );
-            executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().release(); } );
+            executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().reset(); } );
           }
         }
         void do_boot() & final

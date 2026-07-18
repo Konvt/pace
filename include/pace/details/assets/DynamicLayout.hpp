@@ -163,7 +163,7 @@ namespace pace {
               }
             }
             render::Renderer<Sink>::itself().dismiss_then(
-              []() noexcept { io::OStream<Sink>::itself().release(); } );
+              []() noexcept { io::OStream<Sink>::itself().reset(); } );
           }
           items_.clear();
           state_.store( Phase::Stop, std::memory_order_relaxed );
@@ -273,7 +273,7 @@ namespace pace {
           if ( items_.empty() ) {
             lock2.unlock();
             state_.store( Phase::Stop, std::memory_order_relaxed );
-            executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().release(); } );
+            executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().reset(); } );
           }
         }
 
