@@ -86,7 +86,7 @@ namespace pace {
    {                                                                                             \
    public:                                                                                       \
      PACE__CXX20_CNSTXPR StructName() = default;                                                 \
-     PACE__CXX20_CNSTXPR StructName( pace::details::types::String ParamName )                    \
+     PACE__CXX20_CNSTXPR StructName( std::string ParamName )                                     \
        : pace::details::wrappers::OptionPacket<ValueType>( ValueType( std::move( ParamName ) ) ) \
      {}                                                                                          \
      PACE__CXX20_CNSTXPR StructName( pace::details::charcodes::U8StringView ParamName )          \
@@ -102,7 +102,7 @@ namespace pace {
                                                                                                  \
    public:                                                                                       \
      PACE__CXX20_CNSTXPR StructName() = default;                                                 \
-     PACE__CXX20_CNSTXPR StructName( pace::details::types::String ParamName )                    \
+     PACE__CXX20_CNSTXPR StructName( std::string ParamName )                                     \
        : pace::details::wrappers::OptionPacket<ValueType>( ValueType( std::move( ParamName ) ) ) \
      {}                                                                                          \
    }

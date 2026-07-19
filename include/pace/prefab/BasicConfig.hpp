@@ -80,8 +80,8 @@ namespace pace {
 
       friend PACE__FORCEINLINE void unpack( BasicConfig& self, option::Projection proj ) noexcept
       {
-        const details::types::Size length = std::min( sizeof...( Facades ), proj.value().size() );
-        for ( details::types::Size i = 0; i < length; ++i )
+        const std::size_t length = std::min( sizeof...( Facades ), proj.value().size() );
+        for ( std::size_t i = 0; i < length; ++i )
           self.projection_.set( i, proj.value()[i] );
       }
       template<template<typename...> class... Fs>

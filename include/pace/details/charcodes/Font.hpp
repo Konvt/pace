@@ -11,10 +11,10 @@ namespace pace {
       // not its visual index on screen.
       struct Font {
         // The starting offset (in byte) and the rendered width (in character) of the encoded character.
-        types::Size offset_;
+        std::size_t offset_;
         types::GlyphWidth width_;
 
-        constexpr Font( types::Size offset, types::GlyphWidth width ) noexcept
+        constexpr Font( std::size_t offset, types::GlyphWidth width ) noexcept
           : offset_ { offset }, width_ { width }
         {}
       };

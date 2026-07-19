@@ -68,7 +68,7 @@ namespace pace {
         console::TrueColor end_forecolor_, end_backcolor_;
         std::uint16_t bar_width_;
 
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length() const noexcept
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length() const noexcept
         { return starting_.width() + ending_.width(); }
 
         template<typename... Options>
@@ -101,14 +101,14 @@ namespace pace {
   return static_cast<ReturnType>( *this )
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
-        Derived& starting( types::String _starting ) &
+        Derived& starting( std::string _starting ) &
         { PACE__METHOD( Starting, _starting, Derived&, std::move ); }
-        Derived&& starting( types::String _starting ) &&
+        Derived&& starting( std::string _starting ) &&
         { PACE__METHOD( Starting, _starting, Derived&&, std::move ); }
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
-        Derived& ending( types::String _ending ) &
+        Derived& ending( std::string _ending ) &
         { PACE__METHOD( Ending, _ending, Derived&, std::move ); }
-        Derived&& ending( types::String _ending ) &&
+        Derived&& ending( std::string _ending ) &&
         { PACE__METHOD( Ending, _ending, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
         Derived& starting( charcodes::U8StringView _starting ) &

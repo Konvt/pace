@@ -8,7 +8,7 @@
 namespace pace {
   namespace details {
     namespace traits {
-      template<types::Size Nth, typename... Ts>
+      template<std::size_t Nth, typename... Ts>
       struct TypeAt
 #if PACE__BUILTIN( __type_pack_element )
       {
@@ -21,7 +21,7 @@ namespace pace {
         : std::tuple_element<Nth, std::tuple<Ts...>> {
       };
 #endif
-      template<types::Size Nth, typename... Ts>
+      template<std::size_t Nth, typename... Ts>
       using TypeAt_t = typename TypeAt<Nth, Ts...>::type;
       // After C++26, we can use `Ts...[Pos]`.
 
@@ -34,16 +34,16 @@ namespace pace {
       template<template<typename...> class Target, template<typename...> class... Tmps>
       struct IndexIn {
       private:
-        template<types::Size I,
+        template<std::size_t I,
                  template<typename...> class T,
                  template<typename...> class Head,
                  template<typename...> class... Tail>
         struct Helper : Helper<I + 1, T, Tail...> {};
-        template<types::Size I, template<typename...> class T, template<typename...> class... Tail>
-        struct Helper<I, T, T, Tail...> : std::integral_constant<types::Size, I> {};
+        template<std::size_t I, template<typename...> class T, template<typename...> class... Tail>
+        struct Helper<I, T, T, Tail...> : std::integral_constant<std::size_t, I> {};
 
       public:
-        static constexpr types::Size value = Helper<0, Target, Tmps...>::value;
+        static constexpr std::size_t value = Helper<0, Target, Tmps...>::value;
       };
 
       template<typename From, template<template<typename...> class...> class To>
@@ -68,7 +68,7 @@ namespace pace {
       private:
         template<typename Front, typename Back>
         struct Helper;
-        template<types::Size... L, types::Size... R>
+        template<std::size_t... L, std::size_t... R>
         struct Helper<IndexSequence<L...>, IndexSequence<R...>> {
           using left_type  = Collection<TypeAt_t<L, Ts...>...>;
           using right_type = Collection<TypeAt_t<( sizeof...( Ts ) / 2 ) + R, Ts...>...>;

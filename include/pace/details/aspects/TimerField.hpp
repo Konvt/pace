@@ -13,7 +13,7 @@ namespace pace {
         union Field {
           charcodes::U8Raw text_;
           struct Clock {
-            types::Size width_ {};
+            std::size_t width_ {};
             charcodes::U8Char padding_;
 
 #if PACE__CXX23
@@ -21,7 +21,7 @@ namespace pace {
 #else
             constexpr Clock() noexcept {}
 #endif
-            constexpr Clock( types::Size width, charcodes::U8Char padding ) noexcept
+            constexpr Clock( std::size_t width, charcodes::U8Char padding ) noexcept
               : width_ { width }, padding_ { padding }
             {}
           } clock_;
@@ -35,12 +35,12 @@ namespace pace {
         PACE__NODISCARD static PACE__CXX20_CNSTXPR inline std::vector<TimerField> parse(
           charcodes::StringView fmt_str );
 
-        PACE__CXX20_CNSTXPR TimerField( types::String&& text )
+        PACE__CXX20_CNSTXPR TimerField( std::string&& text )
         {
           utils::construct_at( &field_.text_, std::move( text ) );
           part_ = TimerToken::Literal;
         }
-        PACE__CXX20_CNSTXPR TimerField( TimerToken token, types::Size width, charcodes::U8Char padding )
+        PACE__CXX20_CNSTXPR TimerField( TimerToken token, std::size_t width, charcodes::U8Char padding )
         {
           PACE__ASSERT( token != TimerToken::None && token != TimerToken::Literal );
           utils::construct_at( &field_.clock_, width, padding );
@@ -130,7 +130,7 @@ namespace pace {
         PACE__NODISCARD PACE__CXX20_CNSTXPR TimerToken token() const noexcept { return part_; }
         PACE__NODISCARD PACE__CXX20_CNSTXPR const charcodes::U8Raw& text() const noexcept
         { return field_.text_; }
-        PACE__NODISCARD PACE__CXX20_CNSTXPR types::Size width() const noexcept
+        PACE__NODISCARD PACE__CXX20_CNSTXPR std::size_t width() const noexcept
         { return field_.clock_.width_; }
         PACE__NODISCARD PACE__CXX20_CNSTXPR const charcodes::U8Char& padding() const noexcept
         { return field_.clock_.padding_; }
@@ -144,15 +144,15 @@ namespace pace {
 
         enum class Phase : std::uint8_t { Symbol, Marker };
         Phase state            = Phase::Symbol;
-        types::Size num_seen_h = 0, num_seen_m = 0, num_seen_s = 0;
-        types::Size width;
+        std::size_t num_seen_h = 0, num_seen_m = 0, num_seen_s = 0;
+        std::size_t width;
         charcodes::U8Char padding;
-        types::String buffer;
+        std::string buffer;
 
         // "%H:%M:%S"
         // "%3H:%2M:%2S"
         // "%:03H:%: 2M:% 2S"
-        for ( types::Size i = 0; i < fmt_str.size(); ++i ) {
+        for ( std::size_t i = 0; i < fmt_str.size(); ++i ) {
           switch ( state ) {
           case Phase::Symbol: {
             const auto sentinel = fmt_str.find( '%', i );

@@ -18,7 +18,7 @@ namespace pace {
       template<TextAlign Style, typename Out>
       PACE__FORCEINLINE PACE__CXX20_CNSTXPR Out align_to( Out itr,
                                                           charcodes::StringView str,
-                                                          types::Size width )
+                                                          std::size_t width )
       {
         if ( str.size() >= width )
           return std::copy( str.cbegin(), str.cend(), itr );
@@ -32,7 +32,7 @@ namespace pace {
             itr = std::fill_n( itr, width - str.size(), ' ' );
         } else {
           const auto pad         = width - str.size();
-          const types::Size left = pad / 2;
+          const std::size_t left = pad / 2;
           if ( width > str.size() )
             itr = std::fill_n( itr, left, ' ' );
           itr = std::copy( str.cbegin(), str.cend(), itr );
@@ -45,7 +45,7 @@ namespace pace {
       template<TextAlign Style, typename Out, typename Integer>
       PACE__FORCEINLINE PACE__CXX20_CNSTXPR
         typename std::enable_if<std::is_integral<Integer>::value, Out>::type
-        align_to( Out itr, Integer val, types::Size width )
+        align_to( Out itr, Integer val, std::size_t width )
       {
 #ifdef __cpp_lib_format
         if PACE__CXX17_CNSTXPR ( Style == TextAlign::Left )
@@ -68,7 +68,7 @@ namespace pace {
             itr = std::fill_n( itr, width - num_digits, ' ' );
         } else {
           const auto pad         = width - num_digits;
-          const types::Size left = pad / 2;
+          const std::size_t left = pad / 2;
           if ( width > num_digits )
             itr = std::fill_n( itr, left, ' ' );
           itr = utils::format_to( itr, val );
@@ -82,7 +82,7 @@ namespace pace {
       template<TextAlign Style, typename Out, typename Floating>
       PACE__FORCEINLINE PACE__CXX20_CNSTXPR
         typename std::enable_if<std::is_floating_point<Floating>::value, Out>::type
-        align_to( Out itr, Floating val, types::Size width, int precision = 3 )
+        align_to( Out itr, Floating val, std::size_t width, int precision = 3 )
       {
 #ifdef __cpp_lib_format
         if PACE__CXX17_CNSTXPR ( Style == TextAlign::Left )
@@ -98,9 +98,9 @@ namespace pace {
 
       template<TextAlign Style, typename String>
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
-        typename std::enable_if<std::is_same<typename std::decay<String>::type, types::String>::value,
-                                types::String>::type
-        align( String&& str, types::Size width )
+        typename std::enable_if<std::is_same<typename std::decay<String>::type, std::string>::value,
+                                std::string>::type
+        align( String&& str, std::size_t width )
       {
         if ( str.size() >= width )
           return str;
@@ -112,7 +112,7 @@ namespace pace {
           return str;
         }
 #endif
-        types::String buffer;
+        std::string buffer;
         buffer.reserve( width );
         align_to<Style>( std::back_inserter( buffer ), str, width, ' ' );
         return buffer;

@@ -71,7 +71,7 @@ namespace pace {
           return pipeline << prefix_ << ' ';
         }
 
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length() const noexcept
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length() const noexcept
         { return prefix_.width() + !prefix_.empty(); }
 
         template<typename... Options>
@@ -96,9 +96,9 @@ namespace pace {
   return static_cast<ReturnType>( *this )
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
-        Derived& prefix( types::String _prefix ) &
+        Derived& prefix( std::string _prefix ) &
         { PACE__METHOD( Prefix, _prefix, Derived&, std::move ); }
-        Derived&& prefix( types::String _prefix ) &&
+        Derived&& prefix( std::string _prefix ) &&
         { PACE__METHOD( Prefix, _prefix, Derived&&, std::move ); }
 
 #ifdef __cpp_lib_char8_t
@@ -155,7 +155,7 @@ namespace pace {
           return pipeline << ' ' << postfix_;
         }
 
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length() const noexcept
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length() const noexcept
         { return postfix_.width() + !postfix_.empty(); }
 
         template<typename... Options>
@@ -180,9 +180,9 @@ namespace pace {
   return static_cast<ReturnType>( *this )
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
-        Derived& postfix( types::String _postfix ) &
+        Derived& postfix( std::string _postfix ) &
         { PACE__METHOD( Postfix, _postfix, Derived&, std::move ); }
-        Derived&& postfix( types::String _postfix ) &&
+        Derived&& postfix( std::string _postfix ) &&
         { PACE__METHOD( Postfix, _postfix, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
         Derived& postfix( charcodes::U8StringView _postfix ) &

@@ -12,9 +12,9 @@ namespace pace {
                                           details::traits::is_config<Configs>...>::value,
                    "invalid config type" );
 
-    template<details::types::Size Pos>
+    template<std::size_t Pos>
     using ConfigAt_t = details::traits::TypeAt_t<Pos, Config, Configs...>;
-    template<details::types::Size Pos>
+    template<std::size_t Pos>
     using BarAt_t = prefab::BasicBar<ConfigAt_t<Pos>, S, M, Z>;
 
     details::assets::
@@ -81,34 +81,34 @@ namespace pace {
     // Abort all the progress bars.
     PACE__FORCEINLINE void abort() noexcept { package_.kill(); }
     // Returns the number of progress bars.
-    PACE__NODISCARD static PACE__FORCEINLINE PACE__CNSTEVAL details::types::Size size() noexcept
+    PACE__NODISCARD static PACE__FORCEINLINE PACE__CNSTEVAL std::size_t size() noexcept
     { return sizeof...( Configs ) + 1; }
     // Check whether a progress bar is running
     PACE__NODISCARD PACE__FORCEINLINE bool active() const noexcept { return package_.online(); }
     // Returns the number of progress bars which is running.
-    PACE__NODISCARD PACE__FORCEINLINE details::types::Size active_count() const noexcept
+    PACE__NODISCARD PACE__FORCEINLINE std::size_t active_count() const noexcept
     { return package_.online_count(); }
 
-    template<details::types::Size Pos>
+    template<std::size_t Pos>
     PACE__FORCEINLINE PACE__CXX14_CNSTXPR BarAt_t<Pos>& at() & noexcept
     { return package_.template at<Pos>(); }
-    template<details::types::Size Pos>
+    template<std::size_t Pos>
     PACE__FORCEINLINE PACE__CXX14_CNSTXPR const BarAt_t<Pos>& at() const& noexcept
     { return package_.template at<Pos>(); }
-    template<details::types::Size Pos>
+    template<std::size_t Pos>
     PACE__FORCEINLINE PACE__CXX14_CNSTXPR BarAt_t<Pos>&& at() && noexcept
     { return std::move( package_.template at<Pos>() ); }
 
     void swap( MultiBar& other ) noexcept { package_.swap( other.package_ ); }
     friend void swap( MultiBar& a, MultiBar& b ) noexcept { a.swap( b ); }
 
-    template<details::types::Size Pos>
+    template<std::size_t Pos>
     friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR BarAt_t<Pos>& get( MultiBar& self ) noexcept
     { return self.template at<Pos>(); }
-    template<details::types::Size Pos>
+    template<std::size_t Pos>
     friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR const BarAt_t<Pos>& get( const MultiBar& self ) noexcept
     { return self.template at<Pos>(); }
-    template<details::types::Size Pos>
+    template<std::size_t Pos>
     friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR BarAt_t<Pos>&& get( MultiBar&& self ) noexcept
     { return std::move( self ).template at<Pos>(); }
   };
@@ -136,7 +136,7 @@ namespace pace {
 #endif
 
   // Generates a MultiBar type containing Count instances of the given Bar type.
-  template<typename Bar, details::types::Size Count>
+  template<typename Bar, std::size_t Count>
   using MultiBar_t = details::traits::FillWith_t<MultiBar, Bar, Count>;
 
   // Creates a MultiBar using existing bar instances.
@@ -180,7 +180,7 @@ namespace pace {
 
   namespace details {
     namespace utils {
-      template<types::Size Cnt, Channel S, Policy M, Region Z, typename B, types::Size... Is>
+      template<std::size_t Cnt, Channel S, Policy M, Region Z, typename B, std::size_t... Is>
       PACE__NODISCARD PACE__FORCEINLINE typename std::enable_if<
         traits::is_bar<typename std::decay<B>::type>::value,
         MultiBar_t<prefab::BasicBar<typename std::decay<B>::type::config_type, S, M, Z>, Cnt>>::type
@@ -191,7 +191,7 @@ namespace pace {
         std::array<typename Bar::config_type, Cnt - 1> cfgs { { ( (void)( Is ), bar.config() )... } };
         return { std::forward<B>( bar ), Bar( std::move( cfgs[Is] ) )... };
       }
-      template<types::Size Cnt, Channel S, Policy M, Region Z, typename C, types::Size... Is>
+      template<std::size_t Cnt, Channel S, Policy M, Region Z, typename C, std::size_t... Is>
       PACE__NODISCARD PACE__FORCEINLINE typename std::enable_if<
         traits::is_config<typename std::decay<C>::type>::value,
         MultiBar_t<prefab::BasicBar<typename std::decay<C>::type, S, M, Z>, Cnt>>::type
@@ -209,7 +209,7 @@ namespace pace {
    * Creates a MultiBar with a fixed number of BasicBar instances using a single bar object.
    * **All BasicBar instances are initialized using the same configuration.**
    */
-  template<details::types::Size Cnt, typename Config, Channel S, Policy M, Region Z>
+  template<std::size_t Cnt, typename Config, Channel S, Policy M, Region Z>
   PACE__NODISCARD PACE__FORCEINLINE auto make_multi( prefab::BasicBar<Config, S, M, Z>&& bar )
     noexcept( Cnt == 1 )
 #ifdef __cpp_concepts
@@ -227,7 +227,7 @@ namespace pace {
    * Creates a MultiBar with a fixed number of BasicBar instances using a single configuration object.
    * **All BasicBar instances are initialized using the same configuration.**
    */
-  template<details::types::Size Cnt,
+  template<std::size_t Cnt,
            Channel Sink = Channel::Stderr,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
@@ -254,7 +254,7 @@ namespace pace {
    * The ctor sequentially initializes the first few instances corresponding to the provided arguments;
    * **any remaining instances with no corresponding arguments will be default-initialized.**
    */
-  template<typename Bar, details::types::Size Cnt, typename... Objs>
+  template<typename Bar, std::size_t Cnt, typename... Objs>
   PACE__NODISCARD PACE__FORCEINLINE auto make_multi( Objs&&... objs ) noexcept( sizeof...( Objs ) == Cnt )
 #ifdef __cpp_concepts
     -> MultiBar_t<Bar, Cnt>
@@ -283,7 +283,7 @@ namespace pace {
    * **any remaining instances with no corresponding configurations will be default-initialized.**
    */
   template<typename Config,
-           details::types::Size Cnt,
+           std::size_t Cnt,
            Channel Sink = Channel::Stderr,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
@@ -309,7 +309,7 @@ namespace pace {
    * **any remaining instances with no corresponding configurations will be default-initialized.**
    */
   template<typename Config,
-           details::types::Size Cnt,
+           std::size_t Cnt,
            Channel Sink = Channel::Stderr,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,

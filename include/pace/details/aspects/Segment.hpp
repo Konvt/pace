@@ -52,8 +52,8 @@ namespace pace {
         charcodes::U8Raw l_border_, r_border_;
         console::TrueColor info_forecolor_, info_backcolor_;
 
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length(
-          types::Size num_column ) const noexcept
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length(
+          std::size_t num_column ) const noexcept
         {
           switch ( num_column ) {
           case 0:  return 0;
@@ -88,21 +88,21 @@ namespace pace {
   return static_cast<ReturnType>( *this )
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
-        Derived& divider( types::String _divider ) &
+        Derived& divider( std::string _divider ) &
         { PACE__METHOD( Divider, _divider, Derived&, std::move ); }
-        Derived&& divider( types::String _divider ) &&
+        Derived&& divider( std::string _divider ) &&
         { PACE__METHOD( Divider, _divider, Derived&&, std::move ); }
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
-        Derived& left_border( types::String _l_border ) &
+        Derived& left_border( std::string _l_border ) &
         { PACE__METHOD( LeftBorder, _l_border, Derived&, std::move ); }
-        Derived&& left_border( types::String _l_border ) &&
+        Derived&& left_border( std::string _l_border ) &&
         { PACE__METHOD( LeftBorder, _l_border, Derived&&, std::move ); }
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
-        Derived& right_border( types::String _r_border ) &
+        Derived& right_border( std::string _r_border ) &
         { PACE__METHOD( RightBorder, _r_border, Derived&, std::move ); }
-        Derived&& right_border( types::String _r_border ) &&
+        Derived&& right_border( std::string _r_border ) &&
         { PACE__METHOD( RightBorder, _r_border, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
         Derived& divider( charcodes::U8StringView _divider ) &

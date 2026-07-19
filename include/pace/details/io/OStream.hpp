@@ -49,16 +49,16 @@ namespace pace {
 
 #if PACE__WIN && !defined( PACE_UTF8 )
         std::vector<WCHAR> wb_buffer_;
-        std::vector<types::Char> localized_;
+        std::vector<char> localized_;
 #endif
 
         PACE__CXX23_CNSTXPR OStream() = default;
 
       public:
-        static PACE__FORCEINLINE void writeout( const types::Char* first, types::Size num_to_write )
+        static PACE__FORCEINLINE void writeout( const char* buffer, std::size_t num_bytes_to_write )
         {
 #if PACE__WIN
-          types::Size total_written = 0;
+          std::size_t total_written = 0;
           do {
             DWORD num_written = 0;
             auto ostream      = []() {
@@ -72,30 +72,31 @@ namespace pace {
                 std::error_code( errno, std::generic_category() ),
                 charcodes::make_literal( "pace: cannot open the standard output stream" ) );
             WriteFile( ostream,
-                       first + total_written,
-                       static_cast<DWORD>( num_to_write - total_written ),
+                       buffer + total_written,
+                       static_cast<DWORD>( num_bytes_to_write - total_written ),
                        &num_written,
                        nullptr );
-            total_written += static_cast<types::Size>( num_written );
-          } while ( total_written < num_to_write );
+            total_written += static_cast<std::size_t>( num_written );
+          } while ( total_written < num_bytes_to_write );
 #elif PACE__UNIX
-          types::Size total_written = 0;
+          std::size_t total_written = 0;
           do {
-            ssize_t num_written =
-              write( utils::to_underlying( Sink ), first + total_written, num_to_write - total_written );
+            ssize_t num_written = write( utils::to_underlying( Sink ),
+                                         buffer + total_written,
+                                         num_bytes_to_write - total_written );
             if ( errno == EINTR )
               num_written = (std::max<ssize_t>)( 0, num_written );
             else if ( num_written < 0 )
               PACE__UNLIKELY throw exception::SystemError(
                 std::error_code( errno, std::generic_category() ),
                 charcodes::make_literal( "pace: write to output stream failed" ) );
-            total_written += static_cast<types::Size>( num_written );
-          } while ( total_written < num_to_write );
+            total_written += static_cast<std::size_t>( num_written );
+          } while ( total_written < num_bytes_to_write );
 #else
           if PACE__CXX17_CNSTXPR ( Sink == Channel::Stdout )
-            std::cout.write( first, num_to_write ).flush();
+            std::cout.write( buffer, num_bytes_to_write ).flush();
           else
-            std::cerr.write( first, num_to_write ).flush();
+            std::cerr.write( buffer, num_bytes_to_write ).flush();
 #endif
         }
 
@@ -127,19 +128,23 @@ namespace pace {
 #if PACE__WIN && !defined( PACE_UTF8 )
           const auto codepage = GetConsoleOutputCP();
           if ( codepage == CP_UTF8 ) {
-            writeout( this->data(), this->size() );
+            writeout( reinterpret_cast<const char*>( this->data() ), this->size() );
             this->CharPipeline::clear();
             return *this;
           }
 
           // The target type char is not subject to strict alias restrictions.
-          const auto wlen =
-            MultiByteToWideChar( CP_UTF8, 0, this->data(), static_cast<int>( this->size() ), nullptr, 0 );
+          const auto wlen = MultiByteToWideChar( CP_UTF8,
+                                                 0,
+                                                 reinterpret_cast<const char*>( this->data() ),
+                                                 static_cast<int>( this->size() ),
+                                                 nullptr,
+                                                 0 );
           PACE__TRUST( wlen > 0 );
-          wb_buffer_.resize( static_cast<types::Size>( wlen ) );
+          wb_buffer_.resize( static_cast<std::size_t>( wlen ) );
           MultiByteToWideChar( CP_UTF8,
                                0,
-                               this->data(),
+                               reinterpret_cast<const char*>( this->data() ),
                                static_cast<int>( this->size() ),
                                wb_buffer_.data(),
                                wlen );
@@ -147,18 +152,18 @@ namespace pace {
           const auto mblen =
             WideCharToMultiByte( codepage, 0, wb_buffer_.data(), wlen, nullptr, 0, nullptr, nullptr );
           PACE__TRUST( mblen > 0 );
-          localized_.resize( static_cast<types::Size>( mblen ) );
+          localized_.resize( static_cast<std::size_t>( mblen ) );
           WideCharToMultiByte( codepage,
                                0,
                                wb_buffer_.data(),
                                wlen,
-                               reinterpret_cast<LPSTR>( localized_.data() ),
+                               localized_.data(),
                                mblen,
                                nullptr,
                                nullptr );
           writeout( localized_.data(), localized_.size() );
 #else
-          writeout( this->data(), this->size() );
+          writeout( reinterpret_cast<const char*>( this->data() ), this->size() );
 #endif
           clear();
           return *this;

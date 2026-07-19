@@ -23,10 +23,10 @@ namespace pace {
     {
       static_assert( details::traits::is_sized_cursor<Itr, Snt>::value,
                      "only available for sized iterator and sentinel pair" );
-      static_assert( std::is_convertible<details::traits::IterDifference_t<Itr>, details::types::Size>::value,
+      static_assert( std::is_convertible<details::traits::IterDifference_t<Itr>, std::size_t>::value,
                      "the difference_type must be convertible to Size" );
 
-      details::types::Size size_ = 0;
+      std::size_t size_ = 0;
       Itr start_;
       Snt end_;
 
@@ -41,7 +41,7 @@ namespace pace {
         if ( length < 0 )
           PACE__UNLIKELY throw exception::InvalidArgument(
             details::charcodes::make_literal( "pace: negative iterator range" ) );
-        size_ = static_cast<details::types::Size>( length );
+        size_ = static_cast<std::size_t>( length );
       }
       PACE__CXX20_CNSTXPR ~IteratorSpan() = default;
 
@@ -52,7 +52,7 @@ namespace pace {
         noexcept( std::is_nothrow_copy_constructible<sentinel>::value )
       { return end_; }
 
-      PACE__NODISCARD PACE__FORCEINLINE constexpr details::types::Size size() const noexcept { return size_; }
+      PACE__NODISCARD PACE__FORCEINLINE constexpr std::size_t size() const noexcept { return size_; }
       PACE__NODISCARD PACE__FORCEINLINE constexpr bool empty() const noexcept { return size_ == 0; }
 
       PACE__CXX20_CNSTXPR void swap( IteratorSpan& lhs ) noexcept

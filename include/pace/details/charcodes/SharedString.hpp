@@ -17,19 +17,19 @@ namespace pace {
       struct Literal {
       private:
         const Char* data_;
-        types::Size size_;
+        std::size_t size_;
 
       public:
         constexpr Literal() noexcept : data_ { nullptr }, size_ { 0 } {}
 
-        constexpr Literal( const Char* literal, types::Size length ) noexcept
+        constexpr Literal( const Char* literal, std::size_t length ) noexcept
           : data_ { literal }, size_ { length }
         {}
-        template<types::Size N>
+        template<std::size_t N>
         constexpr Literal( const Char ( &literal )[N] ) noexcept : Literal( literal, N - 1 )
         {}
 
-        PACE__NODISCARD constexpr types::Size size() const noexcept { return size_; }
+        PACE__NODISCARD constexpr std::size_t size() const noexcept { return size_; }
         PACE__NODISCARD constexpr const Char* data() const noexcept { return data_; }
 
 #ifdef __cpp_lib_string_view
@@ -37,11 +37,11 @@ namespace pace {
 #endif
       };
 
-      template<typename Char, types::Size N>
+      template<typename Char, std::size_t N>
       constexpr Literal<Char> make_literal( const Char ( &cstr )[N] ) noexcept
       { return { cstr }; }
       template<typename Char>
-      constexpr Literal<Char> make_literal( const Char* cstr, types::Size length ) noexcept
+      constexpr Literal<Char> make_literal( const Char* cstr, std::size_t length ) noexcept
       { return { cstr, length }; }
 
       template<typename Alloc, typename = void>
@@ -339,17 +339,17 @@ namespace pace {
           using reference       = const value_type&;
 
           constexpr unsafe_iterator() noexcept : cursor_ { nullptr } {}
-          constexpr unsafe_iterator( const Char* cursor ) noexcept : cursor_ { cursor } {}
+          constexpr unsafe_iterator( pointer cursor ) noexcept : cursor_ { cursor } {}
           constexpr unsafe_iterator( const_iterator itr ) noexcept
             : cursor_ { itr.owner()->data() + itr.offset() }
           {}
           PACE__CXX20_CNSTXPR ~unsafe_iterator() = default;
 
-          constexpr const Char* base() const noexcept { return cursor_; }
+          constexpr pointer base() const noexcept { return cursor_; }
 
           constexpr reference operator[]( difference_type offset ) const noexcept { return cursor_[offset]; }
           constexpr reference operator*() const noexcept { return *cursor_; }
-          PACE__CXX17_CNSTXPR const Char* operator->() const noexcept { return std::addressof( *cursor_ ); }
+          PACE__CXX17_CNSTXPR pointer operator->() const noexcept { return cursor_; }
 
           PACE__CXX14_CNSTXPR unsafe_iterator& operator++() noexcept
           {
@@ -2845,10 +2845,10 @@ namespace pace {
 #endif
 
       // For now, we have only used the char type.
-      using SharedString = BasicSharedString<types::Char>;
+      using SharedString = BasicSharedString<char>;
 
-      PACE__FORCEINLINE PACE__CXX20_CNSTXPR SharedString operator""_cow( const types::Char* str,
-                                                                         types::Size len ) noexcept
+      PACE__FORCEINLINE PACE__CXX20_CNSTXPR SharedString operator""_cow( const char* str,
+                                                                         std::size_t len ) noexcept
       { return { make_literal( str, len ) }; }
     } // namespace charcodes
   } // namespace details

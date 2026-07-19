@@ -25,7 +25,7 @@ namespace pace {
         if ( params.progress_ratio_ <= 0.0 ) // 0.01%
           PACE__UNLIKELY return pipeline << default_text();
 
-        details::types::String orig;
+        std::string orig;
         details::utils::format_to( std::back_inserter( orig ), params.progress_ratio_ * 100.0, 2 );
         orig.push_back( '%' );
         details::render::align_to<details::render::TextAlign::Right>( std::back_inserter( pipeline ),
@@ -35,7 +35,7 @@ namespace pace {
         return pipeline;
       }
 
-      PACE__NODISCARD static PACE__FORCEINLINE PACE__CNSTEVAL details::types::Size fixed_length() noexcept
+      PACE__NODISCARD static PACE__FORCEINLINE PACE__CNSTEVAL std::size_t fixed_length() noexcept
       { return default_text().size(); }
 
       template<typename... Options>

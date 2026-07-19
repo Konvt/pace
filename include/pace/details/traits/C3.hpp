@@ -89,19 +89,19 @@ namespace pace {
         template<typename... MergedLists>
         struct PickCandidate {
         private:
-          template<types::Size I>
+          template<std::size_t I>
           struct Helper;
 
-          template<bool Cond, types::Size Pos>
-          struct Choice : std::integral_constant<types::Size, Pos> {};
-          template<types::Size Pos>
+          template<bool Cond, std::size_t Pos>
+          struct Choice : std::integral_constant<std::size_t, Pos> {};
+          template<std::size_t Pos>
           struct Choice<false, Pos> : Helper<Pos + 1> {};
 
-          template<types::Size I>
+          template<std::size_t I>
           struct Helper : Choice<is_feasible<TypeAt_t<I, MergedLists...>, MergedLists...>::value, I> {};
 
         public:
-          static constexpr types::Size value = Helper<0>::value;
+          static constexpr std::size_t value = Helper<0>::value;
         };
 
         //////////////////////////////////////////////////

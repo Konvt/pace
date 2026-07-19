@@ -40,7 +40,7 @@ namespace pace {
         noexcept( noexcept( details::utils::end( *rnge_ ) ) )
       { return details::utils::end( *rnge_ ); }
 
-      PACE__NODISCARD PACE__FORCEINLINE constexpr details::types::Size size() const
+      PACE__NODISCARD PACE__FORCEINLINE constexpr std::size_t size() const
       { return details::utils::size( *rnge_ ); }
       PACE__NODISCARD PACE__FORCEINLINE constexpr bool empty() const noexcept
       { return details::utils::empty( *rnge_ ); }

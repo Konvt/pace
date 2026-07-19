@@ -6,7 +6,7 @@
 namespace pace {
   namespace details {
     namespace assets {
-      template<typename C, Channel S, Policy M, Region Z, types::Size>
+      template<typename C, Channel S, Policy M, Region Z, std::size_t>
       class PackagedBar : public prefab::BasicBar<C, S, M, Z> {
         using Base = prefab::BasicBar<C, S, M, Z>;
 

@@ -23,7 +23,7 @@ namespace pace {
 #ifdef __cpp_lib_format
         return std::format_to( itr, "{}", val );
 #else
-        std::array<types::Char, std::numeric_limits<Integer>::digits10 + 1> buffer;
+        std::array<char, std::numeric_limits<Integer>::digits10 + 1> buffer;
 # ifdef __cpp_lib_to_chars
         auto result = std::to_chars( buffer.data(), buffer.data() + buffer.size(), val );
         PACE__TRUST( result.ec == std::errc() );
@@ -34,7 +34,7 @@ namespace pace {
         if ( sign )
           val = ( Integer( 0 ) - ( val + 1 ) ) + 1;
         do {
-          buffer[--pos] = static_cast<types::Char>( '0' + ( val % 10 ) );
+          buffer[--pos] = static_cast<char>( '0' + ( val % 10 ) );
           val /= 10;
         } while ( val != 0 );
         if ( sign )
@@ -57,7 +57,7 @@ namespace pace {
         constexpr auto fraction_part =
           ( -std::numeric_limits<Floating>::min_exponent10 ) + std::numeric_limits<Floating>::max_digits10;
 # ifdef __cpp_lib_to_chars
-        std::array<types::Char, integral_part + fraction_part + 1> buffer;
+        std::array<char, integral_part + fraction_part + 1> buffer;
         auto result = std::to_chars( buffer.data(),
                                      buffer.data() + buffer.size(),
                                      val,
@@ -66,7 +66,7 @@ namespace pace {
         PACE__TRUST( result.ec == std::errc() );
         return std::copy( buffer.data(), result.ptr, itr );
 # else
-        std::array<types::Char, ( integral_part > fraction_part ? integral_part : fraction_part )> buffer;
+        std::array<char, ( integral_part > fraction_part ? integral_part : fraction_part )> buffer;
 
         const auto scale = static_cast<std::uint64_t>( std::pow( 10, precision ) );
         PACE__ASSERT( scale <= ( std::numeric_limits<std::uint64_t>::max )() );
@@ -77,7 +77,7 @@ namespace pace {
         auto pos      = buffer.size();
 
         do {
-          buffer[--pos] = static_cast<types::Char>( '0' + integer % 10 );
+          buffer[--pos] = static_cast<char>( '0' + integer % 10 );
           integer /= 10;
         } while ( integer != 0 );
         if ( std::signbit( val ) )
@@ -88,7 +88,7 @@ namespace pace {
         if ( precision > 0 ) {
           ( *itr++ ) = '.';
           while ( precision-- > 0 ) {
-            buffer[--pos] = static_cast<types::Char>( '0' + fraction % 10 );
+            buffer[--pos] = static_cast<char>( '0' + fraction % 10 );
             fraction /= 10;
           }
           itr = std::copy( buffer.begin() + pos, buffer.end(), itr );
@@ -101,7 +101,7 @@ namespace pace {
       // Format an integer number.
       template<typename Integer>
       PACE__NODISCARD PACE__FORCEINLINE
-        typename std::enable_if<std::is_integral<Integer>::value, types::String>::type
+        typename std::enable_if<std::is_integral<Integer>::value, std::string>::type
         format( Integer val ) noexcept( noexcept( std::to_string( val ) ) )
       {
         /* In some well-designed standard libraries,
@@ -118,7 +118,7 @@ namespace pace {
 
       // Format a finite floating point number.
       template<typename Floating>
-      PACE__NODISCARD typename std::enable_if<std::is_floating_point<Floating>::value, types::String>::type
+      PACE__NODISCARD typename std::enable_if<std::is_floating_point<Floating>::value, std::string>::type
         format( Floating val, int precision = 3 )
       {
         /* Unlike the integer version,
@@ -126,7 +126,7 @@ namespace pace {
          * on floating-point numbers;
 
          * So the implementation here is provided manually. */
-        types::String formatted;
+        std::string formatted;
         format_to( std::back_inserter( formatted ), val, precision );
         return formatted;
       }

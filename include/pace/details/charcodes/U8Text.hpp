@@ -18,7 +18,7 @@ namespace pace {
         PACE__NODISCARD static PACE__CXX23_CNSTXPR std::vector<Font> parse_glyph( StringView raw_u8_str )
         {
           std::vector<Font> characters;
-          for ( types::Size i = 0; i < raw_u8_str.size(); ) {
+          for ( std::size_t i = 0; i < raw_u8_str.size(); ) {
             auto resolved = U8Char::next_codepoint( raw_u8_str.substr( i ) );
             characters.emplace_back( i, glyph_width( resolved.first ) );
             i += resolved.second;
@@ -27,14 +27,14 @@ namespace pace {
         }
 
         PACE__CXX20_CNSTXPR U8Text() = default;
-        explicit PACE__CXX23_CNSTXPR U8Text( types::String u8_bytes )
+        explicit PACE__CXX23_CNSTXPR U8Text( std::string u8_bytes )
         {
           chars_ = parse_glyph( u8_bytes );
           width_ = std::accumulate( chars_.cbegin(),
                                     chars_.cend(),
-                                    types::Size {},
-                                    []( types::Size acc, const Font& ch ) noexcept {
-                                      return acc + static_cast<types::Size>( ch.width_ );
+                                    std::size_t {},
+                                    []( std::size_t acc, const Font& ch ) noexcept {
+                                      return acc + static_cast<std::size_t>( ch.width_ );
                                     } );
           bytes_ = std::move( u8_bytes );
         }
@@ -47,26 +47,26 @@ namespace pace {
         PACE__CXX23_CNSTXPR U8Text& operator=( charcodes::StringView u8_bytes ) &
         {
           auto new_chars = parse_glyph( u8_bytes );
-          auto new_bytes = types::String( u8_bytes );
+          auto new_bytes = std::string( u8_bytes );
           chars_.swap( new_chars );
           width_ = std::accumulate( chars_.cbegin(),
                                     chars_.cend(),
-                                    types::Size {},
-                                    []( types::Size acc, const Font& ch ) noexcept {
-                                      return acc + static_cast<types::Size>( ch.width_ );
+                                    std::size_t {},
+                                    []( std::size_t acc, const Font& ch ) noexcept {
+                                      return acc + static_cast<std::size_t>( ch.width_ );
                                     } );
           bytes_.swap( new_bytes );
           return *this;
         }
-        PACE__CXX23_CNSTXPR U8Text& operator=( types::String u8_bytes ) &
+        PACE__CXX23_CNSTXPR U8Text& operator=( std::string u8_bytes ) &
         {
           auto new_chars = parse_glyph( u8_bytes );
           chars_.swap( new_chars );
           width_ = std::accumulate( chars_.cbegin(),
                                     chars_.cend(),
-                                    types::Size {},
-                                    []( types::Size acc, const Font& ch ) noexcept {
-                                      return acc + static_cast<types::Size>( ch.width_ );
+                                    std::size_t {},
+                                    []( std::size_t acc, const Font& ch ) noexcept {
+                                      return acc + static_cast<std::size_t>( ch.width_ );
                                     } );
           bytes_.swap( u8_bytes );
           return *this;
@@ -91,13 +91,13 @@ namespace pace {
          * @return The split result and the width of each part.
          */
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX23_CNSTXPR std::pair<EncodedView, EncodedView> split_by(
-          types::Size width ) const noexcept
+          std::size_t width ) const noexcept
         {
           if ( bytes_.empty() )
             PACE__UNLIKELY return {};
 
           // split_pos is the starting point of the right part
-          types::Size split_pos = 0, left_width = 0;
+          std::size_t split_pos = 0, left_width = 0;
           while ( split_pos < chars_.size() && left_width + chars_[split_pos].width_ <= width )
             left_width += chars_[split_pos++].width_;
 
@@ -119,14 +119,14 @@ namespace pace {
 #ifdef __cpp_lib_char8_t
         explicit PACE__CXX23_CNSTXPR U8Text( charcodes::U8StringView u8_sv ) : U8Text()
         {
-          auto new_bytes = types::String( u8_sv.size(), '\0' );
+          auto new_bytes = std::string( u8_sv.size(), '\0' );
           std::copy( u8_sv.cbegin(), u8_sv.cend(), new_bytes.begin() );
           chars_ = parse_glyph( new_bytes );
           width_ = std::accumulate( chars_.cbegin(),
                                     chars_.cend(),
-                                    types::Size {},
-                                    []( types::Size acc, const Font& ch ) noexcept {
-                                      return acc + static_cast<types::Size>( ch.width_ );
+                                    std::size_t {},
+                                    []( std::size_t acc, const Font& ch ) noexcept {
+                                      return acc + static_cast<std::size_t>( ch.width_ );
                                     } );
           bytes_ = std::move( new_bytes );
         }

@@ -11,10 +11,10 @@ namespace pace {
     namespace concurrent {
       // spin with specified action
       template<typename F, typename Act>
-      PACE__FORCEINLINE void spin_with( F&& pred, Act&& action, types::Size threshold )
+      PACE__FORCEINLINE void spin_with( F&& pred, Act&& action, std::size_t threshold )
         noexcept( noexcept( pred() ) && noexcept( action() ) )
       {
-        for ( types::Size cnt = 0; !pred(); ) {
+        for ( std::size_t cnt = 0; !pred(); ) {
           if ( cnt >= threshold )
             (void)action();
           ++cnt;
@@ -23,7 +23,7 @@ namespace pace {
 
       // Wait for pred to be true.
       template<typename F>
-      PACE__FORCEINLINE void spin_wait( F&& pred, types::Size threshold ) noexcept( noexcept( pred() ) )
+      PACE__FORCEINLINE void spin_wait( F&& pred, std::size_t threshold ) noexcept( noexcept( pred() ) )
       {
         spin_with( std::forward<F>( pred ), []() noexcept { std::this_thread::yield(); }, threshold );
       }

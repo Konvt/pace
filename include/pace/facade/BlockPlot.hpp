@@ -24,14 +24,13 @@ namespace pace {
         if ( this->bar_width_ == 0 )
           return pipeline;
 
-        const auto len_finished =
-          static_cast<details::types::Size>( this->bar_width_ * params.progress_ratio_ );
+        const auto len_finished = static_cast<std::size_t>( this->bar_width_ * params.progress_ratio_ );
         const details::types::Float fraction = ( this->bar_width_ * params.progress_ratio_ ) - len_finished;
         PACE__TRUST( fraction >= 0.0 );
         PACE__TRUST( fraction <= 1.0 );
-        const auto incomplete_block = static_cast<details::types::Size>( fraction * this->lead_.size() );
+        const auto incomplete_block = static_cast<std::size_t>( fraction * this->lead_.size() );
         PACE__ASSERT( incomplete_block <= this->lead_.size() );
-        details::types::Size len_vacancy = this->bar_width_ - len_finished;
+        std::size_t len_vacancy = this->bar_width_ - len_finished;
 
         if ( !params.style_off_ && this->colorful() )
           pipeline << details::console::resetfgcolor << details::console::resetbgcolor
@@ -93,7 +92,7 @@ namespace pace {
         return pipeline << this->ending_;
       }
 
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR details::types::Size fixed_length() const noexcept
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length() const noexcept
       { return this->details::traits::BaseOf_t<Base, details::aspects::Bar>::fixed_length(); }
 
       template<typename... Options>

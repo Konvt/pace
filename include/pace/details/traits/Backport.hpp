@@ -10,13 +10,13 @@ namespace pace {
     namespace traits {
       // Before C++17, not all std entities had feature macros.
 #if PACE__CXX14
-      template<types::Size... Ns>
-      using IndexSequence = std::integer_sequence<types::Size, Ns...>;
+      template<std::size_t... Ns>
+      using IndexSequence = std::integer_sequence<std::size_t, Ns...>;
 
-      template<types::Size N>
-      using MakeIndexSequence = std::make_integer_sequence<types::Size, N>;
+      template<std::size_t N>
+      using MakeIndexSequence = std::make_integer_sequence<std::size_t, N>;
 #else
-      template<types::Size... Ns>
+      template<std::size_t... Ns>
       struct IndexSequence {};
 
       // This is an internal implementation and should not be used outside of this preprocessing block.
@@ -25,12 +25,12 @@ namespace pace {
       template<typename HeadSeq, typename TailSeq>
       using _concat_seq_t = typename _concat_seq<HeadSeq, TailSeq>::type;
 
-      template<types::Size... HeadI, types::Size... TailI>
+      template<std::size_t... HeadI, std::size_t... TailI>
       struct _concat_seq<IndexSequence<HeadI...>, IndexSequence<TailI...>>
         : Identity<IndexSequence<HeadI..., ( sizeof...( HeadI ) + TailI )...>> {};
 
       // Internal implementation, it should not be used outside of this preprocessing block.
-      template<types::Size N>
+      template<std::size_t N>
       struct _make_index_seq_helper
         : Identity<_concat_seq_t<typename _make_index_seq_helper<N / 2>::type,
                                  typename _make_index_seq_helper<N - N / 2>::type>> {};
@@ -39,7 +39,7 @@ namespace pace {
       template<>
       struct _make_index_seq_helper<1> : Identity<IndexSequence<0>> {};
 
-      template<types::Size N>
+      template<std::size_t N>
       using MakeIndexSequence = typename _make_index_seq_helper<N>::type;
 #endif
 

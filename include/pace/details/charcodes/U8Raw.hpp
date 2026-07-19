@@ -11,8 +11,8 @@ namespace pace {
       // A simple UTF-8 string implementation, but it does not provide specific utf-8 codec operations.
       class U8Raw {
       protected:
-        types::Size width_;
-        types::String bytes_;
+        std::size_t width_;
+        std::string bytes_;
 
       public:
         /**
@@ -22,21 +22,21 @@ namespace pace {
          *
          * @return Returns the render width of the given string.
          */
-        static PACE__CXX20_CNSTXPR types::Size text_width( StringView text )
+        static PACE__CXX20_CNSTXPR std::size_t text_width( StringView text )
         {
-          types::Size width = 0;
-          for ( types::Size i = 0; i < text.size(); ) {
+          std::size_t width = 0;
+          for ( std::size_t i = 0; i < text.size(); ) {
             auto parsed = U8Char::next_codepoint( text.substr( i ) );
-            width += static_cast<types::Size>( glyph_width( parsed.first ) );
+            width += static_cast<std::size_t>( glyph_width( parsed.first ) );
             i += parsed.second;
           }
           return width;
         }
 
-        PACE__CXX20_CNSTXPR U8Raw() noexcept( std::is_nothrow_default_constructible<types::String>::value )
+        PACE__CXX20_CNSTXPR U8Raw() noexcept( std::is_nothrow_default_constructible<std::string>::value )
           : width_ { 0 }
         {}
-        explicit PACE__CXX20_CNSTXPR U8Raw( types::String u8_bytes ) : U8Raw()
+        explicit PACE__CXX20_CNSTXPR U8Raw( std::string u8_bytes ) : U8Raw()
         {
           width_ = text_width( u8_bytes );
           bytes_ = std::move( u8_bytes );
@@ -50,12 +50,12 @@ namespace pace {
         PACE__CXX20_CNSTXPR U8Raw& operator=( charcodes::StringView u8_bytes ) &
         {
           const auto new_width = text_width( u8_bytes );
-          auto new_bytes       = types::String( u8_bytes );
+          auto new_bytes       = std::string( u8_bytes );
           bytes_.swap( new_bytes );
           width_ = new_width;
           return *this;
         }
-        PACE__CXX20_CNSTXPR U8Raw& operator=( types::String&& u8_bytes ) &
+        PACE__CXX20_CNSTXPR U8Raw& operator=( std::string&& u8_bytes ) &
         {
           width_ = text_width( u8_bytes );
           bytes_.swap( u8_bytes );
@@ -63,13 +63,13 @@ namespace pace {
         }
 
         PACE__NODISCARD PACE__CXX20_CNSTXPR bool empty() const noexcept { return bytes_.empty(); }
-        PACE__NODISCARD PACE__CXX20_CNSTXPR types::Size size() const noexcept { return bytes_.size(); }
-        PACE__NODISCARD PACE__CXX20_CNSTXPR types::Size width() const noexcept { return width_; }
+        PACE__NODISCARD PACE__CXX20_CNSTXPR std::size_t size() const noexcept { return bytes_.size(); }
+        PACE__NODISCARD PACE__CXX20_CNSTXPR std::size_t width() const noexcept { return width_; }
 
-        PACE__CXX20_CNSTXPR const types::Char* data() const noexcept { return bytes_.data(); }
+        PACE__CXX20_CNSTXPR const char* data() const noexcept { return bytes_.data(); }
         PACE__CXX20_CNSTXPR charcodes::StringView str() & noexcept { return bytes_; }
         PACE__CXX20_CNSTXPR charcodes::StringView str() const& noexcept { return bytes_; }
-        PACE__CXX20_CNSTXPR types::String&& str() && noexcept { return std::move( bytes_ ); }
+        PACE__CXX20_CNSTXPR std::string&& str() && noexcept { return std::move( bytes_ ); }
 
         PACE__CXX20_CNSTXPR void clear() noexcept( noexcept( bytes_.clear() ) )
         {
@@ -90,22 +90,21 @@ namespace pace {
         }
         friend PACE__CXX20_CNSTXPR void swap( U8Raw& a, U8Raw& b ) noexcept { a.swap( b ); }
 
-        explicit PACE__CXX20_CNSTXPR operator types::String() & { return bytes_; }
-        explicit PACE__CXX20_CNSTXPR operator types::String() const& { return bytes_; }
-        explicit PACE__CXX20_CNSTXPR operator types::String&&() && noexcept { return std::move( bytes_ ); }
+        explicit PACE__CXX20_CNSTXPR operator std::string() & { return bytes_; }
+        explicit PACE__CXX20_CNSTXPR operator std::string() const& { return bytes_; }
+        explicit PACE__CXX20_CNSTXPR operator std::string&&() && noexcept { return std::move( bytes_ ); }
         PACE__CXX20_CNSTXPR operator charcodes::StringView() const noexcept { return str(); }
 
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+( U8Raw&& a,
-                                                                                              const U8Raw& b )
+        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::string operator+( U8Raw&& a,
+                                                                                            const U8Raw& b )
         { return std::move( a.bytes_ ) + b.bytes_; }
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+(
-          types::String&& a,
-          const U8Raw& b )
+        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::string operator+( std::string&& a,
+                                                                                            const U8Raw& b )
         { return std::move( a ) + b.bytes_; }
 
         template<typename SV>
         PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR
-          typename std::enable_if<std::is_constructible<StringView, SV>::value, types::String>::type
+          typename std::enable_if<std::is_constructible<StringView, SV>::value, std::string>::type
           operator+( U8Raw&& a, SV&& b )
         {
           StringView sv = b;
@@ -114,22 +113,22 @@ namespace pace {
         }
         template<typename SV>
         PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR
-          typename std::enable_if<std::is_constructible<StringView, SV>::value, types::String>::type
+          typename std::enable_if<std::is_constructible<StringView, SV>::value, std::string>::type
           operator+( SV&& a, const U8Raw& b )
         {
           StringView sv = a;
-          types::String copy;
+          std::string copy;
           copy.reserve( sv.size() + b.size() );
           copy.append( sv.data(), sv.size() ).append( b.bytes_ );
           return copy;
         }
         template<typename SV>
         PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR
-          typename std::enable_if<std::is_constructible<StringView, SV>::value, types::String>::type
+          typename std::enable_if<std::is_constructible<StringView, SV>::value, std::string>::type
           operator+( const U8Raw& a, SV&& b )
         {
           StringView sv = b;
-          types::String copy;
+          std::string copy;
           copy.reserve( a.size() + sv.size() );
           copy.append( a.bytes_ ).append( sv.data(), sv.size() );
           return copy;
@@ -138,7 +137,7 @@ namespace pace {
 #ifdef __cpp_lib_char8_t
         explicit PACE__CXX20_CNSTXPR U8Raw( charcodes::U8StringView u8_sv ) : U8Raw()
         {
-          auto new_bytes = types::String( u8_sv.size(), '\0' );
+          auto new_bytes = std::string( u8_sv.size(), '\0' );
           std::copy( u8_sv.cbegin(), u8_sv.cend(), new_bytes.begin() );
           width_ = text_width( new_bytes );
           bytes_ = std::move( new_bytes );
@@ -152,16 +151,16 @@ namespace pace {
           return ret;
         }
 
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+(
+        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::string operator+(
           charcodes::U8StringView a,
           const U8Raw& b )
         {
-          types::String tmp;
+          std::string tmp;
           tmp.reserve( a.size() );
           std::copy( a.cbegin(), a.cend(), std::back_inserter( tmp ) );
           return std::move( tmp ) + b.bytes_;
         }
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+(
+        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::string operator+(
           U8Raw&& a,
           charcodes::U8StringView b )
         {
@@ -169,7 +168,7 @@ namespace pace {
           std::copy( b.cbegin(), b.cend(), std::back_inserter( a.bytes_ ) );
           return std::move( a.bytes_ );
         }
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String operator+(
+        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::string operator+(
           const U8Raw& a,
           charcodes::U8StringView b )
         {
@@ -184,14 +183,14 @@ namespace pace {
 
     namespace render {
       template<TextAlign Style>
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String align( const charcodes::U8Raw& str,
-                                                                                 types::Size width,
-                                                                                 types::Char padding = ' ' )
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::string align( const charcodes::U8Raw& str,
+                                                                               std::size_t width,
+                                                                               char padding = ' ' )
       { return align<Style>( str.str(), width, padding ); }
       template<TextAlign Style>
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::String align( charcodes::U8Raw&& str,
-                                                                                 types::Size width,
-                                                                                 types::Char padding = ' ' )
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::string align( charcodes::U8Raw&& str,
+                                                                               std::size_t width,
+                                                                               char padding = ' ' )
       { return align<Style>( std::move( str ).str(), width, padding ); }
     } // namespace render
   } // namespace details

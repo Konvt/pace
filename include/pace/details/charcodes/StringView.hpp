@@ -3,7 +3,6 @@
 
 #include "../traits/Concept.hpp"
 #ifdef __cpp_lib_string_view
-# include "../core/Types.hpp"
 # include <string_view>
 #else
 # include "../traits/Identity.hpp"
@@ -28,7 +27,7 @@ namespace pace {
         using const_pointer   = const value_type*;
         using reference       = value_type&;
         using const_reference = const value_type&;
-        using size_type       = types::Size;
+        using size_type       = std::size_t;
         using difference_type = std::ptrdiff_t;
 
         // This is how libc++ does.
@@ -273,7 +272,7 @@ namespace pace {
       };
 #endif
 
-      using StringView = BasicStringView<types::Char>;
+      using StringView = BasicStringView<char>;
 #ifdef __cpp_char8_t
       using U8StringView = BasicStringView<char8_t>;
 #endif

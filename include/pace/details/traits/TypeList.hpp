@@ -45,7 +45,7 @@ namespace pace {
       struct Combine<TypeList<Es...>, Collection<T, Ts...>>
         : Combine<TpAppend_t<TypeList<Es...>, T>, Collection<Ts...>> {};
 
-      template<typename Element, types::Size N>
+      template<typename Element, std::size_t N>
       struct TpFill {
       private:
         template<bool Cond, typename List>
@@ -62,7 +62,7 @@ namespace pace {
       struct TpFill<Element, 0> : Identity<TypeList<>> {};
       template<typename Element>
       struct TpFill<Element, 1> : Identity<TypeList<Element>> {};
-      template<typename Element, types::Size N>
+      template<typename Element, std::size_t N>
       using TpFill_t = typename TpFill<Element, N>::type;
 
       template<typename... Ts>

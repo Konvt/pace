@@ -63,9 +63,9 @@ namespace pace {
   return static_cast<ReturnType>( *this )
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
-        Derived& remain( types::String _remain ) &
+        Derived& remain( std::string _remain ) &
         { PACE__METHOD( Remain, _remain, Derived&, std::move ); }
-        Derived&& remain( types::String _remain ) &&
+        Derived&& remain( std::string _remain ) &&
         { PACE__METHOD( Remain, _remain, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
         Derived& remain( charcodes::U8StringView _remain ) &

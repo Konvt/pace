@@ -62,6 +62,6 @@ namespace pace {
 
 template<template<typename...> class... Ts>
 struct std::tuple_size<pace::details::traits::TemplateSet<Ts...>>
-  : std::integral_constant<pace::details::types::Size, sizeof...( Ts )> {};
+  : std::integral_constant<std::size_t, sizeof...( Ts )> {};
 
 #endif

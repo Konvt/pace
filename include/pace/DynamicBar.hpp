@@ -58,12 +58,12 @@ namespace pace {
       details::concurrent::SharedLock<details::concurrent::SharedMutex> lock { mtx_ };
       return core_ != nullptr && core_->online_count() != 0;
     }
-    PACE__NODISCARD PACE__FORCEINLINE details::types::Size size() const noexcept
+    PACE__NODISCARD PACE__FORCEINLINE std::size_t size() const noexcept
     {
       details::concurrent::SharedLock<details::concurrent::SharedMutex> lock { mtx_ };
       return core_ != nullptr ? core_.use_count() - 1 : 0;
     }
-    PACE__NODISCARD PACE__FORCEINLINE details::types::Size active_count() const noexcept
+    PACE__NODISCARD PACE__FORCEINLINE std::size_t active_count() const noexcept
     {
       details::concurrent::SharedLock<details::concurrent::SharedMutex> lock { mtx_ };
       return core_ != nullptr ? core_->online_count() : 0;
@@ -213,7 +213,7 @@ namespace pace {
    */
   template<typename Config, Channel S, Policy M, Region Z>
   PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( prefab::BasicBar<Config, S, M, Z>&& bar,
-                                                       details::types::Size count )
+                                                       std::size_t count )
 #ifdef __cpp_concepts
     requires details::traits::is_config<Config>::value
 #else
@@ -239,7 +239,7 @@ namespace pace {
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename Config>
-  PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( Config&& cfg, details::types::Size count )
+  PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( Config&& cfg, std::size_t count )
 #ifdef __cpp_concepts
     requires details::traits::is_config<std::decay_t<Config>>::value
 #else
@@ -267,7 +267,7 @@ namespace pace {
    * **An unmatched count and Bars number will cause an exception `pace::exception::InvalidArgument`.**
    */
   template<typename Bar, typename... Objs>
-  PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( details::types::Size count, Objs&&... objs )
+  PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( std::size_t count, Objs&&... objs )
 #ifdef __cpp_concepts
     requires( details::traits::is_bar<Bar>::value
               && ( ( ( std::is_same_v<std::remove_cv_t<Bar>, std::remove_cv_t<Objs>> && ... )
@@ -320,7 +320,7 @@ namespace pace {
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename... Configs>
-  PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( details::types::Size count, Configs&&... cfgs )
+  PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( std::size_t count, Configs&&... cfgs )
 #ifdef __cpp_concepts
     requires( details::traits::is_config<Config>::value
               && ( std::is_same_v<std::remove_cv_t<Config>, std::decay_t<Configs>> && ... ) )
@@ -366,7 +366,7 @@ namespace pace {
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename... Configs>
-  PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( details::types::Size count,
+  PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( std::size_t count,
                                                        prefab::BasicBar<Configs, Sink, Mode, Zone>&&... bars )
 #ifdef __cpp_concepts
     requires( details::traits::is_config<Config>::value

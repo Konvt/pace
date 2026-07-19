@@ -23,20 +23,19 @@ namespace pace {
        *
        * If the passed parameters are not coding in UTF-8.
        */
-      Lead( std::vector<details::types::String> _leads )
+      Lead( std::vector<std::string> _leads )
       {
-        std::transform(
-          std::make_move_iterator( _leads.begin() ),
-          std::make_move_iterator( _leads.end() ),
-          std::back_inserter( data_ ),
-          []( details::types::String&& ele ) { return details::charcodes::U8Text( std::move( ele ) ); } );
+        std::transform( std::make_move_iterator( _leads.begin() ),
+                        std::make_move_iterator( _leads.end() ),
+                        std::back_inserter( data_ ),
+                        []( std::string&& ele ) { return details::charcodes::U8Text( std::move( ele ) ); } );
       }
       /**
        * @throw exception::InvalidArgument
        *
        * If the passed parameters are not coding in UTF-8.
        */
-      Lead( details::types::String _lead ) : Base( { details::charcodes::U8Text( std::move( _lead ) ) } ) {}
+      Lead( std::string _lead ) : Base( { details::charcodes::U8Text( std::move( _lead ) ) } ) {}
 #ifdef __cpp_lib_char8_t
       Lead( const std::vector<details::charcodes::U8StringView>& _leads )
       {
@@ -97,10 +96,10 @@ namespace pace {
 
       protected:
         std::vector<charcodes::U8Text> lead_;
-        types::Size len_longest_lead_;
+        std::size_t len_longest_lead_;
         console::TrueColor lead_forecolor_, lead_backcolor_;
 
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR types::Size fixed_length() const noexcept
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length() const noexcept
         { return len_longest_lead_; }
 
         template<typename... Options>
@@ -125,14 +124,14 @@ namespace pace {
   return static_cast<ReturnType>( *this )
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
-        Derived& lead( std::vector<types::String> _leads ) &
+        Derived& lead( std::vector<std::string> _leads ) &
         { PACE__METHOD( Lead, _leads, Derived&, std::move ); }
-        Derived&& lead( std::vector<types::String> _leads ) &&
+        Derived&& lead( std::vector<std::string> _leads ) &&
         { PACE__METHOD( Lead, _leads, Derived&&, std::move ); }
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
-        Derived& lead( types::String _lead ) &
+        Derived& lead( std::string _lead ) &
         { PACE__METHOD( Lead, _lead, Derived&, std::move ); }
-        Derived&& lead( types::String _lead ) &&
+        Derived&& lead( std::string _lead ) &&
         { PACE__METHOD( Lead, _lead, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
         Derived& lead( const std::vector<charcodes::U8StringView>& _leads ) &

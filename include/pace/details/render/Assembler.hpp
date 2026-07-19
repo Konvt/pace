@@ -61,8 +61,8 @@ namespace pace {
         std::uint64_t fixed_width() const noexcept override
         {
           details::concurrent::SharedLock<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
-          details::types::Size num_enabled = 0;
-          std::uint64_t width              = 0;
+          std::size_t num_enabled = 0;
+          std::uint64_t width     = 0;
           (void)std::initializer_list<bool> { (
             num_enabled += this->projection_.test( details::traits::IndexIn<Facades, Facades...>::value ),
             width += ( this->projection_.test( details::traits::IndexIn<Facades, Facades...>::value )

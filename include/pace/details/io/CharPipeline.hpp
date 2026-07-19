@@ -9,21 +9,21 @@ namespace pace {
   namespace details {
     namespace io {
       class CharPipeline {
-        static constexpr types::Size _bootstrap_cap = 256;
+        static constexpr std::size_t _bootstrap_cap = 256;
 
-        std::unique_ptr<types::Char[]> start_;
-        types::Char* end_     = nullptr;
-        types::Char* current_ = nullptr;
+        std::unique_ptr<char[]> start_;
+        char* end_     = nullptr;
+        char* current_ = nullptr;
 
-        PACE__CXX23_CNSTXPR void grow( types::Size desired )
+        PACE__CXX23_CNSTXPR void grow( std::size_t desired )
         {
           PACE__TRUST( desired > 0 );
-          const auto capacity = static_cast<types::Size>( end_ - start_.get() );
+          const auto capacity = static_cast<std::size_t>( end_ - start_.get() );
           auto new_capacity   = capacity == 0 ? _bootstrap_cap : capacity * 2;
           while ( new_capacity < capacity + desired )
             new_capacity *= 2;
 
-          auto new_buffer        = utils::make_unique<types::Char[]>( new_capacity );
+          auto new_buffer        = utils::make_unique<char[]>( new_capacity );
           const auto new_current = std::copy( start_.get(), current_, new_buffer.get() );
           end_                   = new_buffer.get() + new_capacity;
           start_.swap( new_buffer );
@@ -31,7 +31,7 @@ namespace pace {
         }
 
       public:
-        using value_type = types::Char;
+        using value_type = char;
 
         constexpr CharPipeline() = default;
 
@@ -51,14 +51,13 @@ namespace pace {
 
         PACE__CXX23_CNSTXPR ~CharPipeline() = default;
 
-        PACE__FORCEINLINE PACE__CXX23_CNSTXPR const types::Char* data() const& noexcept
-        { return start_.get(); }
-        PACE__FORCEINLINE PACE__CXX23_CNSTXPR types::Char* data() & noexcept { return start_.get(); }
+        PACE__FORCEINLINE PACE__CXX23_CNSTXPR const char* data() const& noexcept { return start_.get(); }
+        PACE__FORCEINLINE PACE__CXX23_CNSTXPR char* data() & noexcept { return start_.get(); }
 
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX23_CNSTXPR types::Size capacity() const noexcept
-        { return static_cast<types::Size>( end_ - start_.get() ); }
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX23_CNSTXPR types::Size size() const noexcept
-        { return static_cast<types::Size>( current_ - start_.get() ); }
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX23_CNSTXPR std::size_t capacity() const noexcept
+        { return static_cast<std::size_t>( end_ - start_.get() ); }
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX23_CNSTXPR std::size_t size() const noexcept
+        { return static_cast<std::size_t>( current_ - start_.get() ); }
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX23_CNSTXPR bool empty() const noexcept
         { return start_.get() == current_; }
 
@@ -70,10 +69,10 @@ namespace pace {
           end_ = current_ = nullptr;
         }
 
-        PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& reserve( types::Size capacity ) &
+        PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& reserve( std::size_t capacity ) &
         {
-          if ( capacity > static_cast<types::Size>( end_ - start_.get() ) ) {
-            auto new_buffer        = utils::make_unique<types::Char[]>( capacity );
+          if ( capacity > static_cast<std::size_t>( end_ - start_.get() ) ) {
+            auto new_buffer        = utils::make_unique<char[]>( capacity );
             const auto new_current = std::copy( start_.get(), current_, new_buffer.get() );
             end_                   = new_buffer.get() + capacity;
             start_.swap( new_buffer );
@@ -82,7 +81,7 @@ namespace pace {
           return *this;
         }
 
-        PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& push_back( types::Char ch ) &
+        PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& push_back( char ch ) &
         {
           if ( end_ == current_ )
             grow( 1 );
@@ -90,8 +89,7 @@ namespace pace {
           return *this;
         }
 
-        PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& append( const types::Char* first,
-                                                                    const types::Char* last ) &
+        PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& append( const char* first, const char* last ) &
         {
           PACE__TRUST( first != nullptr );
           PACE__TRUST( last != nullptr );
@@ -104,19 +102,19 @@ namespace pace {
           return *this;
         }
         PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& append( charcodes::StringView info,
-                                                                    types::Size num = 1 ) &
+                                                                    std::size_t num = 1 ) &
         {
           const auto total_length = info.size() * num;
-          const auto free_cap     = static_cast<types::Size>( end_ - current_ );
+          const auto free_cap     = static_cast<std::size_t>( end_ - current_ );
           if ( total_length > free_cap )
             grow( total_length - free_cap );
           while ( num-- )
             current_ = std::copy( info.data(), info.data() + info.size(), current_ );
           return *this;
         }
-        PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& append( types::Char info, types::Size num = 1 ) &
+        PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& append( char info, std::size_t num = 1 ) &
         {
-          const auto free_cap = static_cast<types::Size>( end_ - current_ );
+          const auto free_cap = static_cast<std::size_t>( end_ - current_ );
           if ( num > free_cap )
             grow( num - free_cap );
           current_ = std::fill_n( current_, num, info );
@@ -125,7 +123,7 @@ namespace pace {
 
         PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& apply(
           CharPipeline& ( &manipulator )(CharPipeline&),
-          types::Size num = 1 ) &
+          std::size_t num = 1 ) &
         {
           while ( num-- )
             manipulator( *this );
@@ -138,10 +136,10 @@ namespace pace {
         { return manipulator( stream ); }
 
         template<typename T>
-        friend PACE__FORCEINLINE PACE__CXX23_CNSTXPR typename std::enable_if<
-          traits::AnyOf<std::is_convertible<T, charcodes::StringView>,
-                        std::is_same<typename std::decay<T>::type, types::Char>>::value,
-          CharPipeline&>::type
+        friend PACE__FORCEINLINE PACE__CXX23_CNSTXPR
+          typename std::enable_if<traits::AnyOf<std::is_convertible<T, charcodes::StringView>,
+                                                std::is_same<typename std::decay<T>::type, char>>::value,
+                                  CharPipeline&>::type
           operator<<( CharPipeline& stream, T&& info )
         { return stream.append( std::forward<T>( info ) ); }
 

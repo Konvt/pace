@@ -10,27 +10,27 @@ namespace pace {
   namespace details {
     namespace charcodes {
       class U8Char {
-        std::array<types::Char, 4> byte_;
+        std::array<char, 4> byte_;
         std::uint8_t length_;
         std::uint8_t width_;
 
       public:
         /// @return The utf codepoint and the number of byte of the utf-8 character.
-        static PACE__CXX20_CNSTXPR std::pair<types::CodePoint, std::uint8_t> next_codepoint(
+        static PACE__CXX20_CNSTXPR std::pair<char32_t, std::uint8_t> next_codepoint(
           charcodes::StringView raw_u8_str )
         {
           // After RFC 3629, the maximum length of each standard UTF-8 character is 4 bytes.
           const auto first_byte = raw_u8_str.front();
-          auto validator        = [=]( types::Size expected_len ) -> types::CodePoint {
+          auto validator        = [=]( std::size_t expected_len ) -> char32_t {
             if ( expected_len > raw_u8_str.size() )
               PACE__UNLIKELY throw exception::InvalidArgument( "pace: incomplete UTF-8 sequence"_cow );
-            for ( types::Size i = 1; i < expected_len; ++i ) {
+            for ( std::size_t i = 1; i < expected_len; ++i ) {
               if ( ( raw_u8_str[i] & 0xC0 ) != 0x80 )
                 PACE__UNLIKELY throw exception::InvalidArgument(
                   "pace: invalid UTF-8 continuation byte"_cow );
             }
 
-            types::CodePoint ret, overlong;
+            char32_t ret, overlong;
             switch ( expected_len ) {
             case 2:
               ret      = ( ( first_byte & 0x1F ) << 6 ) | ( raw_u8_str[1] & 0x3F );
@@ -82,15 +82,14 @@ namespace pace {
         }
 
         constexpr U8Char() noexcept : byte_ {}, length_ { 0 }, width_ { 0 } {}
-        PACE__CXX20_CNSTXPR U8Char( types::Char single_u8char ) noexcept
-          : byte_ {}, length_ { 1 }, width_ { 1 }
+        PACE__CXX20_CNSTXPR U8Char( char single_u8char ) noexcept : byte_ {}, length_ { 1 }, width_ { 1 }
         { byte_.front() = single_u8char; }
 
         PACE__CXX14_CNSTXPR U8Char( const U8Char& )              = default;
         PACE__CXX14_CNSTXPR U8Char& operator=( const U8Char& ) & = default;
         PACE__CXX20_CNSTXPR ~U8Char()                            = default;
 
-        PACE__NODISCARD const types::Char* as_bytes() const noexcept { return byte_.data(); }
+        PACE__NODISCARD const char* as_bytes() const noexcept { return byte_.data(); }
 
         PACE__NODISCARD constexpr std::uint8_t size() const noexcept { return length_; }
         PACE__NODISCARD constexpr std::uint8_t width() const noexcept { return width_; }

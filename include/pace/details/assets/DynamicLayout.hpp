@@ -54,7 +54,7 @@ namespace pace {
           const auto style_off = !istty && config::auto_style_off();
           const auto hide_done = config::hide_completed();
 
-          for ( types::Size i = 0; i < items_.size(); ++i ) {
+          for ( std::size_t i = 0; i < items_.size(); ++i ) {
             switch ( items_[i].stage_ ) {
             case Locus::Echo: {
               if ( istty && !hide_done ) {
@@ -154,7 +154,7 @@ namespace pace {
           std::lock_guard<std::mutex> lock1 { sched_mtx_ };
           std::lock_guard<concurrent::SharedMutex> lock2 { res_mtx_ };
           if ( state_.load( std::memory_order_relaxed ) != Phase::Stop ) {
-            for ( types::Size i = 0; i < items_.size(); ++i ) {
+            for ( std::size_t i = 0; i < items_.size(); ++i ) {
               if ( items_[i].stage_ == Locus::Onstage ) {
                 if PACE__CXX17_CNSTXPR ( Forced )
                   items_[i].target_->abort();
@@ -280,7 +280,7 @@ namespace pace {
         void shut() { do_shut<false>(); }
         void kill() noexcept { do_shut<true>(); }
 
-        PACE__NODISCARD PACE__FORCEINLINE types::Size online_count() const noexcept
+        PACE__NODISCARD PACE__FORCEINLINE std::size_t online_count() const noexcept
         {
           concurrent::SharedLock<concurrent::SharedMutex> lock { res_mtx_ };
           return items_.size();

@@ -26,8 +26,8 @@ namespace pace {
 
         auto frame_cnt = params.frame_count_;
         const auto len_finished =
-          static_cast<details::types::Size>( std::round( this->bar_width_ * params.progress_ratio_ ) );
-        details::types::Size len_vacancy = this->bar_width_ - len_finished;
+          static_cast<std::size_t>( std::round( this->bar_width_ * params.progress_ratio_ ) );
+        std::size_t len_vacancy = this->bar_width_ - len_finished;
 
         if ( !params.style_off_ && this->colorful() )
           pipeline << details::console::resetfgcolor << details::console::resetbgcolor
@@ -100,7 +100,7 @@ namespace pace {
         return pipeline << this->ending_;
       }
 
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR details::types::Size fixed_length() const noexcept
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length() const noexcept
       { return this->details::traits::BaseOf_t<Base, details::aspects::Bar>::fixed_length(); }
 
       template<typename... Options>

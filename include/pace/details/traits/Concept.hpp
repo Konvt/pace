@@ -143,7 +143,7 @@ namespace pace {
 #else
       template<typename T, typename = void>
       struct _impl_is_sized_range : std::false_type {};
-      template<typename T, types::Size N>
+      template<typename T, std::size_t N>
       struct _impl_is_sized_range<T[N], void> : std::true_type {};
       template<typename T>
       struct _impl_is_sized_range<

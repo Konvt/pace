@@ -8,7 +8,7 @@
 namespace pace {
   namespace details {
     namespace traits {
-      template<template<typename...> class Template, typename T, types::Size N>
+      template<template<typename...> class Template, typename T, std::size_t N>
       struct FillWith {
       private:
         template<typename List>
@@ -19,7 +19,7 @@ namespace pace {
       public:
         using type = typename Helper<TpFill_t<T, N>>::type;
       };
-      template<template<typename...> class Template, typename T, types::Size N>
+      template<template<typename...> class Template, typename T, std::size_t N>
       using FillWith_t = typename FillWith<Template, T, N>::type;
 
       template<typename T>

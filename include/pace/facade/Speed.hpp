@@ -60,14 +60,13 @@ namespace pace {
        * The given each unit will be treated as 1,000 times greater than the previous one
        * (from left to right).
        */
-      PACE__CXX20_CNSTXPR SpeedUnit( std::vector<details::types::String> _units )
+      PACE__CXX20_CNSTXPR SpeedUnit( std::vector<std::string> _units )
       {
         data_.reserve( _units.size() );
-        std::transform(
-          std::make_move_iterator( _units.begin() ),
-          std::make_move_iterator( _units.end() ),
-          std::back_inserter( data_ ),
-          []( details::types::String&& ele ) { return details::charcodes::U8Raw( std::move( ele ) ); } );
+        std::transform( std::make_move_iterator( _units.begin() ),
+                        std::make_move_iterator( _units.end() ),
+                        std::back_inserter( data_ ),
+                        []( std::string&& ele ) { return details::charcodes::U8Raw( std::move( ele ) ); } );
       }
 #ifdef __cpp_lib_char8_t
       /**
@@ -118,8 +117,7 @@ namespace pace {
       }
 
       // The overflow char is used to replace values that exceed the display width.
-      PACE__NODISCARD static PACE__FORCEINLINE constexpr details::types::Char overflow_char() noexcept
-      { return '#'; }
+      PACE__NODISCARD static PACE__FORCEINLINE constexpr char overflow_char() noexcept { return '#'; }
       PACE__NODISCARD static PACE__FORCEINLINE constexpr details::charcodes::StringView
         overflow_text() noexcept
       { return "inf. "; }
@@ -131,8 +129,8 @@ namespace pace {
       { return "und. "; }
 
       std::vector<details::charcodes::U8Raw> units_;
-      details::types::Size widest_width_;
-      details::types::Size numeric_width_;
+      std::size_t widest_width_;
+      std::size_t numeric_width_;
       std::uint16_t magnitude_;
 
     protected:
@@ -158,12 +156,12 @@ namespace pace {
                                                 ? ( std::numeric_limits<details::types::Float>::max )()
                                                 : params.tasks_completed_ / seconds_passed;
 
-        bool overflow                    = false;
-        details::types::Size num_powered = 0;
+        bool overflow           = false;
+        std::size_t num_powered = 0;
         /* Since the cube of the maximum value of std::uint16_t does not exceed
          * the representable range of std::uint64_t,
          * we choose to use std::uint16_t to represent the scaling magnitude. */
-        std::uint64_t tier               = 1;
+        std::uint64_t tier      = 1;
         while ( !overflow && frequency >= static_cast<details::types::Float>( tier ) * magnitude_ ) {
           ++num_powered;
           const auto next_tier = tier * magnitude_;
@@ -175,13 +173,13 @@ namespace pace {
         }
 
         num_powered = std::min( num_powered, units_.size() - 1 );
-        details::types::String orig;
+        std::string orig;
         if ( overflow )
-          orig = static_cast<details::types::String>( overflow_text() );
+          orig = static_cast<std::string>( overflow_text() );
         else {
           details::utils::format_to( std::back_inserter( orig ), frequency / tier, 2 );
           if ( orig.size() > numeric_width_ )
-            orig = details::types::String( numeric_width_, overflow_char() );
+            orig = std::string( numeric_width_, overflow_char() );
         }
         orig += ' ';
         if ( !units_.empty() )
@@ -193,7 +191,7 @@ namespace pace {
         return pipeline;
       }
 
-      PACE__NODISCARD PACE__FORCEINLINE constexpr details::types::Size fixed_length() const noexcept
+      PACE__NODISCARD PACE__FORCEINLINE constexpr std::size_t fixed_length() const noexcept
       { return numeric_width_ + 1 + widest_width_; }
 
       template<typename... Options>
@@ -224,9 +222,9 @@ namespace pace {
        * The given each unit will be treated as 1,000 times greater than the previous one
        * (from left to right).
        */
-      Derived& speed_unit( std::vector<details::types::String> _units ) &
+      Derived& speed_unit( std::vector<std::string> _units ) &
       { PACE__METHOD( SpeedUnit, _units, std::move, Derived& ); }
-      Derived&& speed_unit( std::vector<details::types::String> _units ) &&
+      Derived&& speed_unit( std::vector<std::string> _units ) &&
       { PACE__METHOD( SpeedUnit, _units, std::move, Derived&& ); }
 #ifdef __cpp_lib_char8_t
       /**

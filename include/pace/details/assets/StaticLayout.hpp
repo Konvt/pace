@@ -12,16 +12,16 @@ namespace pace {
     namespace assets {
       template<Channel, Policy, Region, typename, typename...>
       class StaticLayout;
-      template<Channel Sink, Policy Mode, Region Zone, types::Size... Tags, typename... Configs>
+      template<Channel Sink, Policy Mode, Region Zone, std::size_t... Tags, typename... Configs>
       class StaticLayout<Sink, Mode, Zone, traits::IndexSequence<Tags...>, Configs...> final
         : public assets::PackagedBar<Configs, Sink, Mode, Zone, Tags>... {
         static_assert( sizeof...( Tags ) == sizeof...( Configs ), "unexpected type mismatch" );
         static_assert( sizeof...( Configs ) > 0, "the number of progress bars cannot be zero" );
 
-        template<types::Size Pos>
+        template<std::size_t Pos>
         using ElementAt_t = traits::TypeAt_t<Pos, assets::PackagedBar<Configs, Sink, Mode, Zone, Tags>...>;
 
-        std::atomic<types::Size> alive_cnt_;
+        std::atomic<std::size_t> alive_cnt_;
         mutable std::mutex mtx_;
 
         enum class Phase : std::uint8_t { Stop, Awake, Refresh };
@@ -31,11 +31,11 @@ namespace pace {
         // Bitmask indicating which bars produced output in the current render pass.
         std::array<Locus, sizeof...( Configs )> stages_;
 
-        template<types::Size Pos, typename... Args>
+        template<std::size_t Pos, typename... Args>
         PACE__FORCEINLINE PACE__CXX14_CNSTXPR typename std::enable_if<( Pos >= sizeof...( Configs ) )>::type
           do_render( Args&&... ) &
         {}
-        template<types::Size Pos = 0>
+        template<std::size_t Pos = 0>
         typename std::enable_if<( Pos < sizeof...( Configs ) )>::type do_render( io::CharPipeline& pipeline,
                                                                                  bool istty,
                                                                                  bool style_off,
@@ -185,7 +185,7 @@ namespace pace {
           PACE__ASSERT( alive_cnt_ <= sizeof...( Configs ) );
         }
 
-        template<typename Tuple, types::Size... Is>
+        template<typename Tuple, std::size_t... Is>
         StaticLayout( Tuple&& tup, traits::IndexSequence<Is...> )
           noexcept( std::tuple_size<typename std::decay<Tuple>::type>::value == sizeof...( Configs ) )
           : ElementAt_t<Is>( utils::pick_or<Is, ElementAt_t<Is>>( std::forward<Tuple>( tup ) ) )...
@@ -195,7 +195,7 @@ namespace pace {
         }
 
       public:
-        template<types::Size... Is, typename... Cs, Channel S, Policy M, Region Z>
+        template<std::size_t... Is, typename... Cs, Channel S, Policy M, Region Z>
         StaticLayout( const assets::PackagedBar<Cs, S, M, Z, Is>&... ) = delete;
 
         // SFINAE is used here to prevent infinite recursive matching of errors.
@@ -252,7 +252,7 @@ namespace pace {
 
         PACE__NODISCARD PACE__FORCEINLINE bool online() const noexcept
         { return state_.load( std::memory_order_relaxed ) != Phase::Stop; }
-        PACE__NODISCARD PACE__FORCEINLINE types::Size online_count() const noexcept
+        PACE__NODISCARD PACE__FORCEINLINE std::size_t online_count() const noexcept
         { return alive_cnt_.load( std::memory_order_relaxed ); }
 
         void swap( StaticLayout& other ) noexcept
@@ -266,13 +266,13 @@ namespace pace {
           };
         }
 
-        template<types::Size Pos>
+        template<std::size_t Pos>
         PACE__FORCEINLINE PACE__CXX14_CNSTXPR ElementAt_t<Pos>& at() & noexcept
         { return static_cast<ElementAt_t<Pos>&>( *this ); }
-        template<types::Size Pos>
+        template<std::size_t Pos>
         PACE__FORCEINLINE PACE__CXX14_CNSTXPR const ElementAt_t<Pos>& at() const& noexcept
         { return static_cast<const ElementAt_t<Pos>&>( *this ); }
-        template<types::Size Pos>
+        template<std::size_t Pos>
         PACE__FORCEINLINE PACE__CXX14_CNSTXPR ElementAt_t<Pos>& at() && noexcept
         { return std::move( at<Pos>() ); }
       };

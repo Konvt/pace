@@ -81,10 +81,8 @@ namespace pace {
         } );
       }
 
-      PACE__NODISCARD static PACE__FORCEINLINE constexpr details::types::Char overflow_char() noexcept
-      { return '#'; }
-      PACE__NODISCARD static PACE__FORCEINLINE constexpr details::types::Char unkown_char() noexcept
-      { return '?'; }
+      PACE__NODISCARD static PACE__FORCEINLINE constexpr char overflow_char() noexcept { return '#'; }
+      PACE__NODISCARD static PACE__FORCEINLINE constexpr char unkown_char() noexcept { return '?'; }
 
       std::vector<Field> fmt_ir_;
       bool show_hour_   : 1;
@@ -148,14 +146,14 @@ namespace pace {
         return pipeline;
       }
 
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR details::types::Size fixed_length() const noexcept
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length() const noexcept
       {
         if ( fmt_ir_.empty() )
           return 1;
         return std::accumulate( fmt_ir_.cbegin(),
                                 fmt_ir_.cend(),
-                                details::types::Size {},
-                                []( details::types::Size acc, const Field& field ) noexcept {
+                                std::size_t {},
+                                []( std::size_t acc, const Field& field ) noexcept {
                                   PACE__ASSERT( field.token() != Token::None );
                                   switch ( field.token() ) {
                                   case Token::Literal: return acc + field.text().width();
@@ -200,11 +198,11 @@ namespace pace {
 
 #undef PACE__METHOD
 #ifdef __cpp_lib_char8_t
-# define PACE__METHOD( ParamName, ReturnType )                                                            \
-   std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };                              \
-   unpack( *this,                                                                                         \
-           option::ElapsedFormat(                                                                         \
-             { reinterpret_cast<const details::types::Char*>( ParamName.data() ), ParamName.size() } ) ); \
+# define PACE__METHOD( ParamName, ReturnType )                                                           \
+   std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };                             \
+   unpack(                                                                                               \
+     *this,                                                                                              \
+     option::ElapsedFormat( { reinterpret_cast<const char*>( ParamName.data() ), ParamName.size() } ) ); \
    return static_cast<ReturnType>( *this )
 
       Derived& elapsed_format( details::charcodes::U8StringView _fmt_str ) &

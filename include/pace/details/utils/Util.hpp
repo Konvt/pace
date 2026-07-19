@@ -10,7 +10,7 @@ namespace pace {
   namespace details {
     namespace utils {
       // Perfectly forward the I-th element of a tuple, constructing one by default if it's out of bound.
-      template<types::Size I, typename T, typename Tuple>
+      template<std::size_t I, typename T, typename Tuple>
       PACE__FORCEINLINE constexpr auto pick_or( Tuple&& tup ) noexcept ->
         typename std::enable_if<std::is_default_constructible<T>::value,
                                 decltype( std::get<I>( std::forward<Tuple>( tup ) ) )>::type
@@ -19,7 +19,7 @@ namespace pace {
                        "incompatible type" );
         return std::get<I>( std::forward<Tuple>( tup ) );
       }
-      template<types::Size I, typename T, typename Tuple>
+      template<std::size_t I, typename T, typename Tuple>
       PACE__FORCEINLINE constexpr auto pick_or( Tuple&& )
         noexcept( std::is_nothrow_default_constructible<T>::value ) -> typename std::enable_if<
           traits::AllOf<
@@ -29,14 +29,14 @@ namespace pace {
       { return T(); }
 
       template<typename Numeric>
-      PACE__NODISCARD constexpr typename std::enable_if<std::is_unsigned<Numeric>::value, types::Size>::type
+      PACE__NODISCARD constexpr typename std::enable_if<std::is_unsigned<Numeric>::value, std::size_t>::type
         count_digits( Numeric val ) noexcept
       {
 #ifdef __cpp_lib_is_constant_evaluated
         if ( std::is_constant_evaluated() ) {
 #endif
 #if PACE__CXX14
-          types::Size digits = val == 0;
+          std::size_t digits = val == 0;
           for ( ; val > 0; val /= 10 )
             ++digits;
           return digits;
@@ -52,7 +52,7 @@ namespace pace {
       }
       template<typename Numeric>
       PACE__NODISCARD PACE__FORCEINLINE constexpr
-        typename std::enable_if<std::is_signed<Numeric>::value, types::Size>::type
+        typename std::enable_if<std::is_signed<Numeric>::value, std::size_t>::type
         count_digits( Numeric val ) noexcept
       { return count_digits( static_cast<std::uint64_t>( val < 0 ? -val : val ) ); }
     } // namespace utils

@@ -9,14 +9,14 @@ namespace pace {
       // Basic string view, only provide basic reference semantics,
       // the function of traversing characters is not offered.
       class EncodedView {
-        const types::Char *head_, *tail_;
-        types::Size width_;
+        const char *head_, *tail_;
+        std::size_t width_;
 
       public:
-        using iterator = const types::Char*;
+        using iterator = const char*;
 
         constexpr EncodedView() noexcept : head_ { nullptr }, tail_ { nullptr }, width_ { 0 } {}
-        constexpr EncodedView( const types::Char* head, const types::Char* tail, types::Size width ) noexcept
+        constexpr EncodedView( const char* head, const char* tail, std::size_t width ) noexcept
           : head_ { head }, tail_ { tail }, width_ { width }
         {
 #if PACE__CXX14
@@ -28,13 +28,13 @@ namespace pace {
           : EncodedView( u8_raw.data(), u8_raw.data() + u8_raw.size(), u8_raw.width() )
         {}
 
-        EncodedView( std::nullptr_t, std::nullptr_t, types::Size )     = delete;
-        EncodedView( std::nullptr_t, const types::Char*, types::Size ) = delete;
-        EncodedView( const types::Char*, std::nullptr_t, types::Size ) = delete;
+        EncodedView( std::nullptr_t, std::nullptr_t, std::size_t ) = delete;
+        EncodedView( std::nullptr_t, const char*, std::size_t )    = delete;
+        EncodedView( const char*, std::nullptr_t, std::size_t )    = delete;
 
-        PACE__NODISCARD PACE__FORCEINLINE constexpr types::Size size() const noexcept
-        { return static_cast<types::Size>( tail_ - head_ ); }
-        PACE__NODISCARD PACE__FORCEINLINE constexpr types::Size width() const noexcept { return width_; }
+        PACE__NODISCARD PACE__FORCEINLINE constexpr std::size_t size() const noexcept
+        { return static_cast<std::size_t>( tail_ - head_ ); }
+        PACE__NODISCARD PACE__FORCEINLINE constexpr std::size_t width() const noexcept { return width_; }
         PACE__NODISCARD PACE__FORCEINLINE constexpr bool empty() const noexcept { return head_ == tail_; }
         PACE__NODISCARD PACE__FORCEINLINE constexpr iterator begin() const noexcept { return head_; }
         PACE__NODISCARD PACE__FORCEINLINE constexpr iterator end() const noexcept { return tail_; }

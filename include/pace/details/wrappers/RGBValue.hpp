@@ -25,7 +25,7 @@ namespace pace {
           } else if ( ( hex_str.size() != 7 && hex_str.size() != 4 ) || hex_str.front() != '#' )
             throw exception::InvalidArgument( charcodes::make_literal( "pace: invalid hex color format" ) );
 
-          for ( types::Size i = 1; i < hex_str.size(); i++ ) {
+          for ( std::size_t i = 1; i < hex_str.size(); i++ ) {
             if ( ( hex_str[i] < '0' || hex_str[i] > '9' ) && ( hex_str[i] < 'A' || hex_str[i] > 'F' )
                  && ( hex_str[i] < 'a' || hex_str[i] > 'f' ) ) {
               charcodes::SharedString message =
@@ -41,7 +41,7 @@ namespace pace {
           encoding_   = render::Paint::Xterm24bit;
           value_.hex_ = 0;
           if ( hex_str.size() == 4 ) {
-            for ( types::Size i = 1; i < hex_str.size(); ++i ) {
+            for ( std::size_t i = 1; i < hex_str.size(); ++i ) {
               value_.hex_ <<= 4;
               if ( hex_str[i] >= '0' && hex_str[i] <= '9' )
                 value_.hex_ = ( ( value_.hex_ | ( hex_str[i] - '0' ) ) << 4 ) | ( hex_str[i] - '0' );
@@ -53,7 +53,7 @@ namespace pace {
                   ( ( value_.hex_ | ( hex_str[i] - 'a' + 10 ) ) << 4 ) | ( hex_str[i] - 'a' + 10 );
             }
           } else {
-            for ( types::Size i = 1; i < hex_str.size(); ++i ) {
+            for ( std::size_t i = 1; i < hex_str.size(); ++i ) {
               value_.hex_ <<= 4;
               if ( hex_str[i] >= '0' && hex_str[i] <= '9' )
                 value_.hex_ |= hex_str[i] - '0';
