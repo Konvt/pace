@@ -11,8 +11,8 @@ namespace pace {
       template<typename Base, typename Derived>
       class Reactive : public Base {
         union Callback {
-          wrappers::UniqueFunction<void()> on_;
-          wrappers::UniqueFunction<void( Derived& )> on_self_;
+          wrappers::UniqueFunction<void()> on;
+          wrappers::UniqueFunction<void( Derived& )> on_self;
           bool nil_ = false;
 
           constexpr Callback() = default;
@@ -23,8 +23,8 @@ namespace pace {
         PACE__CXX20_CNSTXPR void destroy() noexcept
         {
           switch ( tag_ ) {
-          case Tag::Nullary: utils::destroy_at( hook_.on_ ); break;
-          case Tag::Unary:   utils::destroy_at( hook_.on_self_ ); break;
+          case Tag::Nullary: utils::destroy_at( hook_.on ); break;
+          case Tag::Unary:   utils::destroy_at( hook_.on_self ); break;
 
           case Tag::Nil: PACE__FALLTHROUGH;
           default:       break;
@@ -38,10 +38,10 @@ namespace pace {
           other.destroy();
           switch ( tag_ ) {
           case Tag::Nullary: {
-            utils::construct_at( &other.hook_.on_, std::move( hook_.on_ ) );
+            utils::construct_at( &other.hook_.on, std::move( hook_.on ) );
           } break;
           case Tag::Unary: {
-            utils::construct_at( &other.hook_.on_self_, std::move( hook_.on_self_ ) );
+            utils::construct_at( &other.hook_.on_self, std::move( hook_.on_self ) );
           } break;
 
           case Tag::Nil: PACE__FALLTHROUGH;
@@ -55,8 +55,8 @@ namespace pace {
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR void react() &
         {
           switch ( tag_ ) {
-          case Tag::Nullary: hook_.on_(); break;
-          case Tag::Unary:   hook_.on_self_( static_cast<Derived&>( *this ) ); break;
+          case Tag::Nullary: hook_.on(); break;
+          case Tag::Unary:   hook_.on_self( static_cast<Derived&>( *this ) ); break;
 
           case Tag::Nil: PACE__FALLTHROUGH;
           default:       break;
@@ -101,7 +101,7 @@ namespace pace {
                           std::is_constructible<wrappers::UniqueFunction<void()>, F&&>>::value,
             Derived&>::type
 #endif
-        { PACE__METHOD( hook_.on_, Nullary, Derived& ); }
+        { PACE__METHOD( hook_.on, Nullary, Derived& ); }
         template<typename F>
         auto action( F&& fn ) && noexcept(
           std::is_nothrow_constructible<wrappers::UniqueFunction<void()>, F>::value )
@@ -115,7 +115,7 @@ namespace pace {
                           std::is_constructible<wrappers::UniqueFunction<void()>, F&&>>::value,
             Derived&&>::type
 #endif
-        { PACE__METHOD( hook_.on_, Nullary, Derived&& ); }
+        { PACE__METHOD( hook_.on, Nullary, Derived&& ); }
         template<typename F>
         auto action( F&& fn ) & noexcept(
           std::is_nothrow_constructible<wrappers::UniqueFunction<void( Derived& )>, F>::value )
@@ -129,7 +129,7 @@ namespace pace {
                           std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>::value,
             Derived&>::type
 #endif
-        { PACE__METHOD( hook_.on_self_, Unary, Derived& ); }
+        { PACE__METHOD( hook_.on_self, Unary, Derived& ); }
         template<typename F>
         auto action( F&& fn ) && noexcept(
           std::is_nothrow_constructible<wrappers::UniqueFunction<void( Derived& )>, F>::value )
@@ -143,7 +143,7 @@ namespace pace {
                           std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>::value,
             Derived&&>::type
 #endif
-        { PACE__METHOD( hook_.on_self_, Unary, Derived&& ); }
+        { PACE__METHOD( hook_.on_self, Unary, Derived&& ); }
 
 #undef PACE__METHOD
 #define PACE__METHOD( ReturnType )                                          \
@@ -159,7 +159,7 @@ namespace pace {
 #undef PACE__METHOD
 
         template<typename F>
-        friend PACE__FORCEINLINE auto operator<<( Reactive& bar, F&& fn )
+        friend PACE__FORCEINLINE auto operator<<( Reactive& self, F&& fn )
 #ifdef __cpp_concepts
           -> decltype( auto )
           requires( std::is_constructible_v<wrappers::UniqueFunction<void()>, F &&>
@@ -171,9 +171,9 @@ namespace pace {
                             std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>>::value,
             Derived&>::type
 #endif
-        { return bar.action( std::forward<F>( fn ) ); }
+        { return self.action( std::forward<F>( fn ) ); }
         template<typename F>
-        friend PACE__FORCEINLINE auto operator<<( Reactive&& bar, F&& fn )
+        friend PACE__FORCEINLINE auto operator<<( Reactive&& self, F&& fn )
 #ifdef __cpp_concepts
           -> decltype( auto )
           requires( std::is_constructible_v<wrappers::UniqueFunction<void()>, F &&>
@@ -185,12 +185,12 @@ namespace pace {
                             std::is_constructible<wrappers::UniqueFunction<void( Derived& )>, F&&>>>::value,
             Derived&&>::type
 #endif
-        { return std::move( bar.action( std::forward<F>( fn ) ) ); }
+        { return std::move( self.action( std::forward<F>( fn ) ) ); }
 
-        friend PACE__FORCEINLINE Derived& operator<<( Reactive& bar, std::nullptr_t ) noexcept
-        { return bar.action(); }
-        friend PACE__FORCEINLINE Derived&& operator<<( Reactive&& bar, std::nullptr_t ) noexcept
-        { return std::move( bar.action() ); }
+        friend PACE__FORCEINLINE Derived& operator<<( Reactive& self, std::nullptr_t ) noexcept
+        { return self.action(); }
+        friend PACE__FORCEINLINE Derived&& operator<<( Reactive&& self, std::nullptr_t ) noexcept
+        { return std::move( self.action() ); }
 
         void swap( Reactive& other ) noexcept
         {
@@ -198,22 +198,22 @@ namespace pace {
           switch ( tag_ ) {
           case Tag::Nullary:
             if ( other.tag_ == Tag::Nullary )
-              hook_.on_.swap( other.hook_.on_ );
+              hook_.on.swap( other.hook_.on );
             else {
-              wrappers::UniqueFunction<void()> tmp { std::move( hook_.on_ ) };
+              wrappers::UniqueFunction<void()> tmp { std::move( hook_.on ) };
               other.move_to( *this );
-              utils::construct_at( &other.hook_.on_, std::move( tmp ) );
+              utils::construct_at( &other.hook_.on, std::move( tmp ) );
               other.tag_ = Tag::Nullary;
             }
             break;
 
           case Tag::Unary:
             if ( other.tag_ == Tag::Unary )
-              hook_.on_self_.swap( other.hook_.on_self_ );
+              hook_.on_self.swap( other.hook_.on_self );
             else {
-              wrappers::UniqueFunction<void( Derived& )> tmp { std::move( hook_.on_self_ ) };
+              wrappers::UniqueFunction<void( Derived& )> tmp { std::move( hook_.on_self ) };
               other.move_to( *this );
-              utils::construct_at( &other.hook_.on_self_, std::move( tmp ) );
+              utils::construct_at( &other.hook_.on_self, std::move( tmp ) );
               other.tag_ = Tag::Unary;
             }
             break;

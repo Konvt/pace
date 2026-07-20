@@ -19,7 +19,7 @@ namespace pace {
       class Capacity : public Base {
         friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Capacity& self,
                                                                   option::Quota&& val ) noexcept
-        { self.task_quota_ = val.value(); }
+        { self.task_quota_ = val.value; }
 
       protected:
         std::uint64_t task_quota_;

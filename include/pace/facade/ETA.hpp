@@ -73,7 +73,7 @@ namespace pace {
       {
         self.show_hour_   = false;
         self.show_minute_ = false;
-        self.fmt_ir_      = std::move( val.value() );
+        self.fmt_ir_      = std::move( val.value );
         std::for_each( self.fmt_ir_.cbegin(), self.fmt_ir_.cend(), [&]( const Field& field ) noexcept {
           switch ( field.token() ) {
           case Token::Hour:   self.show_hour_ = true; break;
@@ -99,11 +99,11 @@ namespace pace {
 
         bool overflow = false;
         details::types::Tempus remaining_time {};
-        if ( params.task_quota_ > 0 && params.tasks_completed_ > 0 ) {
-          auto time_per_task = params.elapsed_time_ / params.tasks_completed_;
+        if ( params.task_quota > 0 && params.tasks_completed > 0 ) {
+          auto time_per_task = params.elapsed_time / params.tasks_completed;
           if ( time_per_task.count() == 0 )
             time_per_task = details::types::Tempus( 1 );
-          const std::uint64_t remaining_tasks = params.task_quota_ - params.tasks_completed_;
+          const std::uint64_t remaining_tasks = params.task_quota - params.tasks_completed;
           if ( remaining_tasks > ( std::numeric_limits<std::uint64_t>::max )() / time_per_task.count() )
             overflow = true;
           else
@@ -119,7 +119,7 @@ namespace pace {
             if ( field.width() == 0 ) {
               pipeline << unkown_char();
               continue;
-            } else if ( params.task_quota_ > 0 && !overflow )
+            } else if ( params.task_quota > 0 && !overflow )
               timer_value = std::chrono::duration_cast<std::chrono::hours>( remaining_time ).count();
           } break;
 
@@ -127,7 +127,7 @@ namespace pace {
             if ( field.width() == 0 ) {
               pipeline << unkown_char();
               continue;
-            } else if ( params.task_quota_ > 0 && !overflow ) {
+            } else if ( params.task_quota > 0 && !overflow ) {
               const auto num_minutes =
                 std::chrono::duration_cast<std::chrono::minutes>( remaining_time ).count();
               timer_value = show_hour_ ? num_minutes % 60 : num_minutes;
@@ -138,7 +138,7 @@ namespace pace {
             if ( field.width() == 0 ) {
               pipeline << unkown_char();
               continue;
-            } else if ( params.task_quota_ > 0 && !overflow ) {
+            } else if ( params.task_quota > 0 && !overflow ) {
               const auto num_seconds =
                 std::chrono::duration_cast<std::chrono::seconds>( remaining_time ).count();
               timer_value = show_hour_ || show_minute_ ? num_seconds % 60 : num_seconds;
@@ -149,7 +149,7 @@ namespace pace {
           }
 
           const auto num_digits = details::utils::count_digits( timer_value );
-          if ( params.task_quota_ == 0 ) {
+          if ( params.task_quota == 0 ) {
             pipeline.append( unkown_char(), field.width() );
             continue;
           } else if ( overflow || num_digits > field.width() ) {

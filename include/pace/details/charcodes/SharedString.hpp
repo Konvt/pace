@@ -241,25 +241,25 @@ namespace pace {
         { return a.owner_ == b.owner_ && a.pos_ == b.pos_; }
         friend constexpr bool operator!=( const CoWIterator& a, const CoWIterator& b ) noexcept
         { return !( a == b ); }
-        friend PACE__CXX14_CNSTXPR Derived& operator+=( CoWIterator& itr, difference_type count ) noexcept
+        friend PACE__CXX14_CNSTXPR Derived& operator+=( CoWIterator& self, difference_type count ) noexcept
         {
-          itr.pos_ += count;
-          return static_cast<Derived&>( itr );
+          self.pos_ += count;
+          return static_cast<Derived&>( self );
         }
-        friend PACE__CXX14_CNSTXPR Derived& operator-=( CoWIterator& itr, difference_type count ) noexcept
+        friend PACE__CXX14_CNSTXPR Derived& operator-=( CoWIterator& self, difference_type count ) noexcept
         {
-          itr.pos_ -= count;
-          return static_cast<Derived&>( itr );
+          self.pos_ -= count;
+          return static_cast<Derived&>( self );
         }
 
-        friend constexpr Derived operator+( const CoWIterator& itr, difference_type count ) noexcept
-        { return Derived( itr.owner_, itr.pos_ + count ); }
-        friend constexpr Derived operator+( difference_type count, const CoWIterator& itr ) noexcept
-        { return itr + count; }
-        friend constexpr Derived operator-( const CoWIterator& itr, difference_type count ) noexcept
-        { return Derived( itr.owner_, itr.pos_ + ( -count ) ); }
-        friend constexpr Derived operator-( difference_type count, const CoWIterator& itr ) noexcept
-        { return itr - count; }
+        friend constexpr Derived operator+( const CoWIterator& self, difference_type count ) noexcept
+        { return Derived( self.owner_, self.pos_ + count ); }
+        friend constexpr Derived operator+( difference_type count, const CoWIterator& self ) noexcept
+        { return self + count; }
+        friend constexpr Derived operator-( const CoWIterator& self, difference_type count ) noexcept
+        { return Derived( self.owner_, self.pos_ + ( -count ) ); }
+        friend constexpr Derived operator-( difference_type count, const CoWIterator& self ) noexcept
+        { return self - count; }
         friend PACE__CXX14_CNSTXPR difference_type operator-( const CoWIterator& a,
                                                               const CoWIterator& b ) noexcept
         {
@@ -377,31 +377,31 @@ namespace pace {
           { return a.cursor_ == b.cursor_; }
           friend constexpr bool operator!=( const unsafe_iterator& a, const unsafe_iterator& b ) noexcept
           { return !( a == b ); }
-          friend PACE__CXX14_CNSTXPR unsafe_iterator& operator+=( unsafe_iterator& itr,
+          friend PACE__CXX14_CNSTXPR unsafe_iterator& operator+=( unsafe_iterator& self,
                                                                   difference_type count ) noexcept
           {
-            itr.cursor_ += count;
-            return itr;
+            self.cursor_ += count;
+            return self;
           }
-          friend PACE__CXX14_CNSTXPR unsafe_iterator& operator-=( unsafe_iterator& itr,
+          friend PACE__CXX14_CNSTXPR unsafe_iterator& operator-=( unsafe_iterator& self,
                                                                   difference_type count ) noexcept
           {
-            itr.cursor_ -= count;
-            return itr;
+            self.cursor_ -= count;
+            return self;
           }
 
-          friend constexpr unsafe_iterator operator+( const unsafe_iterator& itr,
+          friend constexpr unsafe_iterator operator+( const unsafe_iterator& self,
                                                       difference_type count ) noexcept
-          { return { itr.cursor_ + count }; }
+          { return { self.cursor_ + count }; }
           friend constexpr unsafe_iterator operator+( difference_type count,
-                                                      const unsafe_iterator& itr ) noexcept
-          { return itr + count; }
-          friend constexpr unsafe_iterator operator-( const unsafe_iterator& itr,
+                                                      const unsafe_iterator& self ) noexcept
+          { return self + count; }
+          friend constexpr unsafe_iterator operator-( const unsafe_iterator& self,
                                                       difference_type count ) noexcept
-          { return { itr.cursor_ + ( -count ) }; }
+          { return { self.cursor_ + ( -count ) }; }
           friend constexpr unsafe_iterator operator-( difference_type count,
-                                                      const unsafe_iterator& itr ) noexcept
-          { return itr - count; }
+                                                      const unsafe_iterator& self ) noexcept
+          { return self - count; }
           friend constexpr difference_type operator-( const unsafe_iterator& a,
                                                       const unsafe_iterator& b ) noexcept
           { return a.cursor_ - b.cursor_; }
@@ -412,27 +412,27 @@ namespace pace {
 
       private:
         struct CoWBlock final {
-          CoWRef* refs_;
-          pointer ptr_;
-          size_type capacity_;
+          CoWRef* refs;
+          pointer ptr;
+          size_type capacity;
 
-          constexpr CoWBlock( CoWRef* refs, pointer ptr, size_type capacity ) noexcept
-            : refs_ { refs }, ptr_ { std::move( ptr ) }, capacity_ { capacity }
+          constexpr CoWBlock( CoWRef* rfs, pointer p, size_type cap ) noexcept
+            : refs { rfs }, ptr { std::move( p ) }, capacity { cap }
           {}
           PACE__CXX20_CNSTXPR ~CoWBlock() = default;
 
           // it's extremely surprising that the type alias `pointer` of the allocator can be a fancy pointer
-          PACE__FORCEINLINE PACE__CXX14_CNSTXPR Char* str() & noexcept { return utils::to_address( ptr_ ); }
-          PACE__FORCEINLINE PACE__CXX14_CNSTXPR Char* str() && noexcept { return utils::to_address( ptr_ ); }
-          PACE__FORCEINLINE constexpr const Char* str() const& noexcept { return utils::to_address( ptr_ ); }
+          PACE__FORCEINLINE PACE__CXX14_CNSTXPR Char* str() & noexcept { return utils::to_address( ptr ); }
+          PACE__FORCEINLINE PACE__CXX14_CNSTXPR Char* str() && noexcept { return utils::to_address( ptr ); }
+          PACE__FORCEINLINE constexpr const Char* str() const& noexcept { return utils::to_address( ptr ); }
         };
         union Payload {
           Char _; // this memeber is only used to control alignment
-          const Char* literal_;
-          CoWBlock remote_;
+          const Char* literal;
+          CoWBlock remote;
 
-          constexpr Payload() noexcept : literal_ { nullptr } {}
-          constexpr Payload( const Char* lit ) noexcept : literal_ { lit } {}
+          constexpr Payload() noexcept : literal { nullptr } {}
+          constexpr Payload( const Char* lit ) noexcept : literal { lit } {}
         };
         enum class Kind : std::uint8_t { Literal, Inline, Dynamic };
 
@@ -541,14 +541,14 @@ namespace pace {
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR CoWBlock
           make_cow( const CoWBlock& other ) noexcept
         {
-          other.refs_->fetch_add( 1, std::memory_order_relaxed );
+          other.refs->fetch_add( 1, std::memory_order_relaxed );
           return other;
         }
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR void destroy_cow( CoWBlock& cow ) noexcept
         {
-          if ( cow.refs_->fetch_sub( 1, std::memory_order_acq_rel ) == 1 ) {
-            ::delete cow.refs_;
-            deallocate( utils::exchange( cow.ptr_, pointer() ), utils::exchange( cow.capacity_, 0 ) );
+          if ( cow.refs->fetch_sub( 1, std::memory_order_acq_rel ) == 1 ) {
+            ::delete cow.refs;
+            deallocate( utils::exchange( cow.ptr, pointer() ), utils::exchange( cow.capacity, 0 ) );
           }
         }
 
@@ -571,7 +571,7 @@ namespace pace {
               // cap should contain an additional terminator
               const size_type num_written = std::forward<Operation>( op )( cow.str(), cap - 1 );
               Traits::assign( cow.str()[num_written], Char() );
-              utils::construct_at( &as_.remote_, cow );
+              utils::construct_at( &as_.remote, cow );
               tag_ = Kind::Dynamic;
             } catch ( ... ) {
               destroy_cow( cow );
@@ -659,8 +659,8 @@ namespace pace {
             const size_type num_written = std::forward<Operation>( op )( cow.str(), cap - 1 );
             PACE__TRUST( cap > num_written );
             Traits::assign( cow.str()[num_written], Char() );
-            destroy_cow( as_.remote_ );
-            as_.remote_ = cow;
+            destroy_cow( as_.remote );
+            as_.remote = cow;
           } catch ( ... ) {
             destroy_cow( cow );
             throw;
@@ -686,7 +686,7 @@ namespace pace {
                                                  size_type count )
         {
           const auto total_length = prefix_len + suffix_len + count;
-          duplicate_from( (std::max)( total_length, dynamic_capacity( as_.remote_.capacity_ - 1 ) ) + 1,
+          duplicate_from( (std::max)( total_length, dynamic_capacity( as_.remote.capacity - 1 ) ) + 1,
                           [&]( Char* dest, size_type new_cap ) noexcept {
                             PACE__TRUST( count <= new_cap );
                             (void)new_cap;
@@ -703,7 +703,7 @@ namespace pace {
                                                  Char inserted )
         {
           const auto total_length = prefix_len + suffix_len + count;
-          duplicate_from( (std::max)( total_length, dynamic_capacity( as_.remote_.capacity_ - 1 ) ) + 1,
+          duplicate_from( (std::max)( total_length, dynamic_capacity( as_.remote.capacity - 1 ) ) + 1,
                           [&]( Char* dest, size_type new_cap ) noexcept {
                             PACE__TRUST( count <= new_cap );
                             (void)new_cap;
@@ -729,8 +729,8 @@ namespace pace {
             deallocate( str, cap );
             throw;
           }
-          deallocate( as_.remote_.ptr_, as_.remote_.capacity_ );
-          std::tie( as_.remote_.ptr_, as_.remote_.capacity_ ) = std::make_pair( std::move( str ), cap );
+          deallocate( as_.remote.ptr, as_.remote.capacity );
+          std::tie( as_.remote.ptr, as_.remote.capacity ) = std::make_pair( std::move( str ), cap );
         }
         // Reallocates the unique CoW buffer to a larger capacity and copies data into it
         PACE__CXX20_CNSTXPR void expand_with( const Char* first, size_type count, size_type cap )
@@ -751,7 +751,7 @@ namespace pace {
                                               const Char* inserted,
                                               size_type count )
         {
-          expand_with( dynamic_capacity( as_.remote_.capacity_ - 1 ) + 1,
+          expand_with( dynamic_capacity( as_.remote.capacity - 1 ) + 1,
                        [&]( Char* dest, size_type new_cap ) noexcept {
                          const auto total_length = prefix_len + suffix_len + count;
                          PACE__TRUST( total_length <= new_cap );
@@ -768,7 +768,7 @@ namespace pace {
                                               size_type count,
                                               Char inserted )
         {
-          expand_with( dynamic_capacity( as_.remote_.capacity_ - 1 ) + 1,
+          expand_with( dynamic_capacity( as_.remote.capacity - 1 ) + 1,
                        [&]( Char* dest, size_type new_cap ) noexcept {
                          const auto total_length = prefix_len + suffix_len + count;
                          PACE__TRUST( total_length <= new_cap );
@@ -783,7 +783,7 @@ namespace pace {
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR void destroy_self() noexcept
         {
           if ( tag_ == Kind::Dynamic )
-            destroy_cow( as_.remote_ );
+            destroy_cow( as_.remote );
         }
         template<bool PropagativeAlloc>
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR void propagate_self( const BasicSharedString& other )
@@ -792,7 +792,7 @@ namespace pace {
           switch ( other.tag_ ) {
           case Kind::Literal: {
             destroy_self();
-            utils::construct_at( &as_.literal_, other.as_.literal_ );
+            utils::construct_at( &as_.literal, other.as_.literal );
           } break;
           case Kind::Inline: {
             destroy_self();
@@ -804,11 +804,11 @@ namespace pace {
             if ( std::allocator_traits<Alloc>::is_always_equal::value || PropagativeAlloc
                  || this->allocator() == other.allocator() ) {
               destroy_self();
-              utils::construct_at( &as_.remote_, make_cow( other.as_.remote_ ) );
+              utils::construct_at( &as_.remote, make_cow( other.as_.remote ) );
             } else {
-              const auto cow = make_cow( other.as_.remote_.str(), other.length_, other.length_ + 1 );
+              const auto cow = make_cow( other.as_.remote.str(), other.length_, other.length_ + 1 );
               destroy_self();
-              utils::construct_at( &as_.remote_, cow );
+              utils::construct_at( &as_.remote, cow );
             }
           } break;
           default: utils::unreachable();
@@ -834,9 +834,9 @@ namespace pace {
         PACE__CXX14_CNSTXPR BasicSharedString& assign( Literal<Char> literal_str ) noexcept
         {
           switch ( tag_ ) {
-          case Kind::Literal: as_.literal_ = literal_str.data(); break;
-          case Kind::Dynamic: destroy_cow( as_.remote_ ); PACE__FALLTHROUGH;
-          case Kind::Inline:  utils::construct_at( &as_.literal_, literal_str.data() ); break;
+          case Kind::Literal: as_.literal = literal_str.data(); break;
+          case Kind::Dynamic: destroy_cow( as_.remote ); PACE__FALLTHROUGH;
+          case Kind::Inline:  utils::construct_at( &as_.literal, literal_str.data() ); break;
           default:            utils::unreachable();
           }
           length_ = literal_str.size();
@@ -900,7 +900,7 @@ namespace pace {
         {
           switch ( tag_ ) {
           case Kind::Dynamic:
-            if ( as_.remote_.refs_->load( std::memory_order_acquire ) == 1 )
+            if ( as_.remote.refs->load( std::memory_order_acquire ) == 1 )
               return true;
             PACE__FALLTHROUGH;
           case Kind::Literal: return false;
@@ -1090,7 +1090,7 @@ namespace pace {
             }
             if ( transfered ) {
               Traits::assign( dest[length], Char() );
-              utils::construct_at( &as_.remote_, ::new CoWRef( 1 ), str, cap );
+              utils::construct_at( &as_.remote, ::new CoWRef( 1 ), str, cap );
               tag_ = Kind::Dynamic;
             } else {
               Traits::assign( dest[length], Char() );
@@ -1210,13 +1210,13 @@ namespace pace {
         {
           PACE__TRUST( this != &rhs );
           switch ( rhs.tag_ ) {
-          case Kind::Literal: utils::construct_at( &as_.literal_, rhs.as_.literal_ ); break;
+          case Kind::Literal: utils::construct_at( &as_.literal, rhs.as_.literal ); break;
           case Kind::Inline:
             Traits::copy( utils::launder_as<Char>( &as_ ),
                           utils::launder_as<Char>( &rhs.as_ ),
                           rhs.length_ + 1 );
             break;
-          case Kind::Dynamic: utils::construct_at( &as_.remote_, rhs.as_.remote_ ); break;
+          case Kind::Dynamic: utils::construct_at( &as_.remote, rhs.as_.remote ); break;
           default:            utils::unreachable();
           }
           length_ = utils::exchange( rhs.length_, 0 );
@@ -1229,7 +1229,7 @@ namespace pace {
           : BasicSharedString( alloc )
         {
           switch ( other.tag_ ) {
-          case Kind::Literal: utils::construct_at( &as_.literal_, other.as_.literal_ ); break;
+          case Kind::Literal: utils::construct_at( &as_.literal, other.as_.literal ); break;
           case Kind::Inline:  {
             PACE__ASSERT( other.length_ <= small_capacity() );
             Traits::copy( utils::launder_as<Char>( &as_ ),
@@ -1239,10 +1239,10 @@ namespace pace {
           case Kind::Dynamic: {
             if ( std::allocator_traits<Alloc>::is_always_equal::value
                  || this->allocator() == other.allocator() )
-              utils::construct_at( &as_.remote_, make_cow( other.as_.remote_ ) );
+              utils::construct_at( &as_.remote, make_cow( other.as_.remote ) );
             else
-              utils::construct_at( &as_.remote_,
-                                   make_cow( other.as_.remote_.str(), other.length_, other.length_ + 1 ) );
+              utils::construct_at( &as_.remote,
+                                   make_cow( other.as_.remote.str(), other.length_, other.length_ + 1 ) );
           } break;
           default: utils::unreachable();
           }
@@ -1255,7 +1255,7 @@ namespace pace {
           : BasicSharedString( alloc )
         {
           switch ( rhs.tag_ ) {
-          case Kind::Literal: utils::construct_at( &as_.literal_, rhs.as_.literal_ ); break;
+          case Kind::Literal: utils::construct_at( &as_.literal, rhs.as_.literal ); break;
           case Kind::Inline:  {
             PACE__ASSERT( rhs.length_ <= small_capacity() );
             Traits::copy( utils::launder_as<Char>( &as_ ),
@@ -1265,11 +1265,11 @@ namespace pace {
           case Kind::Dynamic: {
             if ( std::allocator_traits<Alloc>::is_always_equal::value
                  || this->allocator() == rhs.allocator() )
-              utils::construct_at( &as_.remote_, rhs.as_.remote_ );
+              utils::construct_at( &as_.remote, rhs.as_.remote );
             else {
-              utils::construct_at( &as_.remote_,
-                                   make_cow( rhs.as_.remote_.str(), rhs.length_, rhs.length_ + 1 ) );
-              destroy_cow( rhs.as_.remote_ );
+              utils::construct_at( &as_.remote,
+                                   make_cow( rhs.as_.remote.str(), rhs.length_, rhs.length_ + 1 ) );
+              destroy_cow( rhs.as_.remote );
             }
           } break;
           default: utils::unreachable();
@@ -1301,12 +1301,12 @@ namespace pace {
           switch ( other.tag_ ) {
           case Kind::Literal: {
             if ( pos == 0 && count == other.length_ ) {
-              utils::construct_at( &as_.literal_, other.as_.literal_ );
+              utils::construct_at( &as_.literal, other.as_.literal );
               tag_ = Kind::Literal;
             } else if ( count <= small_capacity() )
-              transfer_to<Kind::Inline>( other.as_.literal_ + pos, count, 0 );
+              transfer_to<Kind::Inline>( other.as_.literal + pos, count, 0 );
             else {
-              utils::construct_at( &as_.remote_, make_cow( other.as_.literal_ + pos, count, count + 1 ) );
+              utils::construct_at( &as_.remote, make_cow( other.as_.literal + pos, count, count + 1 ) );
               tag_ = Kind::Dynamic;
             }
           } break;
@@ -1318,10 +1318,9 @@ namespace pace {
             if ( ( std::allocator_traits<Alloc>::is_always_equal::value
                    || this->allocator() == other.allocator() )
                  && pos == 0 && count == other.length_ )
-              utils::construct_at( &as_.remote_, make_cow( other.as_.remote_ ) );
+              utils::construct_at( &as_.remote, make_cow( other.as_.remote ) );
             else
-              utils::construct_at( &as_.remote_,
-                                   make_cow( other.as_.remote_.str() + pos, count, count + 1 ) );
+              utils::construct_at( &as_.remote, make_cow( other.as_.remote.str() + pos, count, count + 1 ) );
             tag_ = Kind::Dynamic;
           } break;
           default: utils::unreachable();
@@ -1341,13 +1340,13 @@ namespace pace {
           switch ( rhs.tag_ ) {
           case Kind::Literal: {
             if ( pos == 0 && count == rhs.length_ )
-              utils::construct_at( &as_.literal_, rhs.as_.literal_ );
+              utils::construct_at( &as_.literal, rhs.as_.literal );
             else if ( count > small_capacity() )
-              transfer_to<Kind::Dynamic>( rhs.as_.literal_ + pos,
+              transfer_to<Kind::Dynamic>( rhs.as_.literal + pos,
                                           count,
                                           (std::max)( count, dynamic_capacity( small_capacity() ) ) + 1 );
             else
-              transfer_to<Kind::Inline>( rhs.as_.literal_ + pos, count, 0 );
+              transfer_to<Kind::Inline>( rhs.as_.literal + pos, count, 0 );
           } break;
           case Kind::Inline: {
             PACE__ASSERT( rhs.length_ <= small_capacity() );
@@ -1357,13 +1356,13 @@ namespace pace {
             if ( ( std::allocator_traits<Alloc>::is_always_equal::value
                    || this->allocator() == rhs.allocator() )
                  && ( ( pos == 0 && count == rhs.length_ )
-                      || rhs.as_.remote_.refs_->load( std::memory_order_acquire ) == 1 ) ) {
-              utils::construct_at( &as_.remote_, rhs.as_.remote_ );
+                      || rhs.as_.remote.refs->load( std::memory_order_acquire ) == 1 ) ) {
+              utils::construct_at( &as_.remote, rhs.as_.remote );
               if ( pos != 0 || count < rhs.length_ )
-                Traits::move( as_.remote_.str(), as_.remote_.str() + pos, count );
+                Traits::move( as_.remote.str(), as_.remote.str() + pos, count );
             } else {
-              utils::construct_at( &as_.remote_, make_cow( rhs.as_.remote_.str() + pos, count, count + 1 ) );
-              destroy_cow( rhs.as_.remote_ );
+              utils::construct_at( &as_.remote, make_cow( rhs.as_.remote.str() + pos, count, count + 1 ) );
+              destroy_cow( rhs.as_.remote );
             }
             tag_ = Kind::Dynamic;
           } break;
@@ -1437,13 +1436,13 @@ namespace pace {
               transfer_to<Kind::Inline>( count, ch, 0 );
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote_.refs_->load( std::memory_order_acquire ) > 1 )
+            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
               expand_with( nullptr, 0, nullptr, 0, count, ch );
-            else if ( as_.remote_.capacity_ <= count )
+            else if ( as_.remote.capacity <= count )
               duplicate_from( nullptr, 0, nullptr, 0, count, ch );
             else {
-              Traits::assign( as_.remote_.str(), count, ch );
-              Traits::assign( as_.remote_.str()[count], Char() );
+              Traits::assign( as_.remote.str(), count, ch );
+              Traits::assign( as_.remote.str()[count], Char() );
             }
           } break;
           default: utils::unreachable();
@@ -1465,13 +1464,13 @@ namespace pace {
               transfer_to<Kind::Inline>( cstr, count, 0 );
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote_.refs_->load( std::memory_order_acquire ) > 1 )
+            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
               duplicate_from( cstr, count, count + 1 );
-            else if ( as_.remote_.capacity_ <= count )
-              expand_with( cstr, count, dynamic_capacity( as_.remote_.capacity_ - 1 ) + 1 );
+            else if ( as_.remote.capacity <= count )
+              expand_with( cstr, count, dynamic_capacity( as_.remote.capacity - 1 ) + 1 );
             else {
-              Traits::copy( as_.remote_.str(), cstr, count );
-              Traits::assign( as_.remote_.str()[count], Char() );
+              Traits::copy( as_.remote.str(), cstr, count );
+              Traits::assign( as_.remote.str()[count], Char() );
             }
           } break;
           default: utils::unreachable();
@@ -1525,18 +1524,18 @@ namespace pace {
             case Kind::Literal: {
               if ( remaining_length > small_capacity() )
                 transfer_to<Kind::Dynamic>(
-                  as_.literal_ + pos,
+                  as_.literal + pos,
                   count,
                   (std::max)( remaining_length, dynamic_capacity( small_capacity() ) ) + 1 );
               else
-                transfer_to<Kind::Inline>( as_.literal_ + pos, count, 0 );
+                transfer_to<Kind::Inline>( as_.literal + pos, count, 0 );
             } break;
             case Kind::Inline:  embed( utils::launder_as<Char>( &as_ ), pos, pos + count, nullptr, 0 ); break;
             case Kind::Dynamic: {
-              if ( as_.remote_.refs_->load( std::memory_order_acquire ) > 1 )
-                duplicate_from( as_.remote_.str() + pos, count, remaining_length + 1 );
+              if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+                duplicate_from( as_.remote.str() + pos, count, remaining_length + 1 );
               else
-                embed( as_.remote_.str(), pos, pos + count, nullptr, 0 );
+                embed( as_.remote.str(), pos, pos + count, nullptr, 0 );
             } break;
             default: utils::unreachable();
             }
@@ -1548,13 +1547,13 @@ namespace pace {
             // Therefore we cannot call `assign( other )` alternatively.
             destroy_self();
             switch ( other.tag_ ) {
-            case Kind::Literal: utils::construct_at( &as_.literal_, other.as_.literal_ ); break;
+            case Kind::Literal: utils::construct_at( &as_.literal, other.as_.literal ); break;
             case Kind::Inline:
               Traits::copy( utils::launder_as<Char>( &as_ ),
                             utils::launder_as<const Char>( &other.as_ ),
                             other.length_ + 1 );
               break;
-            case Kind::Dynamic: utils::construct_at( &as_.remote_, make_cow( other.as_.remote_ ) ); break;
+            case Kind::Dynamic: utils::construct_at( &as_.remote, make_cow( other.as_.remote ) ); break;
             default:            utils::unreachable();
             }
             length_ = other.length_;
@@ -1590,16 +1589,16 @@ namespace pace {
           switch ( tag_ ) {
           case Kind::Literal: {
             if ( length_ > small_capacity() )
-              transfer_to<Kind::Dynamic>( as_.literal_, length_, length_ + 1 );
+              transfer_to<Kind::Dynamic>( as_.literal, length_, length_ + 1 );
             else
-              transfer_to<Kind::Inline>( as_.literal_, length_, 0 );
+              transfer_to<Kind::Inline>( as_.literal, length_, 0 );
           }
             PACE__FALLTHROUGH;
           case Kind::Inline:  return utils::launder_as<Char>( &as_ );
           case Kind::Dynamic: {
-            if ( as_.remote_.refs_->load( std::memory_order_acquire ) > 1 )
-              duplicate_from( as_.remote_.str(), length_, length_ + 1 );
-            return as_.remote_.str();
+            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+              duplicate_from( as_.remote.str(), length_, length_ + 1 );
+            return as_.remote.str();
           }
           default: utils::unreachable();
           }
@@ -1607,9 +1606,9 @@ namespace pace {
         PACE__CXX14_CNSTXPR const Char* data() const& noexcept
         {
           switch ( tag_ ) {
-          case Kind::Literal: return as_.literal_;
+          case Kind::Literal: return as_.literal;
           case Kind::Inline:  return utils::launder_as<const Char>( &as_ );
-          case Kind::Dynamic: return as_.remote_.str();
+          case Kind::Dynamic: return as_.remote.str();
           default:            utils::unreachable();
           }
         }
@@ -1687,7 +1686,7 @@ namespace pace {
           switch ( tag_ ) {
           case Kind::Inline: return small_capacity();
           case Kind::Dynamic:
-            return as_.remote_.refs_->load( std::memory_order_acquire ) > 1 ? 0 : as_.remote_.capacity_ - 1;
+            return as_.remote.refs->load( std::memory_order_acquire ) > 1 ? 0 : as_.remote.capacity - 1;
           default: return 0;
           }
         }
@@ -1698,9 +1697,9 @@ namespace pace {
           switch ( tag_ ) {
           case Kind::Literal: {
             if ( new_cap > small_capacity() )
-              transfer_to<Kind::Dynamic>( as_.literal_, length_, new_cap + 1 );
+              transfer_to<Kind::Dynamic>( as_.literal, length_, new_cap + 1 );
             else
-              transfer_to<Kind::Inline>( as_.literal_, length_, 0 );
+              transfer_to<Kind::Inline>( as_.literal, length_, 0 );
           } break;
           case Kind::Inline: {
             if ( new_cap > small_capacity() )
@@ -1708,11 +1707,11 @@ namespace pace {
           } break;
           case Kind::Dynamic: {
             PACE__ASSERT( length_ <= max_size() );
-            if ( as_.remote_.refs_->load( std::memory_order_acquire ) > 1 ) {
-              new_cap = (std::max)( as_.remote_.capacity_, new_cap + 1 );
-              duplicate_from( as_.remote_.str(), length_, new_cap );
-            } else if ( as_.remote_.capacity_ <= new_cap )
-              expand_with( as_.remote_.str(), length_, new_cap + 1 );
+            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 ) {
+              new_cap = (std::max)( as_.remote.capacity, new_cap + 1 );
+              duplicate_from( as_.remote.str(), length_, new_cap );
+            } else if ( as_.remote.capacity <= new_cap )
+              expand_with( as_.remote.str(), length_, new_cap + 1 );
           } break;
           default: utils::unreachable();
           }
@@ -1722,12 +1721,12 @@ namespace pace {
         {
           if ( tag_ == Kind::Dynamic ) {
             if ( length_ <= small_capacity() ) {
-              auto cow = as_.remote_;
+              auto cow = as_.remote;
               transfer_to<Kind::Inline>( cow.str(), length_, 0 );
               destroy_cow( cow );
-            } else if ( as_.remote_.refs_->load( std::memory_order_acquire ) == 1
-                        && length_ + 1 < as_.remote_.capacity_ )
-              expand_with( as_.remote_.str(), length_, length_ + 1 );
+            } else if ( as_.remote.refs->load( std::memory_order_acquire ) == 1
+                        && length_ + 1 < as_.remote.capacity )
+              expand_with( as_.remote.str(), length_, length_ + 1 );
           }
         }
         PACE__CXX20_CNSTXPR void clear() noexcept
@@ -1736,12 +1735,12 @@ namespace pace {
           case Kind::Literal: tag_ = Kind::Inline; PACE__FALLTHROUGH;
           case Kind::Inline:  Traits::assign( utils::launder_as<Char>( &as_ )[0], Char() ); break;
           case Kind::Dynamic: {
-            if ( as_.remote_.refs_->load( std::memory_order_acquire ) > 1 ) {
-              destroy_cow( as_.remote_ );
+            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 ) {
+              destroy_cow( as_.remote );
               Traits::assign( utils::launder_as<Char>( &as_ )[0], Char() );
               tag_ = Kind::Inline;
             } else
-              Traits::assign( as_.remote_.str()[0], Char() );
+              Traits::assign( as_.remote.str()[0], Char() );
           } break;
           default: utils::unreachable();
           }
@@ -1759,16 +1758,16 @@ namespace pace {
           switch ( tag_ ) {
           case Kind::Literal: {
             if ( total_length > small_capacity() )
-              transfer_to<Kind::Dynamic>( as_.literal_,
+              transfer_to<Kind::Dynamic>( as_.literal,
                                           index,
-                                          as_.literal_ + index,
+                                          as_.literal + index,
                                           length_ - index,
                                           cstr,
                                           count );
             else
-              transfer_to<Kind::Inline>( as_.literal_,
+              transfer_to<Kind::Inline>( as_.literal,
                                          index,
-                                         as_.literal_ + index,
+                                         as_.literal + index,
                                          length_ - index,
                                          cstr,
                                          count );
@@ -1785,37 +1784,32 @@ namespace pace {
               embed( src + index, 0, length_ - index, cstr, count );
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote_.refs_->load( std::memory_order_acquire ) > 1 )
-              duplicate_from( as_.remote_.str(),
+            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+              duplicate_from( as_.remote.str(),
                               index,
-                              as_.remote_.str() + index,
+                              as_.remote.str() + index,
                               length_ - index,
                               cstr,
                               count );
-            else if ( as_.remote_.capacity_ <= total_length )
-              expand_with( as_.remote_.str(),
-                           index,
-                           as_.remote_.str() + index,
-                           length_ - index,
-                           cstr,
-                           count );
-            else if ( cstr >= as_.remote_.str() && cstr < as_.remote_.str() + length_ ) {
+            else if ( as_.remote.capacity <= total_length )
+              expand_with( as_.remote.str(), index, as_.remote.str() + index, length_ - index, cstr, count );
+            else if ( cstr >= as_.remote.str() && cstr < as_.remote.str() + length_ ) {
               // self insert
-              const auto offset = static_cast<size_type>( cstr - as_.remote_.str() );
+              const auto offset = static_cast<size_type>( cstr - as_.remote.str() );
               PACE__TRUST( offset <= length_ );
-              Traits::move( as_.remote_.str() + index + count, as_.remote_.str() + index, count );
-              Traits::assign( as_.remote_.str()[total_length], Char() );
+              Traits::move( as_.remote.str() + index + count, as_.remote.str() + index, count );
+              Traits::assign( as_.remote.str()[total_length], Char() );
               if ( offset + count < index )
-                Traits::copy( as_.remote_.str() + index, cstr, count );
+                Traits::copy( as_.remote.str() + index, cstr, count );
               else if ( offset < index ) {
-                Traits::copy( as_.remote_.str() + index, cstr, index - offset );
-                Traits::copy( as_.remote_.str() + 2 * index - offset,
-                              as_.remote_.str() + index + count,
+                Traits::copy( as_.remote.str() + index, cstr, index - offset );
+                Traits::copy( as_.remote.str() + 2 * index - offset,
+                              as_.remote.str() + index + count,
                               count - index + offset );
               } else
-                Traits::copy( as_.remote_.str() + index, as_.remote_.str() + offset + count, count );
+                Traits::copy( as_.remote.str() + index, as_.remote.str() + offset + count, count );
             } else
-              embed( as_.remote_.str() + index, 0, length_ - index, cstr, count );
+              embed( as_.remote.str() + index, 0, length_ - index, cstr, count );
           } break;
           default: utils::unreachable();
           }
@@ -1851,16 +1845,16 @@ namespace pace {
           switch ( tag_ ) {
           case Kind::Literal: {
             if ( total_length > small_capacity() )
-              transfer_to<Kind::Dynamic>( as_.literal_,
+              transfer_to<Kind::Dynamic>( as_.literal,
                                           index,
-                                          as_.literal_ + index,
+                                          as_.literal + index,
                                           length_ - index,
                                           count,
                                           ch );
             else
-              transfer_to<Kind::Inline>( as_.literal_,
+              transfer_to<Kind::Inline>( as_.literal,
                                          index,
-                                         as_.literal_ + index,
+                                         as_.literal + index,
                                          length_ - index,
                                          count,
                                          ch );
@@ -1873,17 +1867,12 @@ namespace pace {
               embed( src + index, 0, length_ - index, count, ch );
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote_.refs_->load( std::memory_order_acquire ) > 1 )
-              duplicate_from( as_.remote_.str(),
-                              index,
-                              as_.remote_.str() + index,
-                              length_ - index,
-                              count,
-                              ch );
-            else if ( as_.remote_.capacity_ <= total_length )
-              expand_with( as_.remote_.str(), index, as_.remote_.str() + index, length_ - index, count, ch );
+            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+              duplicate_from( as_.remote.str(), index, as_.remote.str() + index, length_ - index, count, ch );
+            else if ( as_.remote.capacity <= total_length )
+              expand_with( as_.remote.str(), index, as_.remote.str() + index, length_ - index, count, ch );
             else
-              embed( as_.remote_.str() + index, 0, length_ - index, count, ch );
+              embed( as_.remote.str() + index, 0, length_ - index, count, ch );
           } break;
           default: utils::unreachable();
           }
@@ -1959,16 +1948,16 @@ namespace pace {
           switch ( tag_ ) {
           case Kind::Literal: {
             if ( remaining_length > small_capacity() )
-              transfer_to<Kind::Dynamic>( as_.literal_,
+              transfer_to<Kind::Dynamic>( as_.literal,
                                           index,
-                                          as_.literal_ + index + count,
+                                          as_.literal + index + count,
                                           length_ - ( index + count ),
                                           nullptr,
                                           0 );
             else
-              transfer_to<Kind::Inline>( as_.literal_,
+              transfer_to<Kind::Inline>( as_.literal,
                                          index,
-                                         as_.literal_ + index + count,
+                                         as_.literal + index + count,
                                          length_ - ( index + count ),
                                          nullptr,
                                          0 );
@@ -1979,18 +1968,18 @@ namespace pace {
             Traits::assign( dest[remaining_length], Char() );
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote_.refs_->load( std::memory_order_acquire ) > 1 )
-              duplicate_from( as_.remote_.str(),
+            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+              duplicate_from( as_.remote.str(),
                               index,
-                              as_.remote_.str() + index + count,
+                              as_.remote.str() + index + count,
                               length_ - ( index + count ),
                               nullptr,
                               0 );
             else {
-              Traits::move( as_.remote_.str() + index,
-                            as_.remote_.str() + index + count,
+              Traits::move( as_.remote.str() + index,
+                            as_.remote.str() + index + count,
                             length_ - ( index + count ) );
-              Traits::assign( as_.remote_.str()[remaining_length], Char() );
+              Traits::assign( as_.remote.str()[remaining_length], Char() );
             }
           } break;
           default: utils::unreachable();
@@ -2020,7 +2009,7 @@ namespace pace {
           switch ( tag_ ) {
           case Kind::Literal: PACE__FALLTHROUGH;
           case Kind::Inline:  {
-            const auto src = tag_ == Kind::Literal ? as_.literal_ : utils::launder_as<Char>( &as_ );
+            const auto src = tag_ == Kind::Literal ? as_.literal : utils::launder_as<Char>( &as_ );
             if ( total_length > small_capacity() )
               transfer_to<Kind::Dynamic>( src, length_, cstr, count, nullptr, 0 );
             else if ( tag_ == Kind::Literal )
@@ -2032,13 +2021,13 @@ namespace pace {
             }
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote_.refs_->load( std::memory_order_acquire ) > 1 )
-              duplicate_from( as_.remote_.str(), length_, cstr, count, nullptr, 0 );
-            else if ( as_.remote_.capacity_ <= total_length )
-              expand_with( as_.remote_.str(), length_, cstr, count, nullptr, 0 );
+            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+              duplicate_from( as_.remote.str(), length_, cstr, count, nullptr, 0 );
+            else if ( as_.remote.capacity <= total_length )
+              expand_with( as_.remote.str(), length_, cstr, count, nullptr, 0 );
             else {
-              Traits::copy( as_.remote_.str() + length_, cstr, count );
-              Traits::assign( as_.remote_.str()[total_length], Char() );
+              Traits::copy( as_.remote.str() + length_, cstr, count );
+              Traits::assign( as_.remote.str()[total_length], Char() );
             }
           } break;
           default: utils::unreachable();
@@ -2054,14 +2043,14 @@ namespace pace {
           switch ( tag_ ) {
           case Kind::Literal: PACE__FALLTHROUGH;
           case Kind::Inline:  {
-            const Char* src = tag_ == Kind::Literal ? as_.literal_ : utils::launder_as<Char>( &as_ );
+            const Char* src = tag_ == Kind::Literal ? as_.literal : utils::launder_as<Char>( &as_ );
             Char* dest      = nullptr;
             if ( total_length > small_capacity() ) {
               transfer_to<Kind::Dynamic>( src,
                                           length_,
                                           (std::max)( total_length, dynamic_capacity( small_capacity() ) )
                                             + 1 );
-              dest = as_.remote_.str();
+              dest = as_.remote.str();
             } else {
               if ( tag_ == Kind::Literal )
                 transfer_to<Kind::Inline>( src, length_, 0 );
@@ -2074,17 +2063,17 @@ namespace pace {
             auto append_to = [&]( Char* dest, size_type new_cap ) noexcept {
               PACE__TRUST( total_length <= new_cap );
               (void)new_cap;
-              Traits::copy( dest, as_.remote_.str(), length_ );
+              Traits::copy( dest, as_.remote.str(), length_ );
               Traits::assign( dest + length_, count, ch );
               return total_length;
             };
-            if ( as_.remote_.refs_->load( std::memory_order_acquire ) > 1 )
+            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
               duplicate_from( total_length + 1, std::move( append_to ) );
-            else if ( as_.remote_.capacity_ <= total_length )
-              expand_with( dynamic_capacity( as_.remote_.capacity_ - 1 ) + 1, std::move( append_to ) );
+            else if ( as_.remote.capacity <= total_length )
+              expand_with( dynamic_capacity( as_.remote.capacity - 1 ) + 1, std::move( append_to ) );
             else {
-              Traits::assign( as_.remote_.str() + length_, count, ch );
-              Traits::assign( as_.remote_.str()[total_length], Char() );
+              Traits::assign( as_.remote.str() + length_, count, ch );
+              Traits::assign( as_.remote.str()[total_length], Char() );
             }
           } break;
           default: utils::unreachable();
@@ -2160,16 +2149,16 @@ namespace pace {
           switch ( tag_ ) {
           case Kind::Literal: {
             if ( total_length > small_capacity() )
-              transfer_to<Kind::Dynamic>( as_.literal_,
+              transfer_to<Kind::Dynamic>( as_.literal,
                                           pos,
-                                          as_.literal_ + pos + count,
+                                          as_.literal + pos + count,
                                           length_ - ( pos + count ),
                                           cstr,
                                           cstr_count );
             else
-              transfer_to<Kind::Inline>( as_.literal_,
+              transfer_to<Kind::Inline>( as_.literal,
                                          pos,
-                                         as_.literal_ + pos + count,
+                                         as_.literal + pos + count,
                                          length_ - ( pos + count ),
                                          cstr,
                                          cstr_count );
@@ -2191,72 +2180,72 @@ namespace pace {
               embed( src + pos, count, length_ - pos, cstr, cstr_count );
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote_.refs_->load( std::memory_order_acquire ) > 1 )
-              duplicate_from( as_.remote_.str(),
+            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+              duplicate_from( as_.remote.str(),
                               pos,
-                              as_.remote_.str() + pos + count,
+                              as_.remote.str() + pos + count,
                               length_ - ( pos + count ),
                               cstr,
                               cstr_count );
-            else if ( as_.remote_.capacity_ <= total_length )
-              expand_with( as_.remote_.str(),
+            else if ( as_.remote.capacity <= total_length )
+              expand_with( as_.remote.str(),
                            pos,
-                           as_.remote_.str() + pos + count,
+                           as_.remote.str() + pos + count,
                            length_ - ( pos + count ),
                            cstr,
                            cstr_count );
-            else if ( cstr >= as_.remote_.str() && cstr < as_.remote_.str() + length_ ) {
+            else if ( cstr >= as_.remote.str() && cstr < as_.remote.str() + length_ ) {
               // self replace
-              const auto offset = static_cast<size_type>( cstr - as_.remote_.str() );
+              const auto offset = static_cast<size_type>( cstr - as_.remote.str() );
               PACE__TRUST( offset <= length_ );
               if ( offset + cstr_count < pos ) {
-                Traits::move( as_.remote_.str() + pos + cstr_count,
-                              as_.remote_.str() + pos + count,
+                Traits::move( as_.remote.str() + pos + cstr_count,
+                              as_.remote.str() + pos + count,
                               length_ - ( pos + count ) );
-                Traits::copy( as_.remote_.str() + pos, as_.remote_.str() + offset, cstr_count );
+                Traits::copy( as_.remote.str() + pos, as_.remote.str() + offset, cstr_count );
               } else if ( offset <= pos && offset + cstr_count < pos + count ) {
-                Traits::move( as_.remote_.str() + pos + cstr_count,
-                              as_.remote_.str() + pos + count,
+                Traits::move( as_.remote.str() + pos + cstr_count,
+                              as_.remote.str() + pos + count,
                               length_ - pos - count );
-                Traits::move( as_.remote_.str() + 2 * pos - offset,
-                              as_.remote_.str() + pos,
+                Traits::move( as_.remote.str() + 2 * pos - offset,
+                              as_.remote.str() + pos,
                               offset + cstr_count - pos );
-                Traits::copy( as_.remote_.str() + pos, as_.remote_.str() + offset, pos - offset );
+                Traits::copy( as_.remote.str() + pos, as_.remote.str() + offset, pos - offset );
               } else if ( offset <= pos && offset + cstr_count >= pos + count ) {
                 const auto pos_suffix = 2 * pos - offset + cstr_count - count;
-                Traits::move( as_.remote_.str() + pos_suffix,
-                              as_.remote_.str() + pos + count,
+                Traits::move( as_.remote.str() + pos_suffix,
+                              as_.remote.str() + pos + count,
                               length_ - ( pos + count ) );
-                Traits::copy( as_.remote_.str() + 2 * pos - offset + count,
-                              as_.remote_.str() + pos_suffix,
+                Traits::copy( as_.remote.str() + 2 * pos - offset + count,
+                              as_.remote.str() + pos_suffix,
                               cstr_count - ( pos - offset + count ) );
-                Traits::move( as_.remote_.str() + 2 * pos - offset, as_.remote_.str() + pos, count );
-                Traits::copy( as_.remote_.str() + pos, as_.remote_.str() + offset, pos - offset );
+                Traits::move( as_.remote.str() + 2 * pos - offset, as_.remote.str() + pos, count );
+                Traits::copy( as_.remote.str() + pos, as_.remote.str() + offset, pos - offset );
               } else if ( offset >= pos && offset < pos + count && offset + cstr_count <= pos + count ) {
-                Traits::move( as_.remote_.str() + pos, as_.remote_.str() + offset, cstr_count );
-                Traits::move( as_.remote_.str() + pos + cstr_count,
-                              as_.remote_.str() + pos + count,
+                Traits::move( as_.remote.str() + pos, as_.remote.str() + offset, cstr_count );
+                Traits::move( as_.remote.str() + pos + cstr_count,
+                              as_.remote.str() + pos + count,
                               length_ - ( pos + count ) );
               } else if ( offset >= pos && offset < pos + count && offset + cstr_count >= pos + count ) {
                 const auto sublen = pos + count - offset;
-                Traits::move( as_.remote_.str() + pos, as_.remote_.str() + offset, sublen );
-                Traits::copy( as_.remote_.str() + sublen,
-                              as_.remote_.str() + pos + count,
+                Traits::move( as_.remote.str() + pos, as_.remote.str() + offset, sublen );
+                Traits::copy( as_.remote.str() + sublen,
+                              as_.remote.str() + pos + count,
                               cstr_count - sublen );
-                Traits::move( as_.remote_.str() + pos + cstr_count,
-                              as_.remote_.str() + pos + count,
+                Traits::move( as_.remote.str() + pos + cstr_count,
+                              as_.remote.str() + pos + count,
                               length_ - ( pos + count ) );
               } else {
-                Traits::move( as_.remote_.str() + pos + cstr_count,
-                              as_.remote_.str() + pos + count,
+                Traits::move( as_.remote.str() + pos + cstr_count,
+                              as_.remote.str() + pos + count,
                               length_ - ( pos + count ) );
-                Traits::copy( as_.remote_.str() + pos,
-                              as_.remote_.str() + offset + cstr_count - count,
+                Traits::copy( as_.remote.str() + pos,
+                              as_.remote.str() + offset + cstr_count - count,
                               cstr_count );
               }
-              Traits::assign( as_.remote_.str()[total_length], Char() );
+              Traits::assign( as_.remote.str()[total_length], Char() );
             } else
-              embed( as_.remote_.str() + pos, count, length_ - pos, cstr, cstr_count );
+              embed( as_.remote.str() + pos, count, length_ - pos, cstr, cstr_count );
           } break;
           default: utils::unreachable();
           }
@@ -2328,16 +2317,16 @@ namespace pace {
           switch ( tag_ ) {
           case Kind::Literal: {
             if ( total_length > small_capacity() )
-              transfer_to<Kind::Dynamic>( as_.literal_,
+              transfer_to<Kind::Dynamic>( as_.literal,
                                           pos,
-                                          as_.literal_ + pos + count,
+                                          as_.literal + pos + count,
                                           length_ - ( pos + count ),
                                           ch_count,
                                           ch );
             else
-              transfer_to<Kind::Inline>( as_.literal_,
+              transfer_to<Kind::Inline>( as_.literal,
                                          pos,
-                                         as_.literal_ + pos + count,
+                                         as_.literal + pos + count,
                                          length_ - ( pos + count ),
                                          ch_count,
                                          ch );
@@ -2355,22 +2344,22 @@ namespace pace {
               embed( src + pos, count, length_ - pos, count, ch );
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote_.refs_->load( std::memory_order_acquire ) > 1 )
-              duplicate_from( as_.remote_.str(),
+            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+              duplicate_from( as_.remote.str(),
                               pos,
-                              as_.remote_.str() + pos + count,
+                              as_.remote.str() + pos + count,
                               length_ - ( pos + count ),
                               ch_count,
                               ch );
-            else if ( as_.remote_.capacity_ <= total_length )
-              expand_with( as_.remote_.str(),
+            else if ( as_.remote.capacity <= total_length )
+              expand_with( as_.remote.str(),
                            pos,
-                           as_.remote_.str() + pos + count,
+                           as_.remote.str() + pos + count,
                            length_ - ( pos + count ),
                            ch_count,
                            ch );
             else
-              embed( as_.remote_.str() + pos, count, length_ - pos, count, ch );
+              embed( as_.remote.str() + pos, count, length_ - pos, count, ch );
           } break;
           default: utils::unreachable();
           }
@@ -2472,7 +2461,7 @@ namespace pace {
           switch ( tag_ ) {
           case Kind::Literal: PACE__FALLTHROUGH;
           case Kind::Inline:  {
-            const auto src = tag_ == Kind::Literal ? as_.literal_ : utils::launder_as<Char>( &as_ );
+            const auto src = tag_ == Kind::Literal ? as_.literal : utils::launder_as<Char>( &as_ );
             if ( count > small_capacity() ) {
               transfer_to<Kind::Dynamic>( (std::max)( count, dynamic_capacity( small_capacity() ) ) + 1,
                                           [&]( Char* dest, size_type new_cap ) {
@@ -2480,7 +2469,7 @@ namespace pace {
                                             length_ = std::move( op )( dest, new_cap );
                                             return length_;
                                           } );
-              dest = as_.remote_.str();
+              dest = as_.remote.str();
             } else {
               transfer_to<Kind::Inline>( src, (std::min)( length_, count ), 0 );
               dest    = utils::launder_as<Char>( &as_ );
@@ -2488,19 +2477,19 @@ namespace pace {
             }
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote_.refs_->load( std::memory_order_acquire ) > 1 )
+            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
               duplicate_from( count + 1, [&]( Char* dest, size_type new_cap ) {
-                Traits::copy( dest, as_.remote_.str(), (std::min)( length_, count ) );
+                Traits::copy( dest, as_.remote.str(), (std::min)( length_, count ) );
                 length_ = std::move( op )( dest, new_cap );
                 return length_;
               } );
-            else if ( count <= as_.remote_.capacity_ )
+            else if ( count <= as_.remote.capacity )
               expand_with( count + 1, [&]( Char* dest, size_type new_cap ) {
-                Traits::copy( dest, as_.remote_.str(), (std::min)( length_, count ) );
+                Traits::copy( dest, as_.remote.str(), (std::min)( length_, count ) );
                 length_ = std::move( op )( dest, new_cap );
                 return length_;
               } );
-            dest = as_.remote_.str();
+            dest = as_.remote.str();
           } break;
           default: utils::unreachable();
           }
@@ -2606,18 +2595,18 @@ namespace pace {
           this->CoWSwapAlloc<Alloc, BasicSharedString>::swap( other );
           switch ( tag_ ) {
           case Kind::Literal: {
-            const auto lit = as_.literal_;
+            const auto lit = as_.literal;
             switch ( other.tag_ ) {
-            case Kind::Literal: as_.literal_ = other.as_.literal_; break;
+            case Kind::Literal: as_.literal = other.as_.literal; break;
             case Kind::Inline:
               Traits::copy( utils::launder_as<Char>( &as_ ),
                             utils::launder_as<Char>( &other.as_ ),
                             other.length_ + 1 );
               break;
-            case Kind::Dynamic: utils::construct_at( &as_.remote_, other.as_.remote_ ); break;
+            case Kind::Dynamic: utils::construct_at( &as_.remote, other.as_.remote ); break;
             default:            utils::unreachable();
             }
-            utils::construct_at( &other.as_.literal_, lit );
+            utils::construct_at( &other.as_.literal, lit );
           } break;
           case Kind::Inline: {
             Char buffer[small_capacity() + 1];
@@ -2625,26 +2614,26 @@ namespace pace {
             Traits::copy( buffer, dest_self, length_ + 1 );
             const auto dest_other = utils::launder_as<Char>( &other.as_ );
             switch ( other.tag_ ) {
-            case Kind::Literal: utils::construct_at( &as_.literal_, other.as_.literal_ ); break;
+            case Kind::Literal: utils::construct_at( &as_.literal, other.as_.literal ); break;
             case Kind::Inline:  Traits::copy( dest_self, dest_other, other.length_ + 1 ); break;
-            case Kind::Dynamic: utils::construct_at( &as_.remote_, other.as_.remote_ ); break;
+            case Kind::Dynamic: utils::construct_at( &as_.remote, other.as_.remote ); break;
             default:            utils::unreachable();
             }
             Traits::copy( dest_other, buffer, length_ + 1 );
           } break;
           case Kind::Dynamic: {
-            const auto cow = as_.remote_;
+            const auto cow = as_.remote;
             switch ( other.tag_ ) {
-            case Kind::Literal: utils::construct_at( &as_.literal_, other.as_.literal_ ); break;
+            case Kind::Literal: utils::construct_at( &as_.literal, other.as_.literal ); break;
             case Kind::Inline:
               Traits::copy( utils::launder_as<Char>( &as_ ),
                             utils::launder_as<Char>( &other.as_ ),
                             other.length_ + 1 );
               break;
-            case Kind::Dynamic: as_.remote_ = other.as_.remote_; break;
+            case Kind::Dynamic: as_.remote = other.as_.remote; break;
             default:            utils::unreachable();
             }
-            utils::construct_at( &other.as_.remote_, cow );
+            utils::construct_at( &other.as_.remote, cow );
           } break;
           default: utils::unreachable();
           }

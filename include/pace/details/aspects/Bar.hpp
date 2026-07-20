@@ -52,7 +52,7 @@ namespace pace {
       class Bar : public Base {
 #define PACE__UNPAKING( OptionName, MemberName, Operation, Constexpr )                           \
   friend PACE__FORCEINLINE Constexpr void unpack( Bar& self, option::OptionName&& val ) noexcept \
-  { self.MemberName = Operation( val.value() ); }
+  { self.MemberName = Operation( val.value ); }
         PACE__UNPAKING( Starting, starting_, std::move, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( Ending, ending_, std::move, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( BarWidth, bar_width_, , PACE__CXX20_CNSTXPR )

@@ -54,19 +54,19 @@ namespace pace {
 # endif
         };
         struct VTable final {
-          R ( *invoke_ )( const AnyFn&, traits::PassParam_t<Params>... )
+          R ( *invoke )( const AnyFn&, traits::PassParam_t<Params>... )
 # ifdef __cpp_noexcept_function_type
             noexcept( Noexcept )
 # endif
               ;
-          const Life* life_;
+          const Life* life;
 
 # if PACE__CXX20
           friend constexpr bool operator==( const VTable&, const VTable& ) = default;
           friend constexpr bool operator!=( const VTable&, const VTable& ) = default;
 # else
           friend constexpr bool operator==( const VTable& a, const VTable& b ) noexcept
-          { return a.invoke_ == b.invoke_ && a.life_ == b.life_; }
+          { return a.invoke == b.invoke && a.life == b.life; }
           friend constexpr bool operator!=( const VTable& a, const VTable& b ) noexcept
           { return !( a == b ); }
 # endif
@@ -189,8 +189,8 @@ namespace pace {
 
         PACE__CXX23_CNSTXPR void reset() noexcept
         {
-          if ( vtable_.life_->destroy != nullptr )
-            vtable_.life_->destroy( callee_ );
+          if ( vtable_.life->destroy != nullptr )
+            vtable_.life->destroy( callee_ );
           vtable_ = table_null();
         }
         template<typename F>
@@ -213,10 +213,10 @@ namespace pace {
 # endif
           try {
             reset();
-            vtable.life_->move( callee_, tmp );
+            vtable.life->move( callee_, tmp );
           } catch ( ... ) {
-            if ( vtable_.life_->destroy != nullptr )
-              vtable.life_->destroy( tmp );
+            if ( vtable_.life->destroy != nullptr )
+              vtable.life->destroy( tmp );
             throw;
           }
 # ifdef _MSC_VER
@@ -232,7 +232,7 @@ namespace pace {
 
         PACE__CXX23_CNSTXPR FnStore( FnStore&& rhs ) noexcept : vtable_ { rhs.vtable_ }
         {
-          vtable_.life_->move( callee_, rhs.callee_ );
+          vtable_.life->move( callee_, rhs.callee_ );
           rhs.vtable_ = table_null();
         }
         PACE__CXX23_CNSTXPR FnStore& operator=( FnStore&& rhs ) & noexcept
@@ -240,7 +240,7 @@ namespace pace {
           PACE__TRUST( this != &rhs );
           reset();
           std::swap( vtable_, rhs.vtable_ );
-          vtable_.life_->move( callee_, rhs.callee_ );
+          vtable_.life->move( callee_, rhs.callee_ );
           return *this;
         }
         PACE__CXX23_CNSTXPR ~FnStore() noexcept { reset(); }
@@ -248,9 +248,9 @@ namespace pace {
         PACE__CXX20_CNSTXPR void swap( FnStore& other ) noexcept
         {
           AnyFn tmp;
-          vtable_.life_->move( tmp, callee_ );
-          other.vtable_.life_->move( callee_, other.callee_ );
-          vtable_.life_->move( other.callee_, tmp );
+          vtable_.life->move( tmp, callee_ );
+          other.vtable_.life->move( callee_, other.callee_ );
+          vtable_.life->move( other.callee_, tmp );
           std::swap( vtable_, other.vtable_ );
         }
         friend PACE__CXX23_CNSTXPR void swap( FnStore& a, FnStore& b ) noexcept { return a.swap( b ); }
@@ -320,7 +320,7 @@ namespace pace {
         }
 
         PACE__FORCEINLINE PACE__CXX14_CNSTXPR R operator()( Params... params )
-        { return this->vtable_.invoke_( this->callee_, std::forward<Params>( params )... ); }
+        { return this->vtable_.invoke( this->callee_, std::forward<Params>( params )... ); }
       };
 #endif
     } // namespace wrappers

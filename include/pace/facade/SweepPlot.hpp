@@ -21,8 +21,8 @@ namespace pace {
         if ( this->bar_width_ == 0 )
           return pipeline;
 
-        const auto brush     = details::io::when( !params.style_off_ && this->colorful() );
-        const auto frame_cnt = static_cast<std::uint64_t>( params.frame_count_ * this->shift_factor_ );
+        const auto brush     = details::io::when( !params.style_off && this->colorful() );
+        const auto frame_cnt = static_cast<std::uint64_t>( params.frame_count * this->shift_factor_ );
 
         pipeline << brush( details::console::resetcolor,
                            details::console::Dualcolor { this->start_forecolor_, this->start_backcolor_ } )

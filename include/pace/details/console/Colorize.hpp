@@ -11,16 +11,16 @@ namespace pace {
         const TrueColor& value;
 
         friend PACE__FORCEINLINE io::CharPipeline& operator<<( io::CharPipeline& pipeline,
-                                                               const Forecolor& foreground )
+                                                               const Forecolor& self )
         {
 #ifdef PACE_NOSTYLE
-          (void)foreground;
+          (void)self;
 #else
-          if ( foreground.value.encoding() != render::Paint::None ) {
+          if ( self.value.encoding() != render::Paint::None ) {
             pipeline << '\x1B' << '[';
-            switch ( foreground.value.encoding() ) {
+            switch ( self.value.encoding() ) {
             case render::Paint::Xterm24bit: pipeline << '3' << '8' << ';' << '2'; PACE__FALLTHROUGH;
-            case render::Paint::Csi8:       foreground.value.emit( pipeline ); break;
+            case render::Paint::Csi8:       self.value.emit( pipeline ); break;
             default:                        utils::unreachable();
             }
             pipeline << 'm';
@@ -34,16 +34,16 @@ namespace pace {
         const TrueColor& value;
 
         friend PACE__FORCEINLINE io::CharPipeline& operator<<( io::CharPipeline& pipeline,
-                                                               const Backcolor& background )
+                                                               const Backcolor& self )
         {
 #ifdef PACE_NOSTYLE
-          (void)background;
+          (void)self;
 #else
-          if ( background.value.encoding() != render::Paint::None ) {
+          if ( self.value.encoding() != render::Paint::None ) {
             pipeline << '\x1B' << '[';
-            switch ( background.value.encoding() ) {
+            switch ( self.value.encoding() ) {
             case render::Paint::Xterm24bit: pipeline << '4' << '8' << ';' << '2'; PACE__FALLTHROUGH;
-            case render::Paint::Csi8:       background.value.emit( pipeline ); break;
+            case render::Paint::Csi8:       self.value.emit( pipeline ); break;
             default:                        utils::unreachable();
             }
             pipeline << 'm';
@@ -58,26 +58,26 @@ namespace pace {
         const TrueColor& background;
 
         friend PACE__FORCEINLINE io::CharPipeline& operator<<( io::CharPipeline& pipeline,
-                                                               const Dualcolor& dual )
+                                                               const Dualcolor& self )
         {
 #ifdef PACE_NOSTYLE
-          (void)dual;
+          (void)self;
 #else
-          if ( dual.background.encoding() == render::Paint::None )
-            return pipeline << Forecolor { dual.foreground };
-          if ( dual.foreground.encoding() == render::Paint::None )
-            return pipeline << Backcolor { dual.background };
+          if ( self.background.encoding() == render::Paint::None )
+            return pipeline << Forecolor { self.foreground };
+          if ( self.foreground.encoding() == render::Paint::None )
+            return pipeline << Backcolor { self.background };
 
           pipeline << '\x1B' << '[';
-          switch ( dual.foreground.encoding() ) {
+          switch ( self.foreground.encoding() ) {
           case render::Paint::Xterm24bit: pipeline << '3' << '8' << ';' << '2'; PACE__FALLTHROUGH;
-          case render::Paint::Csi8:       dual.foreground.emit( pipeline ); break;
+          case render::Paint::Csi8:       self.foreground.emit( pipeline ); break;
           default:                        utils::unreachable();
           }
           pipeline << ';';
-          switch ( dual.background.encoding() ) {
+          switch ( self.background.encoding() ) {
           case render::Paint::Xterm24bit: pipeline << '4' << '8' << ';' << '2'; PACE__FALLTHROUGH;
-          case render::Paint::Csi8:       dual.background.emit( pipeline ); break;
+          case render::Paint::Csi8:       self.background.emit( pipeline ); break;
           default:                        utils::unreachable();
           }
           pipeline << 'm';

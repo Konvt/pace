@@ -24,9 +24,9 @@ namespace pace {
         io::CharPipeline& build( io::CharPipeline& pipeline, Parameter params ) const
         {
           concurrent::SharedLock<concurrent::SharedMutex> lock { this->rw_mtx_ };
-          this->font_effect( pipeline, params.style_off_ );
+          this->font_effect( pipeline, params.style_off );
 
-          const auto brush = io::when( !params.style_off_ && this->colorful() );
+          const auto brush = io::when( !params.style_off && this->colorful() );
           if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() )
             pipeline << brush( console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } )
                      << this->l_border_;
@@ -40,7 +40,7 @@ namespace pace {
                                console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } )
                      << this->r_border_;
 
-          return pipeline << io::when( !params.style_off_ && this->rich(), console::resetstyle );
+          return pipeline << io::when( !params.style_off && this->rich(), console::resetstyle );
         }
       };
     } // namespace render

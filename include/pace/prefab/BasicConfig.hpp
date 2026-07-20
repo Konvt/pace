@@ -80,9 +80,9 @@ namespace pace {
 
       friend PACE__FORCEINLINE void unpack( BasicConfig& self, option::Projection proj ) noexcept
       {
-        const std::size_t length = std::min( sizeof...( Facades ), proj.value().size() );
+        const std::size_t length = std::min( sizeof...( Facades ), proj.value.size() );
         for ( std::size_t i = 0; i < length; ++i )
-          self.projection_.set( i, proj.value()[i] );
+          self.projection_.set( i, proj.value[i] );
       }
       template<template<typename...> class... Fs>
       friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR void unpack( BasicConfig& self,
@@ -413,23 +413,23 @@ namespace pace {
       friend PACE__CXX23_CNSTXPR void swap( BasicConfig& a, BasicConfig& b ) noexcept { a.swap( b ); }
 
       template<typename Option>
-      friend auto operator<<( BasicConfig& cfg, Option&& opt )
+      friend auto operator<<( BasicConfig& self, Option&& opt )
 #ifdef __cpp_concepts
         -> decltype( auto )
         requires is_setting<Option>::value
 #else
         -> typename std::enable_if<is_setting<Option>::value, BasicConfig&>::type
 #endif
-      { return cfg.with( std::forward<Option>( opt ) ); }
+      { return self.with( std::forward<Option>( opt ) ); }
       template<typename Option>
-      friend auto operator<<( BasicConfig&& cfg, Option&& opt )
+      friend auto operator<<( BasicConfig&& self, Option&& opt )
 #ifdef __cpp_concepts
         -> decltype( auto )
         requires is_setting<std::decay_t<Option>>::value
 #else
         -> typename std::enable_if<is_setting<typename std::decay<Option>::type>::value, BasicConfig&&>::type
 #endif
-      { return std::move( cfg.with( std::forward<Option>( opt ) ) ); }
+      { return std::move( self.with( std::forward<Option>( opt ) ) ); }
     };
   } // namespace prefab
 

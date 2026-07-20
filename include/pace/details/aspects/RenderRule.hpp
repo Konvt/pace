@@ -43,7 +43,7 @@ namespace pace {
 #define PACE__UNPAKING( OptionName, EnumName, MemberName )                                      \
   friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR void unpack( RenderRule& self,                   \
                                                             option::OptionName&& val ) noexcept \
-  { self.rules_[utils::to_underlying( Chroma::EnumName )] = val.value(); }
+  { self.rules_[utils::to_underlying( Chroma::EnumName )] = val.value; }
         PACE__UNPAKING( Colored, Colored, colored_ )
         PACE__UNPAKING( FontBold, Bold, bold_ )
         PACE__UNPAKING( FontFaint, Faint, faint_ )

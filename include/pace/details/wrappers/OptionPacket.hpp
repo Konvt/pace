@@ -14,13 +14,7 @@ namespace pace {
         static_assert( std::is_default_constructible<T>::value,
                        "the type T should be default constructible to generate it implicitly" );
 
-      protected:
-        T data_;
-
-        constexpr OptionPacket() = default;
-        constexpr OptionPacket( T&& data ) noexcept( std::is_nothrow_move_constructible<T>::value )
-          : data_ { std::move( data ) }
-        {}
+        T value;
 
         constexpr OptionPacket( const OptionPacket& )                        = default;
         PACE__CXX14_CNSTXPR OptionPacket& operator=( const OptionPacket& ) & = default;
@@ -29,18 +23,19 @@ namespace pace {
         // Intentional non-virtual destructors.
         PACE__CXX20_CNSTXPR ~OptionPacket()                                  = default;
 
-      public:
-        PACE__CXX14_CNSTXPR T& value() & noexcept { return data_; }
-        PACE__CXX14_CNSTXPR const T& value() const& noexcept { return data_; }
-        PACE__CXX14_CNSTXPR T&& value() && noexcept { return std::move( data_ ); }
-
         PACE__CXX20_CNSTXPR void swap( T& other ) noexcept
         {
           PACE__TRUST( this != &other );
           using std::swap;
-          swap( data_, other.data_ );
+          swap( value, other.value );
         }
         friend PACE__CXX20_CNSTXPR void swap( T& a, T& b ) noexcept { a.swap( b ); }
+
+      protected:
+        constexpr OptionPacket() = default;
+        constexpr OptionPacket( T&& val ) noexcept( std::is_nothrow_move_constructible<T>::value )
+          : value { std::move( val ) }
+        {}
       };
     } // namespace wrappers
 

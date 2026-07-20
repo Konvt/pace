@@ -62,10 +62,10 @@ namespace pace {
        */
       PACE__CXX20_CNSTXPR SpeedUnit( std::vector<std::string> _units )
       {
-        data_.reserve( _units.size() );
+        value.reserve( _units.size() );
         std::transform( std::make_move_iterator( _units.begin() ),
                         std::make_move_iterator( _units.end() ),
-                        std::back_inserter( data_ ),
+                        std::back_inserter( value ),
                         []( std::string&& ele ) { return details::charcodes::U8Raw( std::move( ele ) ); } );
       }
 #ifdef __cpp_lib_char8_t
@@ -76,11 +76,11 @@ namespace pace {
        */
       PACE__CXX20_CNSTXPR SpeedUnit( const std::vector<details::charcodes::U8StringView>& _units )
       {
-        data_.reserve( _units.size() );
+        value.reserve( _units.size() );
         std::transform(
           _units.cbegin(),
           _units.cend(),
-          std::back_inserter( data_ ),
+          std::back_inserter( value ),
           []( details::charcodes::U8StringView ele ) { return details::charcodes::U8Raw( ele ); } );
       }
 #endif
@@ -93,17 +93,17 @@ namespace pace {
       friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Speed& self,
                                                                 option::Magnitude&& val ) noexcept
       {
-        self.magnitude_ = val.value();
+        self.magnitude_ = val.value;
         if ( self.magnitude_ > 1 )
           // 3 is the length of ".00"
-          self.numeric_width_ = 3 + details::utils::count_digits( val.value() );
+          self.numeric_width_ = 3 + details::utils::count_digits( val.value );
         else
           self.numeric_width_ = undefined_text().size() - 1;
       }
       friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Speed& self,
                                                                 option::SpeedUnit&& val ) noexcept
       {
-        self.units_ = std::move( val.value() );
+        self.units_ = std::move( val.value );
         auto itr    = std::max_element(
           self.units_.cbegin(),
           self.units_.cend(),
@@ -137,8 +137,8 @@ namespace pace {
       details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
                                         const details::render::Parameter& params ) const
       {
-        if ( params.task_quota_ == 0 || magnitude_ <= 1 ) {
-          const auto prompt = params.task_quota_ == 0 ? invalid_text() : undefined_text();
+        if ( params.task_quota == 0 || magnitude_ <= 1 ) {
+          const auto prompt = params.task_quota == 0 ? invalid_text() : undefined_text();
           if ( units_.empty() )
             details::render::align_to<details::render::TextAlign::Right>( std::back_inserter( pipeline ),
                                                                           prompt,
@@ -151,10 +151,10 @@ namespace pace {
         }
 
         const auto seconds_passed =
-          std::chrono::duration<details::types::Float>( params.elapsed_time_ ).count();
+          std::chrono::duration<details::types::Float>( params.elapsed_time ).count();
         const details::types::Float frequency = seconds_passed <= 0.0
                                                 ? ( std::numeric_limits<details::types::Float>::max )()
-                                                : params.tasks_completed_ / seconds_passed;
+                                                : params.tasks_completed / seconds_passed;
 
         bool overflow           = false;
         std::size_t num_powered = 0;

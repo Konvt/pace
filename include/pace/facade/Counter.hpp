@@ -23,7 +23,7 @@ namespace pace {
     class Counter : public Base {
       friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR void unpack( Counter& self,
                                                                 option::ShowQuota&& val ) noexcept
-      { self.show_quota_ = val.value(); }
+      { self.show_quota_ = val.value; }
 
       bool show_quota_;
 
@@ -33,12 +33,12 @@ namespace pace {
       {
         details::render::align_to<details::render::TextAlign::Right>(
           std::back_inserter( pipeline ),
-          params.tasks_completed_,
-          details::utils::count_digits( params.task_quota_ ) );
+          params.tasks_completed,
+          details::utils::count_digits( params.task_quota ) );
 
         if ( show_quota_ ) {
           pipeline << '/';
-          details::utils::format_to( std::back_inserter( pipeline ), params.task_quota_ );
+          details::utils::format_to( std::back_inserter( pipeline ), params.task_quota );
         }
         return pipeline;
       }

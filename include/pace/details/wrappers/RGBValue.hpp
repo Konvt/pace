@@ -11,10 +11,10 @@ namespace pace {
     namespace wrappers {
       class RGBValue {
         union Ink {
-          types::HexRGB hex_;
-          Color ansi_;
+          types::HexRGB hex;
+          Color ansi;
 
-          constexpr Ink() noexcept : hex_ {} {}
+          constexpr Ink() noexcept : hex {} {}
         } value_;
         render::Paint encoding_;
 
@@ -39,29 +39,27 @@ namespace pace {
 #ifdef PACE_NOSTYLE
           encoding_ = render::Paint::None;
 #else
-          encoding_   = render::Paint::Xterm24bit;
-          value_.hex_ = 0;
+          encoding_  = render::Paint::Xterm24bit;
+          value_.hex = 0;
           if ( hex_str.size() == 4 ) {
             for ( std::size_t i = 1; i < hex_str.size(); ++i ) {
-              value_.hex_ <<= 4;
+              value_.hex <<= 4;
               if ( hex_str[i] >= '0' && hex_str[i] <= '9' )
-                value_.hex_ = ( ( value_.hex_ | ( hex_str[i] - '0' ) ) << 4 ) | ( hex_str[i] - '0' );
+                value_.hex = ( ( value_.hex | ( hex_str[i] - '0' ) ) << 4 ) | ( hex_str[i] - '0' );
               else if ( hex_str[i] >= 'A' && hex_str[i] <= 'F' )
-                value_.hex_ =
-                  ( ( value_.hex_ | ( hex_str[i] - 'A' + 10 ) ) << 4 ) | ( hex_str[i] - 'A' + 10 );
+                value_.hex = ( ( value_.hex | ( hex_str[i] - 'A' + 10 ) ) << 4 ) | ( hex_str[i] - 'A' + 10 );
               else // no need to check whether it's valid or not
-                value_.hex_ =
-                  ( ( value_.hex_ | ( hex_str[i] - 'a' + 10 ) ) << 4 ) | ( hex_str[i] - 'a' + 10 );
+                value_.hex = ( ( value_.hex | ( hex_str[i] - 'a' + 10 ) ) << 4 ) | ( hex_str[i] - 'a' + 10 );
             }
           } else {
             for ( std::size_t i = 1; i < hex_str.size(); ++i ) {
-              value_.hex_ <<= 4;
+              value_.hex <<= 4;
               if ( hex_str[i] >= '0' && hex_str[i] <= '9' )
-                value_.hex_ |= hex_str[i] - '0';
+                value_.hex |= hex_str[i] - '0';
               else if ( hex_str[i] >= 'A' && hex_str[i] <= 'F' )
-                value_.hex_ |= hex_str[i] - 'A' + 10;
+                value_.hex |= hex_str[i] - 'A' + 10;
               else
-                value_.hex_ |= hex_str[i] - 'a' + 10;
+                value_.hex |= hex_str[i] - 'a' + 10;
             }
           }
 #endif
@@ -72,9 +70,9 @@ namespace pace {
 
         PACE__CXX14_CNSTXPR RGBValue( types::HexRGB hex_val ) noexcept
           : encoding_ { render::Paint::Xterm24bit }
-        { value_.hex_ = hex_val; }
+        { value_.hex = hex_val; }
         PACE__CXX14_CNSTXPR
-        RGBValue( Color enum_val ) noexcept : encoding_ { render::Paint::Csi8 } { value_.ansi_ = enum_val; }
+        RGBValue( Color enum_val ) noexcept : encoding_ { render::Paint::Csi8 } { value_.ansi = enum_val; }
         template<
           typename SV,
           typename = typename std::enable_if<std::is_convertible<SV, charcodes::StringView>::value>::type>
@@ -86,13 +84,13 @@ namespace pace {
 
         PACE__CXX14_CNSTXPR RGBValue& operator=( types::HexRGB hex_val ) & noexcept
         {
-          value_.hex_ = hex_val;
+          value_.hex = hex_val;
           return *this;
         }
         PACE__CXX14_CNSTXPR RGBValue& operator=( Color enum_val ) & noexcept
         {
-          encoding_    = render::Paint::Csi8;
-          value_.ansi_ = enum_val;
+          encoding_   = render::Paint::Csi8;
+          value_.ansi = enum_val;
           return *this;
         }
         template<typename SV>
@@ -106,11 +104,11 @@ namespace pace {
 
         PACE__NODISCARD constexpr render::Paint encoding() const noexcept { return encoding_; }
 
-        PACE__NODISCARD constexpr std::uint8_t r() const noexcept { return ( value_.hex_ >> 16 ) & 0xFF; }
-        PACE__NODISCARD constexpr std::uint8_t g() const noexcept { return ( value_.hex_ >> 8 ) & 0xFF; }
-        PACE__NODISCARD constexpr std::uint8_t b() const noexcept { return value_.hex_ & 0xFF; }
+        PACE__NODISCARD constexpr std::uint8_t r() const noexcept { return ( value_.hex >> 16 ) & 0xFF; }
+        PACE__NODISCARD constexpr std::uint8_t g() const noexcept { return ( value_.hex >> 8 ) & 0xFF; }
+        PACE__NODISCARD constexpr std::uint8_t b() const noexcept { return value_.hex & 0xFF; }
 
-        PACE__NODISCARD constexpr Color color() const noexcept { return value_.ansi_; }
+        PACE__NODISCARD constexpr Color color() const noexcept { return value_.ansi; }
 
         PACE__CXX20_CNSTXPR void swap( RGBValue& other ) noexcept
         {

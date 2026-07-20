@@ -13,7 +13,7 @@ namespace pace {
         struct Slot final {
         private:
           template<typename Derived>
-          static void render( Indicator* item, io::CharPipeline& pipeline, bool style_off )
+          static void draw( Indicator* item, io::CharPipeline& pipeline, bool style_off )
           {
             static_assert( traits::AllOf<std::is_base_of<Indicator, Derived>, traits::is_bar<Derived>>::value,
                            "Derived must inherit from Indicator" );
@@ -22,14 +22,14 @@ namespace pace {
           }
 
         public:
-          void ( *render_ )( Indicator*, io::CharPipeline&, bool );
-          Indicator* target_;
+          void ( *render )( Indicator*, io::CharPipeline&, bool );
+          Indicator* target;
           // Only the active bar will be constructed as a slot, hence, the default value is Onstage.
-          Locus stage_ { Locus::Onstage };
+          Locus stage { Locus::Onstage };
 
           template<typename Config>
           Slot( assets::ManagedBar<Config, Sink, Mode, Zone>* item ) noexcept
-            : render_ { render<assets::ManagedBar<Config, Sink, Mode, Zone>> }, target_ { item }
+            : render { draw<assets::ManagedBar<Config, Sink, Mode, Zone>> }, target { item }
           {}
         };
 
@@ -55,29 +55,29 @@ namespace pace {
           const auto hide_done = config::hide_completed();
 
           for ( std::size_t i = 0; i < items_.size(); ++i ) {
-            switch ( items_[i].stage_ ) {
+            switch ( items_[i].stage ) {
             case Locus::Echo: {
               if ( istty && !hide_done ) {
                 ostream << console::nextline;
                 if PACE__CXX17_CNSTXPR ( Zone == Region::Relative )
                   ++num_modified_lines_;
               } else
-                items_[i].stage_ = Locus::Offstage;
+                items_[i].stage = Locus::Offstage;
             } break;
 
             case Locus::Onstage: {
-              if ( items_[i].target_ == nullptr ) {
+              if ( items_[i].target == nullptr ) {
                 // being aborted
                 if ( istty && !hide_done ) {
                   ostream << console::nextline;
                   if PACE__CXX17_CNSTXPR ( Zone == Region::Relative )
                     ++num_modified_lines_;
-                  items_[i].stage_ = Locus::Echo;
+                  items_[i].stage = Locus::Echo;
                 } else
-                  items_[i].stage_ = Locus::Offstage;
+                  items_[i].stage = Locus::Offstage;
                 break;
               }
-              ( *items_[i].render_ )( items_[i].target_, ostream, style_off );
+              ( *items_[i].render )( items_[i].target, ostream, style_off );
 
               if ( istty )
                 ostream << console::linewipe;
@@ -100,9 +100,9 @@ namespace pace {
                * If the output stream is not bound to a terminal, there is no line discard policy;
                * all rendered items will trigger a newline character to be rendered.
                */
-              if ( !items_[i].target_->active() ) {
+              if ( !items_[i].target->active() ) {
                 // Mark it as nullptr to prevent it from being found during append (re-insert).
-                std::tie( items_[i].target_, items_[i].stage_ ) = std::make_pair( nullptr, Locus::Offstage );
+                std::tie( items_[i].target, items_[i].stage ) = std::make_pair( nullptr, Locus::Offstage );
                 if ( istty && hide_done )
                   ostream << console::linestart;
                 else {
@@ -110,7 +110,7 @@ namespace pace {
                   if PACE__CXX17_CNSTXPR ( Zone == Region::Relative )
                     ++num_modified_lines_;
                   if ( istty && !hide_done )
-                    items_[i].stage_ = Locus::Echo;
+                    items_[i].stage = Locus::Echo;
                 }
               } else {
                 ostream << console::nextline;
@@ -130,14 +130,14 @@ namespace pace {
         {
           // Search for the first k stopped progress bars and remove them.
           auto itr = std::find_if( items_.cbegin(), items_.cend(), []( const Slot& slot ) noexcept {
-            return slot.stage_ == Locus::Onstage && slot.target_ != nullptr;
+            return slot.stage == Locus::Onstage && slot.target != nullptr;
           } );
           if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
             num_modified_lines_ += utils::distance( items_.cbegin(), itr );
           else if PACE__CXX17_CNSTXPR ( Zone == Region::Relative ) {
             const auto num_discarded = static_cast<std::uint64_t>(
               std::count_if( items_.cbegin(), itr, []( const Slot& slot ) noexcept {
-                return slot.stage_ != Locus::Offstage;
+                return slot.stage != Locus::Offstage;
               } ) );
             PACE__TRUST( num_modified_lines_ >= num_discarded );
             num_modified_lines_ -= num_discarded;
@@ -155,11 +155,11 @@ namespace pace {
           std::lock_guard<concurrent::SharedMutex> lock2 { res_mtx_ };
           if ( state_.load( std::memory_order_relaxed ) != Phase::Stop ) {
             for ( std::size_t i = 0; i < items_.size(); ++i ) {
-              if ( items_[i].stage_ == Locus::Onstage ) {
+              if ( items_[i].stage == Locus::Onstage ) {
                 if PACE__CXX17_CNSTXPR ( Forced )
-                  items_[i].target_->abort();
+                  items_[i].target->abort();
                 else
-                  items_[i].target_->reset();
+                  items_[i].target->reset();
               }
             }
             render::Renderer<Sink>::itself().dismiss_then(
@@ -262,12 +262,12 @@ namespace pace {
           std::lock_guard<std::mutex> lock1 { sched_mtx_ };
           std::unique_lock<concurrent::SharedMutex> lock2 { res_mtx_ };
           const auto itr = std::find_if( items_.begin(), items_.end(), [item]( const Slot& slot ) noexcept {
-            return item == slot.target_;
+            return item == slot.target;
           } );
-          // Mark target_ as empty,
+          // Mark target as empty,
           // and then search for the first k invalid or destructed bars and remove them.
           if ( itr != items_.end() )
-            itr->target_ = nullptr;
+            itr->target = nullptr;
           eliminate();
 
           if ( items_.empty() ) {

@@ -24,10 +24,10 @@ namespace pace {
         if ( this->bar_width_ == 0 )
           return pipeline;
 
-        const auto brush = details::io::when( !params.style_off_ && this->colorful() );
-        auto frame_cnt   = params.frame_count_;
+        const auto brush = details::io::when( !params.style_off && this->colorful() );
+        auto frame_cnt   = params.frame_count;
         const auto len_finished =
-          static_cast<std::size_t>( std::round( this->bar_width_ * params.progress_ratio_ ) );
+          static_cast<std::size_t>( std::round( this->bar_width_ * params.progress_ratio ) );
         std::size_t len_vacancy = this->bar_width_ - len_finished;
 
         pipeline << brush( details::console::resetcolor,
@@ -45,7 +45,7 @@ namespace pace {
 
           if ( !this->lead_.empty() ) {
             frame_cnt = static_cast<std::uint32_t>(
-              static_cast<std::uint64_t>( params.frame_count_ * this->shift_factor_ ) % this->lead_.size() );
+              static_cast<std::uint64_t>( params.frame_count * this->shift_factor_ ) % this->lead_.size() );
             const auto& current_lead = this->lead_[frame_cnt];
             if ( current_lead.width() <= len_vacancy ) {
               pipeline << brush(

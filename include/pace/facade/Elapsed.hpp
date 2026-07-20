@@ -71,7 +71,7 @@ namespace pace {
       {
         self.show_hour_   = false;
         self.show_minute_ = false;
-        self.fmt_ir_      = std::move( val.value() );
+        self.fmt_ir_      = std::move( val.value );
         std::for_each( self.fmt_ir_.cbegin(), self.fmt_ir_.cend(), [&]( const Field& field ) noexcept {
           switch ( field.token() ) {
           case Token::Hour:   self.show_hour_ = true; break;
@@ -105,7 +105,7 @@ namespace pace {
               pipeline << unkown_char();
               continue;
             }
-            timer_value = std::chrono::duration_cast<std::chrono::hours>( params.elapsed_time_ ).count();
+            timer_value = std::chrono::duration_cast<std::chrono::hours>( params.elapsed_time ).count();
           } break;
 
           case Token::Minute: {
@@ -114,7 +114,7 @@ namespace pace {
               continue;
             }
             const auto num_minutes =
-              std::chrono::duration_cast<std::chrono::minutes>( params.elapsed_time_ ).count();
+              std::chrono::duration_cast<std::chrono::minutes>( params.elapsed_time ).count();
             timer_value = show_hour_ ? num_minutes % 60 : num_minutes;
           } break;
 
@@ -124,7 +124,7 @@ namespace pace {
               break;
             }
             const auto num_seconds =
-              std::chrono::duration_cast<std::chrono::seconds>( params.elapsed_time_ ).count();
+              std::chrono::duration_cast<std::chrono::seconds>( params.elapsed_time ).count();
             timer_value = show_hour_ || show_minute_ ? num_seconds % 60 : num_seconds;
           } break;
 

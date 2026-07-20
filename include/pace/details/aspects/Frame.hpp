@@ -27,7 +27,7 @@ namespace pace {
       {
         std::transform( std::make_move_iterator( _leads.begin() ),
                         std::make_move_iterator( _leads.end() ),
-                        std::back_inserter( data_ ),
+                        std::back_inserter( value ),
                         []( std::string&& ele ) { return details::charcodes::U8Text( std::move( ele ) ); } );
       }
       /**
@@ -42,7 +42,7 @@ namespace pace {
         std::transform(
           _leads.cbegin(),
           _leads.cend(),
-          std::back_inserter( data_ ),
+          std::back_inserter( value ),
           []( const details::charcodes::U8StringView& ele ) { return details::charcodes::U8Text( ele ); } );
       }
       Lead( const details::charcodes::U8StringView& _lead ) : Base( { details::charcodes::U8Text( _lead ) } )
@@ -71,13 +71,13 @@ namespace pace {
       class Frame : public Base {
         friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Frame& self, option::Lead&& val ) noexcept
         {
-          if ( std::all_of( val.value().cbegin(),
-                            val.value().cend(),
-                            []( const charcodes::U8Raw& ele ) noexcept { return ele.empty(); } ) ) {
+          if ( std::all_of( val.value.cbegin(), val.value.cend(), []( const charcodes::U8Raw& ele ) noexcept {
+                 return ele.empty();
+               } ) ) {
             self.lead_.clear();
             self.len_longest_lead_ = 0;
           } else {
-            self.lead_ = std::move( val.value() );
+            self.lead_ = std::move( val.value );
             self.len_longest_lead_ =
               std::max_element( self.lead_.cbegin(),
                                 self.lead_.cend(),
@@ -89,10 +89,10 @@ namespace pace {
         }
         friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Frame& self,
                                                                   option::LeadForecolor&& val ) noexcept
-        { self.lead_forecolor_ = val.value(); }
+        { self.lead_forecolor_ = val.value; }
         friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Frame& self,
                                                                   option::LeadBackcolor&& val ) noexcept
-        { self.lead_backcolor_ = val.value(); }
+        { self.lead_backcolor_ = val.value; }
 
       protected:
         std::vector<charcodes::U8Text> lead_;

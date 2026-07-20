@@ -19,12 +19,12 @@ namespace pace {
       {
         if ( this->lead_.empty() )
           return pipeline;
-        auto frame_cnt = static_cast<std::uint64_t>( params.frame_count_ * this->shift_factor_ );
+        auto frame_cnt = static_cast<std::uint64_t>( params.frame_count * this->shift_factor_ );
         frame_cnt %= this->lead_.size();
         PACE__ASSERT( this->len_longest_lead_ >= this->lead_[frame_cnt].width() );
 
         pipeline << details::io::when(
-          !params.style_off_ && this->colorful(),
+          !params.style_off && this->colorful(),
           details::console::resetcolor,
           details::console::Dualcolor { this->lead_forecolor_, this->lead_backcolor_ } );
         details::render::align_to<details::render::TextAlign::Left>( std::back_inserter( pipeline ),

@@ -32,7 +32,7 @@ namespace pace {
       class Remain : public Base {
 #define PACE__UNPAKING( OptionName, MemberName, Operation, Constexpr )                              \
   friend PACE__FORCEINLINE Constexpr void unpack( Remain& self, option::OptionName&& val ) noexcept \
-  { self.MemberName = Operation( val.value() ); }
+  { self.MemberName = Operation( val.value ); }
         PACE__UNPAKING( Remain, remain_, std::move, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( RemainForecolor, remain_forecolor_, , PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( RemainBackcolor, remain_backcolor_, , PACE__CXX20_CNSTXPR )

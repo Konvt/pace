@@ -11,22 +11,22 @@ namespace pace {
 
       class TimerField {
         union Field {
-          charcodes::U8Raw text_;
+          charcodes::U8Raw text;
           struct Clock {
-            std::size_t width_ {};
-            charcodes::U8Char padding_;
+            std::size_t width {};
+            charcodes::U8Char padding;
 
 #if PACE__CXX23
             PACE__CXX23_CNSTXPR Clock() = default;
 #else
             constexpr Clock() noexcept {}
 #endif
-            constexpr Clock( std::size_t width, charcodes::U8Char padding ) noexcept
-              : width_ { width }, padding_ { padding }
+            constexpr Clock( std::size_t wdt, charcodes::U8Char pad ) noexcept
+              : width { wdt }, padding { pad }
             {}
-          } clock_;
+          } clock;
 
-          PACE__CXX20_CNSTXPR Field() noexcept : clock_ {} {}
+          PACE__CXX20_CNSTXPR Field() noexcept : clock {} {}
           PACE__CXX20_CNSTXPR ~Field() noexcept {}
         } field_;
         TimerToken part_ { TimerToken::None };
@@ -37,13 +37,13 @@ namespace pace {
 
         PACE__CXX20_CNSTXPR TimerField( std::string&& text )
         {
-          utils::construct_at( &field_.text_, std::move( text ) );
+          utils::construct_at( &field_.text, std::move( text ) );
           part_ = TimerToken::Literal;
         }
         PACE__CXX20_CNSTXPR TimerField( TimerToken token, std::size_t width, charcodes::U8Char padding )
         {
           PACE__ASSERT( token != TimerToken::None && token != TimerToken::Literal );
-          utils::construct_at( &field_.clock_, width, padding );
+          utils::construct_at( &field_.clock, width, padding );
           part_ = token;
         }
 
@@ -53,28 +53,28 @@ namespace pace {
           if ( part_ == other.part_ ) {
             switch ( part_ ) {
             case TimerToken::None:    break;
-            case TimerToken::Literal: field_.text_ = other.field_.text_; break;
-            default:                  field_.clock_ = other.field_.clock_; break;
+            case TimerToken::Literal: field_.text = other.field_.text; break;
+            default:                  field_.clock = other.field_.clock; break;
             }
           } else if ( part_ == TimerToken::Literal ) {
-            utils::destroy_at( field_.text_ );
+            utils::destroy_at( field_.text );
             switch ( other.part_ ) {
             case TimerToken::None:    break;
             case TimerToken::Literal: utils::unreachable();
-            default:                  utils::construct_at( &field_.clock_, other.field_.clock_ ); break;
+            default:                  utils::construct_at( &field_.clock, other.field_.clock ); break;
             }
           } else if ( part_ != TimerToken::None ) {
-            utils::destroy_at( field_.clock_ );
+            utils::destroy_at( field_.clock );
             switch ( other.part_ ) {
             case TimerToken::None:    break;
-            case TimerToken::Literal: utils::construct_at( &field_.text_, other.field_.text_ ); break;
+            case TimerToken::Literal: utils::construct_at( &field_.text, other.field_.text ); break;
             default:                  utils::unreachable();
             }
           } else {
             switch ( other.part_ ) {
             case TimerToken::None:    break;
-            case TimerToken::Literal: utils::construct_at( &field_.text_, other.field_.text_ ); break;
-            default:                  utils::construct_at( &field_.clock_, other.field_.clock_ ); break;
+            case TimerToken::Literal: utils::construct_at( &field_.text, other.field_.text ); break;
+            default:                  utils::construct_at( &field_.clock, other.field_.clock ); break;
             }
           }
           part_ = other.part_;
@@ -86,22 +86,22 @@ namespace pace {
           if ( part_ == rhs.part_ ) {
             switch ( part_ ) {
             case TimerToken::None:    break;
-            case TimerToken::Literal: field_.text_ = std::move( rhs.field_.text_ ); break;
-            default:                  field_.clock_ = rhs.field_.clock_; break;
+            case TimerToken::Literal: field_.text = std::move( rhs.field_.text ); break;
+            default:                  field_.clock = rhs.field_.clock; break;
             }
           } else if ( part_ == TimerToken::Literal ) {
-            utils::destroy_at( field_.text_ );
+            utils::destroy_at( field_.text );
             switch ( rhs.part_ ) {
             case TimerToken::None:    break;
             case TimerToken::Literal: utils::unreachable();
-            default:                  utils::construct_at( &field_.clock_, rhs.field_.clock_ ); break;
+            default:                  utils::construct_at( &field_.clock, rhs.field_.clock ); break;
             }
           } else if ( part_ != TimerToken::None ) {
-            utils::destroy_at( field_.clock_ );
+            utils::destroy_at( field_.clock );
             switch ( rhs.part_ ) {
             case TimerToken::None: break;
             case TimerToken::Literal:
-              utils::construct_at( &field_.text_, std::move( rhs.field_.text_ ) );
+              utils::construct_at( &field_.text, std::move( rhs.field_.text ) );
               break;
             default: utils::unreachable();
             }
@@ -109,9 +109,9 @@ namespace pace {
             switch ( rhs.part_ ) {
             case TimerToken::None: break;
             case TimerToken::Literal:
-              utils::construct_at( &field_.text_, std::move( rhs.field_.text_ ) );
+              utils::construct_at( &field_.text, std::move( rhs.field_.text ) );
               break;
-            default: utils::construct_at( &field_.clock_, rhs.field_.clock_ ); break;
+            default: utils::construct_at( &field_.clock, rhs.field_.clock ); break;
             }
           }
           part_ = rhs.part_;
@@ -122,18 +122,17 @@ namespace pace {
         {
           switch ( part_ ) {
           case TimerToken::None:    break;
-          case TimerToken::Literal: utils::destroy_at( field_.text_ ); break;
-          default:                  utils::destroy_at( field_.clock_ ); break;
+          case TimerToken::Literal: utils::destroy_at( field_.text ); break;
+          default:                  utils::destroy_at( field_.clock ); break;
           }
         }
 
         PACE__NODISCARD PACE__CXX20_CNSTXPR TimerToken token() const noexcept { return part_; }
         PACE__NODISCARD PACE__CXX20_CNSTXPR const charcodes::U8Raw& text() const noexcept
-        { return field_.text_; }
-        PACE__NODISCARD PACE__CXX20_CNSTXPR std::size_t width() const noexcept
-        { return field_.clock_.width_; }
+        { return field_.text; }
+        PACE__NODISCARD PACE__CXX20_CNSTXPR std::size_t width() const noexcept { return field_.clock.width; }
         PACE__NODISCARD PACE__CXX20_CNSTXPR const charcodes::U8Char& padding() const noexcept
-        { return field_.clock_.padding_; }
+        { return field_.clock.padding; }
       };
 
       PACE__CXX20_CNSTXPR std::vector<TimerField> TimerField::parse( charcodes::StringView fmt_str )

@@ -89,18 +89,6 @@ namespace pace {
           return *this;
         }
 
-        PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& append( const char* first, const char* last ) &
-        {
-          PACE__TRUST( first != nullptr );
-          PACE__TRUST( last != nullptr );
-          PACE__TRUST( first <= last );
-          const auto length   = last - first;
-          const auto free_cap = end_ - current_;
-          if ( length > free_cap )
-            grow( length - free_cap );
-          current_ = std::copy( first, last, current_ );
-          return *this;
-        }
         PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& append( charcodes::StringView info,
                                                                     std::size_t num = 1 ) &
         {
@@ -109,7 +97,7 @@ namespace pace {
           if ( total_length > free_cap )
             grow( total_length - free_cap );
           while ( num-- )
-            current_ = std::copy( info.data(), info.data() + info.size(), current_ );
+            current_ = std::copy( info.cbegin(), info.cend(), current_ );
           return *this;
         }
         PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& append( char info, std::size_t num = 1 ) &
@@ -131,17 +119,17 @@ namespace pace {
         }
 
         friend PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& operator<<(
-          CharPipeline& stream,
+          CharPipeline& self,
           CharPipeline& ( &manipulator )(CharPipeline&))
-        { return manipulator( stream ); }
+        { return manipulator( self ); }
 
         template<typename T>
         friend PACE__FORCEINLINE PACE__CXX23_CNSTXPR
           typename std::enable_if<traits::AnyOf<std::is_convertible<T, charcodes::StringView>,
                                                 std::is_same<typename std::decay<T>::type, char>>::value,
                                   CharPipeline&>::type
-          operator<<( CharPipeline& stream, T&& info )
-        { return stream.append( std::forward<T>( info ) ); }
+          operator<<( CharPipeline& self, T&& info )
+        { return self.append( std::forward<T>( info ) ); }
 
         PACE__CXX20_CNSTXPR void swap( CharPipeline& other ) noexcept
         {

@@ -25,10 +25,10 @@ namespace pace {
         }
 
         union SGR {
-          Color ansi_;
-          std::array<std::uint8_t, 3> rgb_;
+          Color ansi;
+          std::array<std::uint8_t, 3> rgb;
 
-          PACE__CXX20_CNSTXPR SGR() noexcept : rgb_ {} {}
+          PACE__CXX20_CNSTXPR SGR() noexcept : rgb {} {}
         } sgr_;
         render::Paint encoding_;
 #endif
@@ -47,8 +47,8 @@ namespace pace {
           : encoding_ { rgb.encoding() }
         {
           switch ( rgb.encoding() ) {
-          case render::Paint::Csi8:       sgr_.ansi_ = rgb.color(); break;
-          case render::Paint::Xterm24bit: sgr_.rgb_ = { rgb.r(), rgb.g(), rgb.b() }; break;
+          case render::Paint::Csi8:       sgr_.ansi = rgb.color(); break;
+          case render::Paint::Xterm24bit: sgr_.rgb = { rgb.r(), rgb.g(), rgb.b() }; break;
           default:                        break;
           }
         }
@@ -62,7 +62,7 @@ namespace pace {
 #ifdef PACE_NOSTYLE
           (void)rgb;
 #else
-          sgr_.rgb_ = { rgb.r(), rgb.g(), rgb.b() };
+          sgr_.rgb  = { rgb.r(), rgb.g(), rgb.b() };
           encoding_ = render::Paint::Xterm24bit;
 #endif
           return *this;
@@ -84,11 +84,11 @@ namespace pace {
           constexpr auto digits = digit_text();
           switch ( encoding_ ) {
           case render::Paint::Csi8: {
-            const auto str = digits.data() + ( utils::to_underlying( sgr_.ansi_ ) * 3 );
+            const auto str = digits.data() + ( utils::to_underlying( sgr_.ansi ) * 3 );
             pipeline << str[0] << str[1];
           } break;
           case render::Paint::Xterm24bit: {
-            for ( auto offset : sgr_.rgb_ ) {
+            for ( auto offset : sgr_.rgb ) {
               pipeline << ';';
               const auto str = digits.data() + ( offset * 3 );
               pipeline << str[0];

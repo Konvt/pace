@@ -52,7 +52,7 @@ namespace pace {
       class Prefix : public Base {
 #define PACE__UNPAKING( OptionName, MemberName, Operation, Constexpr )                              \
   friend PACE__FORCEINLINE Constexpr void unpack( Prefix& self, option::OptionName&& val ) noexcept \
-  { self.MemberName = Operation( val.value() ); }
+  { self.MemberName = Operation( val.value ); }
         PACE__UNPAKING( Prefix, prefix_, std::move, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( PrefixForecolor, prfx_forecolor_, , PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( PrefixBackcolor, prfx_backcolor_, , PACE__CXX20_CNSTXPR )
@@ -66,7 +66,7 @@ namespace pace {
         {
           if ( prefix_.empty() )
             return pipeline;
-          pipeline << io::when( !params.style_off_ && this->colorful(),
+          pipeline << io::when( !params.style_off && this->colorful(),
                                 console::resetcolor,
                                 console::Dualcolor { prfx_forecolor_, prfx_backcolor_ } )
                    << prefix_ << ' ';
@@ -137,7 +137,7 @@ namespace pace {
       class Postfix : public Base {
 #define PACE__UNPAKING( OptionName, MemberName, Operation, Constexpr )                               \
   friend PACE__FORCEINLINE Constexpr void unpack( Postfix& self, option::OptionName&& val ) noexcept \
-  { self.MemberName = Operation( val.value() ); }
+  { self.MemberName = Operation( val.value ); }
         PACE__UNPAKING( Postfix, postfix_, std::move, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( PostfixForecolor, pstfx_forecolor_, , PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( PostfixBackcolor, pstfx_backcolor_, , PACE__CXX20_CNSTXPR )
@@ -151,7 +151,7 @@ namespace pace {
         {
           if ( postfix_.empty() )
             return pipeline;
-          pipeline << io::when( !params.style_off_ && this->colorful(),
+          pipeline << io::when( !params.style_off && this->colorful(),
                                 console::resetcolor,
                                 console::Dualcolor { pstfx_forecolor_, pstfx_backcolor_ } )
                    << ' ' << postfix_;

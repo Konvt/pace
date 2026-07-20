@@ -34,7 +34,7 @@ namespace pace {
                                     chars_.cend(),
                                     std::size_t {},
                                     []( std::size_t acc, const Font& ch ) noexcept {
-                                      return acc + static_cast<std::size_t>( ch.width_ );
+                                      return acc + static_cast<std::size_t>( ch.width );
                                     } );
           bytes_ = std::move( u8_bytes );
         }
@@ -53,7 +53,7 @@ namespace pace {
                                     chars_.cend(),
                                     std::size_t {},
                                     []( std::size_t acc, const Font& ch ) noexcept {
-                                      return acc + static_cast<std::size_t>( ch.width_ );
+                                      return acc + static_cast<std::size_t>( ch.width );
                                     } );
           bytes_.swap( new_bytes );
           return *this;
@@ -66,7 +66,7 @@ namespace pace {
                                     chars_.cend(),
                                     std::size_t {},
                                     []( std::size_t acc, const Font& ch ) noexcept {
-                                      return acc + static_cast<std::size_t>( ch.width_ );
+                                      return acc + static_cast<std::size_t>( ch.width );
                                     } );
           bytes_.swap( u8_bytes );
           return *this;
@@ -98,11 +98,11 @@ namespace pace {
 
           // split_pos is the starting point of the right part
           std::size_t split_pos = 0, left_width = 0;
-          while ( split_pos < chars_.size() && left_width + chars_[split_pos].width_ <= width )
-            left_width += chars_[split_pos++].width_;
+          while ( split_pos < chars_.size() && left_width + chars_[split_pos].width <= width )
+            left_width += chars_[split_pos++].width;
 
           const auto split_loc =
-            bytes_.data() + ( split_pos < chars_.size() ? chars_[split_pos].offset_ : bytes_.size() );
+            bytes_.data() + ( split_pos < chars_.size() ? chars_[split_pos].offset : bytes_.size() );
           return {
             { bytes_.data(), split_loc,                     left_width          },
             { split_loc,     bytes_.data() + bytes_.size(), width_ - left_width }
@@ -126,7 +126,7 @@ namespace pace {
                                     chars_.cend(),
                                     std::size_t {},
                                     []( std::size_t acc, const Font& ch ) noexcept {
-                                      return acc + static_cast<std::size_t>( ch.width_ );
+                                      return acc + static_cast<std::size_t>( ch.width );
                                     } );
           bytes_ = std::move( new_bytes );
         }

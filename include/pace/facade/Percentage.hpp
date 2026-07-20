@@ -22,11 +22,11 @@ namespace pace {
       details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
                                         const details::render::Parameter& params ) const
       {
-        if ( params.progress_ratio_ <= 0.0 ) // 0.01%
+        if ( params.progress_ratio <= 0.0 ) // 0.01%
           PACE__UNLIKELY return pipeline << default_text();
 
         std::string orig;
-        details::utils::format_to( std::back_inserter( orig ), params.progress_ratio_ * 100.0, 2 );
+        details::utils::format_to( std::back_inserter( orig ), params.progress_ratio * 100.0, 2 );
         orig.push_back( '%' );
         details::render::align_to<details::render::TextAlign::Right>( std::back_inserter( pipeline ),
                                                                       orig,
