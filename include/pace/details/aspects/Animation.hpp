@@ -3,6 +3,7 @@
 
 #include "../../config/Provider.hpp"
 #include "../concurrent/SharedMutex.hpp"
+#include "../core/Types.hpp"
 #include "../wrappers/OptionPacket.hpp"
 #include <mutex>
 

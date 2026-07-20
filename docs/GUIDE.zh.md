@@ -1386,8 +1386,9 @@ protected:
     std::chrono::hh_mm_ss time_of_day { local - std::chrono::floor<std::chrono::days>( local ) };
     auto hours = time_of_day.hours().count();
 
-    // 在渲染时钟之前先嵌入着色效果
-    pipeline << this->clear_then_dye( color_, params.style_off_ );
+    // 构造一个着色渲染上下文，并使用上下文嵌入着色效果
+    pipeline << pace::details::io::when( !params.style_off_ && this->colorful(),
+                                         pace::details::console::Forecolor { color_ } );
 
     if ( format_ ) {
       // 12 hour

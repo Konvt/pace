@@ -2,13 +2,13 @@
 #define PACE_FORMAT
 
 #include "../core/Core.hpp"
-#include "../core/Types.hpp"
+#include <array>
 #include <cmath>
+#include <string>
 #include <type_traits>
 #ifdef __cpp_lib_format
 # include <format>
 #elif defined( __cpp_lib_to_chars )
-# include <array>
 # include <charconv>
 # include <limits>
 #endif

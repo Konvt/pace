@@ -37,15 +37,16 @@ namespace pace {
         {
           // Before the first element and the last element, we do not set a divider.
           if ( this->projection_.test( traits::IndexIn<Element, Facades...>::value ) ) {
-            if ( !params.style_off_ && this->colorful() )
-              pipeline << console::resetfgcolor << console::resetbgcolor
-                       << console::Dualcolor( this->info_forecolor_, this->info_backcolor_ );
+            const auto brush = io::when( !params.style_off_ && this->colorful() );
+            pipeline << brush( console::resetcolor,
+                               console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } );
+
             this->traits::BaseOf_t<typename Base::layout_type, Element>::build( pipeline, params );
+
             if ( any_more<Elements...>() ) {
-              if ( !params.style_off_ && this->colorful() )
-                pipeline << console::resetfgcolor << console::resetbgcolor
-                         << console::Dualcolor( this->info_forecolor_, this->info_backcolor_ );
-              pipeline << this->divider_;
+              pipeline << brush( console::resetcolor,
+                                 console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } )
+                       << this->divider_;
             }
           }
           render_each<Elements...>( pipeline, params );

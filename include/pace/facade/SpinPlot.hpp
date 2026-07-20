@@ -5,7 +5,7 @@
 #include "../details/aspects/Frame.hpp"
 #include "../details/behaviors/Fancy.hpp"
 #include "../details/behaviors/Indeterminate.hpp"
-#include "../details/io/CharPipeline.hpp"
+#include "../details/io/Combinator.hpp"
 #include "../details/render/Parameter.hpp"
 #include "../details/render/TextAlign.hpp"
 
@@ -23,9 +23,10 @@ namespace pace {
         frame_cnt %= this->lead_.size();
         PACE__ASSERT( this->len_longest_lead_ >= this->lead_[frame_cnt].width() );
 
-        if ( !params.style_off_ && this->colorful() )
-          pipeline << details::console::resetfgcolor << details::console::resetbgcolor
-                   << details::console::Dualcolor( this->lead_forecolor_, this->lead_backcolor_ );
+        pipeline << details::io::when(
+          !params.style_off_ && this->colorful(),
+          details::console::resetcolor,
+          details::console::Dualcolor { this->lead_forecolor_, this->lead_backcolor_ } );
         details::render::align_to<details::render::TextAlign::Left>( std::back_inserter( pipeline ),
                                                                      this->lead_[frame_cnt],
                                                                      this->len_longest_lead_ );

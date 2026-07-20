@@ -26,24 +26,21 @@ namespace pace {
           concurrent::SharedLock<concurrent::SharedMutex> lock { this->rw_mtx_ };
           this->font_effect( pipeline, params.style_off_ );
 
-          if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() ) {
-            if ( !params.style_off_ && this->colorful() )
-              pipeline << console::Dualcolor( this->info_forecolor_, this->info_backcolor_ );
-            pipeline << this->l_border_;
-          }
+          const auto brush = io::when( !params.style_off_ && this->colorful() );
+          if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() )
+            pipeline << brush( console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } )
+                     << this->l_border_;
           this->traits::BaseOf_t<typename Config::layout_type, aspects::Prefix>::build( pipeline, params );
 
           this->template render_each<Facades...>( pipeline, params );
 
           this->traits::BaseOf_t<typename Config::layout_type, aspects::Postfix>::build( pipeline, params );
-          if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() ) {
-            if ( !params.style_off_ && this->colorful() )
-              pipeline << console::resetfgcolor << console::resetbgcolor
-                       << console::Dualcolor( this->info_forecolor_, this->info_backcolor_ );
-            pipeline << this->r_border_;
-          }
+          if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() )
+            pipeline << brush( console::resetcolor,
+                               console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } )
+                     << this->r_border_;
 
-          return this->reset_style( pipeline, params.style_off_ );
+          return pipeline << io::when( !params.style_off_ && this->rich(), console::resetstyle );
         }
       };
     } // namespace render

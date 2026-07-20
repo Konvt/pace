@@ -2,6 +2,7 @@
 #define PACE_FILLER
 
 #include "../charcodes/U8Raw.hpp"
+#include "../console/TrueColor.hpp"
 #include "../traits/C3.hpp"
 #include "../wrappers/OptionPacket.hpp"
 #include "RenderRule.hpp"

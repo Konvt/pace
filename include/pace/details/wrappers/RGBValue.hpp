@@ -3,6 +3,7 @@
 
 #include "../../exception/Error.hpp"
 #include "../charcodes/StringView.hpp"
+#include "../core/Types.hpp"
 #include "../render/Paint.hpp"
 
 namespace pace {

@@ -208,13 +208,13 @@ namespace pace {
                          if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed ) {
                            ostream << console::resetcursor;
                            if ( !hide_done && num_modified_lines_ > 0 ) {
-                             ostream.apply( console::nextline, num_modified_lines_ )
-                               .apply( console::savecursor );
+                             ostream << io::repeat( num_modified_lines_, console::nextline )
+                                     << console::savecursor;
                              num_modified_lines_ = 0;
                            }
                          } else {
-                           ostream.apply( console::prevline, num_modified_lines_ )
-                             .apply( console::linestart );
+                           ostream << io::repeat( num_modified_lines_, console::prevline )
+                                   << console::linestart;
                            num_modified_lines_ = 0;
                          }
                        }

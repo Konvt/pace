@@ -184,7 +184,7 @@ namespace pace {
       PACE__NODISCARD PACE__FORCEINLINE typename std::enable_if<
         traits::is_bar<typename std::decay<B>::type>::value,
         MultiBar_t<prefab::BasicBar<typename std::decay<B>::type::config_type, S, M, Z>, Cnt>>::type
-        make_multi_helper( B&& bar, traits::IndexSequence<Is...> )
+        _impl_make_multi( B&& bar, traits::IndexSequence<Is...> )
           noexcept( traits::BoolConstant<( Cnt == 1 )>::value )
       {
         using Bar = typename std::decay<B>::type;
@@ -195,7 +195,7 @@ namespace pace {
       PACE__NODISCARD PACE__FORCEINLINE typename std::enable_if<
         traits::is_config<typename std::decay<C>::type>::value,
         MultiBar_t<prefab::BasicBar<typename std::decay<C>::type, S, M, Z>, Cnt>>::type
-        make_multi_helper( C&& cfg, traits::IndexSequence<Is...> )
+        _impl_make_multi( C&& cfg, traits::IndexSequence<Is...> )
           noexcept( traits::AllOf<traits::BoolConstant<( Cnt == 1 )>,
                                   traits::Not<std::is_lvalue_reference<C&&>>>::value )
       {
@@ -220,8 +220,8 @@ namespace pace {
                                  MultiBar_t<prefab::BasicBar<Config, S, M, Z>, Cnt>>::type
 #endif
   {
-    return details::utils::make_multi_helper<Cnt, S, M, Z>( std::move( bar ),
-                                                            details::traits::MakeIndexSequence<Cnt - 1>() );
+    return details::utils::_impl_make_multi<Cnt, S, M, Z>( std::move( bar ),
+                                                           details::traits::MakeIndexSequence<Cnt - 1>() );
   }
   /**
    * Creates a MultiBar with a fixed number of BasicBar instances using a single configuration object.
@@ -244,7 +244,7 @@ namespace pace {
         MultiBar_t<prefab::BasicBar<typename std::decay<Config>::type, Sink, Mode, Zone>, Cnt>>::type
 #endif
   {
-    return details::utils::make_multi_helper<Cnt, Sink, Mode, Zone>(
+    return details::utils::_impl_make_multi<Cnt, Sink, Mode, Zone>(
       std::forward<Config>( cfg ),
       details::traits::MakeIndexSequence<Cnt - 1>() );
   }

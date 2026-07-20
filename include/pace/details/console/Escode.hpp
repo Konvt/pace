@@ -6,13 +6,14 @@
 namespace pace {
   namespace details {
     namespace console {
-#define PACE__METHOD( FunctionName, Param )                           \
-  inline io::CharPipeline& FunctionName( io::CharPipeline& pipeline ) \
+#define PACE__METHOD( FunctionName, Param )                                      \
+  PACE__FORCEINLINE io::CharPipeline& FunctionName( io::CharPipeline& pipeline ) \
   { return pipeline << Param; }
 
       PACE__METHOD( resetstyle, "\x1B[0m" );
       PACE__METHOD( resetfgcolor, "\x1B[39m" );
       PACE__METHOD( resetbgcolor, "\x1B[49m" );
+      PACE__METHOD( resetcolor, "\x1B[39;49m" );
 
       PACE__METHOD( fontbold, "\x1B[1m" );
       PACE__METHOD( fontfaint, "\x1B[2m" );

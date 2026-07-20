@@ -2,16 +2,13 @@
 #define PACE_UTILS_BACKPORT
 
 #include "../core/Core.hpp"
-#include "../core/Types.hpp"
+#include "../traits/Backport.hpp"
 #include <exception>
 #include <functional>
 #include <memory>
 #include <utility>
 #if !defined( __cpp_lib_invoke ) || ( defined( _MSC_VER ) && !defined( __cpp_lib_is_invocable ) )
-# include "../traits/Backport.hpp"
 # include "../traits/Concept.hpp"
-#elif !PACE__CXX14
-# include "../traits/Backport.hpp"
 #endif
 #ifdef __cpp_lib_ranges
 # include <ranges>
@@ -204,6 +201,32 @@ namespace pace {
                           std::is_member_object_pointer<typename std::remove_reference<Fn>::type>>>::value,
           decltype( std::forward<Fn>( fn )( std::forward<Args>( args )... ) )>::type
       { return std::forward<Fn>( fn )( std::forward<Args>( args )... ); }
+#endif
+
+#ifdef __cpp_lib_apply
+      using std::apply;
+#else
+      template<typename Fn, typename Tuple, std::size_t... Is>
+      PACE__FORCEINLINE constexpr auto _impl_apply( Fn&& fn, Tuple&& tuple, traits::IndexSequence<Is...> )
+        noexcept( noexcept( invoke( std::forward<Fn>( fn ),
+                                    std::get<Is>( std::forward<Tuple>( tuple ) )... ) ) )
+          -> decltype( invoke( std::forward<Fn>( fn ), std::get<Is>( std::forward<Tuple>( tuple ) )... ) )
+      { return invoke( std::forward<Fn>( fn ), std::get<Is>( std::forward<Tuple>( tuple ) )... ); }
+      template<typename Fn, typename Tuple>
+      PACE__FORCEINLINE constexpr auto apply( Fn&& fn, Tuple&& tuple ) noexcept( noexcept( _impl_apply(
+        std::forward<Fn>( fn ),
+        std::forward<Tuple>( tuple ),
+        traits::MakeIndexSequence<std::tuple_size<typename std::decay<Tuple>::type>::value>() ) ) )
+        -> decltype( _impl_apply(
+          std::forward<Fn>( fn ),
+          std::forward<Tuple>( tuple ),
+          traits::MakeIndexSequence<std::tuple_size<typename std::decay<Tuple>::type>::value>() ) )
+      {
+        return _impl_apply(
+          std::forward<Fn>( fn ),
+          std::forward<Tuple>( tuple ),
+          traits::MakeIndexSequence<std::tuple_size<typename std::decay<Tuple>::type>::value>() );
+      }
 #endif
 
 #ifdef __cpp_lib_to_address

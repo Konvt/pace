@@ -2,8 +2,8 @@
 #define PACE_TRAITS_BACKPORT
 
 #include "../core/Core.hpp"
-#include "../core/Types.hpp"
 #include "Identity.hpp"
+#include <utility>
 
 namespace pace {
   namespace details {
@@ -31,16 +31,16 @@ namespace pace {
 
       // Internal implementation, it should not be used outside of this preprocessing block.
       template<std::size_t N>
-      struct _make_index_seq_helper
-        : Identity<_concat_seq_t<typename _make_index_seq_helper<N / 2>::type,
-                                 typename _make_index_seq_helper<N - N / 2>::type>> {};
+      struct _impl_make_index_seq
+        : Identity<_concat_seq_t<typename _impl_make_index_seq<N / 2>::type,
+                                 typename _impl_make_index_seq<N - N / 2>::type>> {};
       template<>
-      struct _make_index_seq_helper<0> : Identity<IndexSequence<>> {};
+      struct _impl_make_index_seq<0> : Identity<IndexSequence<>> {};
       template<>
-      struct _make_index_seq_helper<1> : Identity<IndexSequence<0>> {};
+      struct _impl_make_index_seq<1> : Identity<IndexSequence<0>> {};
 
       template<std::size_t N>
-      using MakeIndexSequence = typename _make_index_seq_helper<N>::type;
+      using MakeIndexSequence = typename _impl_make_index_seq<N>::type;
 #endif
 
 #ifdef __cpp_lib_bool_constant

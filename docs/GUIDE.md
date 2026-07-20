@@ -1413,8 +1413,9 @@ protected:
     std::chrono::hh_mm_ss time_of_day { local - std::chrono::floor<std::chrono::days>( local ) };
     auto hours = time_of_day.hours().count();
 
-    // embed styling before rendering the clock
-    pipeline << this->clear_then_dye( color_, params.style_off_ );
+    // construct a shading rendering context and use the context to embed shading effects
+    pipeline << pace::details::io::when( !params.style_off_ && this->colorful(),
+                                         pace::details::console::Forecolor { color_ } );
 
     if ( format_ ) {
       // 12 hour

@@ -3,6 +3,7 @@
 
 #include "../charcodes/U8Raw.hpp"
 #include "../console/Colorize.hpp"
+#include "../io/Combinator.hpp"
 #include "../render/Parameter.hpp"
 #include "../traits/C3.hpp"
 #include "../wrappers/OptionPacket.hpp"
@@ -65,10 +66,11 @@ namespace pace {
         {
           if ( prefix_.empty() )
             return pipeline;
-          if ( !params.style_off_ && this->colorful() )
-            pipeline << console::resetfgcolor << console::resetbgcolor
-                     << console::Dualcolor( prfx_forecolor_, prfx_backcolor_ );
-          return pipeline << prefix_ << ' ';
+          pipeline << io::when( !params.style_off_ && this->colorful(),
+                                console::resetcolor,
+                                console::Dualcolor { prfx_forecolor_, prfx_backcolor_ } )
+                   << prefix_ << ' ';
+          return pipeline;
         }
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length() const noexcept
@@ -149,10 +151,11 @@ namespace pace {
         {
           if ( postfix_.empty() )
             return pipeline;
-          if ( !params.style_off_ && this->colorful() )
-            pipeline << console::resetfgcolor << console::resetbgcolor
-                     << console::Dualcolor( pstfx_forecolor_, pstfx_backcolor_ );
-          return pipeline << ' ' << postfix_;
+          pipeline << io::when( !params.style_off_ && this->colorful(),
+                                console::resetcolor,
+                                console::Dualcolor { pstfx_forecolor_, pstfx_backcolor_ } )
+                   << ' ' << postfix_;
+          return pipeline;
         }
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length() const noexcept

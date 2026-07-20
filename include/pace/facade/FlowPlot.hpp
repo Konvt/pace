@@ -8,7 +8,7 @@
 #include "../details/aspects/Reversible.hpp"
 #include "../details/behaviors/Fancy.hpp"
 #include "../details/behaviors/Indeterminate.hpp"
-#include "../details/io/CharPipeline.hpp"
+#include "../details/io/Combinator.hpp"
 #include "../details/render/Parameter.hpp"
 
 namespace pace {
@@ -22,12 +22,12 @@ namespace pace {
         if ( this->bar_width_ == 0 )
           return pipeline;
 
+        const auto brush     = details::io::when( !params.style_off_ && this->colorful() );
         const auto frame_cnt = static_cast<std::uint64_t>( params.frame_count_ * this->shift_factor_ );
 
-        if ( !params.style_off_ && this->colorful() )
-          pipeline << details::console::resetfgcolor << details::console::resetbgcolor
-                   << details::console::Dualcolor( this->start_forecolor_, this->start_backcolor_ );
-        pipeline << this->starting_;
+        pipeline << brush( details::console::resetcolor,
+                           details::console::Dualcolor { this->start_forecolor_, this->start_backcolor_ } )
+                 << this->starting_;
 
         PACE__ASSERT( this->filler_.width() > 0 );
         if ( !this->lead_.empty() ) {
@@ -43,20 +43,18 @@ namespace pace {
             if ( current_lead.width() <= len_vacancy ) {
               const auto len_right_fill = len_vacancy - current_lead.width();
 
-              if ( !params.style_off_ && this->colorful() )
-                pipeline << details::console::resetfgcolor << details::console::resetbgcolor
-                         << details::console::Dualcolor( this->filler_forecolor_, this->filler_backcolor_ );
-              pipeline.append( this->filler_, virtual_point / this->filler_.width() )
-                .append( ' ', virtual_point % this->filler_.width() );
-              if ( !params.style_off_ && this->colorful() )
-                pipeline << details::console::resetfgcolor << details::console::resetbgcolor
-                         << details::console::Dualcolor( this->lead_forecolor_, this->lead_backcolor_ );
-              pipeline << current_lead;
-              if ( !params.style_off_ && this->colorful() )
-                pipeline << details::console::resetfgcolor << details::console::resetbgcolor
-                         << details::console::Dualcolor( this->filler_forecolor_, this->filler_backcolor_ );
-              pipeline.append( ' ', len_right_fill % this->filler_.width() )
-                .append( this->filler_, len_right_fill / this->filler_.width() );
+              pipeline
+                << brush( details::console::resetcolor,
+                          details::console::Dualcolor { this->filler_forecolor_, this->filler_backcolor_ } )
+                << details::io::repeat( virtual_point / this->filler_.width(), this->filler_ )
+                << details::io::repeat( virtual_point % this->filler_.width(), ' ' )
+                << brush( details::console::resetcolor,
+                          details::console::Dualcolor { this->lead_forecolor_, this->lead_backcolor_ } )
+                << current_lead
+                << brush( details::console::resetcolor,
+                          details::console::Dualcolor { this->filler_forecolor_, this->filler_backcolor_ } )
+                << details::io::repeat( len_right_fill % this->filler_.width(), ' ' )
+                << details::io::repeat( len_right_fill / this->filler_.width(), this->filler_ );
             } else {
 #ifdef __cpp_structured_bindings
               const auto& [left_part, right_part] = current_lead.split_by( len_vacancy );
@@ -66,37 +64,32 @@ namespace pace {
 #endif
               const auto len_left_fill = virtual_point - right_part.width();
 
-              if ( !params.style_off_ && this->colorful() )
-                pipeline << details::console::resetfgcolor << details::console::resetbgcolor
-                         << details::console::Dualcolor( this->lead_forecolor_, this->lead_backcolor_ );
-              pipeline << right_part;
-              if ( !params.style_off_ && this->colorful() )
-                pipeline << details::console::resetfgcolor << details::console::resetbgcolor
-                         << details::console::Dualcolor( this->filler_forecolor_, this->filler_backcolor_ );
-              pipeline.append( ' ', len_left_fill % this->filler_.width() )
-                .append( this->filler_, len_left_fill / this->filler_.width() );
-
-              if ( !params.style_off_ && this->colorful() )
-                pipeline << details::console::resetfgcolor << details::console::resetbgcolor
-                         << details::console::Dualcolor( this->lead_forecolor_, this->lead_backcolor_ );
-              pipeline.append( left_part ).append( ' ', len_vacancy - left_part.width() );
+              pipeline
+                << brush( details::console::resetcolor,
+                          details::console::Dualcolor { this->lead_forecolor_, this->lead_backcolor_ } )
+                << right_part
+                << brush( details::console::resetcolor,
+                          details::console::Dualcolor { this->filler_forecolor_, this->filler_backcolor_ } )
+                << details::io::repeat( len_left_fill % this->filler_.width(), ' ' )
+                << details::io::repeat( len_left_fill / this->filler_.width(), this->filler_ )
+                << brush( details::console::resetcolor,
+                          details::console::Dualcolor { this->lead_forecolor_, this->lead_backcolor_ } )
+                << left_part << details::io::repeat( len_vacancy - left_part.width(), ' ' );
             }
           } else
-            pipeline.append( ' ', this->bar_width_ );
+            pipeline << details::io::repeat( this->bar_width_, ' ' );
         } else if ( this->filler_.empty() )
-          pipeline.append( ' ', this->bar_width_ );
-        else {
-          if ( !params.style_off_ && this->colorful() )
-            pipeline << details::console::resetfgcolor << details::console::resetbgcolor
-                     << details::console::Dualcolor( this->filler_forecolor_, this->filler_backcolor_ );
-          pipeline.append( this->filler_, this->bar_width_ / this->filler_.width() )
-            .append( ' ', this->bar_width_ % this->filler_.width() );
-        }
+          pipeline << details::io::repeat( this->bar_width_, ' ' );
+        else
+          pipeline << brush(
+            details::console::resetcolor,
+            details::console::Dualcolor { this->filler_forecolor_, this->filler_backcolor_ } )
+                   << details::io::repeat( this->bar_width_ / this->filler_.width(), this->filler_ )
+                   << details::io::repeat( this->bar_width_ % this->filler_.width(), ' ' );
 
-        if ( !params.style_off_ && this->colorful() )
-          pipeline << details::console::resetfgcolor << details::console::resetbgcolor
-                   << details::console::Dualcolor( this->end_forecolor_, this->end_backcolor_ );
-        return pipeline << this->ending_;
+        return pipeline << brush( details::console::resetcolor,
+                                  details::console::Dualcolor { this->end_forecolor_, this->end_backcolor_ } )
+                        << this->ending_;
       }
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length() const noexcept

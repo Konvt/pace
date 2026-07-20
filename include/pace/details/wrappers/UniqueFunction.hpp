@@ -2,26 +2,26 @@
 #define PACE_UNIQUE_FUNCTION
 
 #include <type_traits>
-#ifdef __cpp_lib_move_only_function
+#ifdef __cpp_lib_moveonly_function
 # include <functional>
 #else
+# include "../core/Types.hpp"
 # include "../traits/Backport.hpp"
+# include "../traits/Util.hpp"
 # include "../utils/Backport.hpp"
 #endif
 
 namespace pace {
   namespace details {
     namespace wrappers {
-#ifdef __cpp_lib_move_only_function
+#ifdef __cpp_lib_moveonly_function
       template<typename... Signature>
-      using UniqueFunction = std::move_only_function<Signature...>;
+      using UniqueFunction = std::moveonly_function<Signature...>;
 #else
       // `CrefInfo` can be any types that contains the `cref` info of the functor.
       // e.g. For the function type `void () const&`, the `CrefInfo` can be: `const int&`.
       template<typename CrefInfo, typename R, bool Noexcept, typename... Params>
       class FnStore {
-        template<typename T>
-        using Param_t = typename std::conditional<std::is_scalar<T>::value, T, T&&>::type;
         template<typename T>
         using Callee_t = typename std::
           conditional<std::is_const<typename std::remove_reference<CrefInfo>::type>::value, const T, T>::type;
@@ -32,29 +32,29 @@ namespace pace {
           decltype( utils::forward_like<CrefInfo>( std::declval<typename std::decay<Fn>::type>() ) );
 
         union alignas( std::max_align_t ) AnyFn {
-          types::Byte sso_[sizeof( void* ) * 2];
-          void* dptr_;
+          types::Byte sso[sizeof( void* ) * 2];
+          void* dptr;
 
-          constexpr AnyFn() noexcept : dptr_ { nullptr } {}
+          constexpr AnyFn() noexcept : dptr { nullptr } {}
         };
         struct Life {
           // The handling of function types by msvc is very strange:
           // it often triggers internal compiler errors for no apparent reason,
           // so here we have to manually write the function pointer type.
-          void ( *const destroy_ )( AnyFn& ) noexcept;
-          void ( *const move_ )( AnyFn& dst, AnyFn& src ) noexcept;
+          void ( *const destroy )( AnyFn& ) noexcept;
+          void ( *const move )( AnyFn& dst, AnyFn& src ) noexcept;
 
 # if PACE__CXX20
           friend constexpr bool operator==( const Life&, const Life& ) = default;
           friend constexpr bool operator!=( const Life&, const Life& ) = default;
 # else
           friend constexpr bool operator==( const Life& a, const Life& b ) noexcept
-          { return a.destroy_ == b.destroy_ && a.move_ == b.move_; }
+          { return a.destroy == b.destroy && a.move == b.move; }
           friend constexpr bool operator!=( const Life& a, const Life& b ) noexcept { return !( a == b ); }
 # endif
         };
         struct VTable final {
-          R ( *invoke_ )( const AnyFn&, Param_t<Params>... )
+          R ( *invoke_ )( const AnyFn&, traits::PassParam_t<Params>... )
 # ifdef __cpp_noexcept_function_type
             noexcept( Noexcept )
 # endif
@@ -75,80 +75,81 @@ namespace pace {
         template<typename T>
         using is_inlinable = traits::AllOf<
           std::is_nothrow_move_constructible<T>,
-          traits::BoolConstant<( sizeof( AnyFn::sso_ ) >= sizeof( T ) && alignof( AnyFn ) >= alignof( T ) )>>;
+          traits::BoolConstant<( sizeof( AnyFn::sso ) >= sizeof( T ) && alignof( AnyFn ) >= alignof( T ) )>>;
 
         AnyFn callee_;
         VTable vtable_;
 
-        static PACE__CXX14_CNSTXPR R invoke_null( const AnyFn&, Param_t<Params>... ) noexcept( Noexcept )
+        static PACE__CXX14_CNSTXPR R invoke_null( const AnyFn&, traits::PassParam_t<Params>... )
+          noexcept( Noexcept )
         {
           PACE__ASSERT( false );
           utils::unreachable();
           // The standard says this should trigger an undefined behavior.
         }
-        static PACE__CXX14_CNSTXPR void move_null( AnyFn&, AnyFn& ) noexcept {}
+        static PACE__CXX14_CNSTXPR void movenull( AnyFn&, AnyFn& ) noexcept {}
 
         template<typename T>
-        static PACE__CXX14_CNSTXPR R invoke_inline( const AnyFn& fn, Param_t<Params>... params )
+        static PACE__CXX14_CNSTXPR R invoke_inline( const AnyFn& fn, traits::PassParam_t<Params>... params )
           noexcept( Noexcept )
         {
-          const auto ptr = utils::launder_as<Callee_t<T>>( ( &const_cast<AnyFn&>( fn ).sso_ ) );
+          const auto ptr = utils::launder_as<Callee_t<T>>( ( &const_cast<AnyFn&>( fn ).sso ) );
           return utils::invoke_r<R>( utils::forward_like<CrefInfo>( *ptr ),
                                      std::forward<Params>( params )... );
         }
         template<typename T>
-        static PACE__CXX20_CNSTXPR void destroy_inline( AnyFn& fn ) noexcept
-        { utils::destroy_at( utils::launder_as<T>( &fn.sso_ ) ); }
+        static PACE__CXX20_CNSTXPR void destroyinline( AnyFn& fn ) noexcept
+        { utils::destroy_at( utils::launder_as<T>( &fn.sso ) ); }
         template<typename T>
-        static PACE__CXX20_CNSTXPR void move_inline( AnyFn& dst, AnyFn& src ) noexcept
+        static PACE__CXX20_CNSTXPR void moveinline( AnyFn& dst, AnyFn& src ) noexcept
         {
-          utils::construct_at<T>( &dst.sso_, std::move( *utils::launder_as<T>( &src.sso_ ) ) );
+          utils::construct_at<T>( &dst.sso, std::move( *utils::launder_as<T>( &src.sso ) ) );
           if PACE__CXX17_CNSTXPR ( !std::is_trivially_destructible<T>::value )
-            destroy_inline<T>( src );
+            destroyinline<T>( src );
         }
 
         template<typename T>
-        static PACE__CXX14_CNSTXPR R invoke_dynamic( const AnyFn& fn, Param_t<Params>... params )
+        static PACE__CXX14_CNSTXPR R invoke_dynamic( const AnyFn& fn, traits::PassParam_t<Params>... params )
           noexcept( Noexcept )
         {
-          const auto dptr = utils::launder_as<Callee_t<T>>( fn.dptr_ );
+          const auto dptr = utils::launder_as<Callee_t<T>>( fn.dptr );
           return utils::invoke_r<R>( utils::forward_like<CrefInfo>( *dptr ),
                                      std::forward<Params>( params )... );
         }
         template<typename T>
-        static PACE__CXX20_CNSTXPR void destroy_dynamic( AnyFn& fn ) noexcept
+        static PACE__CXX20_CNSTXPR void destroydynamic( AnyFn& fn ) noexcept
         {
-          const auto dptr = utils::launder_as<T>( fn.dptr_ );
+          const auto dptr = utils::launder_as<T>( fn.dptr );
           utils::destroy_at( dptr );
 # ifdef __cpp_aligned_new
           ::operator delete( fn.dptr_, std::align_val_t( alignof( T ) ) );
 # else
-          ::operator delete( fn.dptr_ );
+          ::operator delete( fn.dptr );
 # endif
         }
         template<typename T>
-        static PACE__CXX20_CNSTXPR void move_dynamic( AnyFn& dst, AnyFn& src ) noexcept
+        static PACE__CXX20_CNSTXPR void movedynamic( AnyFn& dst, AnyFn& src ) noexcept
         {
-          dst.dptr_ = src.dptr_;
-          src.dptr_ = nullptr;
+          dst.dptr = src.dptr;
+          src.dptr = nullptr;
         }
 
         template<typename T>
         static PACE__CXX23_CNSTXPR VTable table_inline() noexcept
         {
-          static Life life { std::is_trivially_destructible<T>::value ? nullptr : destroy_inline<T>,
-                             move_inline<T> };
+          static Life life { std::is_trivially_destructible<T>::value ? nullptr : destroyinline<T>,
+                             moveinline<T> };
           return { invoke_inline<T>, &life };
         }
         template<typename T>
         static PACE__CXX23_CNSTXPR VTable table_dynamic() noexcept
         {
-          static Life life { destroy_dynamic<T>, move_dynamic<T> };
+          static Life life { destroydynamic<T>, movedynamic<T> };
           return { invoke_dynamic<T>, &life };
         }
         static PACE__CXX23_CNSTXPR VTable table_null() noexcept
         {
-          static Life life { nullptr, move_null };
+          static Life life { nullptr, movenull };
           return { invoke_null, &life };
         }
 
@@ -157,8 +158,8 @@ namespace pace {
           store( VTable& vtable, AnyFn& any, Args&&... args )
             noexcept( std::is_nothrow_constructible<F, Args...>::value )
         {
-          const auto location = utils::construct_at<F>( &any.sso_, std::forward<Args>( args )... );
-          PACE__TRUST( static_cast<void*>( location ) == static_cast<void*>( &any.sso_ ) );
+          const auto location = utils::construct_at<F>( &any.sso, std::forward<Args>( args )... );
+          PACE__TRUST( static_cast<void*>( location ) == static_cast<void*>( &any.sso ) );
           (void)location;
           vtable = table_inline<F>();
         }
@@ -180,16 +181,16 @@ namespace pace {
           PACE__ASSERT( static_cast<void*>( location ) == dptr.get() );
           (void)location;
 
-          any.dptr_ = dptr.release();
-          vtable    = table_dynamic<F>();
+          any.dptr = dptr.release();
+          vtable   = table_dynamic<F>();
         }
 
         PACE__CXX23_CNSTXPR FnStore() noexcept : vtable_ { table_null() } {}
 
         PACE__CXX23_CNSTXPR void reset() noexcept
         {
-          if ( vtable_.life_->destroy_ != nullptr )
-            vtable_.life_->destroy_( callee_ );
+          if ( vtable_.life_->destroy != nullptr )
+            vtable_.life_->destroy( callee_ );
           vtable_ = table_null();
         }
         template<typename F>
@@ -212,10 +213,10 @@ namespace pace {
 # endif
           try {
             reset();
-            vtable.life_->move_( callee_, tmp );
+            vtable.life_->move( callee_, tmp );
           } catch ( ... ) {
-            if ( vtable_.life_->destroy_ != nullptr )
-              vtable.life_->destroy_( tmp );
+            if ( vtable_.life_->destroy != nullptr )
+              vtable.life_->destroy( tmp );
             throw;
           }
 # ifdef _MSC_VER
@@ -231,7 +232,7 @@ namespace pace {
 
         PACE__CXX23_CNSTXPR FnStore( FnStore&& rhs ) noexcept : vtable_ { rhs.vtable_ }
         {
-          vtable_.life_->move_( callee_, rhs.callee_ );
+          vtable_.life_->move( callee_, rhs.callee_ );
           rhs.vtable_ = table_null();
         }
         PACE__CXX23_CNSTXPR FnStore& operator=( FnStore&& rhs ) & noexcept
@@ -239,7 +240,7 @@ namespace pace {
           PACE__TRUST( this != &rhs );
           reset();
           std::swap( vtable_, rhs.vtable_ );
-          vtable_.life_->move_( callee_, rhs.callee_ );
+          vtable_.life_->move( callee_, rhs.callee_ );
           return *this;
         }
         PACE__CXX23_CNSTXPR ~FnStore() noexcept { reset(); }
@@ -247,9 +248,9 @@ namespace pace {
         PACE__CXX20_CNSTXPR void swap( FnStore& other ) noexcept
         {
           AnyFn tmp;
-          vtable_.life_->move_( tmp, callee_ );
-          other.vtable_.life_->move_( callee_, other.callee_ );
-          vtable_.life_->move_( other.callee_, tmp );
+          vtable_.life_->move( tmp, callee_ );
+          other.vtable_.life_->move( callee_, other.callee_ );
+          vtable_.life_->move( other.callee_, tmp );
           std::swap( vtable_, other.vtable_ );
         }
         friend PACE__CXX23_CNSTXPR void swap( FnStore& a, FnStore& b ) noexcept { return a.swap( b ); }
@@ -260,7 +261,7 @@ namespace pace {
         explicit constexpr operator bool() const noexcept { return vtable_ != table_null(); }
       };
 
-      // A simplified implementation of std::move_only_function
+      // A simplified implementation of std::moveonly_function
       template<typename...>
       class UniqueFunction;
       template<typename R, typename... Params>

@@ -91,18 +91,9 @@ namespace pace {
 #endif
           return pipeline;
         }
-        PACE__FORCEINLINE PACE__CXX20_CNSTXPR io::CharPipeline& reset_style( io::CharPipeline& pipeline,
-                                                                             bool style_off ) const
-        { // This method should only be called by the rendering engine
-#ifdef PACE_NOSTYLE
-          (void)style_off;
-#else
-          if ( !style_off && rules_.any() )
-            pipeline << console::resetstyle;
-#endif
-          return pipeline;
-        }
 
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR bool rich() const noexcept
+        { return rules_.any(); }
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR bool colorful() const noexcept
         { return rules_[utils::to_underlying( Chroma::Colored )]; }
 
