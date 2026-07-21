@@ -126,12 +126,23 @@ namespace pace {
             self.value );
           return pipeline;
         }
+        friend PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& pipeline, Format&& self )
+        {
+          utils::apply(
+            [&]( Value&& val, Args&&... args ) {
+              using utils::format_to;
+              format_to( std::back_inserter( pipeline ),
+                         std::forward<Value>( val ),
+                         std::forward<Args>( args )... );
+            },
+            std::move( self.value ) );
+          return pipeline;
+        }
       };
       PACE__NODISCARD PACE__FORCEINLINE Currying<Format> format() noexcept
       { return {}; }
       template<typename Value, typename... Args>
-      PACE__NODISCARD
-        PACE__FORCEINLINE constexpr Format<traits::PassParam_t<Value>, traits::PassParam_t<Args>...>
+      PACE__NODISCARD PACE__FORCEINLINE constexpr Format<traits::PassAs_t<Value>, traits::PassAs_t<Args>...>
         format( Value&& value, Args&&... args )
       {
         return {

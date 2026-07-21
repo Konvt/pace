@@ -12,23 +12,23 @@ namespace pace {
         std::tuple<Captures...> capture;
 
         template<typename... Values>
-        PACE__NODISCARD PACE__FORCEINLINE constexpr Comb<traits::PassParam_t<Values>...> operator()(
+        PACE__NODISCARD PACE__FORCEINLINE constexpr Comb<traits::PassAs_t<Values>...> operator()(
           Values&&... vals ) const&
         {
           return utils::apply(
-            [&]( const typename std::remove_reference<Captures>::type&... attrs ) {
-              return Comb<traits::PassParam_t<Values>...> { attrs..., { std::forward<Values>( vals )... } };
+            [&]( const typename std::remove_reference<Captures>::type&... caps ) {
+              return Comb<traits::PassAs_t<Values>...> { caps..., { std::forward<Values>( vals )... } };
             },
             capture );
         }
         template<typename... Values>
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Comb<traits::PassParam_t<Values>...> operator()(
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Comb<traits::PassAs_t<Values>...> operator()(
           Values&&... vals ) &&
         {
           return utils::apply(
-            [&]( Captures&&... attrs ) {
-              return Comb<traits::PassParam_t<Values>...> { std::forward<Captures>( attrs )...,
-                                                            { std::forward<Values>( vals )... } };
+            [&]( Captures&&... caps ) {
+              return Comb<traits::PassAs_t<Values>...> { std::forward<Captures>( caps )...,
+                                                         { std::forward<Values>( vals )... } };
             },
             std::move( capture ) );
         }
@@ -62,7 +62,7 @@ namespace pace {
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Currying<Join> join() noexcept
       { return {}; }
       template<typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Join<traits::PassParam_t<Args>...> join( Args&&... args )
+      PACE__NODISCARD PACE__FORCEINLINE constexpr Join<traits::PassAs_t<Args>...> join( Args&&... args )
       { return { { std::forward<Args>( args )... } }; }
 
       template<typename Emission>
@@ -86,9 +86,8 @@ namespace pace {
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Currying<When, bool> when( bool cond ) noexcept
       { return { { cond } }; }
       template<typename Emission>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr When<traits::PassParam_t<Emission>> when(
-        bool cond,
-        Emission&& emission )
+      PACE__NODISCARD PACE__FORCEINLINE constexpr When<traits::PassAs_t<Emission>> when( bool cond,
+                                                                                         Emission&& emission )
       { return { cond, { std::forward<Emission>( emission ) } }; }
 
       template<typename Emission>
@@ -127,7 +126,7 @@ namespace pace {
         std::size_t times ) noexcept
       { return { times }; }
       template<typename Emission>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Repeat<traits::PassParam_t<Emission>> repeat(
+      PACE__NODISCARD PACE__FORCEINLINE constexpr Repeat<traits::PassAs_t<Emission>> repeat(
         std::size_t times,
         Emission&& emission )
       { return { times, { std::forward<Emission>( emission ) } }; }

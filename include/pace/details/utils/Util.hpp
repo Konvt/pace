@@ -28,9 +28,9 @@ namespace pace {
           T>::type
       { return T(); }
 
-      template<typename Numeric>
-      PACE__NODISCARD constexpr typename std::enable_if<std::is_unsigned<Numeric>::value, std::size_t>::type
-        count_digits( Numeric val ) noexcept
+      template<typename Unsigned>
+      PACE__NODISCARD constexpr typename std::enable_if<std::is_unsigned<Unsigned>::value, std::size_t>::type
+        count_digits( Unsigned val ) noexcept
       {
 #ifdef __cpp_lib_is_constant_evaluated
         if ( std::is_constant_evaluated() ) {
@@ -50,10 +50,10 @@ namespace pace {
           return std::log10( val ) + 1;
 #endif
       }
-      template<typename Numeric>
+      template<typename Signed>
       PACE__NODISCARD PACE__FORCEINLINE constexpr
-        typename std::enable_if<std::is_signed<Numeric>::value, std::size_t>::type
-        count_digits( Numeric val ) noexcept
+        typename std::enable_if<std::is_signed<Signed>::value, std::size_t>::type
+        count_digits( Signed val ) noexcept
       { return count_digits( static_cast<std::uint64_t>( val < 0 ? -val : val ) ); }
     } // namespace utils
   } // namespace details

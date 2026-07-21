@@ -139,8 +139,8 @@ namespace pace {
 
         template<typename Value, typename... Args>
         PACE__NODISCARD PACE__FORCEINLINE constexpr Align<std::integral_constant<render::TextAlign, Style>,
-                                                          traits::PassParam_t<Value>,
-                                                          traits::PassParam_t<Args>...>
+                                                          traits::PassAs_t<Value>,
+                                                          traits::PassAs_t<Args>...>
           operator()( Value&& val, Args&&... args ) const
         {
           return {
@@ -157,8 +157,8 @@ namespace pace {
       { return { { width } }; }
       template<render::TextAlign Style, typename Value, typename... Args>
       PACE__NODISCARD PACE__FORCEINLINE constexpr Align<std::integral_constant<render::TextAlign, Style>,
-                                                        traits::PassParam_t<Value>,
-                                                        traits::PassParam_t<Args>...>
+                                                        traits::PassAs_t<Value>,
+                                                        traits::PassAs_t<Args>...>
         align( std::size_t width, Value&& val, Args&&... args )
       {
         return {

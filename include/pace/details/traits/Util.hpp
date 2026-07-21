@@ -37,8 +37,10 @@ namespace pace {
       using CopyConst_t = typename std::conditional<std::is_const<Src>::value, const Dst, Dst>::type;
 
       template<typename T>
-      using PassParam_t = typename std::
-        conditional<std::is_scalar<typename std::remove_reference<T>::type>::value, T, T&&>::type;
+      using PassAs_t =
+        typename std::conditional<std::is_scalar<typename std::remove_reference<T>::type>::value,
+                                  typename std::remove_reference<typename std::remove_cv<T>::type>::type,
+                                  T>::type;
     } // namespace traits
   } // namespace details
 } // namespace pace

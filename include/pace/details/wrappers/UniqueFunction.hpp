@@ -23,6 +23,8 @@ namespace pace {
       template<typename CrefInfo, typename R, bool Noexcept, typename... Params>
       class FnStore {
         template<typename T>
+        using Param_t = typename std::conditional<std::is_scalar<T>::value, T, T&&>::type;
+        template<typename T>
         using Callee_t = typename std::
           conditional<std::is_const<typename std::remove_reference<CrefInfo>::type>::value, const T, T>::type;
 
@@ -54,7 +56,7 @@ namespace pace {
 # endif
         };
         struct VTable final {
-          R ( *invoke )( const AnyFn&, traits::PassParam_t<Params>... )
+          R ( *invoke )( const AnyFn&, Param_t<Params>... )
 # ifdef __cpp_noexcept_function_type
             noexcept( Noexcept )
 # endif
@@ -80,8 +82,7 @@ namespace pace {
         AnyFn callee_;
         VTable vtable_;
 
-        static PACE__CXX14_CNSTXPR R invoke_null( const AnyFn&, traits::PassParam_t<Params>... )
-          noexcept( Noexcept )
+        static PACE__CXX14_CNSTXPR R invoke_null( const AnyFn&, Param_t<Params>... ) noexcept( Noexcept )
         {
           PACE__ASSERT( false );
           utils::unreachable();
@@ -90,7 +91,7 @@ namespace pace {
         static PACE__CXX14_CNSTXPR void movenull( AnyFn&, AnyFn& ) noexcept {}
 
         template<typename T>
-        static PACE__CXX14_CNSTXPR R invoke_inline( const AnyFn& fn, traits::PassParam_t<Params>... params )
+        static PACE__CXX14_CNSTXPR R invoke_inline( const AnyFn& fn, Param_t<Params>... params )
           noexcept( Noexcept )
         {
           const auto ptr = utils::launder_as<Callee_t<T>>( ( &const_cast<AnyFn&>( fn ).sso ) );
@@ -109,7 +110,7 @@ namespace pace {
         }
 
         template<typename T>
-        static PACE__CXX14_CNSTXPR R invoke_dynamic( const AnyFn& fn, traits::PassParam_t<Params>... params )
+        static PACE__CXX14_CNSTXPR R invoke_dynamic( const AnyFn& fn, Param_t<Params>... params )
           noexcept( Noexcept )
         {
           const auto dptr = utils::launder_as<Callee_t<T>>( fn.dptr );
