@@ -6,7 +6,6 @@
 #include "../details/behaviors/Incremental.hpp"
 #include "../details/behaviors/Indeterminate.hpp"
 #include "../details/behaviors/Plain.hpp"
-#include "../details/io/CharPipeline.hpp"
 #include "../details/render/Parameter.hpp"
 #include "../details/render/TextAlign.hpp"
 #include "../details/traits/C3.hpp"
@@ -31,15 +30,12 @@ namespace pace {
       details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
                                         const details::render::Parameter& params ) const
       {
-        details::render::align_to<details::render::TextAlign::Right>(
-          std::back_inserter( pipeline ),
-          params.tasks_completed,
-          details::utils::count_digits( params.task_quota ) );
+        pipeline << details::io::align<details::render::TextAlign::Right>(
+          details::utils::count_digits( params.task_quota ),
+          params.tasks_completed );
 
-        if ( show_quota_ ) {
-          pipeline << '/';
-          details::utils::format_to( std::back_inserter( pipeline ), params.task_quota );
-        }
+        if ( show_quota_ )
+          pipeline << '/' << details::io::format( params.task_quota );
         return pipeline;
       }
 

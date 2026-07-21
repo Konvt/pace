@@ -2,6 +2,8 @@
 #define PACE_TEXT_ALIGN
 
 #include "../charcodes/StringView.hpp"
+#include "../io/Combinator.hpp"
+#include "../utils/Backport.hpp"
 #ifdef __cpp_lib_format
 # include <format>
 #else
@@ -95,29 +97,76 @@ namespace pace {
         return align_to<Style>( itr, utils::format( val, precision ), width );
 #endif
       }
-
-      template<TextAlign Style, typename String>
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR
-        typename std::enable_if<std::is_same<typename std::decay<String>::type, std::string>::value,
-                                std::string>::type
-        align( String&& str, std::size_t width )
-      {
-        if ( str.size() >= width )
-          return str;
-
-#if PACE__CXX17
-        if PACE__CXX17_CNSTXPR ( Style == TextAlign::Left
-                                 && std::is_rvalue_reference_v<String&&> && !std::is_const_v<String> ) {
-          str.append( width - str.size(), ' ' );
-          return str;
-        }
-#endif
-        std::string buffer;
-        buffer.reserve( width );
-        align_to<Style>( std::back_inserter( buffer ), str, width, ' ' );
-        return buffer;
-      }
     } // namespace render
+
+    namespace io {
+      template<typename Style, typename Value, typename... Args>
+      struct Align;
+      template<render::TextAlign Style, typename Value, typename... Args>
+      struct Align<std::integral_constant<render::TextAlign, Style>, Value, Args...> {
+        std::size_t width;
+        std::tuple<Value, Args...> emission;
+
+        friend PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& pipeline, const Align& self )
+        {
+          utils::apply(
+            [&]( const typename std::remove_reference<Value>::type& val,
+                 const typename std::remove_reference<Args>::type&... args ) {
+              using render::align_to;
+              align_to<Style>( std::back_inserter( pipeline ), val, self.width, args... );
+            },
+            self.emission );
+          return pipeline;
+        }
+        friend PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& pipeline, Align&& self )
+        {
+          utils::apply(
+            [&]( Value&& val, Args&&... args ) {
+              using render::align_to;
+              align_to<Style>( std::back_inserter( pipeline ),
+                               std::forward<Value>( val ),
+                               self.width,
+                               std::forward<Args>( args )... );
+            },
+            std::move( self.emission ) );
+          return pipeline;
+        }
+      };
+
+      template<render::TextAlign Style>
+      struct Currying<Align, std::integral_constant<render::TextAlign, Style>, std::size_t> {
+        std::tuple<std::size_t> capture;
+
+        template<typename Value, typename... Args>
+        PACE__NODISCARD PACE__FORCEINLINE constexpr Align<std::integral_constant<render::TextAlign, Style>,
+                                                          traits::PassParam_t<Value>,
+                                                          traits::PassParam_t<Args>...>
+          operator()( Value&& val, Args&&... args ) const
+        {
+          return {
+            std::get<0>( capture ),
+            { std::forward<Value>( val ), std::forward<Args>( args )... }
+          };
+        }
+      };
+
+      template<render::TextAlign Style>
+      PACE__NODISCARD PACE__FORCEINLINE
+        Currying<Align, std::integral_constant<render::TextAlign, Style>, std::size_t>
+        align( std::size_t width ) noexcept
+      { return { { width } }; }
+      template<render::TextAlign Style, typename Value, typename... Args>
+      PACE__NODISCARD PACE__FORCEINLINE constexpr Align<std::integral_constant<render::TextAlign, Style>,
+                                                        traits::PassParam_t<Value>,
+                                                        traits::PassParam_t<Args>...>
+        align( std::size_t width, Value&& val, Args&&... args )
+      {
+        return {
+          width,
+          { std::forward<Value>( val ), std::forward<Args>( args )... }
+        };
+      }
+    } // namespace io
   } // namespace details
 } // namespace pace
 

@@ -10,7 +10,6 @@
 #include "../details/aspects/Reversible.hpp"
 #include "../details/behaviors/Determinate.hpp"
 #include "../details/behaviors/Fancy.hpp"
-#include "../details/io/Combinator.hpp"
 #include "../details/render/Parameter.hpp"
 
 namespace pace {
@@ -30,16 +29,17 @@ namespace pace {
           static_cast<std::size_t>( std::round( this->bar_width_ * params.progress_ratio ) );
         std::size_t len_vacancy = this->bar_width_ - len_finished;
 
-        pipeline << brush( details::console::resetcolor,
-                           details::console::Dualcolor { this->start_forecolor_, this->start_backcolor_ } )
+        pipeline << brush( details::io::join(
+          details::console::resetcolor,
+          details::console::Dualcolor { this->start_forecolor_, this->start_backcolor_ } ) )
                  << this->starting_;
 
         PACE__ASSERT( this->filler_.width() > 0 );
         PACE__ASSERT( this->remain_.width() > 0 );
         if ( !this->reversed_ ) {
-          pipeline << brush(
+          pipeline << brush( details::io::join(
             details::console::resetcolor,
-            details::console::Dualcolor { this->filler_forecolor_, this->filler_backcolor_ } )
+            details::console::Dualcolor { this->filler_forecolor_, this->filler_backcolor_ } ) )
                    << details::io::repeat( len_finished / this->filler_.width(), this->filler_ )
                    << details::io::repeat( len_finished % this->filler_.width(), ' ' );
 
@@ -48,17 +48,17 @@ namespace pace {
               static_cast<std::uint64_t>( params.frame_count * this->shift_factor_ ) % this->lead_.size() );
             const auto& current_lead = this->lead_[frame_cnt];
             if ( current_lead.width() <= len_vacancy ) {
-              pipeline << brush(
+              pipeline << brush( details::io::join(
                 details::console::resetcolor,
-                details::console::Dualcolor { this->lead_forecolor_, this->lead_backcolor_ } )
+                details::console::Dualcolor { this->lead_forecolor_, this->lead_backcolor_ } ) )
                        << current_lead;
               len_vacancy -= current_lead.width();
             }
           }
 
-          pipeline << brush(
+          pipeline << brush( details::io::join(
             details::console::resetcolor,
-            details::console::Dualcolor { this->remain_forecolor_, this->remain_backcolor_ } )
+            details::console::Dualcolor { this->remain_forecolor_, this->remain_backcolor_ } ) )
                    << details::io::repeat( len_vacancy % this->remain_.width(), ' ' )
                    << details::io::repeat( len_vacancy / this->remain_.width(), ' ' );
         } else {
@@ -74,26 +74,28 @@ namespace pace {
             return false;
           }();
 
-          pipeline << brush(
+          pipeline << brush( details::io::join(
             details::console::resetcolor,
-            details::console::Dualcolor { this->remain_forecolor_, this->remain_backcolor_ } )
+            details::console::Dualcolor { this->remain_forecolor_, this->remain_backcolor_ } ) )
                    << details::io::repeat( len_vacancy % this->remain_.width(), ' ' )
                    << details::io::repeat( len_vacancy / this->remain_.width(), this->remain_ );
 
           if ( flag )
-            pipeline << brush( details::console::resetcolor,
-                               details::console::Dualcolor { this->lead_forecolor_, this->lead_backcolor_ } )
+            pipeline << brush( details::io::join(
+              details::console::resetcolor,
+              details::console::Dualcolor { this->lead_forecolor_, this->lead_backcolor_ } ) )
                      << this->lead_[frame_cnt];
 
-          pipeline << brush(
+          pipeline << brush( details::io::join(
             details::console::resetcolor,
-            details::console::Dualcolor { this->filler_forecolor_, this->filler_backcolor_ } )
+            details::console::Dualcolor { this->filler_forecolor_, this->filler_backcolor_ } ) )
                    << details::io::repeat( len_finished / this->filler_.width(), this->filler_ )
                    << details::io::repeat( len_finished % this->filler_.width(), ' ' );
         }
 
-        return pipeline << brush( details::console::resetcolor,
-                                  details::console::Dualcolor { this->end_forecolor_, this->end_backcolor_ } )
+        return pipeline << brush( details::io::join(
+                 details::console::resetcolor,
+                 details::console::Dualcolor { this->end_forecolor_, this->end_backcolor_ } ) )
                         << this->ending_;
       }
 

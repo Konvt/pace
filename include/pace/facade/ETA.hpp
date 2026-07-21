@@ -150,10 +150,10 @@ namespace pace {
 
           const auto num_digits = details::utils::count_digits( timer_value );
           if ( params.task_quota == 0 ) {
-            pipeline.append( unkown_char(), field.width() );
+            pipeline << details::io::repeat( field.width(), unkown_char() );
             continue;
           } else if ( overflow || num_digits > field.width() ) {
-            pipeline.append( overflow_char(), field.width() );
+            pipeline << details::io::repeat( field.width(), overflow_char() );
             continue;
           }
 
@@ -161,8 +161,9 @@ namespace pace {
           const auto num_padding = blank_length / field.padding().width();
           blank_length -= num_padding * field.padding().width();
 
-          pipeline.append( ' ', blank_length ).append( field.padding(), num_padding );
-          details::utils::format_to( std::back_inserter( pipeline ), timer_value );
+          pipeline << details::io::repeat( blank_length, ' ' )
+                   << details::io::repeat( num_padding, field.padding() )
+                   << details::io::format( timer_value );
         }
 
         return pipeline;

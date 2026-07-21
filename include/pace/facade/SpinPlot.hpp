@@ -5,7 +5,6 @@
 #include "../details/aspects/Frame.hpp"
 #include "../details/behaviors/Fancy.hpp"
 #include "../details/behaviors/Indeterminate.hpp"
-#include "../details/io/Combinator.hpp"
 #include "../details/render/Parameter.hpp"
 #include "../details/render/TextAlign.hpp"
 
@@ -25,11 +24,10 @@ namespace pace {
 
         pipeline << details::io::when(
           !params.style_off && this->colorful(),
-          details::console::resetcolor,
-          details::console::Dualcolor { this->lead_forecolor_, this->lead_backcolor_ } );
-        details::render::align_to<details::render::TextAlign::Left>( std::back_inserter( pipeline ),
-                                                                     this->lead_[frame_cnt],
-                                                                     this->len_longest_lead_ );
+          details::io::join( details::console::resetcolor,
+                             details::console::Dualcolor { this->lead_forecolor_, this->lead_backcolor_ } ) )
+                 << details::io::align<details::render::TextAlign::Left>( this->len_longest_lead_,
+                                                                          this->lead_[frame_cnt] );
 
         return pipeline;
       }

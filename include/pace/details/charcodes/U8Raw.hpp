@@ -1,7 +1,6 @@
 #ifndef PACE_U8_RAW
 #define PACE_U8_RAW
 
-#include "../render/TextAlign.hpp"
 #include "U8Char.hpp"
 #include <utility>
 
@@ -67,8 +66,9 @@ namespace pace {
         PACE__NODISCARD PACE__CXX20_CNSTXPR std::size_t width() const noexcept { return width_; }
 
         PACE__CXX20_CNSTXPR const char* data() const noexcept { return bytes_.data(); }
-        PACE__CXX20_CNSTXPR charcodes::StringView str() & noexcept { return bytes_; }
-        PACE__CXX20_CNSTXPR charcodes::StringView str() const& noexcept { return bytes_; }
+        PACE__CXX20_CNSTXPR charcodes::StringView view() const noexcept { return bytes_; }
+        PACE__CXX20_CNSTXPR std::string& str() & noexcept { return bytes_; }
+        PACE__CXX20_CNSTXPR const std::string& str() const& noexcept { return bytes_; }
         PACE__CXX20_CNSTXPR std::string&& str() && noexcept { return std::move( bytes_ ); }
 
         PACE__CXX20_CNSTXPR void clear() noexcept( noexcept( bytes_.clear() ) )
@@ -93,7 +93,7 @@ namespace pace {
         explicit PACE__CXX20_CNSTXPR operator std::string() & { return bytes_; }
         explicit PACE__CXX20_CNSTXPR operator std::string() const& { return bytes_; }
         explicit PACE__CXX20_CNSTXPR operator std::string&&() && noexcept { return std::move( bytes_ ); }
-        PACE__CXX20_CNSTXPR operator charcodes::StringView() const noexcept { return str(); }
+        PACE__CXX20_CNSTXPR operator charcodes::StringView() const noexcept { return bytes_; }
 
         PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::string operator+( U8Raw&& a,
                                                                                             const U8Raw& b )
@@ -180,19 +180,6 @@ namespace pace {
 #endif
       };
     } // namespace charcodes
-
-    namespace render {
-      template<TextAlign Style>
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::string align( const charcodes::U8Raw& str,
-                                                                               std::size_t width,
-                                                                               char padding = ' ' )
-      { return align<Style>( str.str(), width, padding ); }
-      template<TextAlign Style>
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::string align( charcodes::U8Raw&& str,
-                                                                               std::size_t width,
-                                                                               char padding = ' ' )
-      { return align<Style>( std::move( str ).str(), width, padding ); }
-    } // namespace render
   } // namespace details
 } // namespace pace
 

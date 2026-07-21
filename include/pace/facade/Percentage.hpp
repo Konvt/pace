@@ -6,7 +6,6 @@
 #include "../details/behaviors/Incremental.hpp"
 #include "../details/behaviors/Indeterminate.hpp"
 #include "../details/behaviors/Plain.hpp"
-#include "../details/io/CharPipeline.hpp"
 #include "../details/render/Parameter.hpp"
 #include "../details/render/TextAlign.hpp"
 #include "../details/traits/C3.hpp"
@@ -28,9 +27,8 @@ namespace pace {
         std::string orig;
         details::utils::format_to( std::back_inserter( orig ), params.progress_ratio * 100.0, 2 );
         orig.push_back( '%' );
-        details::render::align_to<details::render::TextAlign::Right>( std::back_inserter( pipeline ),
-                                                                      orig,
-                                                                      fixed_length() );
+        pipeline << details::io::align<details::render::TextAlign::Right>( fixed_length(),
+                                                                           std::move( orig ) );
 
         return pipeline;
       }

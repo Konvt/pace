@@ -2,6 +2,7 @@
 #define PACE_FORMAT
 
 #include "../core/Core.hpp"
+#include "../io/Combinator.hpp"
 #include <array>
 #include <cmath>
 #include <string>
@@ -98,39 +99,46 @@ namespace pace {
 #endif
       }
 
-      // Format an integer number.
-      template<typename Integer>
-      PACE__NODISCARD PACE__FORCEINLINE
-        typename std::enable_if<std::is_integral<Integer>::value, std::string>::type
-        format( Integer val ) noexcept( noexcept( std::to_string( val ) ) )
-      {
-        /* In some well-designed standard libraries,
-         * integer std::to_string has specialized implementations for different bit-length types;
-
-         * This includes directly constructing the destination string using the SOO/SSO nature of the string,
-         * optimizing the memory management strategy using internally private resize_and_overwrite, etc.
-
-         * Therefore, the functions of the standard library are called directly here,
-         * rather than providing a manual implementation like the other functions. */
-        return std::to_string( val );
-        // Although, unfortunately, std::to_string is not labeled constexpr.
-      }
-
       // Format a finite floating point number.
       template<typename Floating>
       PACE__NODISCARD typename std::enable_if<std::is_floating_point<Floating>::value, std::string>::type
         format( Floating val, int precision = 3 )
       {
-        /* Unlike the integer version,
-         * the std::to_string in the standard library does not provide a precision limit
-         * on floating-point numbers;
-
-         * So the implementation here is provided manually. */
         std::string formatted;
         format_to( std::back_inserter( formatted ), val, precision );
         return formatted;
       }
     } // namespace utils
+
+    namespace io {
+      template<typename Value, typename... Args>
+      struct Format {
+        std::tuple<Value, Args...> value;
+
+        friend PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& pipeline, const Format& self )
+        {
+          utils::apply(
+            [&]( const typename std::remove_reference<Value>::type& val,
+                 const typename std::remove_reference<Args>::type&... args ) {
+              using utils::format_to;
+              format_to( std::back_inserter( pipeline ), val, args... );
+            },
+            self.value );
+          return pipeline;
+        }
+      };
+      PACE__NODISCARD PACE__FORCEINLINE Currying<Format> format() noexcept
+      { return {}; }
+      template<typename Value, typename... Args>
+      PACE__NODISCARD
+        PACE__FORCEINLINE constexpr Format<traits::PassParam_t<Value>, traits::PassParam_t<Args>...>
+        format( Value&& value, Args&&... args )
+      {
+        return {
+          { std::forward<Value>( value ), std::forward<Args>( args )... }
+        };
+      }
+    } // namespace io
   } // namespace details
 } // namespace pace
 

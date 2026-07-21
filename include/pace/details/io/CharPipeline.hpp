@@ -109,15 +109,6 @@ namespace pace {
           return *this;
         }
 
-        PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& apply(
-          CharPipeline& ( &manipulator )(CharPipeline&),
-          std::size_t num = 1 ) &
-        {
-          while ( num-- )
-            manipulator( *this );
-          return *this;
-        }
-
         friend PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& operator<<(
           CharPipeline& self,
           CharPipeline& ( &manipulator )(CharPipeline&))

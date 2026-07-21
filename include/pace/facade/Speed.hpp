@@ -7,7 +7,6 @@
 #include "../details/behaviors/Indeterminate.hpp"
 #include "../details/behaviors/Plain.hpp"
 #include "../details/behaviors/Temporal.hpp"
-#include "../details/io/CharPipeline.hpp"
 #include "../details/render/Parameter.hpp"
 #include "../details/render/TextAlign.hpp"
 #include "../details/traits/C3.hpp"
@@ -140,13 +139,10 @@ namespace pace {
         if ( params.task_quota == 0 || magnitude_ <= 1 ) {
           const auto prompt = params.task_quota == 0 ? invalid_text() : undefined_text();
           if ( units_.empty() )
-            details::render::align_to<details::render::TextAlign::Right>( std::back_inserter( pipeline ),
-                                                                          prompt,
-                                                                          fixed_length() );
+            pipeline << details::io::align<details::render::TextAlign::Right>( fixed_length(), prompt );
           else
-            details::render::align_to<details::render::TextAlign::Right>( std::back_inserter( pipeline ),
-                                                                          prompt + units_.front(),
-                                                                          fixed_length() );
+            pipeline << details::io::align<details::render::TextAlign::Right>( fixed_length(),
+                                                                               prompt + units_.front() );
           return pipeline;
         }
 
@@ -185,10 +181,8 @@ namespace pace {
         if ( !units_.empty() )
           orig.append( units_[num_powered].data(), units_[num_powered].size() );
 
-        details::render::align_to<details::render::TextAlign::Right>( std::back_inserter( pipeline ),
-                                                                      orig,
-                                                                      fixed_length() );
-        return pipeline;
+        return pipeline << details::io::align<details::render::TextAlign::Right>( fixed_length(),
+                                                                                  std::move( orig ) );
       }
 
       PACE__NODISCARD PACE__FORCEINLINE constexpr std::size_t fixed_length() const noexcept

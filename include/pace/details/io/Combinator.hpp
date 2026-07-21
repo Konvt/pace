@@ -2,7 +2,7 @@
 #define PACE_IO_COMBINATOR
 
 #include "../traits/Util.hpp"
-#include "../wrappers/Emission.hpp"
+#include "CharPipeline.hpp"
 
 namespace pace {
   namespace details {
@@ -12,7 +12,8 @@ namespace pace {
         std::tuple<Captures...> capture;
 
         template<typename... Values>
-        PACE__FORCEINLINE constexpr Comb<traits::PassParam_t<Values>...> operator()( Values&&... vals ) const&
+        PACE__NODISCARD PACE__FORCEINLINE constexpr Comb<traits::PassParam_t<Values>...> operator()(
+          Values&&... vals ) const&
         {
           return utils::apply(
             [&]( const typename std::remove_reference<Captures>::type&... attrs ) {
@@ -21,7 +22,7 @@ namespace pace {
             capture );
         }
         template<typename... Values>
-        PACE__FORCEINLINE PACE__CXX14_CNSTXPR Comb<traits::PassParam_t<Values>...> operator()(
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Comb<traits::PassParam_t<Values>...> operator()(
           Values&&... vals ) &&
         {
           return utils::apply(
@@ -33,12 +34,41 @@ namespace pace {
         }
       };
 
-      template<typename... Values>
-      struct When {
-        static_assert( sizeof...( Values ) > 0, "nothing to skip" );
+      template<typename... Emissions>
+      struct Join {
+        static_assert( sizeof...( Emissions ) > 0, "nothing to join" );
 
+        std::tuple<Emissions...> value;
+
+        friend PACE__FORCEINLINE io::CharPipeline& operator<<( io::CharPipeline& pipeline, const Join& self )
+        {
+          utils::apply(
+            [&pipeline]( const typename std::remove_reference<Emissions>::type&... emis ) {
+              (void)std::initializer_list<bool> { ( pipeline << emis, false )... };
+            },
+            self.value );
+          return pipeline;
+        }
+        friend PACE__FORCEINLINE io::CharPipeline& operator<<( io::CharPipeline& pipeline, Join&& self )
+        {
+          utils::apply(
+            [&pipeline]( Emissions&&... emis ) {
+              (void)std::initializer_list<bool> { ( pipeline << std::forward<Emissions>( emis ), false )... };
+            },
+            std::move( self.value ) );
+          return pipeline;
+        }
+      };
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Currying<Join> join() noexcept
+      { return {}; }
+      template<typename... Args>
+      PACE__NODISCARD PACE__FORCEINLINE constexpr Join<traits::PassParam_t<Args>...> join( Args&&... args )
+      { return { { std::forward<Args>( args )... } }; }
+
+      template<typename Emission>
+      struct When {
         bool cond;
-        wrappers::Emission<Values...> emission;
+        Emission emission;
 
         friend PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& pipeline, const When& self )
         {
@@ -46,51 +76,61 @@ namespace pace {
             pipeline << self.emission;
           return pipeline;
         }
+        friend PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& pipeline, When&& self )
+        {
+          if ( self.cond )
+            pipeline << std::move( self.emission );
+          return pipeline;
+        }
       };
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Currying<When, bool> when( bool cond ) noexcept
       { return { { cond } }; }
-      template<typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr When<traits::PassParam_t<Args>...> when( bool cond,
-                                                                                           Args&&... args )
-      { return { cond, { std::forward<Args>( args )... } }; }
+      template<typename Emission>
+      PACE__NODISCARD PACE__FORCEINLINE constexpr When<traits::PassParam_t<Emission>> when(
+        bool cond,
+        Emission&& emission )
+      { return { cond, { std::forward<Emission>( emission ) } }; }
 
-      template<typename... Values>
+      template<typename Emission>
       struct Repeat {
-        static_assert( sizeof...( Values ) > 0, "nothing to repeat" );
+      private:
+        template<typename T, typename = void>
+        struct is_directly_emitting : std::false_type {};
+        template<typename T>
+        struct is_directly_emitting<T,
+                                    typename std::enable_if<std::is_same<
+                                      decltype( std::declval<CharPipeline&>()
+                                                  .append( std::declval<T>(), std::declval<std::size_t>() ) ),
+                                      CharPipeline&>::value>::type> : std::true_type {};
 
+        template<typename T>
+        PACE__FORCEINLINE void emit( std::true_type, CharPipeline& pipeline, const T& val ) const
+        { pipeline.append( val, times ); }
+        template<typename T>
+        PACE__FORCEINLINE void emit( std::false_type, CharPipeline& pipeline, const T& val ) const
+        {
+          for ( std::size_t i = 0; i < times; ++i )
+            pipeline << val;
+        }
+
+      public:
         std::size_t times;
-        wrappers::Emission<Values...> emission;
+        Emission emission;
+
+        friend PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& pipeline, const Repeat& self )
+        {
+          self.emit( is_directly_emitting<Emission>(), pipeline, self.emission );
+          return pipeline;
+        }
       };
-      // Due to the redefinition, we have to write those operator<< externally.
-      template<typename Val>
-      PACE__FORCEINLINE auto operator<<( CharPipeline& pipeline, const Repeat<Val>& self ) ->
-        typename std::enable_if<
-          std::is_same<decltype( pipeline.append( std::declval<Val>(), std::declval<std::size_t>() ) ),
-                       CharPipeline&>::value,
-          CharPipeline&>::type
-      { return pipeline.append( std::get<0>( self.emission.value ), self.times ); }
-      template<typename Val>
-      PACE__FORCEINLINE auto operator<<( CharPipeline& pipeline, const Repeat<Val>& self ) ->
-        typename std::enable_if<
-          std::is_same<decltype( pipeline.apply( std::declval<Val>(), std::declval<std::size_t>() ) ),
-                       CharPipeline&>::value,
-          CharPipeline&>::type
-      { return pipeline.apply( std::get<0>( self.emission.value ), self.times ); }
-      template<typename... Vals>
-      PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& pipeline, const Repeat<Vals...>& self )
-      {
-        for ( std::size_t i = 0; i < self.times; ++i )
-          pipeline << self.emission;
-        return pipeline;
-      }
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Currying<Repeat, std::size_t> repeat(
         std::size_t times ) noexcept
       { return { times }; }
-      template<typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Repeat<traits::PassParam_t<Args>...> repeat(
+      template<typename Emission>
+      PACE__NODISCARD PACE__FORCEINLINE constexpr Repeat<traits::PassParam_t<Emission>> repeat(
         std::size_t times,
-        Args&&... args )
-      { return { times, { std::forward<Args>( args )... } }; }
+        Emission&& emission )
+      { return { times, { std::forward<Emission>( emission ) } }; }
     } // namespace io
   } // namespace details
 } // namespace pace

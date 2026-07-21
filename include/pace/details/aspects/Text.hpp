@@ -66,9 +66,9 @@ namespace pace {
         {
           if ( prefix_.empty() )
             return pipeline;
-          pipeline << io::when( !params.style_off && this->colorful(),
-                                console::resetcolor,
-                                console::Dualcolor { prfx_forecolor_, prfx_backcolor_ } )
+          pipeline << io::when(
+            !params.style_off && this->colorful(),
+            io::join( console::resetcolor, console::Dualcolor { prfx_forecolor_, prfx_backcolor_ } ) )
                    << prefix_ << ' ';
           return pipeline;
         }
@@ -151,9 +151,9 @@ namespace pace {
         {
           if ( postfix_.empty() )
             return pipeline;
-          pipeline << io::when( !params.style_off && this->colorful(),
-                                console::resetcolor,
-                                console::Dualcolor { pstfx_forecolor_, pstfx_backcolor_ } )
+          pipeline << io::when(
+            !params.style_off && this->colorful(),
+            io::join( console::resetcolor, console::Dualcolor { pstfx_forecolor_, pstfx_backcolor_ } ) )
                    << ' ' << postfix_;
           return pipeline;
         }
