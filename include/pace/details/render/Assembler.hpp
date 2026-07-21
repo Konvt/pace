@@ -39,15 +39,15 @@ namespace pace {
           if ( this->projection_.test( traits::IndexIn<Element, Facades...>::value ) ) {
             const auto brush = io::when( !params.style_off && this->colorful() );
             pipeline << brush(
-              details::io::join( console::resetcolor,
-                                 console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } ) );
+              details::io::concat( console::resetcolor,
+                                   console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } ) );
 
             this->traits::BaseOf_t<typename Base::layout_type, Element>::build( pipeline, params );
 
             if ( any_more<Elements...>() ) {
               pipeline << brush(
-                details::io::join( console::resetcolor,
-                                   console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } ) )
+                details::io::concat( console::resetcolor,
+                                     console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } ) )
                        << this->divider_;
             }
           }

@@ -8,7 +8,7 @@ namespace pace {
   namespace details {
     namespace console {
       struct Forecolor {
-        const TrueColor& value;
+        const TrueColor& color;
 
         PACE__FORCEINLINE friend io::CharPipeline& operator<<( io::CharPipeline& pipeline,
                                                                const Forecolor& self )
@@ -16,11 +16,11 @@ namespace pace {
 #ifdef PACE_NOSTYLE
           (void)self;
 #else
-          if ( self.value.encoding() != render::Paint::None ) {
+          if ( self.color.encoding() != render::Paint::None ) {
             pipeline << '\x1B' << '[';
-            switch ( self.value.encoding() ) {
+            switch ( self.color.encoding() ) {
             case render::Paint::Xterm24bit: pipeline << '3' << '8' << ';' << '2'; PACE__FALLTHROUGH;
-            case render::Paint::Csi8:       self.value.emit( pipeline ); break;
+            case render::Paint::Csi8:       self.color.emit( pipeline ); break;
             default:                        utils::unreachable();
             }
             pipeline << 'm';
@@ -31,7 +31,7 @@ namespace pace {
       };
 
       struct Backcolor {
-        const TrueColor& value;
+        const TrueColor& color;
 
         PACE__FORCEINLINE friend io::CharPipeline& operator<<( io::CharPipeline& pipeline,
                                                                const Backcolor& self )
@@ -39,11 +39,11 @@ namespace pace {
 #ifdef PACE_NOSTYLE
           (void)self;
 #else
-          if ( self.value.encoding() != render::Paint::None ) {
+          if ( self.color.encoding() != render::Paint::None ) {
             pipeline << '\x1B' << '[';
-            switch ( self.value.encoding() ) {
+            switch ( self.color.encoding() ) {
             case render::Paint::Xterm24bit: pipeline << '4' << '8' << ';' << '2'; PACE__FALLTHROUGH;
-            case render::Paint::Csi8:       self.value.emit( pipeline ); break;
+            case render::Paint::Csi8:       self.color.emit( pipeline ); break;
             default:                        utils::unreachable();
             }
             pipeline << 'm';

@@ -105,8 +105,8 @@ namespace pace {
           this->traits::BaseOf_t<typename Config::layout_type, aspects::Postfix>::build( pipeline, params );
           if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() )
             pipeline << brush(
-              details::io::join( console::resetcolor,
-                                 console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } ) )
+              details::io::concat( console::resetcolor,
+                                   console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } ) )
                      << this->r_border_;
 
           return pipeline << io::when( !params.style_off && this->rich(), console::resetstyle );

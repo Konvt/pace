@@ -24,8 +24,9 @@ namespace pace {
 
         pipeline << details::io::when(
           !params.style_off && this->colorful(),
-          details::io::join( details::console::resetcolor,
-                             details::console::Dualcolor { this->lead_forecolor_, this->lead_backcolor_ } ) )
+          details::io::concat(
+            details::console::resetcolor,
+            details::console::Dualcolor { this->lead_forecolor_, this->lead_backcolor_ } ) )
                  << details::io::align<details::render::TextAlign::Left>( this->len_longest_lead_,
                                                                           this->lead_[frame_cnt] );
 

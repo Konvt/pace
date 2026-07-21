@@ -32,7 +32,7 @@ namespace pace {
         PACE__ASSERT( incomplete_block <= this->lead_.size() );
         std::size_t len_vacancy = this->bar_width_ - len_finished;
 
-        pipeline << brush( details::io::join(
+        pipeline << brush( details::io::concat(
           details::console::resetcolor,
           details::console::Dualcolor { this->start_forecolor_, this->start_backcolor_ } ) )
                  << this->starting_;
@@ -40,7 +40,7 @@ namespace pace {
         PACE__ASSERT( this->filler_.width() > 0 );
         PACE__ASSERT( this->remain_.width() > 0 );
         if ( !this->reversed_ ) {
-          pipeline << brush( details::io::join(
+          pipeline << brush( details::io::concat(
             details::console::resetcolor,
             details::console::Dualcolor { this->filler_forecolor_, this->filler_backcolor_ } ) )
                    << details::io::repeat( len_finished / this->filler_.width(), this->filler_ )
@@ -48,14 +48,14 @@ namespace pace {
 
           if ( this->bar_width_ != len_finished && !this->lead_.empty()
                && this->lead_[incomplete_block].width() <= len_vacancy ) {
-            pipeline << brush( details::io::join(
+            pipeline << brush( details::io::concat(
               details::console::resetcolor,
               details::console::Dualcolor { this->lead_forecolor_, this->lead_backcolor_ } ) )
                      << this->lead_[incomplete_block];
             len_vacancy -= this->lead_[incomplete_block].width();
           }
 
-          pipeline << brush( details::io::join(
+          pipeline << brush( details::io::concat(
             details::console::resetcolor,
             details::console::Dualcolor { this->remain_forecolor_, this->remain_backcolor_ } ) )
                    << details::io::repeat( len_vacancy % this->remain_.width(), ' ' )
@@ -66,26 +66,26 @@ namespace pace {
           if ( flag )
             len_vacancy -= this->lead_[incomplete_block].width();
 
-          pipeline << brush( details::io::join(
+          pipeline << brush( details::io::concat(
             details::console::resetcolor,
             details::console::Dualcolor { this->remain_forecolor_, this->remain_backcolor_ } ) )
                    << details::io::repeat( len_vacancy / this->remain_.width(), this->remain_ )
                    << details::io::repeat( len_vacancy % this->remain_.width(), ' ' );
 
           if ( flag )
-            pipeline << brush( details::io::join(
+            pipeline << brush( details::io::concat(
               details::console::resetcolor,
               details::console::Dualcolor { this->lead_forecolor_, this->lead_backcolor_ } ) )
                      << this->lead_[incomplete_block];
 
-          pipeline << brush( details::io::join(
+          pipeline << brush( details::io::concat(
             details::console::resetcolor,
             details::console::Dualcolor { this->filler_forecolor_, this->filler_backcolor_ } ) )
                    << details::io::repeat( len_finished % this->filler_.width(), ' ' )
                    << details::io::repeat( len_finished / this->filler_.width(), this->filler_ );
         }
 
-        return pipeline << brush( details::io::join(
+        return pipeline << brush( details::io::concat(
                  details::console::resetcolor,
                  details::console::Dualcolor { this->end_forecolor_, this->end_backcolor_ } ) )
                         << this->ending_;

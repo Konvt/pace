@@ -68,7 +68,7 @@ namespace pace {
             return pipeline;
           pipeline << io::when(
             !params.style_off && this->colorful(),
-            io::join( console::resetcolor, console::Dualcolor { prfx_forecolor_, prfx_backcolor_ } ) )
+            io::concat( console::resetcolor, console::Dualcolor { prfx_forecolor_, prfx_backcolor_ } ) )
                    << prefix_ << ' ';
           return pipeline;
         }
@@ -153,7 +153,7 @@ namespace pace {
             return pipeline;
           pipeline << io::when(
             !params.style_off && this->colorful(),
-            io::join( console::resetcolor, console::Dualcolor { pstfx_forecolor_, pstfx_backcolor_ } ) )
+            io::concat( console::resetcolor, console::Dualcolor { pstfx_forecolor_, pstfx_backcolor_ } ) )
                    << ' ' << postfix_;
           return pipeline;
         }

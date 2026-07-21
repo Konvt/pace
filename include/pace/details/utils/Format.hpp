@@ -113,7 +113,7 @@ namespace pace {
     namespace io {
       template<typename Value, typename... Args>
       struct Format {
-        std::tuple<Value, Args...> value;
+        std::tuple<Value, Args...> arguments;
 
         PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, const Format& self )
         {
@@ -123,7 +123,7 @@ namespace pace {
               using utils::format_to;
               format_to( std::back_inserter( pipeline ), val, args... );
             },
-            self.value );
+            self.arguments );
           return pipeline;
         }
         PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, Format&& self )
@@ -135,7 +135,7 @@ namespace pace {
                          std::forward<Value>( val ),
                          std::forward<Args>( args )... );
             },
-            std::move( self.value ) );
+            std::move( self.arguments ) );
           return pipeline;
         }
       };
