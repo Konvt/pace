@@ -10,7 +10,7 @@ namespace pace {
       struct Forecolor {
         const TrueColor& value;
 
-        friend PACE__FORCEINLINE io::CharPipeline& operator<<( io::CharPipeline& pipeline,
+        PACE__FORCEINLINE friend io::CharPipeline& operator<<( io::CharPipeline& pipeline,
                                                                const Forecolor& self )
         {
 #ifdef PACE_NOSTYLE
@@ -33,7 +33,7 @@ namespace pace {
       struct Backcolor {
         const TrueColor& value;
 
-        friend PACE__FORCEINLINE io::CharPipeline& operator<<( io::CharPipeline& pipeline,
+        PACE__FORCEINLINE friend io::CharPipeline& operator<<( io::CharPipeline& pipeline,
                                                                const Backcolor& self )
         {
 #ifdef PACE_NOSTYLE
@@ -57,7 +57,7 @@ namespace pace {
         const TrueColor& foreground;
         const TrueColor& background;
 
-        friend PACE__FORCEINLINE io::CharPipeline& operator<<( io::CharPipeline& pipeline,
+        PACE__FORCEINLINE friend io::CharPipeline& operator<<( io::CharPipeline& pipeline,
                                                                const Dualcolor& self )
         {
 #ifdef PACE_NOSTYLE

@@ -115,7 +115,7 @@ namespace pace {
       struct Format {
         std::tuple<Value, Args...> value;
 
-        friend PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& pipeline, const Format& self )
+        PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, const Format& self )
         {
           utils::apply(
             [&]( const typename std::remove_reference<Value>::type& val,
@@ -126,7 +126,7 @@ namespace pace {
             self.value );
           return pipeline;
         }
-        friend PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& pipeline, Format&& self )
+        PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, Format&& self )
         {
           utils::apply(
             [&]( Value&& val, Args&&... args ) {

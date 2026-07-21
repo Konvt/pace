@@ -169,7 +169,7 @@ namespace pace {
           return *this;
         }
 
-        friend PACE__FORCEINLINE PACE__CXX23_CNSTXPR OStream& operator<<( OStream& stream,
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR OStream& operator<<( OStream& stream,
                                                                           OStream& ( &manipulator )(OStream&))
         { return manipulator( stream ); }
       };

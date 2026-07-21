@@ -95,15 +95,15 @@ namespace pace {
         explicit PACE__CXX20_CNSTXPR operator std::string&&() && noexcept { return std::move( bytes_ ); }
         PACE__CXX20_CNSTXPR operator charcodes::StringView() const noexcept { return bytes_; }
 
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::string operator+( U8Raw&& a,
+        PACE__NODISCARD PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR std::string operator+( U8Raw&& a,
                                                                                             const U8Raw& b )
         { return std::move( a.bytes_ ) + b.bytes_; }
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::string operator+( std::string&& a,
+        PACE__NODISCARD PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR std::string operator+( std::string&& a,
                                                                                             const U8Raw& b )
         { return std::move( a ) + b.bytes_; }
 
         template<typename SV>
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR
+        PACE__NODISCARD PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR
           typename std::enable_if<std::is_constructible<StringView, SV>::value, std::string>::type
           operator+( U8Raw&& a, SV&& b )
         {
@@ -112,7 +112,7 @@ namespace pace {
           return std::move( a.bytes_ );
         }
         template<typename SV>
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR
+        PACE__NODISCARD PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR
           typename std::enable_if<std::is_constructible<StringView, SV>::value, std::string>::type
           operator+( SV&& a, const U8Raw& b )
         {
@@ -123,7 +123,7 @@ namespace pace {
           return copy;
         }
         template<typename SV>
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR
+        PACE__NODISCARD PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR
           typename std::enable_if<std::is_constructible<StringView, SV>::value, std::string>::type
           operator+( const U8Raw& a, SV&& b )
         {
@@ -151,7 +151,7 @@ namespace pace {
           return ret;
         }
 
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::string operator+(
+        PACE__NODISCARD PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR std::string operator+(
           charcodes::U8StringView a,
           const U8Raw& b )
         {
@@ -160,7 +160,7 @@ namespace pace {
           std::copy( a.cbegin(), a.cend(), std::back_inserter( tmp ) );
           return std::move( tmp ) + b.bytes_;
         }
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::string operator+(
+        PACE__NODISCARD PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR std::string operator+(
           U8Raw&& a,
           charcodes::U8StringView b )
         {
@@ -168,7 +168,7 @@ namespace pace {
           std::copy( b.cbegin(), b.cend(), std::back_inserter( a.bytes_ ) );
           return std::move( a.bytes_ );
         }
-        PACE__NODISCARD friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::string operator+(
+        PACE__NODISCARD PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR std::string operator+(
           const U8Raw& a,
           charcodes::U8StringView b )
         {

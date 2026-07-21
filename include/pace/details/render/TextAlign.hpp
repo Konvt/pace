@@ -107,7 +107,7 @@ namespace pace {
         std::size_t width;
         std::tuple<Value, Args...> emission;
 
-        friend PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& pipeline, const Align& self )
+        PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, const Align& self )
         {
           utils::apply(
             [&]( const typename std::remove_reference<Value>::type& val,
@@ -118,7 +118,7 @@ namespace pace {
             self.emission );
           return pipeline;
         }
-        friend PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& pipeline, Align&& self )
+        PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, Align&& self )
         {
           utils::apply(
             [&]( Value&& val, Args&&... args ) {

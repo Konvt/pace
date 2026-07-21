@@ -20,7 +20,7 @@ namespace pace {
   namespace facade {
     template<typename Base, typename Derived>
     class Counter : public Base {
-      friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR void unpack( Counter& self,
+      PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR void unpack( Counter& self,
                                                                 option::ShowQuota&& val ) noexcept
       { self.show_quota_ = val.value; }
 

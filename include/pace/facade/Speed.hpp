@@ -89,7 +89,7 @@ namespace pace {
   namespace facade {
     template<typename Base, typename Derived>
     class Speed : public Base {
-      friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Speed& self,
+      PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Speed& self,
                                                                 option::Magnitude&& val ) noexcept
       {
         self.magnitude_ = val.value;
@@ -99,7 +99,7 @@ namespace pace {
         else
           self.numeric_width_ = undefined_text().size() - 1;
       }
-      friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Speed& self,
+      PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Speed& self,
                                                                 option::SpeedUnit&& val ) noexcept
       {
         self.units_ = std::move( val.value );

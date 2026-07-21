@@ -103,13 +103,13 @@ namespace pace {
     friend void swap( MultiBar& a, MultiBar& b ) noexcept { a.swap( b ); }
 
     template<std::size_t Pos>
-    friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR BarAt_t<Pos>& get( MultiBar& self ) noexcept
+    PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR BarAt_t<Pos>& get( MultiBar& self ) noexcept
     { return self.template at<Pos>(); }
     template<std::size_t Pos>
-    friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR const BarAt_t<Pos>& get( const MultiBar& self ) noexcept
+    PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR const BarAt_t<Pos>& get( const MultiBar& self ) noexcept
     { return self.template at<Pos>(); }
     template<std::size_t Pos>
-    friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR BarAt_t<Pos>&& get( MultiBar&& self ) noexcept
+    PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR BarAt_t<Pos>&& get( MultiBar&& self ) noexcept
     { return std::move( self ).template at<Pos>(); }
   };
 

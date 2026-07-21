@@ -78,14 +78,14 @@ namespace pace {
                                                            Option>,
                                details::traits::is_selection<Option>>;
 
-      friend PACE__FORCEINLINE void unpack( BasicConfig& self, option::Projection proj ) noexcept
+      PACE__FORCEINLINE friend void unpack( BasicConfig& self, option::Projection proj ) noexcept
       {
         const std::size_t length = std::min( sizeof...( Facades ), proj.value.size() );
         for ( std::size_t i = 0; i < length; ++i )
           self.projection_.set( i, proj.value[i] );
       }
       template<template<typename...> class... Fs>
-      friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR void unpack( BasicConfig& self,
+      PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR void unpack( BasicConfig& self,
                                                                 option::Only<Fs...> ) noexcept
       {
         static_assert(
@@ -98,7 +98,7 @@ namespace pace {
         };
       }
       template<template<typename...> class... Fs>
-      friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR void unpack( BasicConfig& self,
+      PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR void unpack( BasicConfig& self,
                                                                 option::Except<Fs...> ) noexcept
       {
         static_assert(

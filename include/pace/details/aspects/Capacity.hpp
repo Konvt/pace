@@ -17,7 +17,7 @@ namespace pace {
     namespace aspects {
       template<typename Base, typename Derived>
       class Capacity : public Base {
-        friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Capacity& self,
+        PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Capacity& self,
                                                                   option::Quota&& val ) noexcept
         { self.task_quota_ = val.value; }
 

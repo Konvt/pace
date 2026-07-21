@@ -51,7 +51,7 @@ namespace pace {
       template<typename Base, typename Derived>
       class Prefix : public Base {
 #define PACE__UNPAKING( OptionName, MemberName, Operation, Constexpr )                              \
-  friend PACE__FORCEINLINE Constexpr void unpack( Prefix& self, option::OptionName&& val ) noexcept \
+  PACE__FORCEINLINE friend Constexpr void unpack( Prefix& self, option::OptionName&& val ) noexcept \
   { self.MemberName = Operation( val.value ); }
         PACE__UNPAKING( Prefix, prefix_, std::move, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( PrefixForecolor, prfx_forecolor_, , PACE__CXX20_CNSTXPR )
@@ -136,7 +136,7 @@ namespace pace {
       template<typename Base, typename Derived>
       class Postfix : public Base {
 #define PACE__UNPAKING( OptionName, MemberName, Operation, Constexpr )                               \
-  friend PACE__FORCEINLINE Constexpr void unpack( Postfix& self, option::OptionName&& val ) noexcept \
+  PACE__FORCEINLINE friend Constexpr void unpack( Postfix& self, option::OptionName&& val ) noexcept \
   { self.MemberName = Operation( val.value ); }
         PACE__UNPAKING( Postfix, postfix_, std::move, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( PostfixForecolor, pstfx_forecolor_, , PACE__CXX20_CNSTXPR )

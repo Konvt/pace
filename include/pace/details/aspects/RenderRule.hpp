@@ -41,7 +41,7 @@ namespace pace {
       template<typename Base, typename Derived>
       class RenderRule : public Base {
 #define PACE__UNPAKING( OptionName, EnumName, MemberName )                                      \
-  friend PACE__FORCEINLINE PACE__CXX14_CNSTXPR void unpack( RenderRule& self,                   \
+  PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR void unpack( RenderRule& self,                   \
                                                             option::OptionName&& val ) noexcept \
   { self.rules_[utils::to_underlying( Chroma::EnumName )] = val.value; }
         PACE__UNPAKING( Colored, Colored, colored_ )

@@ -69,7 +69,7 @@ namespace pace {
     namespace aspects {
       template<typename Base, typename Derived>
       class Frame : public Base {
-        friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Frame& self, option::Lead&& val ) noexcept
+        PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Frame& self, option::Lead&& val ) noexcept
         {
           if ( std::all_of( val.value.cbegin(), val.value.cend(), []( const charcodes::U8Raw& ele ) noexcept {
                  return ele.empty();
@@ -87,10 +87,10 @@ namespace pace {
                 ->width();
           }
         }
-        friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Frame& self,
+        PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Frame& self,
                                                                   option::LeadForecolor&& val ) noexcept
         { self.lead_forecolor_ = val.value; }
-        friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Frame& self,
+        PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Frame& self,
                                                                   option::LeadBackcolor&& val ) noexcept
         { self.lead_backcolor_ = val.value; }
 

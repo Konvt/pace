@@ -67,7 +67,7 @@ namespace pace {
       using Field = details::aspects::TimerField;
       using Token = details::aspects::TimerToken;
 
-      friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Elapsed& self, option::ElapsedFormat&& val )
+      PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Elapsed& self, option::ElapsedFormat&& val )
       {
         self.show_hour_   = false;
         self.show_minute_ = false;

@@ -38,7 +38,7 @@ namespace pace {
       template<typename Base, typename Derived>
       class Segment : public Base {
 #define PACE__UNPAKING( OptionName, MemberName, Operation, Constexpr )                               \
-  friend PACE__FORCEINLINE Constexpr void unpack( Segment& self, option::OptionName&& val ) noexcept \
+  PACE__FORCEINLINE friend Constexpr void unpack( Segment& self, option::OptionName&& val ) noexcept \
   { self.MemberName = Operation( val.value ); }
         PACE__UNPAKING( Divider, divider_, std::move, PACE__CXX20_CNSTXPR )
         PACE__UNPAKING( LeftBorder, l_border_, std::move, PACE__CXX20_CNSTXPR )

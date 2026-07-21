@@ -17,7 +17,7 @@ namespace pace {
     namespace aspects {
       template<typename Base, typename Derived>
       class Reversible : public Base {
-        friend PACE__FORCEINLINE PACE__CXX20_CNSTXPR void unpack( Reversible& self,
+        PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Reversible& self,
                                                                   option::Reversed&& val ) noexcept
         { self.reversed_ = val.value; }
 

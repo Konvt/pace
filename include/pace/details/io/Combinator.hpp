@@ -40,7 +40,7 @@ namespace pace {
 
         std::tuple<Emissions...> value;
 
-        friend PACE__FORCEINLINE io::CharPipeline& operator<<( io::CharPipeline& pipeline, const Join& self )
+        PACE__FORCEINLINE friend io::CharPipeline& operator<<( io::CharPipeline& pipeline, const Join& self )
         {
           utils::apply(
             [&pipeline]( const typename std::remove_reference<Emissions>::type&... emis ) {
@@ -49,7 +49,7 @@ namespace pace {
             self.value );
           return pipeline;
         }
-        friend PACE__FORCEINLINE io::CharPipeline& operator<<( io::CharPipeline& pipeline, Join&& self )
+        PACE__FORCEINLINE friend io::CharPipeline& operator<<( io::CharPipeline& pipeline, Join&& self )
         {
           utils::apply(
             [&pipeline]( Emissions&&... emis ) {
@@ -70,13 +70,13 @@ namespace pace {
         bool cond;
         Emission emission;
 
-        friend PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& pipeline, const When& self )
+        PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, const When& self )
         {
           if ( self.cond )
             pipeline << self.emission;
           return pipeline;
         }
-        friend PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& pipeline, When&& self )
+        PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, When&& self )
         {
           if ( self.cond )
             pipeline << std::move( self.emission );
@@ -116,7 +116,7 @@ namespace pace {
         std::size_t times;
         Emission emission;
 
-        friend PACE__FORCEINLINE CharPipeline& operator<<( CharPipeline& pipeline, const Repeat& self )
+        PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, const Repeat& self )
         {
           self.emit( is_directly_emitting<Emission>(), pipeline, self.emission );
           return pipeline;

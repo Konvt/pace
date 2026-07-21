@@ -159,7 +159,7 @@ namespace pace {
 #undef PACE__METHOD
 
         template<typename F>
-        friend PACE__FORCEINLINE auto operator<<( Reactive& self, F&& fn )
+        PACE__FORCEINLINE friend auto operator<<( Reactive& self, F&& fn )
 #ifdef __cpp_concepts
           -> decltype( auto )
           requires( std::is_constructible_v<wrappers::UniqueFunction<void()>, F &&>
@@ -173,7 +173,7 @@ namespace pace {
 #endif
         { return self.action( std::forward<F>( fn ) ); }
         template<typename F>
-        friend PACE__FORCEINLINE auto operator<<( Reactive&& self, F&& fn )
+        PACE__FORCEINLINE friend auto operator<<( Reactive&& self, F&& fn )
 #ifdef __cpp_concepts
           -> decltype( auto )
           requires( std::is_constructible_v<wrappers::UniqueFunction<void()>, F &&>
@@ -187,9 +187,9 @@ namespace pace {
 #endif
         { return std::move( self.action( std::forward<F>( fn ) ) ); }
 
-        friend PACE__FORCEINLINE Derived& operator<<( Reactive& self, std::nullptr_t ) noexcept
+        PACE__FORCEINLINE friend Derived& operator<<( Reactive& self, std::nullptr_t ) noexcept
         { return self.action(); }
-        friend PACE__FORCEINLINE Derived&& operator<<( Reactive&& self, std::nullptr_t ) noexcept
+        PACE__FORCEINLINE friend Derived&& operator<<( Reactive&& self, std::nullptr_t ) noexcept
         { return std::move( self.action() ); }
 
         void swap( Reactive& other ) noexcept

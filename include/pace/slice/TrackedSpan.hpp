@@ -88,55 +88,55 @@ namespace pace {
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR reference operator*() const { return *itr_; }
         PACE__FORCEINLINE PACE__CXX17_CNSTXPR pointer operator->() const { return itr_; }
 
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( const iterator& a, const Itr& b )
+        PACE__NODISCARD PACE__FORCEINLINE friend constexpr bool operator==( const iterator& a, const Itr& b )
         { return a.itr_ == b; }
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( const Itr& a, const iterator& b )
+        PACE__NODISCARD PACE__FORCEINLINE friend constexpr bool operator==( const Itr& a, const iterator& b )
         { return b == a; }
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( const iterator& a, const Itr& b )
+        PACE__NODISCARD PACE__FORCEINLINE friend constexpr bool operator!=( const iterator& a, const Itr& b )
         { return a.itr_ != b; }
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( const Itr& a, const iterator& b )
+        PACE__NODISCARD PACE__FORCEINLINE friend constexpr bool operator!=( const Itr& a, const iterator& b )
         { return b != a; }
         template<typename S>
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr typename std::enable_if<
+        PACE__NODISCARD PACE__FORCEINLINE friend constexpr typename std::enable_if<
           details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator==( const iterator& a, const S& b )
         { return a.itr_ == b; }
         template<typename S>
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr typename std::enable_if<
+        PACE__NODISCARD PACE__FORCEINLINE friend constexpr typename std::enable_if<
           details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator==( const S& ir, const iterator& itr )
         { return itr == ir; }
         template<typename S>
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr typename std::enable_if<
+        PACE__NODISCARD PACE__FORCEINLINE friend constexpr typename std::enable_if<
           details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator!=( const iterator& itr, const S& ir )
         { return !( itr == ir ); }
         template<typename S>
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr typename std::enable_if<
+        PACE__NODISCARD PACE__FORCEINLINE friend constexpr typename std::enable_if<
           details::traits::AllOf<std::is_same<S, Snt>, details::traits::Not<std::is_same<Itr, Snt>>>::value,
           bool>::type
           operator!=( const S& snt, const iterator& itr )
         { return !( itr == snt ); }
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( const iterator& a,
+        PACE__NODISCARD PACE__FORCEINLINE friend constexpr bool operator==( const iterator& a,
                                                                             const iterator& b )
         { return a.itr_ == b.itr_; }
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( const iterator& a,
+        PACE__NODISCARD PACE__FORCEINLINE friend constexpr bool operator!=( const iterator& a,
                                                                             const iterator& b )
         { return !( a == b ); }
 #if __cpp_range_based_for >= 201603L
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( const iterator& a,
+        PACE__NODISCARD PACE__FORCEINLINE friend constexpr bool operator==( const iterator& a,
                                                                             const Sentinel& b )
         { return a.itr_ == b.base(); }
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( const iterator& a,
+        PACE__NODISCARD PACE__FORCEINLINE friend constexpr bool operator!=( const iterator& a,
                                                                             const Sentinel& b )
         { return !( a == b ); }
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator==( const Sentinel& a,
+        PACE__NODISCARD PACE__FORCEINLINE friend constexpr bool operator==( const Sentinel& a,
                                                                             const iterator& b )
         { return b == a; }
-        PACE__NODISCARD friend PACE__FORCEINLINE constexpr bool operator!=( const Sentinel& a,
+        PACE__NODISCARD PACE__FORCEINLINE friend constexpr bool operator!=( const Sentinel& a,
                                                                             const iterator& b )
         { return !( b == a ); }
 #endif

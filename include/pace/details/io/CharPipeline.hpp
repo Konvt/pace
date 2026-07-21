@@ -109,13 +109,13 @@ namespace pace {
           return *this;
         }
 
-        friend PACE__FORCEINLINE PACE__CXX23_CNSTXPR CharPipeline& operator<<(
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<(
           CharPipeline& self,
           CharPipeline& ( &manipulator )(CharPipeline&))
         { return manipulator( self ); }
 
         template<typename T>
-        friend PACE__FORCEINLINE PACE__CXX23_CNSTXPR
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR
           typename std::enable_if<traits::AnyOf<std::is_convertible<T, charcodes::StringView>,
                                                 std::is_same<typename std::decay<T>::type, char>>::value,
                                   CharPipeline&>::type
