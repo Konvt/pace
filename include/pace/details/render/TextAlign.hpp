@@ -104,31 +104,29 @@ namespace pace {
       struct Align;
       template<render::TextAlign Style, typename Value, typename... Args>
       struct Align<std::integral_constant<render::TextAlign, Style>, Value, Args...> {
-        std::size_t width;
-        std::tuple<Value, Args...> emission;
+        std::tuple<std::size_t, Value, Args...> value;
 
         PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, const Align& self )
         {
           utils::apply(
-            [&]( const typename std::remove_reference<Value>::type& val,
-                 const typename std::remove_reference<Args>::type&... args ) {
+            [&]( std::size_t width, traits::AsConst_t<Value> val, traits::AsConst_t<Args>... args ) {
               using render::align_to;
-              align_to<Style>( std::back_inserter( pipeline ), val, self.width, args... );
+              align_to<Style>( std::back_inserter( pipeline ), val, width, args... );
             },
-            self.emission );
+            self.value );
           return pipeline;
         }
         PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, Align&& self )
         {
           utils::apply(
-            [&]( Value&& val, Args&&... args ) {
+            [&]( std::size_t width, Value&& val, Args&&... args ) {
               using render::align_to;
               align_to<Style>( std::back_inserter( pipeline ),
                                std::forward<Value>( val ),
-                               self.width,
+                               width,
                                std::forward<Args>( args )... );
             },
-            std::move( self.emission ) );
+            std::move( self.value ) );
           return pipeline;
         }
       };
@@ -138,14 +136,12 @@ namespace pace {
         std::tuple<std::size_t> capture;
 
         template<typename Value, typename... Args>
-        PACE__NODISCARD PACE__FORCEINLINE constexpr Align<std::integral_constant<render::TextAlign, Style>,
-                                                          traits::PassAs_t<Value>,
-                                                          traits::PassAs_t<Args>...>
+        PACE__NODISCARD
+          PACE__FORCEINLINE constexpr Align<std::integral_constant<render::TextAlign, Style>, Value, Args...>
           operator()( Value&& val, Args&&... args ) const
         {
           return {
-            std::get<0>( capture ),
-            { std::forward<Value>( val ), std::forward<Args>( args )... }
+            { std::get<0>( capture ), std::forward<Value>( val ), std::forward<Args>( args )... }
           };
         }
       };
@@ -156,14 +152,12 @@ namespace pace {
         align( std::size_t width ) noexcept
       { return { { width } }; }
       template<render::TextAlign Style, typename Value, typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Align<std::integral_constant<render::TextAlign, Style>,
-                                                        traits::PassAs_t<Value>,
-                                                        traits::PassAs_t<Args>...>
+      PACE__NODISCARD
+        PACE__FORCEINLINE constexpr Align<std::integral_constant<render::TextAlign, Style>, Value, Args...>
         align( std::size_t width, Value&& val, Args&&... args )
       {
         return {
-          width,
-          { std::forward<Value>( val ), std::forward<Args>( args )... }
+          { width, std::forward<Value>( val ), std::forward<Args>( args )... }
         };
       }
     } // namespace io

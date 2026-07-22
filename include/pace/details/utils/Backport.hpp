@@ -300,6 +300,8 @@ namespace pace {
       // The overload beblow cannot constitute an overload of the one in std,
       // which means the introduction is safe.
       using std::construct_at;
+
+      using Identity = std::identity;
 #else
       template<typename T, typename... Args>
       PACE__FORCEINLINE PACE__CXX20_CNSTXPR
@@ -314,6 +316,14 @@ namespace pace {
         construct_at( T* location, Args&&... args )
           noexcept( noexcept( ::new ( std::declval<void*>() ) T( std::forward<Args>( args )... ) ) )
       { return ::new ( location ) T( std::forward<Args>( args )... ); }
+
+      struct Identity {
+        using is_transparent = void;
+
+        template<typename T>
+        PACE__FORCEINLINE constexpr T&& operator()( T&& val ) const noexcept
+        { return std::forward<T>( val ); }
+      };
 #endif
       template<typename T, typename U, typename... Args>
       PACE__FORCEINLINE PACE__CXX20_CNSTXPR T* construct_at( U* location, Args&&... args )

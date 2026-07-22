@@ -41,7 +41,7 @@ namespace pace {
             ++digits;
           return digits;
 #else
-        return val < 10 ? 1 : 1 + count_digits( static_cast<Numeric>( val / 10 ) );
+        return val < 10 ? 1 : 1 + count_digits( static_cast<Unsigned>( val / 10 ) );
 #endif
 #ifdef __cpp_lib_is_constant_evaluated
         } else if ( val == 0 )

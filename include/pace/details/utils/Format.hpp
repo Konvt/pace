@@ -2,7 +2,8 @@
 #define PACE_FORMAT
 
 #include "../core/Core.hpp"
-#include "../io/Combinator.hpp"
+#include "../io/CharPipeline.hpp"
+#include "../traits/Util.hpp"
 #include <array>
 #include <cmath>
 #include <string>
@@ -113,17 +114,16 @@ namespace pace {
     namespace io {
       template<typename Value, typename... Args>
       struct Format {
-        std::tuple<Value, Args...> arguments;
+        std::tuple<Value, Args...> value;
 
         PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, const Format& self )
         {
           utils::apply(
-            [&]( const typename std::remove_reference<Value>::type& val,
-                 const typename std::remove_reference<Args>::type&... args ) {
+            [&]( traits::AsConst_t<Value> val, traits::AsConst_t<Args>... args ) {
               using utils::format_to;
               format_to( std::back_inserter( pipeline ), val, args... );
             },
-            self.arguments );
+            self.value );
           return pipeline;
         }
         PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, Format&& self )
@@ -135,15 +135,13 @@ namespace pace {
                          std::forward<Value>( val ),
                          std::forward<Args>( args )... );
             },
-            std::move( self.arguments ) );
+            std::move( self.value ) );
           return pipeline;
         }
       };
-      PACE__NODISCARD PACE__FORCEINLINE Currying<Format> format() noexcept
-      { return {}; }
       template<typename Value, typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Format<traits::PassAs_t<Value>, traits::PassAs_t<Args>...>
-        format( Value&& value, Args&&... args )
+      PACE__NODISCARD PACE__FORCEINLINE constexpr Format<Value, Args...> format( Value&& value,
+                                                                                 Args&&... args )
       {
         return {
           { std::forward<Value>( value ), std::forward<Args>( args )... }
