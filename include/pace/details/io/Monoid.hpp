@@ -1,7 +1,6 @@
-#ifndef PACE_IO_COMBINATOR
-#define PACE_IO_COMBINATOR
+#ifndef PACE_IO_MONOID
+#define PACE_IO_MONOID
 
-#include "../traits/Util.hpp"
 #include "../utils/Backport.hpp"
 #include "CharPipeline.hpp"
 
@@ -16,7 +15,7 @@ namespace pace {
         PACE__NODISCARD PACE__FORCEINLINE constexpr Comb<Args...> operator()( Args&&... args ) const&
         {
           return utils::apply(
-            [&]( traits::AsConst_t<Captures>... caps ) {
+            [&]( const Captures&... caps ) {
               return Comb<Args...> {
                 { caps..., std::forward<Args>( args )... }
               };
@@ -38,28 +37,133 @@ namespace pace {
 
       //////////////////////////////////////////////////
 
-      struct Nop {
-        PACE__FORCEINLINE friend constexpr CharPipeline& operator<<( CharPipeline& pipeline, const Nop& )
+      template<typename... Emissions>
+      struct Concat {
+        static_assert( sizeof...( Emissions ) > 0, "nothing to concat" );
+
+        std::tuple<Emissions...> emission;
+
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR io::CharPipeline& operator<<( io::CharPipeline& pipeline,
+                                                                                   const Concat& self )
+        {
+          utils::apply(
+            [&pipeline]( const Emissions&... emis ) {
+              (void)std::initializer_list<bool> { ( pipeline << emis, false )... };
+            },
+            self.emission );
+          return pipeline;
+        }
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR io::CharPipeline& operator<<( io::CharPipeline& pipeline,
+                                                                                   Concat&& self )
+        {
+          utils::apply(
+            [&pipeline]( Emissions&&... emis ) {
+              (void)std::initializer_list<bool> { ( pipeline << std::forward<Emissions>( emis ), false )... };
+            },
+            std::move( self.emission ) );
+          return pipeline;
+        }
+      };
+      template<typename... Args>
+      PACE__NODISCARD PACE__FORCEINLINE constexpr Concat<Args...> concat( Args&&... args )
+      { return { { std::forward<Args>( args )... } }; }
+
+      //////////////////////////////////////////////////
+
+      template<>
+      struct Concat<> {
+        std::tuple<> emission;
+
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+                                                                               const Concat& )
         { return pipeline; }
       };
+      using Nop = Concat<>;
       PACE__NODISCARD PACE__FORCEINLINE constexpr Nop nop() noexcept
       { return {}; }
 
       //////////////////////////////////////////////////
 
+      template<typename Separator, typename Emission, typename... Emissions>
+      struct Join {
+        // The tuple supports EBO, thus we put them together.
+        std::tuple<Separator, Emission, Emissions...> value;
+
+        template<typename CharPipeline>
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+                                                                               const Join& self )
+        {
+          utils::apply(
+            [&pipeline]( const Separator& sep, const Emission& emi, const Emissions&... emis ) {
+              pipeline << emi;
+              (void)std::initializer_list<bool> { ( ( pipeline << sep << emis ), false )... };
+            },
+            self.value );
+          return pipeline;
+        }
+        template<typename CharPipeline>
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+                                                                               Join&& self )
+        {
+          utils::apply(
+            [&pipeline]( Separator&& sep, Emission&& emi, Emissions&&... emis ) {
+              pipeline << std::forward<Emission>( emi );
+              (void)std::initializer_list<bool> { ( ( pipeline << sep << std::forward<Emissions>( emis ) ),
+                                                    false )... };
+            },
+            std::move( self.value ) );
+          return pipeline;
+        }
+      };
+
+      template<typename Sep>
+      struct Currying<Join, Sep> {
+        std::tuple<Sep> capture;
+
+        template<typename... Emis>
+        PACE__NODISCARD PACE__FORCEINLINE constexpr Join<Sep, Emis...> operator()( Emis&&... emis ) const&
+        {
+          return {
+            { std::get<0>( capture ), std::forward<Emis>( emis )... }
+          };
+        }
+        template<typename... Emis>
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Join<Sep, Emis...> operator()(
+          Emis&&... emis ) &&
+        {
+          return {
+            { std::move( std::get<0>( capture ) ), std::forward<Emis>( emis )... }
+          };
+        }
+      };
+
+      template<typename Separator>
+      PACE__NODISCARD PACE__FORCEINLINE constexpr Currying<Join, Separator> join( Separator&& separator )
+      { return { { std::forward<Separator>( separator ) } }; }
+      template<typename Separator, typename... Emissions>
+      PACE__NODISCARD PACE__FORCEINLINE constexpr Join<Separator, Emissions...> join(
+        Separator&& separator,
+        Emissions&&... emissions )
+      {
+        return {
+          { std::forward<Separator>( separator ), std::forward<Emissions>( emissions )... }
+        };
+      }
+
+      //////////////////////////////////////////////////
+
       template<typename Predicate, typename Positive, typename Negative, typename... Args>
       struct Choice {
-        // The tuple supports EBO, thus we put them together.
         std::tuple<Predicate, Positive, Negative, Args...> value;
 
         PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
                                                                                const Choice& self )
         {
           return utils::apply(
-            [&pipeline]( traits::AsConst_t<Predicate> pred,
-                         traits::AsConst_t<Positive> pos,
-                         traits::AsConst_t<Negative> neg,
-                         traits::AsConst_t<Args>... args ) {
+            [&pipeline]( const Predicate& pred,
+                         const Positive& pos,
+                         const Negative& neg,
+                         const Args&... args ) {
               if ( utils::invoke( pred, args... ) )
                 pipeline << pos;
               else
@@ -117,7 +221,7 @@ namespace pace {
           Negative&& negative ) const&
         {
           return utils::apply(
-            [&]( traits::AsConst_t<Pred> pred, traits::AsConst_t<Args>... args ) {
+            [&]( const Pred& pred, const Args&... args ) {
               return Choice<Pred, Positive, Negative> {
                 { pred, std::forward<Positive>( positive ), std::forward<Negative>( negative ), args... }
               };
@@ -143,27 +247,22 @@ namespace pace {
       };
 
       template<typename Predicate>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Currying<Choice, Predicate> choice(
-        Predicate&& predicate ) noexcept
+      PACE__NODISCARD PACE__FORCEINLINE constexpr Currying<Choice, Predicate> choice( Predicate&& predicate )
       { return { { std::forward<Predicate>( predicate ) } }; }
       template<typename Predicate, typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr typename std::enable_if<
-        traits::AnyOf<
-          traits::is_invocable_r<bool, Predicate, Args...>,
-          traits::is_invocable_r<bool, traits::AsConst_t<Predicate>, traits::AsConst_t<Args>...>>::value,
-        Currying<Choice, Predicate, void, void, Args...>>::type
-        choice( Predicate&& predicate, Args&&... args ) noexcept
+      PACE__NODISCARD PACE__FORCEINLINE constexpr
+        typename std::enable_if<traits::is_invocable_r<bool, Predicate, Args...>::value,
+                                Currying<Choice, Predicate, void, void, Args...>>::type
+        choice( Predicate&& predicate, Args&&... args )
       {
         return {
           { std::forward<Predicate>( predicate ), std::forward<Args>( args )... }
         };
       }
       template<typename Predicate, typename Positive, typename Negative, typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr typename std::enable_if<
-        traits::AnyOf<
-          traits::is_invocable_r<bool, Predicate, Args...>,
-          traits::is_invocable_r<bool, traits::AsConst_t<Predicate>, traits::AsConst_t<Args>...>>::value,
-        Choice<Predicate, Positive, Negative, Args...>>::type
+      PACE__NODISCARD PACE__FORCEINLINE constexpr
+        typename std::enable_if<traits::is_invocable_r<bool, Predicate, Args...>::value,
+                                Choice<Predicate, Positive, Negative, Args...>>::type
         choice( Predicate&& predicate, Positive&& positive, Negative&& negative, Args&&... args )
       {
         return {
@@ -214,9 +313,7 @@ namespace pace {
           Positive&& positive ) const&
         {
           return utils::apply(
-            [&positive]( traits::AsConst_t<Pred> pred,
-                         traits::AsConst_t<Neg> neg,
-                         traits::AsConst_t<Args>... args ) {
+            [&positive]( const Pred& pred, const Neg& neg, const Args&... args ) {
               return Choice<Pred, Positive, Neg, Args...> {
                 { pred, std::forward<Positive>( positive ), neg, args... }
               };
@@ -242,35 +339,32 @@ namespace pace {
 
       template<typename Predicate>
       PACE__NODISCARD PACE__FORCEINLINE constexpr Currying<Choice, Predicate, void, Nop> when(
-        Predicate&& predicate ) noexcept
+        Predicate&& predicate )
       {
         return {
           { std::forward<Predicate>( predicate ), {} }
         };
       }
       template<typename Predicate, typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr typename std::enable_if<
-        traits::AnyOf<
-          traits::is_invocable_r<bool, Predicate, Args...>,
-          traits::is_invocable_r<bool, traits::AsConst_t<Predicate>, traits::AsConst_t<Args>...>>::value,
-        Currying<Choice, Predicate, void, Nop, Args...>>::type
-        when( Predicate&& predicate, Args&&... args ) noexcept
+      PACE__NODISCARD PACE__FORCEINLINE constexpr
+        typename std::enable_if<traits::is_invocable_r<bool, Predicate, Args...>::value,
+                                Currying<Choice, Predicate, void, Nop, Args...>>::type
+        when( Predicate&& predicate, Args&&... args )
       {
         return {
           { std::forward<Predicate>( predicate ), {}, std::forward<Args>( args )... }
         };
       }
       template<typename Predicate, typename Emission, typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr typename std::enable_if<
-        traits::AnyOf<
-          traits::is_invocable_r<bool, Predicate, Args...>,
-          traits::is_invocable_r<bool, traits::AsConst_t<Predicate>, traits::AsConst_t<Args>...>>::value,
-        Choice<Predicate, Emission, Nop, Args...>>::type
+      PACE__NODISCARD PACE__FORCEINLINE constexpr
+        typename std::enable_if<traits::is_invocable_r<bool, Predicate, Args...>::value,
+                                Choice<Predicate, Emission, Nop, Args...>>::type
         when( Predicate&& predicate, Emission&& emission, Args&&... args )
       {
         return {
           { std::forward<Predicate>( predicate ),
            std::forward<Emission>( emission ),
+           {},
            std::forward<Args>( args )... }
         };
       }
@@ -331,9 +425,7 @@ namespace pace {
           Negative&& negative ) const&
         {
           return utils::apply(
-            [&negative]( traits::AsConst_t<Pred> pred,
-                         traits::AsConst_t<Pos> pos,
-                         traits::AsConst_t<Args>... args ) {
+            [&negative]( const Pred& pred, const Pos& pos, const Args&... args ) {
               return Choice<Pred, Pos, Negative, Args...> {
                 { pred, pos, std::forward<Negative>( negative ), args... }
               };
@@ -359,30 +451,26 @@ namespace pace {
 
       template<typename Predicate>
       PACE__NODISCARD PACE__FORCEINLINE constexpr Currying<Choice, Predicate, Nop, void> unless(
-        Predicate&& predicate ) noexcept
+        Predicate&& predicate )
       {
         return {
           { std::forward<Predicate>( predicate ), {} }
         };
       }
       template<typename Predicate, typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr typename std::enable_if<
-        traits::AnyOf<
-          traits::is_invocable_r<bool, Predicate, Args...>,
-          traits::is_invocable_r<bool, traits::AsConst_t<Predicate>, traits::AsConst_t<Args>...>>::value,
-        Currying<Choice, Predicate, Nop, void, Args...>>::type
-        unless( Predicate&& predicate, Args&&... args ) noexcept
+      PACE__NODISCARD PACE__FORCEINLINE constexpr
+        typename std::enable_if<traits::is_invocable_r<bool, Predicate, Args...>::value,
+                                Currying<Choice, Predicate, Nop, void, Args...>>::type
+        unless( Predicate&& predicate, Args&&... args )
       {
         return {
           { std::forward<Predicate>( predicate ), {}, std::forward<Args>( args )... }
         };
       }
       template<typename Predicate, typename Emission, typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr typename std::enable_if<
-        traits::AnyOf<
-          traits::is_invocable_r<bool, Predicate, Args...>,
-          traits::is_invocable_r<bool, traits::AsConst_t<Predicate>, traits::AsConst_t<Args>...>>::value,
-        Choice<Predicate, Nop, Emission, Args...>>::type
+      PACE__NODISCARD PACE__FORCEINLINE constexpr
+        typename std::enable_if<traits::is_invocable_r<bool, Predicate, Args...>::value,
+                                Choice<Predicate, Nop, Emission, Args...>>::type
         unless( Predicate&& predicate, Emission&& emission, Args&&... args )
       {
         return {
@@ -411,170 +499,139 @@ namespace pace {
 
       //////////////////////////////////////////////////
 
-      template<typename Emission>
-      struct Repeat {
-      private:
-        template<typename T, typename = void>
-        struct is_directly_emitting : std::false_type {};
-        template<typename T>
-        struct is_directly_emitting<T,
-                                    typename std::enable_if<std::is_same<
-                                      decltype( std::declval<CharPipeline&>()
-                                                  .append( std::declval<T>(), std::declval<std::size_t>() ) ),
-                                      CharPipeline&>::value>::type> : std::true_type {};
+      template<typename Predicate, typename Emission, typename... Args>
+      struct Until {
+        std::tuple<Predicate, Emission, Args...> value;
 
-        template<typename T>
-        PACE__FORCEINLINE void emit( std::true_type, CharPipeline& pipeline, const T& val ) const&
-        { pipeline.append( val, std::get<0>( value ) ); }
-        template<typename T>
-        PACE__FORCEINLINE void emit( std::false_type, CharPipeline& pipeline, const T& val ) const&
-        {
-          for ( std::size_t i = 0; i < std::get<0>( value ); ++i )
-            pipeline << val;
-        }
-        template<typename T>
-        PACE__FORCEINLINE void emit( std::true_type, CharPipeline& pipeline, T&& val ) &&
-        { pipeline.append( val, std::get<0>( value ) ); }
-        template<typename T>
-        PACE__FORCEINLINE void emit( std::false_type, CharPipeline& pipeline, T&& val ) &&
-        {
-          for ( std::size_t i = 0; i < std::get<0>( value ); ++i )
-            pipeline << val;
-        }
-
-      public:
-        std::tuple<std::size_t, Emission> value;
-
-        PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, const Repeat& self )
-        {
-          self.emit( is_directly_emitting<Emission>(), pipeline, std::get<1>( self.value ) );
-          return pipeline;
-        }
-        PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, Repeat&& self )
-        {
-          std::move( self ).emit( is_directly_emitting<Emission>(),
-                                  pipeline,
-                                  std::forward<Emission>( std::get<1>( self.value ) ) );
-          return pipeline;
-        }
-      };
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Currying<Repeat, std::size_t> repeat(
-        std::size_t times ) noexcept
-      { return { { times } }; }
-      template<typename Emission>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Repeat<Emission> repeat( std::size_t times,
-                                                                           Emission&& emission )
-      {
-        return {
-          { times, std::forward<Emission>( emission ) }
-        };
-      }
-
-      //////////////////////////////////////////////////
-
-      template<typename... Emissions>
-      struct Concat {
-        static_assert( sizeof...( Emissions ) > 0, "nothing to concat" );
-
-        std::tuple<Emissions...> emission;
-
-        PACE__FORCEINLINE friend io::CharPipeline& operator<<( io::CharPipeline& pipeline,
-                                                               const Concat& self )
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+                                                                               const Until& self )
         {
           utils::apply(
-            [&pipeline]( traits::AsConst_t<Emissions>... emis ) {
-              (void)std::initializer_list<bool> { ( pipeline << emis, false )... };
-            },
-            self.emission );
-          return pipeline;
-        }
-        PACE__FORCEINLINE friend io::CharPipeline& operator<<( io::CharPipeline& pipeline, Concat&& self )
-        {
-          utils::apply(
-            [&pipeline]( Emissions&&... emis ) {
-              (void)std::initializer_list<bool> { ( pipeline << std::forward<Emissions>( emis ), false )... };
-            },
-            std::move( self.emission ) );
-          return pipeline;
-        }
-      };
-      template<>
-      struct Concat<> : public Nop {
-        std::tuple<> emission;
-      };
-      template<typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Concat<Args...> concat( Args&&... args )
-      { return { { std::forward<Args>( args )... } }; }
-
-      //////////////////////////////////////////////////
-
-      template<typename Separator, typename Emission, typename... Emissions>
-      struct Join {
-        std::tuple<Separator, Emission, Emissions...> value;
-
-        template<typename CharPipeline>
-        PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
-                                                                               const Join& self )
-        {
-          utils::apply(
-            [&pipeline]( traits::AsConst_t<Separator> sep,
-                         traits::AsConst_t<Emission> emi,
-                         traits::AsConst_t<Emissions>... emis ) {
-              pipeline << emi;
-              (void)std::initializer_list<bool> { ( ( pipeline << sep << emis ), false )... };
+            [&pipeline]( const Predicate& pred, const Emission& emi, const Args&... args ) {
+              while ( utils::invoke( pred, args... ) )
+                pipeline << emi;
             },
             self.value );
           return pipeline;
         }
-        template<typename CharPipeline>
-        PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
-                                                                               Join&& self )
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+                                                                               Until&& self )
         {
           utils::apply(
-            [&pipeline]( Separator&& sep, Emission&& emi, Emissions&&... emis ) {
-              pipeline << std::forward<Emission>( emi );
-              (void)std::initializer_list<bool> { ( ( pipeline << sep << std::forward<Emissions>( emis ) ),
-                                                    false )... };
+            [&pipeline]( Predicate&& pred, Emission&& emi, Args&&... args ) {
+              while ( utils::invoke( std::forward<Predicate>( pred ), std::forward<Args>( args )... ) )
+                pipeline << emi;
             },
             std::move( self.value ) );
           return pipeline;
         }
       };
 
-      template<typename Sep>
-      struct Currying<Join, Sep> {
-        std::tuple<Sep> capture;
+      template<typename Pred>
+      struct Currying<Until, Pred> {
+        std::tuple<Pred> capture;
 
-        template<typename... Emis>
-        PACE__NODISCARD PACE__FORCEINLINE constexpr Join<Sep, Emis...> operator()( Emis&&... emis ) const&
+        template<typename Emission, typename... Args>
+        PACE__NODISCARD PACE__FORCEINLINE constexpr Until<Pred, Emission, Args...> operator()(
+          Emission&& emission,
+          Args&&... args ) const&
         {
           return {
-            { std::get<0>( capture ), std::forward<Emis>( emis )... }
+            { std::get<0>( capture ), std::forward<Emission>( emission ), std::forward<Args>( args )... }
           };
         }
-        template<typename... Emis>
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Join<Sep, Emis...> operator()(
-          Emis&&... emis ) &&
+        template<typename Emission, typename... Args>
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Until<Pred, Emission, Args...> operator()(
+          Emission&& emission,
+          Args&&... args ) &&
         {
           return {
-            { std::move( std::get<0>( capture ) ), std::forward<Emis>( emis )... }
+            { std::forward<Pred>( std::get<0>( capture ) ),
+             std::forward<Emission>( emission ),
+             std::forward<Args>( args )... }
           };
         }
       };
+      template<typename Pred, typename... Args>
+      struct Currying<Until, Pred, Args...> {
+        std::tuple<Pred, Args...> capture;
 
-      template<typename Separator>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Currying<Join, Separator> join(
-        Separator&& separator ) noexcept
-      { return { { std::forward<Separator>( separator ) } }; }
-      template<typename Separator, typename... Emissions>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Join<Separator, Emissions...> join(
-        Separator&& separator,
-        Emissions&&... emissions )
+        template<typename Emission>
+        PACE__NODISCARD PACE__FORCEINLINE constexpr Until<Pred, Emission, Args...> operator()(
+          Emission&& emission ) const&
+        {
+          return utils::apply(
+            [&emission]( const Pred& pred, const Args&... args ) {
+              return Until<Pred, Emission, Args...> {
+                { pred, std::forward<Emission>( emission ), args... }
+              };
+            },
+            capture );
+        }
+        template<typename Emission>
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Until<Pred, Emission, Args...> operator()(
+          Emission&& emission ) &&
+        {
+          return utils::apply(
+            [&emission]( Pred&& pred, Args&&... args ) {
+              return Until<Pred, Emission, Args...> {
+                { std::forward<Pred>( pred ),
+                 std::forward<Emission>( emission ),
+                 std::forward<Args>( args )... }
+              };
+            },
+            std::move( capture ) );
+        }
+      };
+
+      template<typename Predicate>
+      PACE__NODISCARD PACE__FORCEINLINE constexpr Currying<Until, Predicate> until( Predicate&& predicate )
+      { return { { std::forward<Predicate>( predicate ) } }; }
+      template<typename Predicate, typename... Args>
+      PACE__NODISCARD PACE__FORCEINLINE constexpr
+        typename std::enable_if<traits::is_invocable_r<bool, Predicate, Args...>::value,
+                                Currying<Until, Predicate, Args...>>::type
+        until( Predicate&& predicate, Args&&... args )
       {
         return {
-          { std::forward<Separator>( separator ), std::forward<Emissions>( emissions )... }
+          { std::forward<Predicate>( predicate ), std::forward<Args>( args )... }
         };
       }
+      template<typename Predicate, typename Emission, typename... Args>
+      PACE__NODISCARD PACE__FORCEINLINE constexpr
+        typename std::enable_if<traits::is_invocable_r<bool, Predicate, Args...>::value,
+                                Until<Predicate, Emission, Args...>>::type
+        until( Predicate&& predicate, Emission&& emission, Args&&... args )
+      {
+        return {
+          { std::forward<Predicate>( predicate ),
+           std::forward<Emission>( emission ),
+           std::forward<Args>( args )... }
+        };
+      }
+
+      struct _count_guard {
+        std::size_t iteration = 0;
+
+        PACE__NODISCARD PACE__FORCEINLINE bool operator()( std::size_t times ) noexcept
+        {
+          if ( iteration++ < times )
+            return true;
+          iteration = 0;
+          return false;
+        }
+      };
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Currying<Until, _count_guard, std::size_t> repeat(
+        std::size_t times ) noexcept
+      {
+        return {
+          { {}, times }
+        };
+      }
+      template<typename Emission>
+      PACE__NODISCARD PACE__FORCEINLINE constexpr auto repeat( std::size_t times, Emission&& emission )
+        -> decltype( repeat( times )( std::forward<Emission>( emission ) ) )
+      { return repeat( times )( std::forward<Emission>( emission ) ); }
     } // namespace io
   } // namespace details
 } // namespace pace

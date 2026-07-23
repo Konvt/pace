@@ -33,11 +33,8 @@ namespace pace {
       template<typename P>
       struct PointeeOf<P*> : Identity<P> {};
 
-      template<typename Src, typename Dst>
-      using CopyConst_t = typename std::conditional<std::is_const<Src>::value, const Dst, Dst>::type;
-
-      template<typename T>
-      using AsConst_t = const typename std::remove_reference<T>::type&;
+      template<typename From, typename To>
+      using CopyConst_t = typename std::conditional<std::is_const<From>::value, const To, To>::type;
     } // namespace traits
   } // namespace details
 } // namespace pace

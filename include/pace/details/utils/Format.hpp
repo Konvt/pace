@@ -3,7 +3,6 @@
 
 #include "../core/Core.hpp"
 #include "../io/CharPipeline.hpp"
-#include "../traits/Util.hpp"
 #include <array>
 #include <cmath>
 #include <string>
@@ -116,17 +115,19 @@ namespace pace {
       struct Format {
         std::tuple<Value, Args...> value;
 
-        PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, const Format& self )
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+                                                                               const Format& self )
         {
           utils::apply(
-            [&]( traits::AsConst_t<Value> val, traits::AsConst_t<Args>... args ) {
+            [&]( const Value& val, const Args&... args ) {
               using utils::format_to;
               format_to( std::back_inserter( pipeline ), val, args... );
             },
             self.value );
           return pipeline;
         }
-        PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, Format&& self )
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+                                                                               Format&& self )
         {
           utils::apply(
             [&]( Value&& val, Args&&... args ) {

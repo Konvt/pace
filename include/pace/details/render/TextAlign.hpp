@@ -2,7 +2,7 @@
 #define PACE_TEXT_ALIGN
 
 #include "../charcodes/StringView.hpp"
-#include "../io/Combinator.hpp"
+#include "../io/Monoid.hpp"
 #include "../utils/Backport.hpp"
 #ifdef __cpp_lib_format
 # include <format>
@@ -106,17 +106,19 @@ namespace pace {
       struct Align<std::integral_constant<render::TextAlign, Style>, Value, Args...> {
         std::tuple<std::size_t, Value, Args...> value;
 
-        PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, const Align& self )
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+                                                                               const Align& self )
         {
           utils::apply(
-            [&]( std::size_t width, traits::AsConst_t<Value> val, traits::AsConst_t<Args>... args ) {
+            [&]( std::size_t width, const Value& val, const Args&... args ) {
               using render::align_to;
               align_to<Style>( std::back_inserter( pipeline ), val, width, args... );
             },
             self.value );
           return pipeline;
         }
-        PACE__FORCEINLINE friend CharPipeline& operator<<( CharPipeline& pipeline, Align&& self )
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+                                                                               Align&& self )
         {
           utils::apply(
             [&]( std::size_t width, Value&& val, Args&&... args ) {
