@@ -9,6 +9,9 @@ namespace pace {
     namespace io {
       template<template<typename...> class Comb, typename... Captures>
       struct Currying {
+        static_assert( traits::Not<traits::AnyOf<std::is_rvalue_reference<Captures>...>>::value,
+                       "dangling reference" );
+
         std::tuple<Captures...> capture;
 
         template<typename... Args>
@@ -39,7 +42,8 @@ namespace pace {
 
       template<typename... Emissions>
       struct Concat {
-        static_assert( sizeof...( Emissions ) > 0, "nothing to concat" );
+        static_assert( traits::Not<traits::AnyOf<std::is_rvalue_reference<Emissions>...>>::value,
+                       "dangling reference" );
 
         std::tuple<Emissions...> emission;
 
@@ -86,6 +90,11 @@ namespace pace {
 
       template<typename Separator, typename Emission, typename... Emissions>
       struct Join {
+        static_assert( traits::Not<traits::AnyOf<std::is_rvalue_reference<Separator>,
+                                                 std::is_rvalue_reference<Emission>,
+                                                 std::is_rvalue_reference<Emissions>...>>::value,
+                       "dangling reference" );
+
         // The tuple supports EBO, thus we put them together.
         std::tuple<Separator, Emission, Emissions...> value;
 
@@ -118,6 +127,8 @@ namespace pace {
 
       template<typename Sep>
       struct Currying<Join, Sep> {
+        static_assert( traits::Not<std::is_rvalue_reference<Sep>>::value, "dangling reference" );
+
         std::tuple<Sep> capture;
 
         template<typename... Emis>
@@ -154,6 +165,12 @@ namespace pace {
 
       template<typename Predicate, typename Positive, typename Negative, typename... Args>
       struct Choice {
+        static_assert( traits::Not<traits::AnyOf<std::is_rvalue_reference<Predicate>,
+                                                 std::is_rvalue_reference<Positive>,
+                                                 std::is_rvalue_reference<Negative>,
+                                                 std::is_rvalue_reference<Args>...>>::value,
+                       "dangling reference" );
+
         std::tuple<Predicate, Positive, Negative, Args...> value;
 
         PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
@@ -189,6 +206,8 @@ namespace pace {
 
       template<typename Pred>
       struct Currying<Choice, Pred> {
+        static_assert( traits::Not<std::is_rvalue_reference<Pred>>::value, "dangling reference" );
+
         std::tuple<Pred> capture;
 
         template<typename Positive, typename Negative, typename... Args>
@@ -212,6 +231,10 @@ namespace pace {
       };
       template<typename Pred, typename... Args>
       struct Currying<Choice, Pred, void, void, Args...> {
+        static_assert( traits::Not<traits::AnyOf<std::is_rvalue_reference<Pred>,
+                                                 std::is_rvalue_reference<Args>...>>::value,
+                       "dangling reference" );
+
         // void means unspecified
         std::tuple<Pred, Args...> capture;
 
@@ -277,6 +300,10 @@ namespace pace {
 
       template<typename Pred, typename Neg>
       struct Currying<Choice, Pred, void, Neg> {
+        static_assert(
+          traits::Not<traits::AnyOf<std::is_rvalue_reference<Pred>, std::is_rvalue_reference<Neg>>>::value,
+          "dangling reference" );
+
         std::tuple<Pred, Neg> capture;
 
         template<typename Positive, typename... Args>
@@ -306,6 +333,11 @@ namespace pace {
       };
       template<typename Pred, typename Neg, typename... Args>
       struct Currying<Choice, Pred, void, Neg, Args...> {
+        static_assert( traits::Not<traits::AnyOf<std::is_rvalue_reference<Pred>,
+                                                 std::is_rvalue_reference<Neg>,
+                                                 std::is_rvalue_reference<Args>...>>::value,
+                       "dangling reference" );
+
         std::tuple<Pred, Neg, Args...> capture;
 
         template<typename Positive>
@@ -389,6 +421,10 @@ namespace pace {
 
       template<typename Pred, typename Pos>
       struct Currying<Choice, Pred, Pos, void> {
+        static_assert(
+          traits::Not<traits::AnyOf<std::is_rvalue_reference<Pred>, std::is_rvalue_reference<Pos>>>::value,
+          "dangling reference" );
+
         std::tuple<Pred, Pos> capture;
 
         template<typename Negative, typename... Args>
@@ -418,6 +454,11 @@ namespace pace {
       };
       template<typename Pred, typename Pos, typename... Args>
       struct Currying<Choice, Pred, Pos, void, Args...> {
+        static_assert( traits::Not<traits::AnyOf<std::is_rvalue_reference<Pred>,
+                                                 std::is_rvalue_reference<Pos>,
+                                                 std::is_rvalue_reference<Args>...>>::value,
+                       "dangling reference" );
+
         std::tuple<Pred, Pos, Args...> capture;
 
         template<typename Negative>
@@ -501,6 +542,11 @@ namespace pace {
 
       template<typename Predicate, typename Emission, typename... Args>
       struct Until {
+        static_assert( traits::Not<traits::AnyOf<std::is_rvalue_reference<Predicate>,
+                                                 std::is_rvalue_reference<Emission>,
+                                                 std::is_rvalue_reference<Args>...>>::value,
+                       "dangling reference" );
+
         std::tuple<Predicate, Emission, Args...> value;
 
         PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
@@ -529,6 +575,8 @@ namespace pace {
 
       template<typename Pred>
       struct Currying<Until, Pred> {
+        static_assert( traits::Not<std::is_rvalue_reference<Pred>>::value, "dangling reference" );
+
         std::tuple<Pred> capture;
 
         template<typename Emission, typename... Args>
@@ -554,6 +602,10 @@ namespace pace {
       };
       template<typename Pred, typename... Args>
       struct Currying<Until, Pred, Args...> {
+        static_assert( traits::Not<traits::AnyOf<std::is_rvalue_reference<Pred>,
+                                                 std::is_rvalue_reference<Args>...>>::value,
+                       "dangling reference" );
+
         std::tuple<Pred, Args...> capture;
 
         template<typename Emission>
@@ -610,28 +662,52 @@ namespace pace {
         };
       }
 
-      struct _count_guard {
-        std::size_t iteration = 0;
+      //////////////////////////////////////////////////
 
-        PACE__NODISCARD PACE__FORCEINLINE bool operator()( std::size_t times ) noexcept
+      template<typename Emission>
+      struct Until<void, Emission, std::size_t> {
+        static_assert( traits::Not<std::is_rvalue_reference<Emission>>::value, "dangling reference" );
+
+        std::tuple<Emission, std::size_t> value;
+
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+                                                                               const Until& self )
         {
-          if ( iteration++ < times )
-            return true;
-          iteration = 0;
-          return false;
+          for ( std::size_t i = 0; i < std::get<1>( self.value ); ++i )
+            pipeline << std::get<0>( self.value );
+          return pipeline;
+        }
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+                                                                               Until&& self )
+        {
+          for ( std::size_t i = 0; i < std::get<1>( self.value ); ++i )
+            pipeline << std::forward<Emission>( std::get<0>( self.value ) );
+          return pipeline;
         }
       };
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Currying<Until, _count_guard, std::size_t> repeat(
+
+      template<>
+      struct Currying<Until, void, std::size_t> {
+        std::tuple<std::size_t> capture;
+
+        template<typename Emission>
+        PACE__NODISCARD PACE__FORCEINLINE constexpr Until<void, Emission, std::size_t> operator()(
+          Emission&& emission ) const
+        { return { std::forward<Emission>( emission ), capture }; }
+      };
+
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Currying<Until, void, std::size_t> repeat(
         std::size_t times ) noexcept
+      { return { { times } }; }
+      template<typename Emission>
+      PACE__NODISCARD PACE__FORCEINLINE constexpr Until<void, Emission, std::size_t> repeat(
+        std::size_t times,
+        Emission&& emission )
       {
         return {
-          { {}, times }
+          { std::forward<Emission>( emission ), times }
         };
       }
-      template<typename Emission>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr auto repeat( std::size_t times, Emission&& emission )
-        -> decltype( repeat( times )( std::forward<Emission>( emission ) ) )
-      { return repeat( times )( std::forward<Emission>( emission ) ); }
     } // namespace io
   } // namespace details
 } // namespace pace

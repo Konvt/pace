@@ -113,6 +113,10 @@ namespace pace {
     namespace io {
       template<typename Value, typename... Args>
       struct Format {
+        static_assert( traits::Not<traits::AnyOf<std::is_rvalue_reference<Value>,
+                                                 std::is_rvalue_reference<Args>...>>::value,
+                       "dangling reference" );
+
         std::tuple<Value, Args...> value;
 
         PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,

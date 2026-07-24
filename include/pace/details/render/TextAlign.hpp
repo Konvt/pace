@@ -104,6 +104,10 @@ namespace pace {
       struct Align;
       template<render::TextAlign Style, typename Value, typename... Args>
       struct Align<std::integral_constant<render::TextAlign, Style>, Value, Args...> {
+        static_assert( traits::Not<traits::AnyOf<std::is_rvalue_reference<Value>,
+                                                 std::is_rvalue_reference<Args>...>>::value,
+                       "dangling reference" );
+
         std::tuple<std::size_t, Value, Args...> value;
 
         PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
