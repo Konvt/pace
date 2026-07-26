@@ -8,102 +8,29 @@ namespace pace {
   namespace details {
     namespace io {
       template<template<typename...> class Comb, typename... Captures>
-      struct Currying {
-        static_assert( traits::Not<traits::AnyOf<std::is_rvalue_reference<Captures>...>>::value,
-                       "dangling reference" );
-
-        std::tuple<Captures...> capture;
-
-        template<typename... Args>
-        PACE__NODISCARD PACE__FORCEINLINE constexpr Comb<Args...> operator()( Args&&... args ) const&
-        {
-          return utils::apply(
-            [&]( const Captures&... caps ) {
-              return Comb<Args...> {
-                { caps..., std::forward<Args>( args )... }
-              };
-            },
-            capture );
-        }
-        template<typename... Args>
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Comb<Args...> operator()( Args&&... args ) &&
-        {
-          return utils::apply(
-            [&]( Captures&&... caps ) {
-              return Comb<Args...> {
-                { std::forward<Captures>( caps )..., std::forward<Args>( args )... }
-              };
-            },
-            std::move( capture ) );
-        }
-      };
+      struct Currying;
 
       //////////////////////////////////////////////////
 
-      template<typename... Emissions>
-      struct Concat {
-        static_assert( traits::Not<traits::AnyOf<std::is_rvalue_reference<Emissions>...>>::value,
-                       "dangling reference" );
+      template<typename Separator, typename... Emissions>
+      struct Join;
 
-        std::tuple<Emissions...> emission;
-
-        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR io::CharPipeline& operator<<( io::CharPipeline& pipeline,
-                                                                                   const Concat& self )
-        {
-          utils::apply(
-            [&pipeline]( const Emissions&... emis ) {
-              (void)std::initializer_list<bool> { ( pipeline << emis, false )... };
-            },
-            self.emission );
-          return pipeline;
-        }
-        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR io::CharPipeline& operator<<( io::CharPipeline& pipeline,
-                                                                                   Concat&& self )
-        {
-          utils::apply(
-            [&pipeline]( Emissions&&... emis ) {
-              (void)std::initializer_list<bool> { ( pipeline << std::forward<Emissions>( emis ), false )... };
-            },
-            std::move( self.emission ) );
-          return pipeline;
-        }
-      };
-      template<typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Concat<Args...> concat( Args&&... args )
-      { return { { std::forward<Args>( args )... } }; }
-
-      //////////////////////////////////////////////////
-
-      template<>
-      struct Concat<> {
-        std::tuple<> emission;
-
-        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
-                                                                               const Concat& )
-        { return pipeline; }
-      };
-      using Nop = Concat<>;
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Nop nop() noexcept
-      { return {}; }
-
-      //////////////////////////////////////////////////
-
-      template<typename Separator, typename Emission, typename... Emissions>
-      struct Join {
-        static_assert( traits::Not<traits::AnyOf<std::is_rvalue_reference<Separator>,
-                                                 std::is_rvalue_reference<Emission>,
-                                                 std::is_rvalue_reference<Emissions>...>>::value,
+      template<typename Sep, typename Emi, typename... Emis>
+      struct Join<Sep, Emi, Emis...> {
+        static_assert( traits::Not<traits::AnyOf<std::is_rvalue_reference<Sep>,
+                                                 std::is_rvalue_reference<Emi>,
+                                                 std::is_rvalue_reference<Emis>...>>::value,
                        "dangling reference" );
 
         // The tuple supports EBO, thus we put them together.
-        std::tuple<Separator, Emission, Emissions...> value;
+        std::tuple<Sep, Emi, Emis...> value;
 
         template<typename CharPipeline>
         PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
                                                                                const Join& self )
         {
           utils::apply(
-            [&pipeline]( const Separator& sep, const Emission& emi, const Emissions&... emis ) {
+            [&pipeline]( const Sep& sep, const Emi& emi, const Emis&... emis ) {
               pipeline << emi;
               (void)std::initializer_list<bool> { ( ( pipeline << sep << emis ), false )... };
             },
@@ -115,9 +42,9 @@ namespace pace {
                                                                                Join&& self )
         {
           utils::apply(
-            [&pipeline]( Separator&& sep, Emission&& emi, Emissions&&... emis ) {
-              pipeline << std::forward<Emission>( emi );
-              (void)std::initializer_list<bool> { ( ( pipeline << sep << std::forward<Emissions>( emis ) ),
+            [&pipeline]( Sep&& sep, Emi&& emi, Emis&&... emis ) {
+              pipeline << std::forward<Emi>( emi );
+              (void)std::initializer_list<bool> { ( ( pipeline << sep << std::forward<Emis>( emis ) ),
                                                     false )... };
             },
             std::move( self.value ) );
@@ -158,6 +85,38 @@ namespace pace {
       {
         return {
           { std::forward<Separator>( separator ), std::forward<Emissions>( emissions )... }
+        };
+      }
+
+      //////////////////////////////////////////////////
+
+      template<typename Sep>
+      struct Join<Sep> {
+        std::tuple<> emission;
+
+        constexpr Join() = default;
+        template<
+          typename Sp,
+          typename = typename std::enable_if<!std::is_same<typename std::decay<Sp>::type, Join>::value>::type>
+        // To make the construction operation the same as Join<Separator, ...>
+        constexpr Join( Sp&& ) noexcept
+        {}
+
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+                                                                               const Join& )
+        { return pipeline; }
+      };
+
+      using Nop = Join<void>;
+
+      PACE__NODISCARD PACE__FORCEINLINE constexpr Nop nop() noexcept
+      { return {}; }
+
+      template<typename... Emissions>
+      PACE__NODISCARD PACE__FORCEINLINE constexpr Join<Nop, Emissions...> concat( Emissions&&... emissions )
+      {
+        return {
+          { {}, std::forward<Emissions>( emissions )... }
         };
       }
 
