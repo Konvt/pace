@@ -28,27 +28,21 @@ include(CMakePackageConfigHelpers)
 add_library(pace INTERFACE)
 add_library(pace::pace ALIAS pace)
 
-if(PACE_IS_TOP_LEVEL)
-  target_compile_features(pace INTERFACE cxx_std_11)
-  set_target_properties(pace PROPERTIES CXX_EXTENSIONS OFF)
-endif()
+target_compile_features(pace INTERFACE cxx_std_11)
+
 target_include_directories(
   pace INTERFACE
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
-if(CMAKE_VERSION VERSION_GREATER_EQUAL "3.14")
-  set_property(TARGET pace PROPERTY LICENSE "MIT")
-endif()
-
 if(PACE_INSTALL)
   include(GNUInstallDirs)
   configure_package_config_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/paceConfig.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/paceConfig.cmake
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/pace-config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/pace-config.cmake
     INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
   write_basic_package_version_file(
-    ${CMAKE_CURRENT_BINARY_DIR}/paceConfigVersion.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/pace-config-version.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion)
 
@@ -57,17 +51,17 @@ if(PACE_INSTALL)
     ${CMAKE_CURRENT_BINARY_DIR}/pace.pc
     @ONLY)
 
-  install(TARGETS pace EXPORT paceTargets)
-  install(EXPORT paceTargets
-          FILE paceTargets.cmake
+  install(TARGETS pace EXPORT pace-targets)
+  install(EXPORT pace-targets
+          FILE pace-targets.cmake
           NAMESPACE pace::
           DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pace.pc
           DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
   install(FILES README.md DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/docs/${PROJECT_NAME})
   install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/licenses/${PROJECT_NAME})
-  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/paceConfig.cmake
-          ${CMAKE_CURRENT_BINARY_DIR}/paceConfigVersion.cmake
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/pace-config.cmake
+          ${CMAKE_CURRENT_BINARY_DIR}/pace-config-version.cmake
           DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
   install(DIRECTORY include/
           DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
@@ -133,31 +127,20 @@ if(PACE_PACKAGE)
 endif()
 
 if(PACE_BUILD_DEMO)
-  file(GLOB DEMO_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/demo/*.cpp")
+  file(GLOB DEMO_SOURCES CONFIGURE_DEPENDS "demo/*.cpp")
+  foreach(source IN LISTS DEMO_SOURCES)
+    get_filename_component(demo_name ${source} NAME_WE)
+    add_executable(${demo_name} ${source})
+    target_link_libraries(${demo_name} PRIVATE pace)
 
-  set(PACE_DEMO)
-  foreach(DEMO_FILE ${DEMO_SOURCES})
-    get_filename_component(DEMO_NAME ${DEMO_FILE} NAME_WE)
-    set(PACE_DEMO_NAME "demo_${DEMO_NAME}")
+    target_compile_options(${demo_name} PRIVATE
+      $<$<CXX_COMPILER_ID:MSVC>:/Za;/permissive->
+      $<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-pedantic-errors>)
 
-    add_custom_target(
-      ${PACE_DEMO_NAME}
-      COMMAND ${CMAKE_MAKE_PROGRAM} -C ${CMAKE_CURRENT_SOURCE_DIR}/demo ${DEMO_NAME}
-      WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/demo
-      COMMENT "Building demo ${DEMO_NAME} using Makefile"
-      USES_TERMINAL)
-    list(APPEND PACE_DEMO ${PACE_DEMO_NAME})
+    set_target_properties(${demo_name} PROPERTIES EXCLUDE_FROM_ALL TRUE)
+    list(APPEND DEMO_TARGETS ${demo_name})
   endforeach()
-
-  # Manually inject to trigger the generation of compile commands.json.
-  add_executable(iterate "demo/iterate.cpp")
-  target_link_libraries(iterate PRIVATE pace)
-  set_target_properties(iterate PROPERTIES EXCLUDE_FROM_ALL TRUE)
-
-  add_custom_target(
-    demo
-    DEPENDS ${PACE_DEMO}
-    COMMENT "Building all demo programs")
+  add_custom_target(demos DEPENDS ${DEMO_TARGETS})
 endif()
 
 if(NOT TARGET uninstall)

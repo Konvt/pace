@@ -3,5 +3,5 @@
 include(CMakeFindDependencyMacro)
 
 if(NOT TARGET pace::pace)
-  include(${CMAKE_CURRENT_LIST_DIR}/paceTargets.cmake)
+  include(${CMAKE_CURRENT_LIST_DIR}/pace-targets.cmake)
 endif()
