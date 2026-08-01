@@ -177,6 +177,7 @@ namespace pace {
             } );
             executor.template activate<Mode>();
           } else if PACE__CXX17_CNSTXPR ( Mode == Policy::Sync )
+            // an optimization, used to use a lighter rendering method when in Sync mode.
             executor.template commit<Mode>();
           else
             executor.template trigger<Mode>();

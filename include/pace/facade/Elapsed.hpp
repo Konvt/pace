@@ -1,14 +1,16 @@
 #ifndef PACE_ELAPSED
 #define PACE_ELAPSED
 
+#include "../config/Provider.hpp"
 #include "../details/aspects/Entailment.hpp"
 #include "../details/aspects/TimerField.hpp"
 #include "../details/behaviors/Indeterminate.hpp"
 #include "../details/behaviors/Plain.hpp"
-#include "../details/behaviors/Temporal.hpp"
-#include "../details/render/Parameter.hpp"
-#include "../details/traits/TypeSet.hpp"
+#include "../details/io/CharPipeline.hpp"
+#include "../details/io/Monoid.hpp"
+#include "../details/utils/Format.hpp"
 #include "../details/utils/Util.hpp"
+#include <mutex>
 #include <numeric>
 
 namespace pace {
@@ -230,10 +232,7 @@ namespace pace {
 
   PACE__OPTION_REGISTER( facade::Elapsed, option::ElapsedFormat );
 
-  PACE__ENTAIL_REGISTER( facade::Elapsed,
-                         details::behaviors::Indeterminate,
-                         details::behaviors::Plain,
-                         details::behaviors::Temporal );
+  PACE__ENTAIL_REGISTER( facade::Elapsed, details::behaviors::Indeterminate, details::behaviors::Plain );
 } // namespace pace
 
 #endif

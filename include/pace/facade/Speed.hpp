@@ -3,10 +3,9 @@
 
 #include "../details/aspects/Capacity.hpp"
 #include "../details/aspects/Entailment.hpp"
-#include "../details/behaviors/Incremental.hpp"
 #include "../details/behaviors/Indeterminate.hpp"
 #include "../details/behaviors/Plain.hpp"
-#include "../details/behaviors/Temporal.hpp"
+#include "../details/charcodes/U8Raw.hpp"
 #include "../details/render/Parameter.hpp"
 #include "../details/render/TextAlign.hpp"
 #include "../details/traits/C3.hpp"
@@ -260,11 +259,7 @@ namespace pace {
 
   PACE__OPTION_REGISTER( facade::Speed, option::Magnitude, option::SpeedUnit );
 
-  PACE__ENTAIL_REGISTER( facade::Speed,
-                         details::behaviors::Indeterminate,
-                         details::behaviors::Plain,
-                         details::behaviors::Incremental,
-                         details::behaviors::Temporal );
+  PACE__ENTAIL_REGISTER( facade::Speed, details::behaviors::Indeterminate, details::behaviors::Plain );
 } // namespace pace
 
 #endif

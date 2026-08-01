@@ -110,7 +110,7 @@ namespace pace {
                           details::aspects::Frame,
                           details::aspects::Capacity );
 
-  PACE__ENTAIL_REGISTER( facade::BlockPlot, details::behaviors::Determinate, details::behaviors::Plain );
+  PACE__ENTAIL_REGISTER( facade::BlockPlot, details::behaviors::Plain, details::behaviors::Determinate );
 } // namespace pace
 
 #endif

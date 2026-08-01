@@ -2,13 +2,10 @@
 #define PACE_RENDERABLE
 
 #include "../../Indicator.hpp"
-#include "../behaviors/Incremental.hpp"
 #include "../console/Escode.hpp"
 #include "../io/OStream.hpp"
 #include "../render/Builder.hpp"
 #include "../render/Renderer.hpp"
-#include "../traits/C3.hpp"
-#include "Reactive.hpp"
 #include <mutex>
 
 namespace pace {
@@ -25,12 +22,6 @@ namespace pace {
       class Renderable<Base, Derived<Soul, Sink, Mode, Zone>> : public Base {
         static_assert( traits::is_instance_of<Soul, aspects::RenderRule>::value,
                        "the config type must derive from RenderRule" );
-        // to call "do_tick()"
-        template<typename, typename>
-        friend class Incremental;
-        // to use "mtx_"
-        template<typename, typename>
-        friend class Reactive;
         using MostDerived = Derived<Soul, Sink, Mode, Zone>;
 
         virtual void do_halt( bool forced = false ) noexcept
@@ -128,12 +119,11 @@ namespace pace {
         PACE__FORCEINLINE void do_reset() noexcept( Forced )
         {
           if ( state_.load( std::memory_order_relaxed ) != Phase::Stop ) {
+            static_cast<MostDerived*>( this )->on_finish( Forced );
             if PACE__CXX17_CNSTXPR ( Forced )
               state_.store( Phase::Stop, std::memory_order_relaxed );
-            else {
-              this->react();
+            else
               state_.store( Phase::Finish, std::memory_order_release );
-            }
             this->do_halt( Forced );
           } else
             state_.store( Phase::Stop, std::memory_order_relaxed );
@@ -217,8 +207,6 @@ namespace pace {
         }
       };
     } // namespace behaviors
-
-    PACE__INHERIT_REGISTER( behaviors::Renderable, behaviors::Reactive, behaviors::Incremental );
   } // namespace details
 } // namespace pace
 

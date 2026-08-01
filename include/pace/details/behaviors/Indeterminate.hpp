@@ -2,6 +2,7 @@
 #define PACE_INDETERMINATE
 
 #include "Incremental.hpp"
+#include "Reactive.hpp"
 #include "Renderable.hpp"
 #include "Temporal.hpp"
 
@@ -26,24 +27,22 @@ namespace pace {
         }
 
       protected:
-        constexpr Indeterminate() = default;
-        constexpr Indeterminate( Indeterminate&& rhs ) noexcept : Base( std::move( rhs ) ) {}
-        PACE__CXX14_CNSTXPR Indeterminate& operator=( Indeterminate&& rhs ) & noexcept
-        {
-          Base::operator=( std::move( rhs ) );
-          return *this;
-        }
-        PACE__CXX23_CNSTXPR ~Indeterminate() = default;
+        constexpr Indeterminate()                                         = default;
+        constexpr Indeterminate( Indeterminate&& )                        = default;
+        PACE__CXX14_CNSTXPR Indeterminate& operator=( Indeterminate&& ) & = default;
+        PACE__CXX23_CNSTXPR ~Indeterminate()                              = default;
 
       public:
         using Base::Base;
       };
     } // namespace behaviors
 
+    // The type Renderable must be the top base class.
     PACE__INHERIT_REGISTER( behaviors::Indeterminate,
-                            behaviors::Renderable,
+                            behaviors::Reactive,
                             behaviors::Incremental,
-                            behaviors::Temporal );
+                            behaviors::Temporal,
+                            behaviors::Renderable );
   } // namespace details
 } // namespace pace
 

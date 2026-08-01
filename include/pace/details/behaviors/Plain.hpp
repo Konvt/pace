@@ -1,20 +1,16 @@
 #ifndef PACE_PLAIN
 #define PACE_PLAIN
 
+#include "Incremental.hpp"
+#include "Reactive.hpp"
 #include "Renderable.hpp"
+#include "Temporal.hpp"
 
 namespace pace {
   namespace details {
     namespace behaviors {
       template<typename Base, typename Derived>
-      class Plain;
-      template<typename Base,
-               template<typename, Channel, Policy, Region> class Derived,
-               typename Soul,
-               Channel Sink,
-               Policy M,
-               Region Z>
-      class Plain<Base, Derived<Soul, Sink, M, Z>> : public Base {
+      class Plain : public Base {
         template<typename, typename>
         friend class Renderable;
 
@@ -40,21 +36,22 @@ namespace pace {
         }
 
       protected:
-        constexpr Plain() = default;
-        constexpr Plain( Plain&& rhs ) noexcept : Base( std::move( rhs ) ) {}
-        PACE__CXX14_CNSTXPR Plain& operator=( Plain&& rhs ) & noexcept
-        {
-          Base::operator=( std::move( rhs ) );
-          return *this;
-        }
-        PACE__CXX23_CNSTXPR ~Plain() = default;
+        constexpr Plain()                                 = default;
+        constexpr Plain( Plain&& rhs )                    = default;
+        PACE__CXX14_CNSTXPR Plain& operator=( Plain&& ) & = default;
+        PACE__CXX23_CNSTXPR ~Plain()                      = default;
 
       public:
         using Base::Base;
       };
     } // namespace behaviors
 
-    PACE__INHERIT_REGISTER( behaviors::Plain, behaviors::Renderable );
+    // The type Renderable must be the top base class.
+    PACE__INHERIT_REGISTER( behaviors::Plain,
+                            behaviors::Reactive,
+                            behaviors::Incremental,
+                            behaviors::Temporal,
+                            behaviors::Renderable );
   } // namespace details
 } // namespace pace
 

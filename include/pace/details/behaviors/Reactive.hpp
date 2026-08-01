@@ -10,6 +10,9 @@ namespace pace {
     namespace behaviors {
       template<typename Base, typename Derived>
       class Reactive : public Base {
+        template<typename, typename>
+        friend class Renderable;
+
         union Callback {
           wrappers::UniqueFunction<void()> on;
           wrappers::UniqueFunction<void( Derived& )> on_self;
@@ -51,9 +54,10 @@ namespace pace {
           destroy();
         }
 
-      protected:
-        PACE__FORCEINLINE PACE__CXX20_CNSTXPR void react() &
+        PACE__FORCEINLINE PACE__CXX20_CNSTXPR void on_finish( bool forced ) &
         {
+          if ( forced )
+            return;
           switch ( tag_ ) {
           case Tag::Nullary: hook_.on(); break;
           case Tag::Unary:   hook_.on_self( static_cast<Derived&>( *this ) ); break;
@@ -63,6 +67,7 @@ namespace pace {
           }
         }
 
+      protected:
         constexpr Reactive() = default;
         PACE__CXX20_CNSTXPR Reactive( Reactive&& rhs )
           noexcept( std::is_nothrow_move_constructible<Base>::value )

@@ -46,7 +46,7 @@ namespace pace {
 
   PACE__INHERIT_REGISTER( facade::SpinPlot, details::aspects::Frame );
 
-  PACE__ENTAIL_REGISTER( facade::SpinPlot, details::behaviors::Indeterminate, details::behaviors::Fancy );
+  PACE__ENTAIL_REGISTER( facade::SpinPlot, details::behaviors::Fancy, details::behaviors::Indeterminate );
 } // namespace pace
 
 #endif

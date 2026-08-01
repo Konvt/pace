@@ -116,7 +116,7 @@ namespace pace {
                           details::aspects::Bar,
                           details::aspects::Frame );
 
-  PACE__ENTAIL_REGISTER( facade::FlowPlot, details::behaviors::Indeterminate, details::behaviors::Fancy );
+  PACE__ENTAIL_REGISTER( facade::FlowPlot, details::behaviors::Fancy, details::behaviors::Indeterminate );
 } // namespace pace
 
 #endif

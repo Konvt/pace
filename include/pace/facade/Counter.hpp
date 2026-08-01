@@ -3,7 +3,6 @@
 
 #include "../details/aspects/Capacity.hpp"
 #include "../details/aspects/Entailment.hpp"
-#include "../details/behaviors/Incremental.hpp"
 #include "../details/behaviors/Indeterminate.hpp"
 #include "../details/behaviors/Plain.hpp"
 #include "../details/render/Parameter.hpp"
@@ -81,10 +80,7 @@ namespace pace {
 
   PACE__OPTION_REGISTER( facade::Counter, option::ShowQuota );
 
-  PACE__ENTAIL_REGISTER( facade::Counter,
-                         details::behaviors::Indeterminate,
-                         details::behaviors::Plain,
-                         details::behaviors::Incremental );
+  PACE__ENTAIL_REGISTER( facade::Counter, details::behaviors::Indeterminate, details::behaviors::Plain );
 } // namespace pace
 
 #endif

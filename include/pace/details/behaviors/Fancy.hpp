@@ -3,7 +3,6 @@
 
 #include "Motional.hpp"
 #include "Plain.hpp"
-#include "Renderable.hpp"
 
 namespace pace {
   namespace details {
@@ -38,14 +37,10 @@ namespace pace {
         }
 
       protected:
-        constexpr Fancy() = default;
-        constexpr Fancy( Fancy&& rhs ) noexcept : Base( std::move( rhs ) ) {}
-        PACE__CXX14_CNSTXPR Fancy& operator=( Fancy&& rhs ) & noexcept
-        {
-          Base::operator=( std::move( rhs ) );
-          return *this;
-        }
-        PACE__CXX23_CNSTXPR ~Fancy() = default;
+        constexpr Fancy()                                 = default;
+        constexpr Fancy( Fancy&& )                        = default;
+        PACE__CXX14_CNSTXPR Fancy& operator=( Fancy&& ) & = default;
+        PACE__CXX23_CNSTXPR ~Fancy()                      = default;
 
       public:
         using Base::Base;
@@ -54,7 +49,7 @@ namespace pace {
 
     // The Plain declaration is merely to resolve the uncertain dependency sequence,
     // and it has nothing to do with the dependency relationships among them.
-    PACE__INHERIT_REGISTER( behaviors::Fancy, behaviors::Plain, behaviors::Renderable, behaviors::Motional );
+    PACE__INHERIT_REGISTER( behaviors::Fancy, behaviors::Plain, behaviors::Motional );
   } // namespace details
 } // namespace pace
 

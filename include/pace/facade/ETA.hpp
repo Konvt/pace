@@ -4,10 +4,9 @@
 #include "../details/aspects/Capacity.hpp"
 #include "../details/aspects/Entailment.hpp"
 #include "../details/aspects/TimerField.hpp"
-#include "../details/behaviors/Incremental.hpp"
 #include "../details/behaviors/Indeterminate.hpp"
 #include "../details/behaviors/Plain.hpp"
-#include "../details/behaviors/Temporal.hpp"
+#include "../details/io/Monoid.hpp"
 #include "../details/render/Parameter.hpp"
 #include "../details/traits/C3.hpp"
 #include "../details/utils/Util.hpp"
@@ -253,11 +252,7 @@ namespace pace {
 
   PACE__OPTION_REGISTER( facade::ETA, option::ETAFormat );
 
-  PACE__ENTAIL_REGISTER( facade::ETA,
-                         details::behaviors::Indeterminate,
-                         details::behaviors::Plain,
-                         details::behaviors::Incremental,
-                         details::behaviors::Temporal );
+  PACE__ENTAIL_REGISTER( facade::ETA, details::behaviors::Indeterminate, details::behaviors::Plain );
 } // namespace pace
 
 #endif

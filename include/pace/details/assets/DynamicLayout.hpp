@@ -245,6 +245,7 @@ namespace pace {
               eliminate();
               items_.emplace_back( item );
             }
+            // an optimization, used to use a lighter rendering method when in Sync mode.
             if PACE__CXX17_CNSTXPR ( Mode == Policy::Sync )
               executor.template commit<Mode>();
             else
