@@ -12,14 +12,10 @@ namespace pace {
       protected:
         std::chrono::steady_clock::time_point zero_point_;
 
-        constexpr Temporal() = default;
-        constexpr Temporal( Temporal&& rhs ) noexcept : Base( std::move( rhs ) ) {}
-        PACE__CXX14_CNSTXPR Temporal& operator=( Temporal&& rhs ) & noexcept
-        {
-          Base::operator=( std::move( rhs ) );
-          return *this;
-        }
-        PACE__CXX23_CNSTXPR ~Temporal() = default;
+        constexpr Temporal()                                    = default;
+        constexpr Temporal( Temporal&& )                        = default;
+        PACE__CXX14_CNSTXPR Temporal& operator=( Temporal&& ) & = default;
+        PACE__CXX23_CNSTXPR ~Temporal()                         = default;
 
       public:
         using Base::Base;

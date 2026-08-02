@@ -28,8 +28,7 @@ namespace pace {
         std::uint64_t task_end_;
 
         Incremental() = default;
-        Incremental( Incremental&& rhs ) noexcept : Base( std::move( rhs ) )
-        { task_cnt_.store( 0, std::memory_order_relaxed ); }
+        Incremental( Incremental&& rhs ) noexcept : Base( std::move( rhs ) ) {}
         Incremental& operator=( Incremental&& rhs ) & noexcept
         {
           Base::operator=( std::move( rhs ) );

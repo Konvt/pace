@@ -202,8 +202,8 @@ namespace pace {
 
         PACE__CXX20_CNSTXPR void swap( Renderable& other ) noexcept
         {
-          Base::swap( other );
           config_.swap( other.config_ );
+          Base::swap( other );
         }
       };
     } // namespace behaviors

@@ -78,8 +78,8 @@ namespace pace {
         { // The thread insecurity here is deliberately designed.
           // Because for a move-only type, transferring ownership simultaneously
           // in multiple locations should not occur.
-          Base::operator=( std::move( rhs ) );
           rhs.move_to( *this );
+          Base::operator=( std::move( rhs ) );
           return *this;
         }
         ~Reactive() noexcept { destroy(); }
@@ -199,7 +199,6 @@ namespace pace {
 
         void swap( Reactive& other ) noexcept
         {
-          Base::swap( other );
           switch ( tag_ ) {
           case Tag::Nullary:
             if ( other.tag_ == Tag::Nullary )
@@ -229,6 +228,7 @@ namespace pace {
               other.move_to( *this );
             break;
           }
+          Base::swap( other );
         }
       };
     } // namespace behaviors
