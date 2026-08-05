@@ -546,7 +546,8 @@ namespace pace {
         }
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR void destroy_cow( CoWBlock& cow ) noexcept
         {
-          if ( cow.refs->fetch_sub( 1, std::memory_order_acq_rel ) == 1 ) {
+          if ( cow.refs->fetch_sub( 1, std::memory_order_release ) == 1 ) {
+            std::atomic_thread_fence( std::memory_order_acquire );
             ::delete cow.refs;
             deallocate( utils::exchange( cow.ptr, pointer() ), utils::exchange( cow.capacity, 0 ) );
           }
