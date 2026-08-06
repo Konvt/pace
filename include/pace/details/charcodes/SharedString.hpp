@@ -45,78 +45,96 @@ namespace pace {
       { return { cstr, length }; }
 
       template<typename Alloc, typename = void>
-      class CoWAllocator {
+      class AllocatorStorage {
         Alloc alloc_;
 
       protected:
+        constexpr AllocatorStorage() = default;
+
+        AllocatorStorage( const AllocatorStorage& )
+          noexcept( std::is_nothrow_default_constructible<Alloc>::value )
+        {}
+        AllocatorStorage( AllocatorStorage&& ) noexcept( std::is_nothrow_default_constructible<Alloc>::value )
+        {}
+        AllocatorStorage& operator=( const AllocatorStorage& ) & noexcept { return *this; }
+        AllocatorStorage& operator=( AllocatorStorage&& ) & noexcept { return *this; }
+
         template<typename... Args,
-                 typename std::enable_if<std::is_constructible<Alloc, Args&&...>::value, bool>::type = 0>
-        constexpr CoWAllocator( Args&&... args )
-          noexcept( std::is_nothrow_constructible<Alloc, Args&&...>::value )
+                 typename = typename std::enable_if<std::is_constructible<Alloc, Args...>::value, bool>::type>
+        constexpr AllocatorStorage( Args&&... args )
+          noexcept( std::is_nothrow_constructible<Alloc, Args...>::value )
           : alloc_ { std::forward<Args>( args )... }
         {}
-        template<typename... Args,
-                 typename std::enable_if<!std::is_constructible<Alloc, Args&&...>::value, bool>::type = 0>
-        constexpr CoWAllocator( Args&&... ) noexcept( std::is_nothrow_default_constructible<Alloc>::value )
-          : alloc_ {}
-        {}
+
+        template<typename Tp>
+        PACE__NODISCARD constexpr traits::RebindAlloc_t<Alloc, Tp> allocator() const noexcept
+        { return { alloc_ }; }
 
         PACE__CXX14_CNSTXPR Alloc& allocator() noexcept { return alloc_; }
         constexpr const Alloc& allocator() const noexcept { return alloc_; }
 
       public:
-        PACE__CXX20_CNSTXPR ~CoWAllocator() = default;
+        PACE__CXX20_CNSTXPR ~AllocatorStorage() = default;
       };
       template<typename Alloc>
-      class CoWAllocator<
+      class AllocatorStorage<
         Alloc,
         typename std::enable_if<
           traits::AllOf<std::is_empty<Alloc>, traits::Not<traits::is_final<Alloc>>>::value>::type>
         : private Alloc {
       protected:
+        constexpr AllocatorStorage() = default;
+
+        AllocatorStorage( const AllocatorStorage& )
+          noexcept( std::is_nothrow_default_constructible<Alloc>::value )
+        {}
+        AllocatorStorage( AllocatorStorage&& ) noexcept( std::is_nothrow_default_constructible<Alloc>::value )
+        {}
+        AllocatorStorage& operator=( const AllocatorStorage& ) & noexcept { return *this; }
+        AllocatorStorage& operator=( AllocatorStorage&& ) & noexcept { return *this; }
+
         template<typename... Args,
-                 typename std::enable_if<std::is_constructible<Alloc, Args&&...>::value, bool>::type = 0>
-        constexpr CoWAllocator( Args&&... args )
-          noexcept( std::is_nothrow_constructible<Alloc, Args&&...>::value )
+                 typename = typename std::enable_if<std::is_constructible<Alloc, Args...>::value>::type>
+        constexpr AllocatorStorage( Args&&... args )
+          noexcept( std::is_nothrow_constructible<Alloc, Args...>::value )
           : Alloc( std::forward<Args>( args )... )
         {}
-        template<typename... Args,
-                 typename std::enable_if<!std::is_constructible<Alloc, Args&&...>::value, bool>::type = 0>
-        constexpr CoWAllocator( Args&&... ) noexcept( std::is_nothrow_default_constructible<Alloc>::value )
-          : Alloc()
-        {}
+
+        template<typename Tp>
+        PACE__NODISCARD constexpr traits::RebindAlloc_t<Alloc, Tp> allocator() const noexcept
+        { return { static_cast<const Alloc&>( *this ) }; }
 
         PACE__CXX14_CNSTXPR Alloc& allocator() noexcept { return static_cast<Alloc&>( *this ); }
         constexpr const Alloc& allocator() const noexcept { return static_cast<const Alloc&>( *this ); }
 
       public:
-        PACE__CXX20_CNSTXPR ~CoWAllocator() = default;
+        PACE__CXX20_CNSTXPR ~AllocatorStorage() = default;
       };
 
       template<typename Alloc, typename Derived, typename = void>
-      struct CoWCopyAlloc {
-        constexpr CoWCopyAlloc()                                      = default;
-        constexpr CoWCopyAlloc( const CoWCopyAlloc& )                 = default;
-        constexpr CoWCopyAlloc( CoWCopyAlloc&& )                      = default;
-        PACE__CXX14_CNSTXPR CoWCopyAlloc& operator=( CoWCopyAlloc&& ) = default;
+      struct CopyAllocator {
+        constexpr CopyAllocator()                                       = default;
+        constexpr CopyAllocator( const CopyAllocator& )                 = default;
+        constexpr CopyAllocator( CopyAllocator&& )                      = default;
+        PACE__CXX14_CNSTXPR CopyAllocator& operator=( CopyAllocator&& ) = default;
 
-        PACE__CXX20_CNSTXPR ~CoWCopyAlloc() = default;
+        PACE__CXX20_CNSTXPR ~CopyAllocator() = default;
 
-        PACE__CXX14_CNSTXPR CoWCopyAlloc& operator=( const CoWCopyAlloc& ) noexcept { return *this; }
+        PACE__CXX14_CNSTXPR CopyAllocator& operator=( const CopyAllocator& ) noexcept { return *this; }
       };
       template<typename Alloc, typename Derived>
-      struct CoWCopyAlloc<Alloc,
-                          Derived,
-                          typename std::enable_if<std::allocator_traits<
-                            Alloc>::propagate_on_container_copy_assignment::value>::type> {
-        constexpr CoWCopyAlloc()                                      = default;
-        constexpr CoWCopyAlloc( const CoWCopyAlloc& )                 = default;
-        constexpr CoWCopyAlloc( CoWCopyAlloc&& )                      = default;
-        PACE__CXX14_CNSTXPR CoWCopyAlloc& operator=( CoWCopyAlloc&& ) = default;
+      struct CopyAllocator<Alloc,
+                           Derived,
+                           typename std::enable_if<std::allocator_traits<
+                             Alloc>::propagate_on_container_copy_assignment::value>::type> {
+        constexpr CopyAllocator()                                       = default;
+        constexpr CopyAllocator( const CopyAllocator& )                 = default;
+        constexpr CopyAllocator( CopyAllocator&& )                      = default;
+        PACE__CXX14_CNSTXPR CopyAllocator& operator=( CopyAllocator&& ) = default;
 
-        PACE__CXX20_CNSTXPR ~CoWCopyAlloc() = default;
+        PACE__CXX20_CNSTXPR ~CopyAllocator() = default;
 
-        PACE__CXX14_CNSTXPR CoWCopyAlloc& operator=( const CoWCopyAlloc& other ) & noexcept
+        PACE__CXX14_CNSTXPR CopyAllocator& operator=( const CopyAllocator& other ) & noexcept
         { // if the allocator satisfy propagate_on_container_copy_assignment,
           // then its must be nothrow copy assignable
           static_cast<Derived*>( this )->allocator() = static_cast<Derived&>( other ).allocator();
@@ -125,29 +143,29 @@ namespace pace {
       };
 
       template<typename Alloc, typename Derived, typename = void>
-      struct CoWMoveAlloc {
-        constexpr CoWMoveAlloc()                                           = default;
-        constexpr CoWMoveAlloc( const CoWMoveAlloc& )                      = default;
-        constexpr CoWMoveAlloc( CoWMoveAlloc&& )                           = default;
-        PACE__CXX14_CNSTXPR CoWMoveAlloc& operator=( const CoWMoveAlloc& ) = default;
+      struct MoveAllocator {
+        constexpr MoveAllocator()                                            = default;
+        constexpr MoveAllocator( const MoveAllocator& )                      = default;
+        constexpr MoveAllocator( MoveAllocator&& )                           = default;
+        PACE__CXX14_CNSTXPR MoveAllocator& operator=( const MoveAllocator& ) = default;
 
-        PACE__CXX20_CNSTXPR ~CoWMoveAlloc() = default;
+        PACE__CXX20_CNSTXPR ~MoveAllocator() = default;
 
-        PACE__CXX14_CNSTXPR CoWMoveAlloc& operator=( CoWMoveAlloc&& ) noexcept { return *this; }
+        PACE__CXX14_CNSTXPR MoveAllocator& operator=( MoveAllocator&& ) noexcept { return *this; }
       };
       template<typename Alloc, typename Derived>
-      struct CoWMoveAlloc<Alloc,
-                          Derived,
-                          typename std::enable_if<std::allocator_traits<
-                            Alloc>::propagate_on_container_move_assignment::value>::type> {
-        constexpr CoWMoveAlloc()                                           = default;
-        constexpr CoWMoveAlloc( const CoWMoveAlloc& )                      = default;
-        constexpr CoWMoveAlloc( CoWMoveAlloc&& )                           = default;
-        PACE__CXX14_CNSTXPR CoWMoveAlloc& operator=( const CoWMoveAlloc& ) = default;
+      struct MoveAllocator<Alloc,
+                           Derived,
+                           typename std::enable_if<std::allocator_traits<
+                             Alloc>::propagate_on_container_move_assignment::value>::type> {
+        constexpr MoveAllocator()                                            = default;
+        constexpr MoveAllocator( const MoveAllocator& )                      = default;
+        constexpr MoveAllocator( MoveAllocator&& )                           = default;
+        PACE__CXX14_CNSTXPR MoveAllocator& operator=( const MoveAllocator& ) = default;
 
-        PACE__CXX20_CNSTXPR ~CoWMoveAlloc() = default;
+        PACE__CXX20_CNSTXPR ~MoveAllocator() = default;
 
-        PACE__CXX14_CNSTXPR CoWMoveAlloc& operator=( CoWMoveAlloc&& rhs ) & noexcept
+        PACE__CXX14_CNSTXPR MoveAllocator& operator=( MoveAllocator&& rhs ) & noexcept
         {
           static_cast<Derived*>( this )->allocator() = std::move( static_cast<Derived&>( rhs ).allocator() );
           return *this;
@@ -155,35 +173,45 @@ namespace pace {
       };
 
       template<typename Alloc, typename Derived, typename = void>
-      struct CoWSwapAlloc {
-        constexpr CoWSwapAlloc()                                           = default;
-        constexpr CoWSwapAlloc( const CoWSwapAlloc& )                      = default;
-        constexpr CoWSwapAlloc( CoWSwapAlloc&& )                           = default;
-        PACE__CXX14_CNSTXPR CoWSwapAlloc& operator=( CoWSwapAlloc&& )      = default;
-        PACE__CXX14_CNSTXPR CoWSwapAlloc& operator=( const CoWSwapAlloc& ) = default;
+      struct SwapAllocator {
+        constexpr SwapAllocator()                                            = default;
+        constexpr SwapAllocator( const SwapAllocator& )                      = default;
+        constexpr SwapAllocator( SwapAllocator&& )                           = default;
+        PACE__CXX14_CNSTXPR SwapAllocator& operator=( SwapAllocator&& )      = default;
+        PACE__CXX14_CNSTXPR SwapAllocator& operator=( const SwapAllocator& ) = default;
 
-        PACE__CXX20_CNSTXPR ~CoWSwapAlloc() = default;
+        PACE__CXX20_CNSTXPR ~SwapAllocator() = default;
 
-        PACE__CXX14_CNSTXPR void swap( CoWSwapAlloc& ) noexcept {}
+        PACE__CXX14_CNSTXPR void swap( SwapAllocator& ) noexcept {}
       };
       template<typename Alloc, typename Derived>
-      struct CoWSwapAlloc<
+      struct SwapAllocator<
         Alloc,
         Derived,
         typename std::enable_if<std::allocator_traits<Alloc>::propagate_on_container_swap::value>::type> {
-        constexpr CoWSwapAlloc()                                           = default;
-        constexpr CoWSwapAlloc( const CoWSwapAlloc& )                      = default;
-        constexpr CoWSwapAlloc( CoWSwapAlloc&& )                           = default;
-        PACE__CXX14_CNSTXPR CoWSwapAlloc& operator=( CoWSwapAlloc&& )      = default;
-        PACE__CXX14_CNSTXPR CoWSwapAlloc& operator=( const CoWSwapAlloc& ) = default;
+        constexpr SwapAllocator()                                            = default;
+        constexpr SwapAllocator( const SwapAllocator& )                      = default;
+        constexpr SwapAllocator( SwapAllocator&& )                           = default;
+        PACE__CXX14_CNSTXPR SwapAllocator& operator=( SwapAllocator&& )      = default;
+        PACE__CXX14_CNSTXPR SwapAllocator& operator=( const SwapAllocator& ) = default;
 
-        PACE__CXX20_CNSTXPR ~CoWSwapAlloc() = default;
+        PACE__CXX20_CNSTXPR ~SwapAllocator() = default;
 
-        PACE__CXX14_CNSTXPR void swap( CoWSwapAlloc& other ) noexcept
+        PACE__CXX14_CNSTXPR void swap( SwapAllocator& other ) noexcept
         {
           using std::swap;
           swap( static_cast<Derived*>( this )->allocator(), static_cast<Derived&>( other ).allocator() );
         }
+      };
+
+      template<typename Alloc>
+      struct AllocatorCell
+        : public AllocatorStorage<Alloc>
+        , public CopyAllocator<Alloc, AllocatorCell<Alloc>>
+        , public MoveAllocator<Alloc, AllocatorCell<Alloc>>
+        , public SwapAllocator<Alloc, AllocatorCell<Alloc>> {
+      protected:
+        using AllocatorStorage<Alloc>::AllocatorStorage;
       };
 
       template<typename Pointee, typename Derived>
@@ -272,14 +300,14 @@ namespace pace {
       };
 
       template<typename Char, typename Traits = std::char_traits<Char>, typename Alloc = std::allocator<Char>>
-      class BasicSharedString
-        : public CoWAllocator<Alloc>
-        , private CoWCopyAlloc<Alloc, BasicSharedString<Char, Traits, Alloc>>
-        , private CoWMoveAlloc<Alloc, BasicSharedString<Char, Traits, Alloc>>
-        , private CoWSwapAlloc<Alloc, BasicSharedString<Char, Traits, Alloc>> {
+      class BasicSharedString : public AllocatorCell<Alloc> {
         static_assert( traits::is_implicit_lifetime<Char>::value, "Char must be an implicit-lifetime type" );
 
-        using CoWRef = std::atomic<std::uint64_t>;
+        using AllocCell  = AllocatorCell<Alloc>;
+        using RefCounter = std::atomic<size_t>;
+        using CoWAlloc   = traits::RebindAlloc_t<Alloc, RefCounter>;
+        using CoWRefs    = typename std::allocator_traits<CoWAlloc>::pointer;
+
 #ifdef __cpp_lib_string_view
         template<typename StringViewLike>
         using is_string_view_like =
@@ -412,13 +440,10 @@ namespace pace {
 
       private:
         struct CoWBlock final {
-          CoWRef* refs;
+          CoWRefs refs;
           pointer ptr;
           size_type capacity;
 
-          constexpr CoWBlock( CoWRef* rfs, pointer p, size_type cap ) noexcept
-            : refs { rfs }, ptr { std::move( p ) }, capacity { cap }
-          {}
           PACE__CXX20_CNSTXPR ~CoWBlock() = default;
 
           // it's extremely surprising that the type alias `pointer` of the allocator can be a fancy pointer
@@ -516,15 +541,24 @@ namespace pace {
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR CoWBlock make_cow( size_type cap )
         {
           throw_if_exceed( cap - 1 );
-          auto refs = ::new CoWRef( 1 );
+          auto cow_alloc = this->template allocator<RefCounter>();
+          auto refs      = std::allocator_traits<CoWAlloc>::allocate( cow_alloc, 1 );
+          try {
+            std::allocator_traits<CoWAlloc>::construct( cow_alloc, utils::to_address( refs ), 0 );
+          } catch ( ... ) {
+            std::allocator_traits<CoWAlloc>::deallocate( cow_alloc, refs, 1 );
+            throw;
+          }
           // Although we have a ScopeFail, we can't use it here
           // because ScopeFail doesn't meet the constexpr requirements under C++20.
           try {
             auto ptr = allocate( cap );
+            // the following function is noexcept for Char because of implicit-lifetime
             (void)utils::start_lifetime_as_array<Char>( utils::to_address( ptr ), cap );
-            return { refs, std::move( ptr ), cap };
+            return { std::move( refs ), std::move( ptr ), cap };
           } catch ( ... ) {
-            ::delete refs;
+            std::allocator_traits<CoWAlloc>::destroy( cow_alloc, utils::to_address( refs ) );
+            std::allocator_traits<CoWAlloc>::deallocate( cow_alloc, refs, 1 );
             throw;
           }
         }
@@ -548,7 +582,9 @@ namespace pace {
         {
           if ( cow.refs->fetch_sub( 1, std::memory_order_release ) == 1 ) {
             std::atomic_thread_fence( std::memory_order_acquire );
-            ::delete cow.refs;
+            auto cow_alloc = this->template allocator<RefCounter>();
+            std::allocator_traits<CoWAlloc>::destroy( cow_alloc, utils::to_address( cow.refs ) );
+            std::allocator_traits<CoWAlloc>::deallocate( cow_alloc, cow.refs, 1 );
             deallocate( utils::exchange( cow.ptr, pointer() ), utils::exchange( cow.capacity, 0 ) );
           }
         }
@@ -783,12 +819,14 @@ namespace pace {
 
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR void destroy_self() noexcept
         {
-          if ( tag_ == Kind::Dynamic )
+          if ( tag_ == Kind::Dynamic ) {
             destroy_cow( as_.remote );
+            utils::destroy_at( as_.remote );
+          }
         }
-        template<bool PropagativeAlloc>
+        template<bool Propagative>
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR void propagate_self( const BasicSharedString& other )
-          noexcept( std::allocator_traits<Alloc>::is_always_equal::value || PropagativeAlloc )
+          noexcept( std::allocator_traits<Alloc>::is_always_equal::value || Propagative )
         {
           switch ( other.tag_ ) {
           case Kind::Literal: {
@@ -802,7 +840,7 @@ namespace pace {
                           other.length_ + 1 );
           } break;
           case Kind::Dynamic: {
-            if ( std::allocator_traits<Alloc>::is_always_equal::value || PropagativeAlloc
+            if ( std::allocator_traits<Alloc>::is_always_equal::value || Propagative
                  || this->allocator() == other.allocator() ) {
               destroy_self();
               utils::construct_at( &as_.remote, make_cow( other.as_.remote ) );
@@ -834,12 +872,7 @@ namespace pace {
         { return assign( std::move( literal_str ) ); }
         PACE__CXX14_CNSTXPR BasicSharedString& assign( Literal<Char> literal_str ) noexcept
         {
-          switch ( tag_ ) {
-          case Kind::Literal: as_.literal = literal_str.data(); break;
-          case Kind::Dynamic: destroy_cow( as_.remote ); PACE__FALLTHROUGH;
-          case Kind::Inline:  utils::construct_at( &as_.literal, literal_str.data() ); break;
-          default:            utils::unreachable();
-          }
+          destroy_self();
           length_ = literal_str.size();
           tag_    = Kind::Literal;
           return *this;
@@ -901,7 +934,7 @@ namespace pace {
         {
           switch ( tag_ ) {
           case Kind::Dynamic:
-            if ( as_.remote.refs->load( std::memory_order_acquire ) == 1 )
+            if ( as_.remote.refs->load( std::memory_order_relaxed ) == 1 )
               return true;
             PACE__FALLTHROUGH;
           case Kind::Literal: return false;
@@ -1043,7 +1076,7 @@ namespace pace {
         {}
         explicit PACE__CXX14_CNSTXPR BasicSharedString( const Alloc& alloc )
           noexcept( std::is_nothrow_copy_constructible<Alloc>::value )
-          : CoWAllocator<Alloc>( alloc ), as_ {}, length_ { 0 }, tag_ { Kind::Inline }
+          : AllocCell( alloc ), as_ {}, length_ { 0 }, tag_ { Kind::Inline }
         { Traits::assign( utils::launder_as<Char>( &as_ )[0], Char() ); }
         PACE__CXX20_CNSTXPR BasicSharedString( size_type count, Char ch, const Alloc& alloc = Alloc() )
           : BasicSharedString( alloc )
@@ -1091,7 +1124,7 @@ namespace pace {
             }
             if ( transfered ) {
               Traits::assign( dest[length], Char() );
-              utils::construct_at( &as_.remote, ::new CoWRef( 1 ), str, cap );
+              utils::construct_at( &as_.remote, ::new CoWRefs( 1 ), str, cap );
               tag_ = Kind::Dynamic;
             } else {
               Traits::assign( dest[length], Char() );
@@ -1200,14 +1233,11 @@ namespace pace {
         { assign( str_v, pos, count ); }
 #endif
         PACE__CXX20_CNSTXPR BasicSharedString( const BasicSharedString& other )
-          noexcept( std::is_nothrow_copy_constructible<Alloc>::value
-                    && noexcept( std::allocator_traits<Alloc>::select_on_container_copy_construction(
-                      other.allocator() ) ) )
           : BasicSharedString(
               std::allocator_traits<Alloc>::select_on_container_copy_construction( other.allocator() ) )
         { assign( other ); }
         PACE__CXX20_CNSTXPR BasicSharedString( BasicSharedString&& rhs ) noexcept
-          : CoWAllocator<Alloc>( std::move( rhs.allocator() ) ), as_ {}, length_ { 0 }, tag_ { Kind::Inline }
+          : AllocCell( std::move( rhs.allocator() ) ), as_ {}, length_ { 0 }, tag_ { Kind::Inline }
         {
           PACE__TRUST( this != &rhs );
           switch ( rhs.tag_ ) {
@@ -1225,8 +1255,6 @@ namespace pace {
           Traits::assign( utils::launder_as<Char>( &rhs.as_ )[0], Char() );
         }
         PACE__CXX20_CNSTXPR BasicSharedString( const BasicSharedString& other, const Alloc& alloc )
-          noexcept( traits::AllOf<std::is_nothrow_copy_constructible<Alloc>,
-                                  typename std::allocator_traits<Alloc>::is_always_equal>::value )
           : BasicSharedString( alloc )
         {
           switch ( other.tag_ ) {
@@ -1271,6 +1299,7 @@ namespace pace {
               utils::construct_at( &as_.remote,
                                    make_cow( rhs.as_.remote.str(), rhs.length_, rhs.length_ + 1 ) );
               destroy_cow( rhs.as_.remote );
+              utils::destroy_at( rhs.as_.remote );
             }
           } break;
           default: utils::unreachable();
@@ -1355,15 +1384,17 @@ namespace pace {
           } break;
           case Kind::Dynamic: {
             if ( ( std::allocator_traits<Alloc>::is_always_equal::value
+                   || std::allocator_traits<Alloc>::propagate_on_container_move_assignment::value
                    || this->allocator() == rhs.allocator() )
                  && ( ( pos == 0 && count == rhs.length_ )
-                      || rhs.as_.remote.refs->load( std::memory_order_acquire ) == 1 ) ) {
+                      || rhs.as_.remote.refs->load( std::memory_order_relaxed ) == 1 ) ) {
               utils::construct_at( &as_.remote, rhs.as_.remote );
               if ( pos != 0 || count < rhs.length_ )
                 Traits::move( as_.remote.str(), as_.remote.str() + pos, count );
             } else {
               utils::construct_at( &as_.remote, make_cow( rhs.as_.remote.str() + pos, count, count + 1 ) );
               destroy_cow( rhs.as_.remote );
+              utils::destroy_at( rhs.as_.remote );
             }
             tag_ = Kind::Dynamic;
           } break;
@@ -1379,12 +1410,10 @@ namespace pace {
         PACE__CXX20_CNSTXPR ~BasicSharedString() noexcept { destroy_self(); }
 
         PACE__CXX20_CNSTXPR BasicSharedString& operator=( const BasicSharedString& other ) & noexcept(
-          traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_copy_assignment,
-                        typename std::allocator_traits<Alloc>::is_always_equal>::value )
+          noexcept( assign( other ) ) )
         { return assign( other ); }
         PACE__CXX20_CNSTXPR BasicSharedString& operator=( BasicSharedString&& rhs ) & noexcept(
-          traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_move_assignment,
-                        typename std::allocator_traits<Alloc>::is_always_equal>::value )
+          noexcept( assign( std::move( rhs ) ) ) )
         { return assign( std::move( rhs ) ); }
         PACE__CXX20_CNSTXPR BasicSharedString& operator=( const Char* cstr ) & { return assign( cstr ); }
         PACE__CXX20_CNSTXPR BasicSharedString& operator=( Char ch ) & noexcept( small_capacity() >= 1 )
@@ -1400,25 +1429,29 @@ namespace pace {
         BasicSharedString& operator=( std::nullptr_t ) = delete;
 
         PACE__CXX20_CNSTXPR BasicSharedString& assign( const BasicSharedString& other ) & noexcept(
-          traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_copy_assignment,
-                        typename std::allocator_traits<Alloc>::is_always_equal>::value )
+          traits::AnyOf<
+            typename std::allocator_traits<Alloc>::is_always_equal,
+            typename std::allocator_traits<Alloc>::propagate_on_container_copy_assignment>::value )
         { // self-assignment without extra parameters is invalid
           PACE__TRUST( this != &other );
-          this->CoWCopyAlloc<Alloc, BasicSharedString>::operator=( other );
-          propagate_self<
-            traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_copy_assignment,
-                          typename std::allocator_traits<Alloc>::is_always_equal>::value>( other );
+          this->AllocCell::operator=( other );
+          propagate_self<traits::AnyOf<
+            typename std::allocator_traits<Alloc>::is_always_equal,
+            typename std::allocator_traits<Alloc>::propagate_on_container_copy_assignment>::value>( other );
           length_ = other.length_;
           tag_    = other.tag_;
           return *this;
         }
         PACE__CXX20_CNSTXPR BasicSharedString& assign( BasicSharedString&& rhs ) & noexcept(
-          traits::AnyOf<typename std::allocator_traits<Alloc>::propagate_on_container_move_assignment,
-                        typename std::allocator_traits<Alloc>::is_always_equal>::value )
+          traits::AnyOf<
+            typename std::allocator_traits<Alloc>::is_always_equal,
+            typename std::allocator_traits<Alloc>::propagate_on_container_move_assignment>::value )
         {
           PACE__TRUST( this != &rhs );
-          this->CoWMoveAlloc<Alloc, BasicSharedString>::operator=( std::move( rhs ) );
-          propagate_self<std::allocator_traits<Alloc>::is_always_equal::value>( rhs );
+          this->AllocCell::operator=( std::move( rhs ) );
+          propagate_self<traits::AnyOf<
+            typename std::allocator_traits<Alloc>::is_always_equal,
+            typename std::allocator_traits<Alloc>::propagate_on_container_move_assignment>::value>( rhs );
           length_ = utils::exchange( rhs.length_, 0 );
           tag_    = utils::exchange( rhs.tag_, Kind::Inline );
           Traits::assign( utils::launder_as<Char>( &rhs.as_ )[0], Char() );
@@ -1437,7 +1470,7 @@ namespace pace {
               transfer_to<Kind::Inline>( count, ch, 0 );
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+            if ( as_.remote.refs->load( std::memory_order_relaxed ) > 1 )
               expand_with( nullptr, 0, nullptr, 0, count, ch );
             else if ( as_.remote.capacity <= count )
               duplicate_from( nullptr, 0, nullptr, 0, count, ch );
@@ -1465,7 +1498,7 @@ namespace pace {
               transfer_to<Kind::Inline>( cstr, count, 0 );
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+            if ( as_.remote.refs->load( std::memory_order_relaxed ) > 1 )
               duplicate_from( cstr, count, count + 1 );
             else if ( as_.remote.capacity <= count )
               expand_with( cstr, count, dynamic_capacity( as_.remote.capacity - 1 ) + 1 );
@@ -1533,7 +1566,7 @@ namespace pace {
             } break;
             case Kind::Inline:  embed( utils::launder_as<Char>( &as_ ), pos, pos + count, nullptr, 0 ); break;
             case Kind::Dynamic: {
-              if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+              if ( as_.remote.refs->load( std::memory_order_relaxed ) > 1 )
                 duplicate_from( as_.remote.str() + pos, count, remaining_length + 1 );
               else
                 embed( as_.remote.str(), pos, pos + count, nullptr, 0 );
@@ -1541,9 +1574,10 @@ namespace pace {
             default: utils::unreachable();
             }
             length_ = remaining_length;
-          } else if ( pos == 0 && count == other.length_
-                      && ( std::allocator_traits<Alloc>::is_always_equal::value
-                           || this->allocator() == other.allocator() ) ) {
+          } else if ( ( std::allocator_traits<Alloc>::is_always_equal::value
+                        || std::allocator_traits<Alloc>::propagate_on_container_copy_assignment::value
+                        || this->allocator() == other.allocator() )
+                      && pos == 0 && count == other.length_ ) {
             // The post-C++20 standards explicitly said that this method does not propagate allocator.
             // Therefore we cannot call `assign( other )` alternatively.
             destroy_self();
@@ -1597,7 +1631,7 @@ namespace pace {
             PACE__FALLTHROUGH;
           case Kind::Inline:  return utils::launder_as<Char>( &as_ );
           case Kind::Dynamic: {
-            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+            if ( as_.remote.refs->load( std::memory_order_relaxed ) > 1 )
               duplicate_from( as_.remote.str(), length_, length_ + 1 );
             return as_.remote.str();
           }
@@ -1687,7 +1721,7 @@ namespace pace {
           switch ( tag_ ) {
           case Kind::Inline: return small_capacity();
           case Kind::Dynamic:
-            return as_.remote.refs->load( std::memory_order_acquire ) > 1 ? 0 : as_.remote.capacity - 1;
+            return as_.remote.refs->load( std::memory_order_relaxed ) > 1 ? 0 : as_.remote.capacity - 1;
           default: return 0;
           }
         }
@@ -1708,7 +1742,7 @@ namespace pace {
           } break;
           case Kind::Dynamic: {
             PACE__ASSERT( length_ <= max_size() );
-            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 ) {
+            if ( as_.remote.refs->load( std::memory_order_relaxed ) > 1 ) {
               new_cap = (std::max)( as_.remote.capacity, new_cap + 1 );
               duplicate_from( as_.remote.str(), length_, new_cap );
             } else if ( as_.remote.capacity <= new_cap )
@@ -1723,28 +1757,19 @@ namespace pace {
           if ( tag_ == Kind::Dynamic ) {
             if ( length_ <= small_capacity() ) {
               auto cow = as_.remote;
+              utils::destroy_at( as_.remote );
               transfer_to<Kind::Inline>( cow.str(), length_, 0 );
               destroy_cow( cow );
-            } else if ( as_.remote.refs->load( std::memory_order_acquire ) == 1
-                        && length_ + 1 < as_.remote.capacity )
+            } else if ( as_.remote.refs->load( std::memory_order_relaxed ) == 1
+                        && as_.remote.capacity >= length_ )
               expand_with( as_.remote.str(), length_, length_ + 1 );
           }
         }
         PACE__CXX20_CNSTXPR void clear() noexcept
         {
-          switch ( tag_ ) {
-          case Kind::Literal: tag_ = Kind::Inline; PACE__FALLTHROUGH;
-          case Kind::Inline:  Traits::assign( utils::launder_as<Char>( &as_ )[0], Char() ); break;
-          case Kind::Dynamic: {
-            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 ) {
-              destroy_cow( as_.remote );
-              Traits::assign( utils::launder_as<Char>( &as_ )[0], Char() );
-              tag_ = Kind::Inline;
-            } else
-              Traits::assign( as_.remote.str()[0], Char() );
-          } break;
-          default: utils::unreachable();
-          }
+          destroy_self();
+          Traits::assign( utils::launder_as<Char>( &as_ )[0], Char() );
+          tag_    = Kind::Inline;
           length_ = 0;
         }
 
@@ -1777,15 +1802,16 @@ namespace pace {
             const auto src = utils::launder_as<Char>( &as_ );
             if ( total_length > small_capacity() )
               transfer_to<Kind::Dynamic>( src, index, src + index, length_ - index, cstr, count );
-            else if ( cstr >= src && cstr < src + length_ ) { // self insert
-              Char substring[small_capacity()];
+            else if ( cstr >= src && cstr < src + length_ ) {
+              // self insert
+              Char substring[small_capacity()]; // NOLINT
               Traits::copy( substring, cstr, count );
               embed( src + index, 0, length_ - index, substring, count );
             } else
               embed( src + index, 0, length_ - index, cstr, count );
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+            if ( as_.remote.refs->load( std::memory_order_relaxed ) > 1 )
               duplicate_from( as_.remote.str(),
                               index,
                               as_.remote.str() + index,
@@ -1868,7 +1894,7 @@ namespace pace {
               embed( src + index, 0, length_ - index, count, ch );
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+            if ( as_.remote.refs->load( std::memory_order_relaxed ) > 1 )
               duplicate_from( as_.remote.str(), index, as_.remote.str() + index, length_ - index, count, ch );
             else if ( as_.remote.capacity <= total_length )
               expand_with( as_.remote.str(), index, as_.remote.str() + index, length_ - index, count, ch );
@@ -1969,7 +1995,7 @@ namespace pace {
             Traits::assign( dest[remaining_length], Char() );
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+            if ( as_.remote.refs->load( std::memory_order_relaxed ) > 1 )
               duplicate_from( as_.remote.str(),
                               index,
                               as_.remote.str() + index + count,
@@ -2022,7 +2048,7 @@ namespace pace {
             }
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+            if ( as_.remote.refs->load( std::memory_order_relaxed ) > 1 )
               duplicate_from( as_.remote.str(), length_, cstr, count, nullptr, 0 );
             else if ( as_.remote.capacity <= total_length )
               expand_with( as_.remote.str(), length_, cstr, count, nullptr, 0 );
@@ -2068,7 +2094,7 @@ namespace pace {
               Traits::assign( dest + length_, count, ch );
               return total_length;
             };
-            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+            if ( as_.remote.refs->load( std::memory_order_relaxed ) > 1 )
               duplicate_from( total_length + 1, std::move( append_to ) );
             else if ( as_.remote.capacity <= total_length )
               expand_with( dynamic_capacity( as_.remote.capacity - 1 ) + 1, std::move( append_to ) );
@@ -2174,14 +2200,14 @@ namespace pace {
                                           cstr,
                                           cstr_count );
             else if ( cstr >= src && cstr < src + length_ ) { // self replace
-              Char substring[small_capacity()];
+              Char substring[small_capacity()];               // NOLINT
               Traits::copy( substring, cstr, cstr_count );
               embed( src + pos, count, length_ - pos, substring, cstr_count );
             } else
               embed( src + pos, count, length_ - pos, cstr, cstr_count );
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+            if ( as_.remote.refs->load( std::memory_order_relaxed ) > 1 )
               duplicate_from( as_.remote.str(),
                               pos,
                               as_.remote.str() + pos + count,
@@ -2345,7 +2371,7 @@ namespace pace {
               embed( src + pos, count, length_ - pos, count, ch );
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+            if ( as_.remote.refs->load( std::memory_order_relaxed ) > 1 )
               duplicate_from( as_.remote.str(),
                               pos,
                               as_.remote.str() + pos + count,
@@ -2478,13 +2504,13 @@ namespace pace {
             }
           } break;
           case Kind::Dynamic: {
-            if ( as_.remote.refs->load( std::memory_order_acquire ) > 1 )
+            if ( as_.remote.refs->load( std::memory_order_relaxed ) > 1 )
               duplicate_from( count + 1, [&]( Char* dest, size_type new_cap ) {
                 Traits::copy( dest, as_.remote.str(), (std::min)( length_, count ) );
                 length_ = std::move( op )( dest, new_cap );
                 return length_;
               } );
-            else if ( count <= as_.remote.capacity )
+            else if ( as_.remote.capacity >= count )
               expand_with( count + 1, [&]( Char* dest, size_type new_cap ) {
                 Traits::copy( dest, as_.remote.str(), (std::min)( length_, count ) );
                 length_ = std::move( op )( dest, new_cap );
@@ -2593,7 +2619,11 @@ namespace pace {
                                   typename std::allocator_traits<Alloc>::propagate_on_container_swap>::value )
         {
           PACE__TRUST( this != &other );
-          this->CoWSwapAlloc<Alloc, BasicSharedString>::swap( other );
+          // Calling swap is UB when the allocator does not satisfy POCS and the allocators are not equal.
+          PACE__ASSERT( std::allocator_traits<Alloc>::propagate_on_container_swap::value
+                        || this->allocator() == other.allocator() );
+
+          this->AllocCell::swap( other );
           switch ( tag_ ) {
           case Kind::Literal: {
             const auto lit = as_.literal;
@@ -2610,7 +2640,7 @@ namespace pace {
             utils::construct_at( &other.as_.literal, lit );
           } break;
           case Kind::Inline: {
-            Char buffer[small_capacity() + 1];
+            Char buffer[small_capacity() + 1]; // NOLINT
             const auto dest_self = utils::launder_as<Char>( &as_ );
             Traits::copy( buffer, dest_self, length_ + 1 );
             const auto dest_other = utils::launder_as<Char>( &other.as_ );
@@ -2623,25 +2653,32 @@ namespace pace {
             Traits::copy( dest_other, buffer, length_ + 1 );
           } break;
           case Kind::Dynamic: {
-            const auto cow = as_.remote;
+            auto cow = as_.remote;
             switch ( other.tag_ ) {
-            case Kind::Literal: utils::construct_at( &as_.literal, other.as_.literal ); break;
-            case Kind::Inline:
+            case Kind::Literal: {
+              utils::construct_at( &as_.literal, other.as_.literal );
+              utils::construct_at( &other.as_.remote, cow );
+            } break;
+            case Kind::Inline: {
               Traits::copy( utils::launder_as<Char>( &as_ ),
                             utils::launder_as<Char>( &other.as_ ),
                             other.length_ + 1 );
+              utils::construct_at( &other.as_.remote, cow );
+            } break;
+            case Kind::Dynamic:
+              as_.remote       = other.as_.remote;
+              other.as_.remote = cow;
               break;
-            case Kind::Dynamic: as_.remote = other.as_.remote; break;
-            default:            utils::unreachable();
+            default: utils::unreachable();
             }
-            utils::construct_at( &other.as_.remote, cow );
           } break;
           default: utils::unreachable();
           }
           std::swap( length_, other.length_ );
           std::swap( tag_, other.tag_ );
         }
-        friend PACE__CXX14_CNSTXPR void swap( BasicSharedString& a, BasicSharedString& b ) noexcept
+        friend PACE__CXX14_CNSTXPR void swap( BasicSharedString& a, BasicSharedString& b )
+          noexcept( noexcept( a.swap( b ) ) )
         { a.swap( b ); }
 
         PACE__CXX20_CNSTXPR BasicSharedString& operator+=( const BasicSharedString& str )

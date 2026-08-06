@@ -9,15 +9,15 @@ namespace pace {
   namespace details {
     namespace utils {
       template<typename EF, typename = void>
-      class ScpStore { // scope, not that "scp"
+      class ScpStorage { // scope, not that "scp"
         EF callback_;
 
       protected:
         template<typename Fn>
-        constexpr ScpStore( std::true_type, Fn&& fn ) noexcept : callback_ { std::forward<Fn>( fn ) }
+        constexpr ScpStorage( std::true_type, Fn&& fn ) noexcept : callback_ { std::forward<Fn>( fn ) }
         {}
         template<typename Fn>
-        constexpr ScpStore( std::false_type, Fn&& fn )
+        constexpr ScpStorage( std::false_type, Fn&& fn )
           noexcept( std::is_nothrow_constructible<EF, Fn&>::value )
           : callback_ { fn }
         {}
@@ -25,16 +25,16 @@ namespace pace {
         PACE__FORCEINLINE PACE__CXX14_CNSTXPR EF& callback() noexcept { return callback_; }
       };
       template<typename EF>
-      class ScpStore<EF,
-                     typename std::enable_if<
-                       traits::AllOf<std::is_empty<EF>, traits::Not<traits::is_final<EF>>>::value>::type>
+      class ScpStorage<EF,
+                       typename std::enable_if<
+                         traits::AllOf<std::is_empty<EF>, traits::Not<traits::is_final<EF>>>::value>::type>
         : private EF {
       protected:
         template<typename Fn>
-        constexpr ScpStore( std::true_type, Fn&& fn ) noexcept : EF( std::forward<Fn>( fn ) )
+        constexpr ScpStorage( std::true_type, Fn&& fn ) noexcept : EF( std::forward<Fn>( fn ) )
         {}
         template<typename Fn>
-        constexpr ScpStore( std::false_type, Fn&& fn )
+        constexpr ScpStorage( std::false_type, Fn&& fn )
           noexcept( std::is_nothrow_constructible<EF, Fn&>::value )
           : EF( fn )
         {}
@@ -47,10 +47,10 @@ namespace pace {
 #if PACE__CXX17
         PACE__NODISCARD
 #endif
-        ScopeFail : private ScpStore<EF> {
+        ScopeFail : private ScpStorage<EF> {
         static_assert( traits::is_invocable<typename std::remove_reference<EF>::type&>::value,
                        "invalid callback type" );
-        using Base = ScpStore<EF>;
+        using Base = ScpStorage<EF>;
 
         int exceptions_on_entry_;
 

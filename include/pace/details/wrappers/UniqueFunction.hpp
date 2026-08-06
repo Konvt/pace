@@ -21,7 +21,7 @@ namespace pace {
       // `CrefInfo` can be any types that contains the `cref` info of the functor.
       // e.g. For the function type `void () const&`, the `CrefInfo` can be: `const int&`.
       template<typename CrefInfo, typename R, bool Noexcept, typename... Params>
-      class FnStore {
+      class FnStorage {
         template<typename T>
         using Param_t = typename std::conditional<std::is_scalar<T>::value, T, T&&>::type;
         template<typename T>
@@ -186,7 +186,7 @@ namespace pace {
           vtable   = table_dynamic<F>();
         }
 
-        PACE__CXX23_CNSTXPR FnStore() noexcept : vtable_ { table_null() } {}
+        PACE__CXX23_CNSTXPR FnStorage() noexcept : vtable_ { table_null() } {}
 
         PACE__CXX23_CNSTXPR void reset() noexcept
         {
@@ -231,12 +231,12 @@ namespace pace {
       public:
         using result_type = R;
 
-        PACE__CXX23_CNSTXPR FnStore( FnStore&& rhs ) noexcept : vtable_ { rhs.vtable_ }
+        PACE__CXX23_CNSTXPR FnStorage( FnStorage&& rhs ) noexcept : vtable_ { rhs.vtable_ }
         {
           vtable_.life->move( callee_, rhs.callee_ );
           rhs.vtable_ = table_null();
         }
-        PACE__CXX23_CNSTXPR FnStore& operator=( FnStore&& rhs ) & noexcept
+        PACE__CXX23_CNSTXPR FnStorage& operator=( FnStorage&& rhs ) & noexcept
         {
           PACE__TRUST( this != &rhs );
           reset();
@@ -244,9 +244,9 @@ namespace pace {
           vtable_.life->move( callee_, rhs.callee_ );
           return *this;
         }
-        PACE__CXX23_CNSTXPR ~FnStore() noexcept { reset(); }
+        PACE__CXX23_CNSTXPR ~FnStorage() noexcept { reset(); }
 
-        PACE__CXX20_CNSTXPR void swap( FnStore& other ) noexcept
+        PACE__CXX20_CNSTXPR void swap( FnStorage& other ) noexcept
         {
           AnyFn tmp;
           vtable_.life->move( tmp, callee_ );
@@ -254,10 +254,10 @@ namespace pace {
           vtable_.life->move( other.callee_, tmp );
           std::swap( vtable_, other.vtable_ );
         }
-        friend PACE__CXX23_CNSTXPR void swap( FnStore& a, FnStore& b ) noexcept { return a.swap( b ); }
-        friend constexpr bool operator==( const FnStore& a, std::nullptr_t ) noexcept
+        friend PACE__CXX23_CNSTXPR void swap( FnStorage& a, FnStorage& b ) noexcept { return a.swap( b ); }
+        friend constexpr bool operator==( const FnStorage& a, std::nullptr_t ) noexcept
         { return !static_cast<bool>( a ); }
-        friend constexpr bool operator!=( const FnStore& a, std::nullptr_t ) noexcept
+        friend constexpr bool operator!=( const FnStorage& a, std::nullptr_t ) noexcept
         { return static_cast<bool>( a ); }
         explicit constexpr operator bool() const noexcept { return vtable_ != table_null(); }
       };
@@ -266,9 +266,9 @@ namespace pace {
       template<typename...>
       class UniqueFunction;
       template<typename R, typename... Params>
-      class UniqueFunction<R( Params... )> : public FnStore<int&, R, false, Params...> {
+      class UniqueFunction<R( Params... )> : public FnStorage<int&, R, false, Params...> {
         // Function types without ref qualifier will be treated as non-const lvalue reference types.
-        using Base = FnStore<int&, R, false, Params...>;
+        using Base = FnStorage<int&, R, false, Params...>;
 
       public:
         UniqueFunction( const UniqueFunction& )            = delete;

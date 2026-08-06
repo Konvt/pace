@@ -4,6 +4,7 @@
 #include "Concept.hpp"
 #include "Identity.hpp"
 #include "TypeList.hpp"
+#include <memory>
 
 namespace pace {
   namespace details {
@@ -35,6 +36,9 @@ namespace pace {
 
       template<typename From, typename To>
       using CopyConst_t = typename std::conditional<std::is_const<From>::value, const To, To>::type;
+
+      template<typename Alloc, typename Tp>
+      using RebindAlloc_t = typename std::allocator_traits<Alloc>::template rebind_alloc<Tp>;
     } // namespace traits
   } // namespace details
 } // namespace pace
