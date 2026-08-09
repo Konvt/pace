@@ -338,13 +338,14 @@ namespace pace {
         static constexpr size_type npos = static_cast<size_type>( -1 );
 
         class iterator : public CoWIterator<BasicSharedString, iterator> {
-        public:
+          friend BasicSharedString;
+
           using CoWIterator<BasicSharedString, iterator>::CoWIterator;
         };
         class const_iterator : public CoWIterator<const BasicSharedString, const_iterator> {
-        public:
-          using CoWIterator<const BasicSharedString, const_iterator>::CoWIterator;
+          friend BasicSharedString;
 
+          using CoWIterator<const BasicSharedString, const_iterator>::CoWIterator;
           constexpr const_iterator( iterator itr ) noexcept
             : CoWIterator<const BasicSharedString, const_iterator>( *itr.owner(), itr.offset() )
           {}

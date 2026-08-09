@@ -32,8 +32,14 @@ namespace pace {
 
     public:
       class iterator {
+        friend NumericSpan;
+
         N itr_start_, itr_step_;
         std::uint64_t itr_cnt_;
+
+        constexpr iterator( N startpoint, N step, std::uint64_t iterated = 0 ) noexcept
+          : itr_start_ { startpoint }, itr_step_ { step }, itr_cnt_ { iterated }
+        {}
 
       public:
         using iterator_category = std::random_access_iterator_tag;
@@ -42,9 +48,6 @@ namespace pace {
         using pointer           = value_type*;
         using reference         = value_type;
 
-        constexpr iterator( N startpoint, N step, std::uint64_t iterated = 0 ) noexcept
-          : itr_start_ { startpoint }, itr_step_ { step }, itr_cnt_ { iterated }
-        {}
         constexpr iterator() noexcept : iterator( {}, 1, {} ) {}
         constexpr iterator( const iterator& )                        = default;
         PACE__CXX14_CNSTXPR iterator& operator=( const iterator& ) & = default;

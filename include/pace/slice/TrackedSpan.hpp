@@ -36,23 +36,34 @@ namespace pace {
 
 #if __cpp_range_based_for >= 201603L
       class Sentinel {
+        friend TrackedSpan;
+
         UIRef ui_;
         Snt snt_;
 
-      public:
         constexpr Sentinel( Snt endpoint, UIRef ui_ref )
           noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<Snt>,
                                            std::is_nothrow_move_constructible<UIRef>>::value )
           : ui_ { std::move( ui_ref ) }, snt_ { std::move( endpoint ) }
         {}
+
+      public:
         constexpr Snt base() const noexcept { return snt_; }
       };
 #endif
 
     public:
       class iterator {
+        friend TrackedSpan;
+
         UIRef ui_;
         Itr itr_;
+
+        constexpr iterator( Itr itr, UIRef ui_ref )
+          noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<Itr>,
+                                           std::is_nothrow_move_constructible<UIRef>>::value )
+          : ui_ { std::move( ui_ref ) }, itr_ { std::move( itr ) }
+        {}
 
       public:
         using iterator_category = typename std::conditional<
@@ -63,12 +74,6 @@ namespace pace {
         using difference_type = details::traits::IterDifference_t<Itr>;
         using reference       = details::traits::IterReference_t<Itr>;
         using pointer         = Itr;
-
-        constexpr iterator( Itr itr, UIRef ui_ref )
-          noexcept( details::traits::AllOf<std::is_nothrow_move_constructible<Itr>,
-                                           std::is_nothrow_move_constructible<UIRef>>::value )
-          : ui_ { std::move( ui_ref ) }, itr_ { std::move( itr ) }
-        {}
 
         PACE__CXX20_CNSTXPR ~iterator() = default;
 
