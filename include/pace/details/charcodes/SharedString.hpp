@@ -9,6 +9,7 @@
 #include <iterator>
 #include <limits>
 #include <stdexcept>
+#include <type_traits>
 
 namespace pace {
   namespace details {
@@ -51,13 +52,12 @@ namespace pace {
       protected:
         constexpr AllocatorStorage() = default;
 
-        AllocatorStorage( const AllocatorStorage& )
-          noexcept( std::is_nothrow_default_constructible<Alloc>::value )
+        AllocatorStorage( const AllocatorStorage& other )
+          noexcept( std::is_nothrow_copy_constructible<Alloc>::value )
+          : alloc_ { std::allocator_traits<Alloc>::select_on_container_copy_construction( other.alloc_ ) }
         {}
         AllocatorStorage( AllocatorStorage&& ) noexcept( std::is_nothrow_default_constructible<Alloc>::value )
         {}
-        AllocatorStorage& operator=( const AllocatorStorage& ) & noexcept { return *this; }
-        AllocatorStorage& operator=( AllocatorStorage&& ) & noexcept { return *this; }
 
         template<typename... Args,
                  typename = typename std::enable_if<std::is_constructible<Alloc, Args...>::value, bool>::type>
@@ -66,15 +66,14 @@ namespace pace {
           : alloc_ { std::forward<Args>( args )... }
         {}
 
-        template<typename Tp>
-        PACE__NODISCARD constexpr traits::RebindAlloc_t<Alloc, Tp> allocator() const noexcept
-        { return { alloc_ }; }
-
         PACE__CXX14_CNSTXPR Alloc& allocator() noexcept { return alloc_; }
         constexpr const Alloc& allocator() const noexcept { return alloc_; }
 
       public:
         PACE__CXX20_CNSTXPR ~AllocatorStorage() = default;
+
+        AllocatorStorage& operator=( const AllocatorStorage& ) = delete;
+        AllocatorStorage& operator=( AllocatorStorage&& )      = delete;
       };
       template<typename Alloc>
       class AllocatorStorage<
@@ -85,13 +84,12 @@ namespace pace {
       protected:
         constexpr AllocatorStorage() = default;
 
-        AllocatorStorage( const AllocatorStorage& )
-          noexcept( std::is_nothrow_default_constructible<Alloc>::value )
+        AllocatorStorage( const AllocatorStorage& other )
+          noexcept( std::is_nothrow_copy_constructible<Alloc>::value )
+          : Alloc( std::allocator_traits<Alloc>::select_on_container_copy_construction( other.allocator() ) )
         {}
         AllocatorStorage( AllocatorStorage&& ) noexcept( std::is_nothrow_default_constructible<Alloc>::value )
         {}
-        AllocatorStorage& operator=( const AllocatorStorage& ) & noexcept { return *this; }
-        AllocatorStorage& operator=( AllocatorStorage&& ) & noexcept { return *this; }
 
         template<typename... Args,
                  typename = typename std::enable_if<std::is_constructible<Alloc, Args...>::value>::type>
@@ -100,107 +98,60 @@ namespace pace {
           : Alloc( std::forward<Args>( args )... )
         {}
 
-        template<typename Tp>
-        PACE__NODISCARD constexpr traits::RebindAlloc_t<Alloc, Tp> allocator() const noexcept
-        { return { static_cast<const Alloc&>( *this ) }; }
-
         PACE__CXX14_CNSTXPR Alloc& allocator() noexcept { return static_cast<Alloc&>( *this ); }
         constexpr const Alloc& allocator() const noexcept { return static_cast<const Alloc&>( *this ); }
 
       public:
         PACE__CXX20_CNSTXPR ~AllocatorStorage() = default;
+
+        AllocatorStorage& operator=( const AllocatorStorage& ) = delete;
+        AllocatorStorage& operator=( AllocatorStorage&& )      = delete;
       };
 
       template<typename Alloc, typename Derived, typename = void>
       struct CopyAllocator {
-        constexpr CopyAllocator()                                       = default;
-        constexpr CopyAllocator( const CopyAllocator& )                 = default;
-        constexpr CopyAllocator( CopyAllocator&& )                      = default;
-        PACE__CXX14_CNSTXPR CopyAllocator& operator=( CopyAllocator&& ) = default;
-
-        PACE__CXX20_CNSTXPR ~CopyAllocator() = default;
-
-        PACE__CXX14_CNSTXPR CopyAllocator& operator=( const CopyAllocator& ) noexcept { return *this; }
+        PACE__CXX14_CNSTXPR void pocca( const Alloc& ) noexcept {}
       };
       template<typename Alloc, typename Derived>
       struct CopyAllocator<Alloc,
                            Derived,
                            typename std::enable_if<std::allocator_traits<
                              Alloc>::propagate_on_container_copy_assignment::value>::type> {
-        constexpr CopyAllocator()                                       = default;
-        constexpr CopyAllocator( const CopyAllocator& )                 = default;
-        constexpr CopyAllocator( CopyAllocator&& )                      = default;
-        PACE__CXX14_CNSTXPR CopyAllocator& operator=( CopyAllocator&& ) = default;
-
-        PACE__CXX20_CNSTXPR ~CopyAllocator() = default;
-
-        PACE__CXX14_CNSTXPR CopyAllocator& operator=( const CopyAllocator& other ) & noexcept
-        { // if the allocator satisfy propagate_on_container_copy_assignment,
-          // then its must be nothrow copy assignable
-          static_cast<Derived*>( this )->allocator() = static_cast<Derived&>( other ).allocator();
-          return *this;
-        }
+        PACE__CXX20_CNSTXPR void pocca( const Alloc& other )
+          noexcept( std::is_nothrow_copy_assignable<Alloc>::value )
+        { static_cast<Derived*>( this )->allocator() = other; }
       };
 
       template<typename Alloc, typename Derived, typename = void>
       struct MoveAllocator {
-        constexpr MoveAllocator()                                            = default;
-        constexpr MoveAllocator( const MoveAllocator& )                      = default;
-        constexpr MoveAllocator( MoveAllocator&& )                           = default;
-        PACE__CXX14_CNSTXPR MoveAllocator& operator=( const MoveAllocator& ) = default;
-
-        PACE__CXX20_CNSTXPR ~MoveAllocator() = default;
-
-        PACE__CXX14_CNSTXPR MoveAllocator& operator=( MoveAllocator&& ) noexcept { return *this; }
+        PACE__CXX14_CNSTXPR void pocma( Alloc&& ) noexcept {}
       };
       template<typename Alloc, typename Derived>
       struct MoveAllocator<Alloc,
                            Derived,
                            typename std::enable_if<std::allocator_traits<
                              Alloc>::propagate_on_container_move_assignment::value>::type> {
-        constexpr MoveAllocator()                                            = default;
-        constexpr MoveAllocator( const MoveAllocator& )                      = default;
-        constexpr MoveAllocator( MoveAllocator&& )                           = default;
-        PACE__CXX14_CNSTXPR MoveAllocator& operator=( const MoveAllocator& ) = default;
-
-        PACE__CXX20_CNSTXPR ~MoveAllocator() = default;
-
-        PACE__CXX14_CNSTXPR MoveAllocator& operator=( MoveAllocator&& rhs ) & noexcept
-        {
-          static_cast<Derived*>( this )->allocator() = std::move( static_cast<Derived&>( rhs ).allocator() );
-          return *this;
-        }
+        PACE__CXX20_CNSTXPR void pocma( Alloc&& alloc ) noexcept
+        { static_cast<Derived*>( this )->allocator() = std::move( alloc ); }
       };
 
       template<typename Alloc, typename Derived, typename = void>
       struct SwapAllocator {
-        constexpr SwapAllocator()                                            = default;
-        constexpr SwapAllocator( const SwapAllocator& )                      = default;
-        constexpr SwapAllocator( SwapAllocator&& )                           = default;
-        PACE__CXX14_CNSTXPR SwapAllocator& operator=( SwapAllocator&& )      = default;
-        PACE__CXX14_CNSTXPR SwapAllocator& operator=( const SwapAllocator& ) = default;
-
-        PACE__CXX20_CNSTXPR ~SwapAllocator() = default;
-
-        PACE__CXX14_CNSTXPR void swap( SwapAllocator& ) noexcept {}
+        PACE__CXX14_CNSTXPR void pocs( Alloc& ) noexcept
+        {
+          // Calling swap is UB when the allocator does not satisfy POCS and the allocators are not equal.
+          PACE__ASSERT( this->allocator() == other.allocator() );
+        }
       };
       template<typename Alloc, typename Derived>
       struct SwapAllocator<
         Alloc,
         Derived,
         typename std::enable_if<std::allocator_traits<Alloc>::propagate_on_container_swap::value>::type> {
-        constexpr SwapAllocator()                                            = default;
-        constexpr SwapAllocator( const SwapAllocator& )                      = default;
-        constexpr SwapAllocator( SwapAllocator&& )                           = default;
-        PACE__CXX14_CNSTXPR SwapAllocator& operator=( SwapAllocator&& )      = default;
-        PACE__CXX14_CNSTXPR SwapAllocator& operator=( const SwapAllocator& ) = default;
-
-        PACE__CXX20_CNSTXPR ~SwapAllocator() = default;
-
-        PACE__CXX14_CNSTXPR void swap( SwapAllocator& other ) noexcept
+        PACE__CXX20_CNSTXPR void pocs( Alloc& alloc ) noexcept
         {
           using std::swap;
-          swap( static_cast<Derived*>( this )->allocator(), static_cast<Derived&>( other ).allocator() );
+          swap( static_cast<Derived*>( this )->allocator(), alloc );
         }
       };
 
@@ -354,7 +305,15 @@ namespace pace {
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
         class unsafe_iterator {
+          friend BasicSharedString;
+
           const Char* cursor_;
+
+          constexpr unsafe_iterator() noexcept : cursor_ { nullptr } {}
+          constexpr unsafe_iterator( pointer cursor ) noexcept : cursor_ { cursor } {}
+          constexpr unsafe_iterator( const_iterator itr ) noexcept
+            : cursor_ { itr.owner()->data() + itr.offset() }
+          {}
 
         public:
 #if PACE__CXX20
@@ -367,11 +326,6 @@ namespace pace {
           using pointer         = const value_type*;
           using reference       = const value_type&;
 
-          constexpr unsafe_iterator() noexcept : cursor_ { nullptr } {}
-          constexpr unsafe_iterator( pointer cursor ) noexcept : cursor_ { cursor } {}
-          constexpr unsafe_iterator( const_iterator itr ) noexcept
-            : cursor_ { itr.owner()->data() + itr.offset() }
-          {}
           PACE__CXX20_CNSTXPR ~unsafe_iterator() = default;
 
           constexpr pointer base() const noexcept { return cursor_; }
@@ -541,9 +495,10 @@ namespace pace {
 
         PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR CoWBlock make_cow( size_type cap )
         {
+          PACE__ASSERT( cap > 0 );
           throw_if_exceed( cap - 1 );
-          auto cow_alloc = this->template allocator<RefCounter>();
-          auto refs      = std::allocator_traits<CoWAlloc>::allocate( cow_alloc, 1 );
+          CoWAlloc cow_alloc = this->allocator();
+          auto refs          = std::allocator_traits<CoWAlloc>::allocate( cow_alloc, 1 );
           try {
             std::allocator_traits<CoWAlloc>::construct( cow_alloc, utils::to_address( refs ), 0 );
           } catch ( ... ) {
@@ -553,9 +508,25 @@ namespace pace {
           // Although we have a ScopeFail, we can't use it here
           // because ScopeFail doesn't meet the constexpr requirements under C++20.
           try {
-            auto ptr = allocate( cap );
-            // the following function is noexcept for Char because of implicit-lifetime
-            (void)utils::start_lifetime_as_array<Char>( utils::to_address( ptr ), cap );
+            auto ptr      = allocate( cap );
+            auto iter     = utils::to_address( ptr );
+            auto sentinel = utils::to_address( ptr ) + cap;
+            if PACE__CXX17_CNSTXPR ( traits::allocator_trivially_construct<Alloc, Char>::value )
+              // the following function is noexcept for Char because of implicit-lifetime
+              (void)utils::start_lifetime_as_array<Char>( utils::to_address( ptr ), cap );
+            else
+              try {
+                do
+                  std::allocator_traits<Alloc>::construct( this->allocator(), iter++, Char() );
+                while ( iter != sentinel );
+              } catch ( ... ) {
+                if PACE__CXX17_CNSTXPR ( !traits::allocator_trivially_destroy<Alloc, Char>::value ) {
+                  sentinel = utils::exchange( iter, utils::to_address( ptr ) );
+                  while ( iter != sentinel )
+                    std::allocator_traits<Alloc>::destroy( this->allocator(), iter++ );
+                }
+                throw;
+              }
             return { std::move( refs ), std::move( ptr ), cap };
           } catch ( ... ) {
             std::allocator_traits<CoWAlloc>::destroy( cow_alloc, utils::to_address( refs ) );
@@ -583,9 +554,18 @@ namespace pace {
         {
           if ( cow.refs->fetch_sub( 1, std::memory_order_release ) == 1 ) {
             std::atomic_thread_fence( std::memory_order_acquire );
-            auto cow_alloc = this->template allocator<RefCounter>();
+            CoWAlloc cow_alloc = this->allocator();
             std::allocator_traits<CoWAlloc>::destroy( cow_alloc, utils::to_address( cow.refs ) );
             std::allocator_traits<CoWAlloc>::deallocate( cow_alloc, cow.refs, 1 );
+            if PACE__CXX17_CNSTXPR ( !traits::allocator_trivially_destroy<Alloc, Char>::value ) {
+              auto iter           = utils::to_address( cow.ptr );
+              const auto sentinel = utils::to_address( cow.ptr ) + cow.capacity;
+              PACE__ASSERT( cow.capacity > 0 );
+              PACE__ASSERT( iter < sentinel );
+              do
+                std::allocator_traits<Alloc>::destroy( this->allocator(), iter++ );
+              while ( iter != sentinel );
+            }
             deallocate( utils::exchange( cow.ptr, pointer() ), utils::exchange( cow.capacity, 0 ) );
           }
         }
@@ -1234,11 +1214,10 @@ namespace pace {
         { assign( str_v, pos, count ); }
 #endif
         PACE__CXX20_CNSTXPR BasicSharedString( const BasicSharedString& other )
-          : BasicSharedString(
-              std::allocator_traits<Alloc>::select_on_container_copy_construction( other.allocator() ) )
+          : AllocCell( other ), as_ {}, length_ { 0 }, tag_ { Kind::Inline }
         { assign( other ); }
         PACE__CXX20_CNSTXPR BasicSharedString( BasicSharedString&& rhs ) noexcept
-          : AllocCell( std::move( rhs.allocator() ) ), as_ {}, length_ { 0 }, tag_ { Kind::Inline }
+          : AllocCell( std::move( rhs ) ), as_ {}, length_ { 0 }, tag_ { Kind::Inline }
         {
           PACE__TRUST( this != &rhs );
           switch ( rhs.tag_ ) {
@@ -1435,7 +1414,7 @@ namespace pace {
             typename std::allocator_traits<Alloc>::propagate_on_container_copy_assignment>::value )
         { // self-assignment without extra parameters is invalid
           PACE__TRUST( this != &other );
-          this->AllocCell::operator=( other );
+          this->pocca( other.allocator() );
           propagate_self<traits::AnyOf<
             typename std::allocator_traits<Alloc>::is_always_equal,
             typename std::allocator_traits<Alloc>::propagate_on_container_copy_assignment>::value>( other );
@@ -1449,7 +1428,7 @@ namespace pace {
             typename std::allocator_traits<Alloc>::propagate_on_container_move_assignment>::value )
         {
           PACE__TRUST( this != &rhs );
-          this->AllocCell::operator=( std::move( rhs ) );
+          this->pocma( std::move( rhs.allocator() ) );
           propagate_self<traits::AnyOf<
             typename std::allocator_traits<Alloc>::is_always_equal,
             typename std::allocator_traits<Alloc>::propagate_on_container_move_assignment>::value>( rhs );
@@ -2620,11 +2599,8 @@ namespace pace {
                                   typename std::allocator_traits<Alloc>::propagate_on_container_swap>::value )
         {
           PACE__TRUST( this != &other );
-          // Calling swap is UB when the allocator does not satisfy POCS and the allocators are not equal.
-          PACE__ASSERT( std::allocator_traits<Alloc>::propagate_on_container_swap::value
-                        || this->allocator() == other.allocator() );
 
-          this->AllocCell::swap( other );
+          this->pocs( other.allocator() );
           switch ( tag_ ) {
           case Kind::Literal: {
             const auto lit = as_.literal;

@@ -74,6 +74,29 @@ namespace pace {
       template<typename T>
       using SentinelOf_t = typename SentinelOf<T>::type;
 
+      struct _impl_trivial_allocator_test {
+        template<typename A, typename T, typename... Args>
+        static constexpr std::true_type check_construct( ... );
+        template<typename A, typename T, typename... Args>
+        static constexpr auto check_construct( int )
+          -> decltype( std::declval<A&>().construct( std::declval<T*>(), std::declval<Args>()... ),
+                       std::false_type() );
+
+        template<typename A, typename T>
+        static constexpr std::true_type check_destroy( ... );
+        template<typename A, typename T>
+        static constexpr auto check_destroy( int )
+          -> decltype( std::declval<A&>().destroy( std::declval<T*>() ), std::false_type() );
+      };
+
+      // follows libc++
+      template<typename Alloc, typename T, typename... Args>
+      using allocator_trivially_construct =
+        decltype( _impl_trivial_allocator_test::check_construct<Alloc, T, Args...>( 0 ) );
+      template<typename Alloc, typename T>
+      using allocator_trivially_destroy =
+        decltype( _impl_trivial_allocator_test::check_destroy<Alloc, T>( 0 ) );
+
       template<typename T, typename = void>
       struct _impl_is_pointer_like : std::false_type {};
       template<typename P>
