@@ -1062,15 +1062,15 @@ namespace pace {
         PACE__CXX20_CNSTXPR BasicSharedString( size_type count, Char ch, const Alloc& alloc = Alloc() )
           : BasicSharedString( alloc )
         { assign( count, ch ); }
-        template<typename InputIt
+        template<typename InputIt, typename Sentinel
 #ifdef __cpp_lib_concepts
                  >
-          requires( std::input_iterator<InputIt> && std::equality_comparable<InputIt> )
+          requires( std::input_iterator<InputIt> && std::sentinel_for<Sentinel, InputIt> )
 #else
                  ,
                  typename std::enable_if<is_legacy_input_iterator<InputIt>::value, bool>::type = 0>
 #endif
-        PACE__CXX20_CNSTXPR BasicSharedString( InputIt first, InputIt last, const Alloc& alloc = Alloc() )
+        PACE__CXX20_CNSTXPR BasicSharedString( InputIt first, Sentinel last, const Alloc& alloc = Alloc() )
           : BasicSharedString( alloc )
         {
           bool transfered = false;
@@ -1121,17 +1121,17 @@ namespace pace {
         template<typename ForwardIt
 #ifdef __cpp_lib_concepts
                  >
-          requires( std::forward_iterator<ForwardIt> && std::equality_comparable<ForwardIt> )
+          requires std::forward_iterator<ForwardIt>
 #else
                  ,
                  typename std::enable_if<
                    traits::AllOf<std::is_base_of<std::forward_iterator_tag,
                                                  typename std::iterator_traits<ForwardIt>::iterator_category>,
                                  std::is_convertible<decltype( std::declval<const ForwardIt&>()
-                                                               == std::declval<const ForwardIt&>() ),
+                                                               == std::declval<const Sentinel&>() ),
                                                      bool>,
                                  std::is_convertible<decltype( std::declval<const ForwardIt&>()
-                                                               != std::declval<const ForwardIt&>() ),
+                                                               != std::declval<const Sentinel&>() ),
                                                      bool>>::value,
                    bool>::type = 0>
 #endif
@@ -1168,7 +1168,7 @@ namespace pace {
           : BasicSharedString( alloc )
         {
           const auto length = static_cast<size_type>( utils::size( rg ) );
-          if ( length > small_capacity() ) {
+          if ( length > small_capacity() )
             transfer_to<Kind::Dynamic>( (std::max)( length, dynamic_capacity( small_capacity() ) ) + 1,
                                         [&]( Char* dest, size_type new_cap ) {
                                           PACE__TRUST( length <= new_cap );
@@ -1176,12 +1176,11 @@ namespace pace {
                                           std::ranges::copy( std::forward<R>( rg ), dest );
                                           return length;
                                         } );
-          } else {
+          else
             transfer_to<Kind::Inline>( 0, [&]( Char* dest, size_type ) {
               std::ranges::copy( std::forward<R>( rg ), dest );
               return length;
             } );
-          }
           length_ = length;
         }
 #endif
