@@ -1,5 +1,5 @@
-#ifndef PACE__TIMER_FIELD
-#define PACE__TIMER_FIELD
+#ifndef PACE_TIMER_FIELD
+#define PACE_TIMER_FIELD
 
 #include "../charcodes/U8Char.hpp"
 #include "../charcodes/U8Raw.hpp"
