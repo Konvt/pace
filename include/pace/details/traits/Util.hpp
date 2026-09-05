@@ -4,7 +4,6 @@
 #include "Concept.hpp"
 #include "Identity.hpp"
 #include "TypeList.hpp"
-#include <memory>
 
 namespace pace {
   namespace details {
@@ -31,14 +30,27 @@ namespace pace {
       template<typename T>
       using PointeeOf_t = typename PointeeOf<T>::type;
 
+      struct AnyValue {
+        constexpr AnyValue() = default;
+        template<typename From>
+        constexpr AnyValue( From&& ) noexcept
+        {}
+
+        template<typename To,
+                 typename = typename std::enable_if<std::is_default_constructible<To>::value>::type>
+        constexpr operator To() const noexcept
+        { return {}; }
+        // only available in non-evaluation contexts
+        template<typename To,
+                 typename = typename std::enable_if<!std::is_default_constructible<To>::value>::type>
+        constexpr operator To() const noexcept;
+      };
+
       template<typename P>
       struct PointeeOf<P*> : Identity<P> {};
 
       template<typename From, typename To>
       using CopyConst_t = typename std::conditional<std::is_const<From>::value, const To, To>::type;
-
-      template<typename Alloc, typename Tp>
-      using RebindAlloc_t = typename std::allocator_traits<Alloc>::template rebind_alloc<Tp>;
     } // namespace traits
   } // namespace details
 } // namespace pace

@@ -1,6 +1,7 @@
 #ifndef PACE_IO_MONOID
 #define PACE_IO_MONOID
 
+#include "../traits/Util.hpp"
 #include "../utils/Backport.hpp"
 #include "CharPipeline.hpp"
 
@@ -47,7 +48,7 @@ namespace pace {
               (void)std::initializer_list<bool> { ( ( pipeline << sep << std::forward<Emis>( emis ) ),
                                                     false )... };
             },
-            std::move( self.value ) );
+            std::move( self ).value );
           return pipeline;
         }
       };
@@ -94,13 +95,8 @@ namespace pace {
       struct Join<Sep> {
         std::tuple<> emission;
 
-        constexpr Join() = default;
-        template<
-          typename Sp,
-          typename = typename std::enable_if<!std::is_same<typename std::decay<Sp>::type, Join>::value>::type>
-        // To make the construction operation the same as Join<Separator, ...>
-        constexpr Join( Sp&& ) noexcept
-        {}
+        constexpr Join() noexcept = default;
+        PACE__CXX14_CNSTXPR Join( std::initializer_list<details::traits::AnyValue> ) noexcept {}
 
         PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
                                                                                const Join& )
@@ -158,7 +154,7 @@ namespace pace {
               else
                 pipeline << std::forward<Negative>( neg );
             },
-            std::move( self.value ) );
+            std::move( self ).value );
           return pipeline;
         }
       };
@@ -527,7 +523,7 @@ namespace pace {
               while ( utils::invoke( std::forward<Predicate>( pred ), std::forward<Args>( args )... ) )
                 pipeline << emi;
             },
-            std::move( self.value ) );
+            std::move( self ).value );
           return pipeline;
         }
       };
@@ -627,20 +623,40 @@ namespace pace {
       struct Until<void, Emission, std::size_t> {
         static_assert( traits::Not<std::is_rvalue_reference<Emission>>::value, "dangling reference" );
 
+      private:
+        template<typename E, typename = void>
+        struct is_appendable : std::false_type {};
+        template<typename E>
+        struct is_appendable<E,
+                             decltype( std::declval<CharPipeline&>().append( std::declval<E>(),
+                                                                             std::declval<std::size_t>() ),
+                                       void() )> : std::true_type {};
+
+        template<typename E>
+        static PACE__CXX23_CNSTXPR auto emit( CharPipeline& pipeline, E&& emis, std::size_t times ) ->
+          typename std::enable_if<is_appendable<E>::value>::type
+        { pipeline.append( std::forward<E>( emis ), times ); }
+        template<typename E>
+        static PACE__CXX23_CNSTXPR auto emit( CharPipeline& pipeline, E&& emis, std::size_t times ) ->
+          typename std::enable_if<!is_appendable<E>::value>::type
+        {
+          for ( std::size_t i = 0; i < times; ++i )
+            pipeline << emis;
+        }
+
+      public:
         std::tuple<Emission, std::size_t> value;
 
         PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
                                                                                const Until& self )
         {
-          for ( std::size_t i = 0; i < std::get<1>( self.value ); ++i )
-            pipeline << std::get<0>( self.value );
+          emit( pipeline, std::get<0>( self.value ), std::get<1>( self.value ) );
           return pipeline;
         }
         PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
                                                                                Until&& self )
         {
-          for ( std::size_t i = 0; i < std::get<1>( self.value ); ++i )
-            pipeline << std::forward<Emission>( std::get<0>( self.value ) );
+          emit( pipeline, std::get<0>( std::move( self ).value ), std::get<1>( self.value ) );
           return pipeline;
         }
       };

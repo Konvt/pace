@@ -256,7 +256,7 @@ namespace pace {
 
         using AllocCell  = AllocatorCell<Alloc>;
         using RefCounter = std::atomic<size_t>;
-        using CoWAlloc   = traits::RebindAlloc_t<Alloc, RefCounter>;
+        using CoWAlloc   = typename std::allocator_traits<Alloc>::template rebind_alloc<RefCounter>;
         using CoWRefs    = typename std::allocator_traits<CoWAlloc>::pointer;
 
 #ifdef __cpp_lib_string_view
@@ -1128,10 +1128,10 @@ namespace pace {
                    traits::AllOf<std::is_base_of<std::forward_iterator_tag,
                                                  typename std::iterator_traits<ForwardIt>::iterator_category>,
                                  std::is_convertible<decltype( std::declval<const ForwardIt&>()
-                                                               == std::declval<const Sentinel&>() ),
+                                                               == std::declval<const ForwardIt&>() ),
                                                      bool>,
                                  std::is_convertible<decltype( std::declval<const ForwardIt&>()
-                                                               != std::declval<const Sentinel&>() ),
+                                                               != std::declval<const ForwardIt&>() ),
                                                      bool>>::value,
                    bool>::type = 0>
 #endif
