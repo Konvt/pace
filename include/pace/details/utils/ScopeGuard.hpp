@@ -87,7 +87,7 @@ namespace pace {
         ~ScopeFail() noexcept
         {
           if ( exceptions_on_entry_ < uncaught_exceptions() ) {
-            (void)( this->callback()() );
+            invoke( this->callback() );
             this->release();
           }
         }

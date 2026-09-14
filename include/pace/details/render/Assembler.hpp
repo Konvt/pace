@@ -39,17 +39,16 @@ namespace pace {
           if ( this->projection_.test( traits::IndexIn<Element, Facades...>::value ) ) {
             const auto brush = io::when( !params.style_off && this->colorful() );
             pipeline << brush(
-              details::io::concat( console::resetcolor,
-                                   console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } ) );
+              io::concat( console::resetcolor,
+                          console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } ) );
 
             this->traits::BaseOf_t<typename Base::layout_type, Element>::build( pipeline, params );
 
-            if ( any_more<Elements...>() ) {
+            if ( any_more<Elements...>() )
               pipeline << brush(
-                details::io::concat( console::resetcolor,
-                                     console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } ) )
+                io::concat( console::resetcolor,
+                            console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } ) )
                        << this->divider_;
-            }
           }
           render_each<Elements...>( pipeline, params );
         }
@@ -63,23 +62,20 @@ namespace pace {
 
         std::uint64_t fixed_width() const noexcept override
         {
-          details::concurrent::SharedLock<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
+          concurrent::SharedLock<concurrent::SharedMutex> lock { this->rw_mtx_ };
           std::size_t num_enabled = 0;
           std::uint64_t width     = 0;
           (void)std::initializer_list<bool> { (
-            num_enabled += this->projection_.test( details::traits::IndexIn<Facades, Facades...>::value ),
-            width += ( this->projection_.test( details::traits::IndexIn<Facades, Facades...>::value )
-                         ? details::traits::BaseOf_t<typename Base::layout_type, Facades>::fixed_length()
+            num_enabled += this->projection_.test( traits::IndexIn<Facades, Facades...>::value ),
+            width += ( this->projection_.test( traits::IndexIn<Facades, Facades...>::value )
+                         ? this->traits::BaseOf_t<typename Base::layout_type, Facades>::fixed_length()
                          : 0 ),
             false )... };
           // Before the first element and the last element, we do not set a divider.
-          return width
-               + details::traits::BaseOf_t<typename Base::layout_type,
-                                           details::aspects::Prefix>::fixed_length()
-               + details::traits::BaseOf_t<typename Base::layout_type,
-                                           details::aspects::Postfix>::fixed_length()
-               + details::traits::BaseOf_t<typename Base::layout_type,
-                                           details::aspects::Segment>::fixed_length( num_enabled );
+          return width + this->traits::BaseOf_t<typename Base::layout_type, aspects::Prefix>::fixed_length()
+               + this->traits::BaseOf_t<typename Base::layout_type, aspects::Postfix>::fixed_length()
+               + this->traits::BaseOf_t<typename Base::layout_type, aspects::Segment>::fixed_length(
+                 num_enabled );
         }
       };
     } // namespace render

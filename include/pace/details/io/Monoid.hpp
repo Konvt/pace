@@ -96,7 +96,7 @@ namespace pace {
         std::tuple<> emission;
 
         constexpr Join() noexcept = default;
-        PACE__CXX14_CNSTXPR Join( std::initializer_list<details::traits::AnyValue> ) noexcept {}
+        PACE__CXX14_CNSTXPR Join( std::initializer_list<traits::AnyValue> ) noexcept {}
 
         PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
                                                                                const Join& )
