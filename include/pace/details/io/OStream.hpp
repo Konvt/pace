@@ -7,6 +7,7 @@
 #include <cerrno>
 #if PACE__WIN
 # include "../console/TermContext.hpp"
+# include <vector>
 # ifndef NOMINMAX
 #  define NOMINMAX 1
 # endif
