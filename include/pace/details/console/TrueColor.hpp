@@ -75,7 +75,7 @@ namespace pace {
 #endif
         }
 
-        PACE__FORCEINLINE void emit( io::CharPipeline& pipeline ) const
+        PACE__FORCEINLINE void emit_to( io::CharPipeline& pipeline ) const
         {
 #ifdef PACE_NOSTYLE
           (void)pipeline;

@@ -633,11 +633,11 @@ namespace pace {
                                        void() )> : std::true_type {};
 
         template<typename E>
-        static PACE__CXX23_CNSTXPR auto emit( CharPipeline& pipeline, E&& emis, std::size_t times ) ->
+        static PACE__CXX23_CNSTXPR auto emit_to( CharPipeline& pipeline, E&& emis, std::size_t times ) ->
           typename std::enable_if<is_appendable<E>::value>::type
         { pipeline.append( std::forward<E>( emis ), times ); }
         template<typename E>
-        static PACE__CXX23_CNSTXPR auto emit( CharPipeline& pipeline, E&& emis, std::size_t times ) ->
+        static PACE__CXX23_CNSTXPR auto emit_to( CharPipeline& pipeline, E&& emis, std::size_t times ) ->
           typename std::enable_if<!is_appendable<E>::value>::type
         {
           for ( std::size_t i = 0; i < times; ++i )
@@ -650,13 +650,13 @@ namespace pace {
         PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
                                                                                const Until& self )
         {
-          emit( pipeline, std::get<0>( self.value ), std::get<1>( self.value ) );
+          emit_to( pipeline, std::get<0>( self.value ), std::get<1>( self.value ) );
           return pipeline;
         }
         PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
                                                                                Until&& self )
         {
-          emit( pipeline, std::get<0>( std::move( self ).value ), std::get<1>( self.value ) );
+          emit_to( pipeline, std::get<0>( std::move( self ).value ), std::get<1>( self.value ) );
           return pipeline;
         }
       };
