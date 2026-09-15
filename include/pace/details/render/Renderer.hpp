@@ -3,7 +3,6 @@
 
 #include "../concurrent/ExceptionBox.hpp"
 #include "../concurrent/Util.hpp"
-#include "../console/TermContext.hpp"
 #include "../utils/ScopeGuard.hpp"
 #include "../utils/Singleton.hpp"
 #include "../wrappers/UniqueFunction.hpp"
@@ -69,7 +68,6 @@ namespace pace {
 
         void launch() &
         {
-          console::TermContext<Tag>::itself().virtual_term();
           PACE__ASSERT( runner_.get_id() == std::thread::id() );
           auto guard = utils::make_scope_fail(
             [this]() noexcept { state_.store( Phase::Dead, std::memory_order_relaxed ); } );

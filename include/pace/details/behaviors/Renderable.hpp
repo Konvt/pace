@@ -38,7 +38,7 @@ namespace pace {
           if ( !executor.try_appoint( [this]() {
                  // No exceptions are caught here, this should be done by the thread manager.
                  auto& ostream        = io::OStream<Sink>::itself();
-                 const auto istty     = console::TermContext<Sink>::itself().connected();
+                 const auto istty     = ostream.capable();
                  const auto style_off = !istty && config::auto_style_off();
                  switch ( state_.load( std::memory_order_relaxed ) ) {
                  case Phase::Awake: {
@@ -93,7 +93,7 @@ namespace pace {
             PACE__UNLIKELY throw exception::InvalidState(
               charcodes::make_literal( "pace: another progress bar instance is already running" ) );
 
-          (void)console::TermContext<Sink>::itself().detect();
+          (void)io::OStream<Sink>::itself().renderable();
           io::OStream<Sink>::itself() << io::release; // reset the state.
           auto guard = utils::make_scope_fail( [&executor]() noexcept { executor.dismiss(); } );
           executor.template activate<Mode>();

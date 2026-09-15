@@ -1,7 +1,7 @@
 #ifndef PACE_RUNTIME
 #define PACE_RUNTIME
 
-#include "../details/console/TermContext.hpp"
+#include "../details/io/OStream.hpp"
 #include "../details/render/Renderer.hpp"
 
 namespace pace {
@@ -15,15 +15,15 @@ namespace pace {
     PACE__NODISCARD inline bool intty( Channel channel ) noexcept
     {
       if ( channel == Channel::Stdout )
-        return details::console::TermContext<Channel::Stdout>::itself().detect();
-      return details::console::TermContext<Channel::Stderr>::itself().detect();
+        return details::io::OStream<Channel::Stdout>::itself().renderable();
+      return details::io::OStream<Channel::Stderr>::itself().renderable();
     }
 
     PACE__NODISCARD inline std::uint16_t terminal_width( Channel channel ) noexcept
     {
       if ( channel == Channel::Stdout )
-        return details::console::TermContext<Channel::Stdout>::itself().width();
-      return details::console::TermContext<Channel::Stderr>::itself().width();
+        return details::io::OStream<Channel::Stdout>::itself().width();
+      return details::io::OStream<Channel::Stderr>::itself().width();
     }
 
     // Get the current output interval.
