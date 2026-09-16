@@ -41,10 +41,8 @@ namespace pace {
   unpack( *this, option::Reversed( flag ) );                       \
   return static_cast<ReturnType>( *this )
 
-        Derived& reverse( bool flag ) & noexcept
-        { PACE__METHOD( Derived& ); }
-        Derived&& reverse( bool flag ) && noexcept
-        { PACE__METHOD( Derived&& ); }
+        Derived& reverse( bool flag ) & noexcept { PACE__METHOD( Derived& ); }
+        Derived&& reverse( bool flag ) && noexcept { PACE__METHOD( Derived&& ); }
 
 #undef PACE__METHOD
 
@@ -57,7 +55,7 @@ namespace pace {
         PACE__CXX20_CNSTXPR void swap( Reversible& other ) noexcept
         {
           std::swap( reversed_, other.reversed_ );
-          Base::swap( other );
+          this->Base::swap( other );
         }
       };
 

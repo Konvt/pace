@@ -129,19 +129,15 @@ namespace pace {
         Derived&& lead( std::vector<std::string> _leads ) &&
         { PACE__METHOD( Lead, _leads, Derived&&, std::move ); }
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
-        Derived& lead( std::string _lead ) &
-        { PACE__METHOD( Lead, _lead, Derived&, std::move ); }
-        Derived&& lead( std::string _lead ) &&
-        { PACE__METHOD( Lead, _lead, Derived&&, std::move ); }
+        Derived& lead( std::string _lead ) & { PACE__METHOD( Lead, _lead, Derived&, std::move ); }
+        Derived&& lead( std::string _lead ) && { PACE__METHOD( Lead, _lead, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
         Derived& lead( const std::vector<charcodes::U8StringView>& _leads ) &
         { PACE__METHOD( Lead, _leads, Derived&, ); }
         Derived&& lead( const std::vector<charcodes::U8StringView>& _leads ) &&
         { PACE__METHOD( Lead, _leads, Derived&&, ); }
-        Derived& lead( charcodes::U8StringView _lead ) &
-        { PACE__METHOD( Lead, _lead, Derived&, ); }
-        Derived&& lead( charcodes::U8StringView _lead ) &&
-        { PACE__METHOD( Lead, _lead, Derived&&, ); }
+        Derived& lead( charcodes::U8StringView _lead ) & { PACE__METHOD( Lead, _lead, Derived&, ); }
+        Derived&& lead( charcodes::U8StringView _lead ) && { PACE__METHOD( Lead, _lead, Derived&&, ); }
 #endif
 
         /// @brief Set the foreground color of the component `lead`.
@@ -166,7 +162,7 @@ namespace pace {
           std::swap( len_longest_lead_, other.len_longest_lead_ );
           lead_forecolor_.swap( other.lead_forecolor_ );
           lead_backcolor_.swap( other.lead_backcolor_ );
-          Base::swap( other );
+          this->Base::swap( other );
         }
       };
     } // namespace aspects

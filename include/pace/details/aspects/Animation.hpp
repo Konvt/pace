@@ -61,10 +61,8 @@ namespace pace {
          *
          * If the value is zero, freeze the animation.
          */
-        Derived& shift( std::int8_t _shift_factor ) & noexcept
-        { PACE__METHOD( Derived& ); }
-        Derived&& shift( std::int8_t _shift_factor ) && noexcept
-        { PACE__METHOD( Derived&& ); }
+        Derived& shift( std::int8_t _shift_factor ) & noexcept { PACE__METHOD( Derived& ); }
+        Derived&& shift( std::int8_t _shift_factor ) && noexcept { PACE__METHOD( Derived&& ); }
 
 #undef PACE__METHOD
 
@@ -72,7 +70,7 @@ namespace pace {
         {
           using std::swap;
           swap( shift_factor_, other.shift_factor_ );
-          Base::swap( other );
+          this->Base::swap( other );
         }
       };
     } // namespace aspects

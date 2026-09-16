@@ -88,8 +88,7 @@ namespace pace {
   return static_cast<ReturnType>( *this )
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
-        Derived& divider( std::string _divider ) &
-        { PACE__METHOD( Divider, _divider, Derived&, std::move ); }
+        Derived& divider( std::string _divider ) & { PACE__METHOD( Divider, _divider, Derived&, std::move ); }
         Derived&& divider( std::string _divider ) &&
         { PACE__METHOD( Divider, _divider, Derived&&, std::move ); }
 
@@ -142,7 +141,7 @@ namespace pace {
           r_border_.swap( other.r_border_ );
           info_forecolor_.swap( other.info_forecolor_ );
           info_backcolor_.swap( other.info_backcolor_ );
-          Base::swap( other );
+          this->Base::swap( other );
         }
       };
     } // namespace aspects

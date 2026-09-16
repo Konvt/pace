@@ -106,17 +106,14 @@ namespace pace {
         Derived&& starting( std::string _starting ) &&
         { PACE__METHOD( Starting, _starting, Derived&&, std::move ); }
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
-        Derived& ending( std::string _ending ) &
-        { PACE__METHOD( Ending, _ending, Derived&, std::move ); }
-        Derived&& ending( std::string _ending ) &&
-        { PACE__METHOD( Ending, _ending, Derived&&, std::move ); }
+        Derived& ending( std::string _ending ) & { PACE__METHOD( Ending, _ending, Derived&, std::move ); }
+        Derived&& ending( std::string _ending ) && { PACE__METHOD( Ending, _ending, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
         Derived& starting( charcodes::U8StringView _starting ) &
         { PACE__METHOD( Starting, _starting, Derived&, ); }
         Derived&& starting( charcodes::U8StringView _starting ) &&
         { PACE__METHOD( Starting, _starting, Derived&&, ); }
-        Derived& ending( charcodes::U8StringView _ending ) &
-        { PACE__METHOD( Ending, _ending, Derived&, ); }
+        Derived& ending( charcodes::U8StringView _ending ) & { PACE__METHOD( Ending, _ending, Derived&, ); }
         Derived&& ending( charcodes::U8StringView _ending ) &&
         { PACE__METHOD( Ending, _ending, Derived&&, ); }
 #endif
@@ -146,8 +143,7 @@ namespace pace {
         { PACE__METHOD( EndBackcolor, _end_backcolor, Derived&&, ); }
 
         // Set the width of the bar indicator.
-        Derived& bar_width( std::uint16_t _width ) & noexcept
-        { PACE__METHOD( BarWidth, _width, Derived&, ); }
+        Derived& bar_width( std::uint16_t _width ) & noexcept { PACE__METHOD( BarWidth, _width, Derived&, ); }
         Derived&& bar_width( std::uint16_t _width ) && noexcept
         { PACE__METHOD( BarWidth, _width, Derived&&, ); }
 
@@ -168,7 +164,7 @@ namespace pace {
           end_forecolor_.swap( other.end_forecolor_ );
           end_backcolor_.swap( other.end_backcolor_ );
           std::swap( bar_width_, other.bar_width_ );
-          Base::swap( other );
+          this->Base::swap( other );
         }
       };
     } // namespace aspects

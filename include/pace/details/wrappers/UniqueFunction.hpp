@@ -293,9 +293,9 @@ namespace pace {
           noexcept( traits::AllOf<typename Base::template is_inlinable<typename std::decay<F>::type>,
                                   std::is_nothrow_constructible<typename std::decay<F>::type, F>>::value )
         {
-          Base::template store<typename std::decay<F>::type>( this->vtable_,
-                                                              this->callee_,
-                                                              std::forward<F>( fn ) );
+          this->Base::template store<typename std::decay<F>::type>( this->vtable_,
+                                                                    this->callee_,
+                                                                    std::forward<F>( fn ) );
         }
         // In C++11, `std::in_place_type` does not exist, and we will not use it either.
         // Therefore, we do not provide an overloaded constructor for this type here.

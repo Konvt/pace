@@ -54,7 +54,7 @@ namespace pace {
         PACE__TRUST( this != &other );
         PACE__ASSERT( this->active() == false );
         PACE__ASSERT( other.active() == false );
-        Base::swap( other );
+        this->Base::swap( other );
       }
       friend void swap( BasicBar& a, BasicBar& b ) noexcept { a.swap( b ); }
     };
@@ -1347,7 +1347,7 @@ namespace pace {
 #ifdef __cpp_concepts
     requires( details::traits::is_sized_range<R>::value && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...>
-              && requires( details::traits::IterValue_t<details::traits ::IteratorOf_t<R>> ele, Proc&& op ) {
+              && requires( details::traits::IterValue_t<details::traits::IteratorOf_t<R>> ele, Proc&& op ) {
                    op( ele );
                  } )
 #else

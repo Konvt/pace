@@ -250,7 +250,7 @@ namespace pace {
         units_.swap( other.units_ );
         std::swap( widest_width_, other.widest_width_ );
         std::swap( magnitude_, other.magnitude_ );
-        Base::swap( other );
+        this->Base::swap( other );
       }
     };
   } // namespace facade

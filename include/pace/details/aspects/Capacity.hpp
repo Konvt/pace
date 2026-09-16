@@ -42,10 +42,8 @@ namespace pace {
   return static_cast<ReturnType>( *this )
 
         // Set the number of quota, passing in zero is no exception.
-        Derived& quota( std::uint64_t _quota ) & noexcept
-        { PACE__METHOD( Derived& ); }
-        Derived&& quota( std::uint64_t _quota ) && noexcept
-        { PACE__METHOD( Derived&& ); }
+        Derived& quota( std::uint64_t _quota ) & noexcept { PACE__METHOD( Derived& ); }
+        Derived&& quota( std::uint64_t _quota ) && noexcept { PACE__METHOD( Derived&& ); }
 #undef PACE__METHOD
 
         // Get the current number of quota.
@@ -58,7 +56,7 @@ namespace pace {
         PACE__CXX14_CNSTXPR void swap( Capacity& other ) noexcept
         {
           std::swap( task_quota_, other.task_quota_ );
-          Base::swap( other );
+          this->Base::swap( other );
         }
       };
 

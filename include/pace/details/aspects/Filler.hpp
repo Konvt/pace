@@ -65,13 +65,10 @@ namespace pace {
   return static_cast<ReturnType>( *this )
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
-        Derived& filler( std::string _filler ) &
-        { PACE__METHOD( Filler, _filler, Derived&, std::move ); }
-        Derived&& filler( std::string _filler ) &&
-        { PACE__METHOD( Filler, _filler, Derived&&, std::move ); }
+        Derived& filler( std::string _filler ) & { PACE__METHOD( Filler, _filler, Derived&, std::move ); }
+        Derived&& filler( std::string _filler ) && { PACE__METHOD( Filler, _filler, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
-        Derived& filler( charcodes::U8StringView _filler ) &
-        { PACE__METHOD( Filler, _filler, Derived&, ); }
+        Derived& filler( charcodes::U8StringView _filler ) & { PACE__METHOD( Filler, _filler, Derived&, ); }
         Derived&& filler( charcodes::U8StringView _filler ) &&
         { PACE__METHOD( Filler, _filler, Derived&&, ); }
 #endif
@@ -95,7 +92,7 @@ namespace pace {
           filler_.swap( other.filler_ );
           filler_forecolor_.swap( other.filler_forecolor_ );
           filler_backcolor_.swap( other.filler_backcolor_ );
-          Base::swap( other );
+          this->Base::swap( other );
         }
       };
     } // namespace aspects

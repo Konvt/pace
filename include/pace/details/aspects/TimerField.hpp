@@ -3,6 +3,7 @@
 
 #include "../charcodes/U8Char.hpp"
 #include "../charcodes/U8Raw.hpp"
+#include <vector>
 
 namespace pace {
   namespace details {

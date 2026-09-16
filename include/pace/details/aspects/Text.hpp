@@ -98,14 +98,11 @@ namespace pace {
   return static_cast<ReturnType>( *this )
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
-        Derived& prefix( std::string _prefix ) &
-        { PACE__METHOD( Prefix, _prefix, Derived&, std::move ); }
-        Derived&& prefix( std::string _prefix ) &&
-        { PACE__METHOD( Prefix, _prefix, Derived&&, std::move ); }
+        Derived& prefix( std::string _prefix ) & { PACE__METHOD( Prefix, _prefix, Derived&, std::move ); }
+        Derived&& prefix( std::string _prefix ) && { PACE__METHOD( Prefix, _prefix, Derived&&, std::move ); }
 
 #ifdef __cpp_lib_char8_t
-        Derived& prefix( charcodes::U8StringView _prefix ) &
-        { PACE__METHOD( Prefix, _prefix, Derived&, ); }
+        Derived& prefix( charcodes::U8StringView _prefix ) & { PACE__METHOD( Prefix, _prefix, Derived&, ); }
         Derived&& prefix( charcodes::U8StringView _prefix ) &&
         { PACE__METHOD( Prefix, _prefix, Derived&&, ); }
 #endif
@@ -129,7 +126,7 @@ namespace pace {
           prefix_.swap( other.prefix_ );
           prfx_forecolor_.swap( other.prfx_forecolor_ );
           prfx_backcolor_.swap( other.prfx_backcolor_ );
-          Base::swap( other );
+          this->Base::swap( other );
         }
       };
 
@@ -183,8 +180,7 @@ namespace pace {
   return static_cast<ReturnType>( *this )
 
         /// @throw exception::InvalidArgument If the passed parameters are not coding in UTF-8.
-        Derived& postfix( std::string _postfix ) &
-        { PACE__METHOD( Postfix, _postfix, Derived&, std::move ); }
+        Derived& postfix( std::string _postfix ) & { PACE__METHOD( Postfix, _postfix, Derived&, std::move ); }
         Derived&& postfix( std::string _postfix ) &&
         { PACE__METHOD( Postfix, _postfix, Derived&&, std::move ); }
 #ifdef __cpp_lib_char8_t
@@ -213,7 +209,7 @@ namespace pace {
           postfix_.swap( other.postfix_ );
           pstfx_forecolor_.swap( other.pstfx_forecolor_ );
           pstfx_backcolor_.swap( other.pstfx_backcolor_ );
-          Base::swap( other );
+          this->Base::swap( other );
         }
       };
     } // namespace aspects

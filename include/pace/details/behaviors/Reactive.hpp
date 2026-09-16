@@ -79,7 +79,7 @@ namespace pace {
           // Because for a move-only type, transferring ownership simultaneously
           // in multiple locations should not occur.
           rhs.move_to( *this );
-          Base::operator=( std::move( rhs ) );
+          this->Base::operator=( std::move( rhs ) );
           return *this;
         }
         ~Reactive() noexcept { destroy(); }
@@ -156,10 +156,8 @@ namespace pace {
   destroy();                                                                \
   return static_cast<ReturnType>( *this )
 
-        Derived& action() & noexcept
-        { PACE__METHOD( Derived& ); }
-        Derived&& action() && noexcept
-        { PACE__METHOD( Derived&& ); }
+        Derived& action() & noexcept { PACE__METHOD( Derived& ); }
+        Derived&& action() && noexcept { PACE__METHOD( Derived&& ); }
 
 #undef PACE__METHOD
 
@@ -228,7 +226,7 @@ namespace pace {
               other.move_to( *this );
             break;
           }
-          Base::swap( other );
+          this->Base::swap( other );
         }
       };
     } // namespace behaviors

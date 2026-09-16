@@ -21,7 +21,7 @@ namespace pace {
         PACE__CXX14_CNSTXPR PackagedBar& operator=( Base&& rhs ) & noexcept
         {
           PACE__ASSERT( this != std::addressof( rhs ) );
-          Base::operator=( std::move( rhs ) );
+          this->Base::operator=( std::move( rhs ) );
           return *this;
         }
       };

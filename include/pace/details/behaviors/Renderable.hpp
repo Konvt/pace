@@ -171,7 +171,7 @@ namespace pace {
         Renderable& operator=( Renderable&& rhs ) & noexcept( std::is_nothrow_move_assignable<Base>::value )
         {
           config_ = std::move( rhs.config_ );
-          Base::operator=( std::move( rhs ) );
+          this->Base::operator=( std::move( rhs ) );
           return *this;
         }
         ~Renderable() noexcept { do_reset<true>(); }
@@ -203,7 +203,7 @@ namespace pace {
         PACE__CXX20_CNSTXPR void swap( Renderable& other ) noexcept
         {
           config_.swap( other.config_ );
-          Base::swap( other );
+          this->Base::swap( other );
         }
       };
     } // namespace behaviors

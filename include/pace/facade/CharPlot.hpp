@@ -26,7 +26,7 @@ namespace pace {
         const auto brush = details::io::when( !params.style_off && this->colorful() );
         auto frame_cnt   = params.frame_count;
         const auto len_finished =
-          static_cast<std::size_t>( std::round( this->bar_width_ * params.progress_ratio ) );
+          static_cast<std::size_t>( std::floor( this->bar_width_ * params.progress_ratio ) );
         std::size_t len_vacancy = this->bar_width_ - len_finished;
 
         pipeline << brush( details::io::concat(
@@ -46,13 +46,12 @@ namespace pace {
           if ( !this->lead_.empty() ) {
             frame_cnt = static_cast<std::uint32_t>(
               static_cast<std::uint64_t>( params.frame_count * this->shift_factor_ ) % this->lead_.size() );
-            const auto& current_lead = this->lead_[frame_cnt];
-            if ( current_lead.width() <= len_vacancy ) {
+            if ( this->lead_[frame_cnt].width() <= len_vacancy ) {
               pipeline << brush( details::io::concat(
                 details::console::resetcolor,
                 details::console::Dualcolor { this->lead_forecolor_, this->lead_backcolor_ } ) )
-                       << current_lead;
-              len_vacancy -= current_lead.width();
+                       << this->lead_[frame_cnt];
+              len_vacancy -= this->lead_[frame_cnt].width();
             }
           }
 
@@ -60,19 +59,18 @@ namespace pace {
             details::console::resetcolor,
             details::console::Dualcolor { this->remain_forecolor_, this->remain_backcolor_ } ) )
                    << details::io::repeat( len_vacancy % this->remain_.width(), ' ' )
-                   << details::io::repeat( len_vacancy / this->remain_.width(), ' ' );
+                   << details::io::repeat( len_vacancy / this->remain_.width(), this->remain_ );
         } else {
-          const auto flag = [this, frame_cnt, &len_vacancy]() noexcept {
+          const auto flag = [&]() noexcept {
             if ( !this->lead_.empty() ) {
-              const auto offset =
-                static_cast<std::uint64_t>( frame_cnt * this->shift_factor_ ) % this->lead_.size();
-              if ( this->lead_[offset].width() <= len_vacancy ) {
-                len_vacancy -= this->lead_[offset].width();
-                return true;
-              }
+              frame_cnt = static_cast<std::uint32_t>(
+                static_cast<std::uint64_t>( params.frame_count * this->shift_factor_ ) % this->lead_.size() );
+              return this->lead_[frame_cnt].width() <= len_vacancy;
             }
             return false;
           }();
+          if ( flag )
+            len_vacancy -= this->lead_[frame_cnt].width();
 
           pipeline << brush( details::io::concat(
             details::console::resetcolor,

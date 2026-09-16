@@ -181,8 +181,8 @@ namespace pace {
                                   case Token::Literal: return acc + field.text().width();
                                   case Token::Hour:
                                   case Token::Minute:  PACE__FALLTHROUGH;
-                                  case Token::Second:  return acc + ( field.width() == 0 ? 1 : field.width() );
-                                  default:             break;
+                                  case Token::Second: return acc + ( field.width() == 0 ? 1 : field.width() );
+                                  default:            break;
                                   }
                                   details::utils::unreachable();
                                 } );
@@ -213,8 +213,7 @@ namespace pace {
        *
        * @throw exception::InvalidArgument Propagated from `option::ETAFormat`.
        */
-      Derived& eta_format( details::charcodes::StringView _fmt_str ) &
-      { PACE__METHOD( _fmt_str, Derived& ); }
+      Derived& eta_format( details::charcodes::StringView _fmt_str ) & { PACE__METHOD( _fmt_str, Derived& ); }
       Derived&& eta_format( details::charcodes::StringView _fmt_str ) &&
       { PACE__METHOD( _fmt_str, Derived&& ); }
 
@@ -243,7 +242,7 @@ namespace pace {
         tmp                = show_minute_;
         show_minute_       = other.show_minute_;
         other.show_minute_ = tmp;
-        Base::swap( other );
+        this->Base::swap( other );
       }
     };
   } // namespace facade

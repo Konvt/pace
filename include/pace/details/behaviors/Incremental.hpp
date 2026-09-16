@@ -31,7 +31,7 @@ namespace pace {
         Incremental( Incremental&& rhs ) noexcept : Base( std::move( rhs ) ) {}
         Incremental& operator=( Incremental&& rhs ) & noexcept
         {
-          Base::operator=( std::move( rhs ) );
+          this->Base::operator=( std::move( rhs ) );
           return *this;
         }
         ~Incremental() = default;
