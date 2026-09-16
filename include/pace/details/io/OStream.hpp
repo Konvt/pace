@@ -2,6 +2,7 @@
 #define PACE_OSTREAM
 
 #include "../../exception/Error.hpp"
+#include "../charcodes/StringView.hpp"
 #include "../core/Types.hpp"
 #include "../utils/Singleton.hpp"
 #include "CharPipeline.hpp"
@@ -127,7 +128,7 @@ namespace pace {
           return 0;
         }
 
-        static PACE__FORCEINLINE void emit( const char* buffer, std::size_t num_bytes_to_write )
+        static PACE__FORCEINLINE void emit( charcodes::StringView content )
         {
 #if PACE__WIN
           std::size_t total_written = 0;
@@ -144,18 +145,18 @@ namespace pace {
                 std::error_code( errno, std::generic_category() ),
                 charcodes::make_literal( "pace: cannot open the standard output stream" ) );
             WriteFile( ostream,
-                       buffer + total_written,
-                       static_cast<DWORD>( num_bytes_to_write - total_written ),
+                       content.data() + total_written,
+                       static_cast<DWORD>( content.size() - total_written ),
                        &num_written,
                        nullptr );
             total_written += static_cast<std::size_t>( num_written );
-          } while ( total_written < num_bytes_to_write );
+          } while ( total_written < content.size() );
 #elif PACE__UNIX
           std::size_t total_written = 0;
           do {
             ssize_t num_written = write( utils::to_underlying( Sink ),
-                                         buffer + total_written,
-                                         num_bytes_to_write - total_written );
+                                         content.data() + total_written,
+                                         content.size() - total_written );
             if ( errno == EINTR )
               num_written = (std::max<ssize_t>)( 0, num_written );
             else if ( num_written < 0 )
@@ -163,12 +164,12 @@ namespace pace {
                 std::error_code( errno, std::generic_category() ),
                 charcodes::make_literal( "pace: write to output stream failed" ) );
             total_written += static_cast<std::size_t>( num_written );
-          } while ( total_written < num_bytes_to_write );
+          } while ( total_written < content.size() );
 #else
           if PACE__CXX17_CNSTXPR ( Sink == Channel::Stdout )
-            std::cout.write( buffer, num_bytes_to_write ).flush();
+            std::cout.write( content.data(), content.size() ).flush();
           else
-            std::cerr.write( buffer, num_bytes_to_write ).flush();
+            std::cerr.write( content.data(), content.size() ).flush();
 #endif
         }
 
@@ -200,23 +201,18 @@ namespace pace {
 #if PACE__WIN && !defined( PACE_UTF8 )
           const auto codepage = GetConsoleOutputCP();
           if ( codepage == CP_UTF8 ) {
-            emit( reinterpret_cast<const char*>( this->data() ), this->size() );
+            emit( { this->data(), this->size() } );
             this->CharPipeline::clear();
             return *this;
           }
 
-          // The target type char is not subject to strict alias restrictions.
-          const auto wlen = MultiByteToWideChar( CP_UTF8,
-                                                 0,
-                                                 reinterpret_cast<const char*>( this->data() ),
-                                                 static_cast<int>( this->size() ),
-                                                 nullptr,
-                                                 0 );
+          const auto wlen =
+            MultiByteToWideChar( CP_UTF8, 0, this->data(), static_cast<int>( this->size() ), nullptr, 0 );
           PACE__TRUST( wlen > 0 );
           wb_buffer_.resize( static_cast<std::size_t>( wlen ) );
           MultiByteToWideChar( CP_UTF8,
                                0,
-                               reinterpret_cast<const char*>( this->data() ),
+                               this->data(),
                                static_cast<int>( this->size() ),
                                wb_buffer_.data(),
                                wlen );
@@ -233,9 +229,9 @@ namespace pace {
                                mblen,
                                nullptr,
                                nullptr );
-          emit( localized_.data(), localized_.size() );
+          emit( { localized_.data(), localized_.size() } );
 #else
-          emit( reinterpret_cast<const char*>( this->data() ), this->size() );
+          emit( { this->data(), this->size() } );
 #endif
           clear();
           return *this;
