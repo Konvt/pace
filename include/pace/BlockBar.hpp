@@ -41,7 +41,7 @@ namespace pace {
   PACE__PROVIDE_FOR( config::Block, option::Divider, " | " );
   PACE__PROVIDE_FOR( config::Block, option::InfoForecolor, Color::Cyan );
   template<>
-  struct config::ProvideFor<config::Block, option::ElapsedFormat> {
+  struct config::Provider<config::Block, option::ElapsedFormat> {
     static option::ElapsedFormat provide()
     {
       static const auto cached_option = option::ElapsedFormat( "+%H:%M:%S" );
@@ -49,7 +49,7 @@ namespace pace {
     }
   };
   template<>
-  struct config::ProvideFor<config::Block, option::ETAFormat> {
+  struct config::Provider<config::Block, option::ETAFormat> {
     static option::ETAFormat provide()
     {
       static const auto cached_option = option::ETAFormat( "-%H:%M:%S" );
@@ -57,11 +57,11 @@ namespace pace {
     }
   };
   template<>
-  struct config::ProvideFor<config::Block, option::Projection> {
+  struct config::Provider<config::Block, option::Projection> {
     static option::Projection provide() { return config::Block::bake( option::Except<>() ); }
   };
   template<>
-  struct config::ProvideFor<config::Block, option::Lead> {
+  struct config::Provider<config::Block, option::Lead> {
     static option::Lead provide()
     {
       // In some editing environments,
@@ -72,7 +72,7 @@ namespace pace {
     }
   };
   template<>
-  struct config::ProvideFor<config::Block, option::SpeedUnit> {
+  struct config::Provider<config::Block, option::SpeedUnit> {
     static option::SpeedUnit provide() { return option::SpeedUnit( { "Hz", "kHz", "MHz", "GHz" } ); }
   };
 

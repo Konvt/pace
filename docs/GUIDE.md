@@ -1311,25 +1311,25 @@ for ( int i = 0; i < 100; ++i ) {
 
 If the `config()` part of the code above is removed, the compiled progress bar will display nothing; this is because no default parameters are provided for this progress bar.
 
-When a progress bar type and a configuration type are default-constructed, the configuration type attempts to access the `pace::config::ProvideFor` structure to obtain a default value. In the absence of special configuration, this structure returns the default-constructed result of a wrapper type.
+When a progress bar type and a configuration type are default-constructed, the configuration type attempts to access the `pace::config::Provider` structure to obtain a default value. In the absence of special configuration, this structure returns the default-constructed result of a wrapper type.
 
-pace allows specialization of `pace::config::ProvideFor` to provide non-empty default values:
+pace allows specialization of `pace::config::Provider` to provide non-empty default values:
 
 ```cxx
 using AnotherConfig = pace::prefab::BasicConfig<pace::facade::Elapsed, pace::facade::ETA>;
 
 template<>
-struct pace::config::ProvideFor<AnotherConfig, pace::option::Divider> {
-  static constexpr pace::option::Divider provide() { return { " | " }; }
+struct pace::config::Provider<AnotherConfig, pace::option::Divider> {
+  static pace::option::Divider provide() { return { " | " }; }
 };
 
 // The default switch configuration of components is relatively complex
 template<>
-struct pace::config::ProvideFor<AnotherConfig, pace::option::Projection> {
-  static constexpr pace::option::Projection provide()
+struct pace::config::Provider<AnotherConfig, pace::option::Projection> {
+  static pace::option::Projection provide()
   {
     // Since Only and Except are compile-time variable components,
-    // they cannot be injected into ProvideFor.
+    // they cannot be injected into Provider.
     // To make the default value independent of specific types,
     // we must use the static method provided by BasicConfig to strip
     // the parameter list of Only or Except,
@@ -1339,10 +1339,10 @@ struct pace::config::ProvideFor<AnotherConfig, pace::option::Projection> {
   }
 };
 
-// In C++14 and later, a lambda-based variable template provide_for_v can be used
-// In this case, there is no need to specialize the entire ProvideFor type
+// In C++14 and later, a lambda-based variable template provider_v can be used
+// In this case, there is no need to specialize the entire Provider type
 template<>
-auto pace::config::provide_for_v<AnotherConfig, pace::option::Prefix> =
+auto pace::config::provider_v<AnotherConfig, pace::option::Prefix> =
   []() -> pace::option::Prefix { return { "sample" }; };
 
 int main()
@@ -1427,6 +1427,8 @@ protected:
                                time_of_day.minutes().count(),
                                time_of_day.seconds().count(),
                                ( hours >= 12 ) ? 'P' : 'A' );
+      // or:
+      // std::format_to( std::back_inserter( pipeline ), ... );
     } else // 24 hour
       pipeline << std::format( "{:02}:{:02}:{:02}",
                                hours,
@@ -1471,18 +1473,18 @@ struct pace::details::aspects::EntailOn<Clock> {
 using AnotherConfig = pace::prefab::BasicConfig<pace::facade::Elapsed, pace::facade::ETA, Clock>;
 
 template<>
-auto pace::config::provide_for_v<AnotherConfig, pace::option::Colored> =
+auto pace::config::provider_v<AnotherConfig, pace::option::Colored> =
   []() { return pace::option::Colored( true ); };
 template<>
-auto pace::config::provide_for_v<AnotherConfig, pace::option::Divider> =
+auto pace::config::provider_v<AnotherConfig, pace::option::Divider> =
   []() { return pace::option::Divider( " | " ); };
 template<>
-auto pace::config::provide_for_v<AnotherConfig, ClockColor> =
+auto pace::config::provider_v<AnotherConfig, ClockColor> =
   []() -> pace::details::console::TrueColor { return { 0xFF8899 }; };
 template<>
-auto pace::config::provide_for_v<AnotherConfig, TimeFormat> = []() -> TimeFormat { return { true }; };
+auto pace::config::provider_v<AnotherConfig, TimeFormat> = []() -> TimeFormat { return { true }; };
 template<>
-auto pace::config::provide_for_v<AnotherConfig, pace::option::Projection> =
+auto pace::config::provider_v<AnotherConfig, pace::option::Projection> =
   []() { return AnotherConfig::bake( pace::option::Except<>() ); };
 
 int main()

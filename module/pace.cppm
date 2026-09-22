@@ -48,8 +48,8 @@ export namespace pace {
     using pace::config::terminal_width;
 
     using pace::config::provide_for;
-    using pace::config::provide_for_v;
-    using pace::config::ProvideFor;
+    using pace::config::Provider;
+    using pace::config::provider_v;
 
     using pace::config::Block;
     using pace::config::Flow;

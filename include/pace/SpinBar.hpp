@@ -39,7 +39,7 @@ namespace pace {
   PACE__PROVIDE_FOR( config::Spin, option::Divider, " | " );
   PACE__PROVIDE_FOR( config::Spin, option::InfoForecolor, Color::Cyan );
   template<>
-  struct config::ProvideFor<config::Spin, option::ElapsedFormat> {
+  struct config::Provider<config::Spin, option::ElapsedFormat> {
     static option::ElapsedFormat provide()
     {
       static const auto cached_option = option::ElapsedFormat( "+%H:%M:%S" );
@@ -47,7 +47,7 @@ namespace pace {
     }
   };
   template<>
-  struct config::ProvideFor<config::Spin, option::ETAFormat> {
+  struct config::Provider<config::Spin, option::ETAFormat> {
     static option::ETAFormat provide()
     {
       static const auto cached_option = option::ETAFormat( "-%H:%M:%S" );
@@ -55,16 +55,16 @@ namespace pace {
     }
   };
   template<>
-  struct config::ProvideFor<config::Spin, option::Projection> {
+  struct config::Provider<config::Spin, option::Projection> {
     static option::Projection provide()
     { return config::Spin::bake( option::Only<facade::SpinPlot, facade::Elapsed>() ); }
   };
   template<>
-  struct config::ProvideFor<config::Spin, option::Lead> {
+  struct config::Provider<config::Spin, option::Lead> {
     static option::Lead provide() { return option::Lead( { "/", "-", "\\", "|" } ); }
   };
   template<>
-  struct config::ProvideFor<config::Spin, option::SpeedUnit> {
+  struct config::Provider<config::Spin, option::SpeedUnit> {
     static option::SpeedUnit provide() { return option::SpeedUnit( { "Hz", "kHz", "MHz", "GHz" } ); }
   };
 

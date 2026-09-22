@@ -1289,32 +1289,32 @@ for ( int i = 0; i < 100; ++i ) {
 
 如果去掉上述代码的 `config()` 部分，会发现这个编译期生成的进度条什么都没有显示；这是因为没有为这个进度条配置默认参数。
 
-当默认构造一个进度条类型和一个配置类型时，配置类型会尝试访问 `pace::config::ProvideFor` 结构获取一个默认值；在没有特殊配置的情况下，这些该结构会返回某个包装器类型的默认构造结果。
+当默认构造一个进度条类型和一个配置类型时，配置类型会尝试访问 `pace::config::Provider` 结构获取一个默认值；在没有特殊配置的情况下，这些该结构会返回某个包装器类型的默认构造结果。
 
-pace 允许特化 `pace::config::ProvideFor` 以提供非空默认值：
+pace 允许特化 `pace::config::Provider` 以提供非空默认值：
 
 ```cxx
 using AnotherConfig = pace::prefab::BasicConfig<pace::facade::Elapsed, pace::facade::ETA>;
 
 template<>
-struct pace::config::ProvideFor<AnotherConfig, pace::option::Divider> {
-  static constexpr pace::option::Divider provide() { return { " | " }; }
+struct pace::config::Provider<AnotherConfig, pace::option::Divider> {
+  static pace::option::Divider provide() { return { " | " }; }
 };
 // 组件的默认开关配置会比较复杂
 template<>
-struct pace::config::ProvideFor<AnotherConfig, pace::option::Projection> {
-  static constexpr pace::option::Projection provide()
-  { // 由于 Only 和 Except 是一个编译期可变组件，它们不可能被注入到 ProvideFor 中
+struct pace::config::Provider<AnotherConfig, pace::option::Projection> {
+  static pace::option::Projection provide()
+  { // 由于 Only 和 Except 是一个编译期可变组件，它们不可能被注入到 Provider 中
     // 为了让默认值与具体类型无关，必须借助 BasicConfig 提供的静态方法剥离 Only 或 Except 的参数列表
     // 从而得到一个不需要模板参数、可以作为默认值的 Projection 类型
     return AnotherConfig::bake( pace::option::Except<>() );
   }
 };
 
-// 如果使用 C++14 及之后的标准，可以利用 lambda 特化变量模板 provide_for_v
-// 此时不需要特化整个 ProvideFor 类型
+// 如果使用 C++14 及之后的标准，可以利用 lambda 特化变量模板 provider_v
+// 此时不需要特化整个 Provider 类型
 template<>
-auto pace::config::provide_for_v<AnotherConfig, pace::option::Prefix> =
+auto pace::config::provider_v<AnotherConfig, pace::option::Prefix> =
   []() -> pace::option::Prefix { return { "sample" }; };
 
 int main()
@@ -1400,6 +1400,8 @@ protected:
                                time_of_day.minutes().count(),
                                time_of_day.seconds().count(),
                                ( hours >= 12 ) ? 'P' : 'A' );
+      // or:
+      // std::format_to( std::back_inserter( pipeline ), ... );
     } else // 24 hour
       pipeline << std::format( "{:02}:{:02}:{:02}",
                                hours,
@@ -1444,18 +1446,18 @@ struct pace::details::aspects::EntailOn<Clock> {
 using AnotherConfig = pace::prefab::BasicConfig<pace::facade::Elapsed, pace::facade::ETA, Clock>;
 
 template<>
-auto pace::config::provide_for_v<AnotherConfig, pace::option::Colored> =
+auto pace::config::provider_v<AnotherConfig, pace::option::Colored> =
   []() { return pace::option::Colored( true ); };
 template<>
-auto pace::config::provide_for_v<AnotherConfig, pace::option::Divider> =
+auto pace::config::provider_v<AnotherConfig, pace::option::Divider> =
   []() { return pace::option::Divider( " | " ); };
 template<>
-auto pace::config::provide_for_v<AnotherConfig, ClockColor> =
+auto pace::config::provider_v<AnotherConfig, ClockColor> =
   []() -> pace::details::console::TrueColor { return { 0xFF8899 }; };
 template<>
-auto pace::config::provide_for_v<AnotherConfig, TimeFormat> = []() -> TimeFormat { return { true }; };
+auto pace::config::provider_v<AnotherConfig, TimeFormat> = []() -> TimeFormat { return { true }; };
 template<>
-auto pace::config::provide_for_v<AnotherConfig, pace::option::Projection> =
+auto pace::config::provider_v<AnotherConfig, pace::option::Projection> =
   []() { return AnotherConfig::bake( pace::option::Except<>() ); };
 
 int main()

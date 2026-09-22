@@ -44,7 +44,7 @@ namespace pace {
   PACE__PROVIDE_FOR( config::Flow, option::Divider, " | " );
   PACE__PROVIDE_FOR( config::Flow, option::InfoForecolor, Color::Cyan );
   template<>
-  struct config::ProvideFor<config::Flow, option::ElapsedFormat> {
+  struct config::Provider<config::Flow, option::ElapsedFormat> {
     static option::ElapsedFormat provide()
     {
       static const auto cached_option = option::ElapsedFormat( "+%H:%M:%S" );
@@ -52,7 +52,7 @@ namespace pace {
     }
   };
   template<>
-  struct config::ProvideFor<config::Flow, option::ETAFormat> {
+  struct config::Provider<config::Flow, option::ETAFormat> {
     static option::ETAFormat provide()
     {
       static const auto cached_option = option::ETAFormat( "-%H:%M:%S" );
@@ -60,12 +60,12 @@ namespace pace {
     }
   };
   template<>
-  struct config::ProvideFor<config::Flow, option::Projection> {
+  struct config::Provider<config::Flow, option::Projection> {
     static option::Projection provide()
     { return config::Flow::bake( option::Only<facade::FlowPlot, facade::Elapsed>() ); }
   };
   template<>
-  struct config::ProvideFor<config::Flow, option::SpeedUnit> {
+  struct config::Provider<config::Flow, option::SpeedUnit> {
     static option::SpeedUnit provide() { return option::SpeedUnit( { "Hz", "kHz", "MHz", "GHz" } ); }
   };
 } // namespace pace
