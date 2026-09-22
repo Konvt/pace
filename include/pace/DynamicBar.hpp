@@ -4,7 +4,7 @@
 #include "details/assets/DynamicLayout.hpp"
 
 namespace pace {
-  template<Channel Sink = Channel::Stderr, Policy Mode = Policy::Async, Region Zone = Region::Fixed>
+  template<Channel Sink = Channel::Err, Policy Mode = Policy::Async, Region Zone = Region::Fixed>
   class DynamicBar {
     using Context = details::assets::DynamicLayout<Sink, Mode, Zone>;
 
@@ -184,7 +184,7 @@ namespace pace {
     return std::make_tuple( factory.insert( std::move( bar ) ), factory.insert( std::move( bars ) )... );
   }
   // Creates a tuple of unique_ptr pointing to bars using configuration objects.
-  template<Channel Sink = Channel::Stderr,
+  template<Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename Config,
@@ -235,7 +235,7 @@ namespace pace {
    * Creates a vector of unique_ptr pointing to bars with a fixed number of BasicBar instances.
    * **All BasicBar instances are initialized using the same configuration.**
    */
-  template<Channel Sink = Channel::Stderr,
+  template<Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename Config>
@@ -316,7 +316,7 @@ namespace pace {
    * **An unmatched count and Bars number will cause an exception `pace::exception::InvalidArgument`.**
    */
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename... Configs>
@@ -362,7 +362,7 @@ namespace pace {
    * **An unmatched count and Bars number will cause an exception `pace::exception::InvalidArgument`.**
    */
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename... Configs>

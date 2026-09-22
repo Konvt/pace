@@ -376,14 +376,14 @@ If the `std::ranges::sized_range` constraint is satisfied and the C++20 standard
 ## The Template Argument
 All progress bar types in pace are template types. They require three template parameters: `pace::Channel`, `pace::Policy`, and `pace::Region`.
 ### Output stream
-`pace::Channel` specifies the output target of the progress bar. Currently, pace only allows choosing between `pace::Channel::Stderr` and `pace::Channel::Stdout`, and defaults to `Stderr`.
+`pace::Channel` specifies the output target of the progress bar. Currently, pace only allows choosing between `pace::Channel::Err` and `pace::Channel::Out`, and defaults to `Err`.
 
 ```cxx
 static_assert( std::is_same<pace::ProgressBar<>,
-                            pace::ProgressBar<pace::Channel::Stderr>>::value,
+                            pace::ProgressBar<pace::Channel::Err>>::value,
                 "" );
 
-pace::ProgressBar<pace::Channel::Stdout> bar; // Bind to stdout
+pace::ProgressBar<pace::Channel::Out> bar; // Bind to stdout
 ```
 
 At runtime, pace dynamically checks whether the specified output stream is actually attached to a terminal device. If the output stream does not point to a terminal, pace disables character rendering effects and terminal cursor manipulation.
@@ -402,7 +402,7 @@ It should be noted that, among all progress bar objects bound to the same output
 {
   pace::ProgressBar<> bar1;
   pace::SweepBar<> bar2;
-  pace::SpinBar<pace::Channel::Stdout> bar3;
+  pace::SpinBar<pace::Channel::Out> bar3;
 
   bar1.config().quota( 100 );
   bar1.tick();
@@ -438,10 +438,10 @@ Under pace::Policy::Sync, rendering is executed directly by the thread calling `
 
 ```cxx
 static_assert( std::is_same<pace::ProgressBar<>,
-                            pace::ProgressBar<pace::Channel::Stderr, pace::Policy::Async>>::value,
+                            pace::ProgressBar<pace::Channel::Err, pace::Policy::Async>>::value,
                 "" );
 
-pace::ProgressBar<pace::Channel::Stderr, pace::Policy::Sync> bar; // Use synchronous rendering
+pace::ProgressBar<pace::Channel::Err, pace::Policy::Sync> bar; // Use synchronous rendering
 ```
 ### Rendering region
 `pace::Region` determines the rendering position of the progress bar in the terminal. Currently, pace only allows choosing between `pace::Region::Fixed` and `pace::Region::Relative`, and defaults to `Fixed`.
@@ -592,8 +592,8 @@ The actual terminal line width (measured in characters) can be obtained using `p
 ```cxx
 pace::ProgressBar<> bar;
 
-assert( pace::config::terminal_width( pace::Channel::Stderr ) > bar.config().fixed_width() );
-bar.config().bar_width( pace::config::terminal_width( pace::Channel::Stderr )
+assert( pace::config::terminal_width( pace::Channel::Err ) > bar.config().fixed_width() );
+bar.config().bar_width( pace::config::terminal_width( pace::Channel::Err )
                           - bar.config().fixed_width() );
 ```
 
@@ -856,13 +856,13 @@ The behavior of this part in `pace::FlowBar` is consistent with that of `pace::P
 ```cxx
 pace::MultiBar<pace::ProgressBar<>, pace::ProgressBar<>, pace::BlockBar<>> mbar1;
 // or
-pace::MultiBar<pace::ProgressBar<pace::Channel::Stdout>,
-                pace::ProgressBar<pace::Channel::Stdout>,
-                pace::ProgressBar<pace::Channel::Stdout>>
+pace::MultiBar<pace::ProgressBar<pace::Channel::Out>,
+                pace::ProgressBar<pace::Channel::Out>,
+                pace::ProgressBar<pace::Channel::Out>>
   mbar2;
 
 // If a MultiBar containing multiple repeated progress bar types is needed, MultiBar_t can be used
-pace::MultiBar_t<pace::ProgressBar<pace::Channel::Stdout>, 3> mbar3;
+pace::MultiBar_t<pace::ProgressBar<pace::Channel::Out>, 3> mbar3;
 static_assert( std::is_same_v<decltype( mbar2 ), decltype( mbar3 )> );
 
 mbar1.at<0>().config().quota( 100 );
@@ -900,7 +900,7 @@ auto mbar2 =
 #if __cplusplus >= 201703L
 // In C++17 and later, the following statement is valid
 auto mbar3 = pace::MultiBar( pace::config::Line(), pace::config::Block(), pace::config::Line() );
-// This object will have a type corresponding to a MultiBar using pace::Channel::Stderr
+// This object will have a type corresponding to a MultiBar using pace::Channel::Err
 
 static_assert( std::is_same<decltype( mbar3 ), decltype( mbar2 )>::value );
 #endif
@@ -918,20 +918,20 @@ Their behaviors are as follows:
 
 ```cxx
 // Create a MultiBar whose size matches the number of arguments
-auto bar1 = pace::make_multi<pace::Channel::Stdout>( pace::config::Line(), pace::config::Block() );
+auto bar1 = pace::make_multi<pace::Channel::Out>( pace::config::Line(), pace::config::Block() );
 auto bar2 = pace::make_multi<>( pace::ProgressBar<>(), pace::BlockBar<>() );
 
 // Create a fixed-size MultiBar where all progress bars share the same type,
 // initialized using the provided configuration object
-auto bar3 = pace::make_multi<6, pace::Channel::Stdout>( pace::config::Spin() );
-auto bar4 = pace::make_multi<6>( pace::SpinBar<pace::Channel::Stdout>() );
+auto bar3 = pace::make_multi<6, pace::Channel::Out>( pace::config::Spin() );
+auto bar4 = pace::make_multi<6>( pace::SpinBar<pace::Channel::Out>() );
 // All internal progress bars in bar3 and bar4 share identical configuration data
 
 // Create a fixed-size MultiBar where identical types are used,
 // but arguments are applied sequentially to internal progress bars
 auto bar5 = pace::make_multi<pace::config::Sweep, 3>( pace::config::Sweep() );
 auto bar6 =
-  pace::make_multi<pace::SweepBar<pace::Channel::Stdout>, 3>( pace::SweepBar<pace::Channel::Stdout>() );
+  pace::make_multi<pace::SweepBar<pace::Channel::Out>, 3>( pace::SweepBar<pace::Channel::Out>() );
 // Only the first progress bar is initialized with the provided argument;
 // the remaining ones are default-initialized
 ```
@@ -947,7 +947,7 @@ Example:
 ```cxx
 // Since newline characters are output successively here,
 // synchronization is used to avoid inconsistent output behavior
-auto bar = pace::make_multi<pace::Channel::Stderr, pace::Policy::Sync, pace::Region::Relative>(
+auto bar = pace::make_multi<pace::Channel::Err, pace::Policy::Sync, pace::Region::Relative>(
   pace::config::Line( pace::option::Quota( 100 ) ),
   pace::config::Line( pace::option::Quota( 150 ) ),
   pace::config::Line( pace::option::Quota( 200 ) ) );
@@ -1064,21 +1064,21 @@ Mixing `std::unique_ptr` from different sources will often throw a `pace::except
 
 ```cxx
 // Obtain std::unique_ptr objects equal to the number of arguments
-auto bars1 = pace::make_dynamic<pace::Channel::Stdout>( pace::config::Line(), pace::config::Block() );
+auto bars1 = pace::make_dynamic<pace::Channel::Out>( pace::config::Line(), pace::config::Block() );
 auto bars2 = pace::make_dynamic<>( pace::ProgressBar<>(), pace::BlockBar<>() );
 // To store different progress bar types, bars1 and bars2 are tuple types containing multiple std::unique_ptr objects
 
 // Create a std::vector<std::unique_ptr</* Bar Type */>> where all progress bar types are identical
 // and initialize all internal progress bars using the provided configuration objects
-auto bar3 = pace::make_dynamic<pace::Channel::Stdout>( pace::config::Spin(), 6 );
-auto bar4 = pace::make_dynamic( pace::SpinBar<pace::Channel::Stdout>(), 6 );
+auto bar3 = pace::make_dynamic<pace::Channel::Out>( pace::config::Spin(), 6 );
+auto bar4 = pace::make_dynamic( pace::SpinBar<pace::Channel::Out>(), 6 );
 // All internal progress bars in bar3 and bar4 are initialized with identical configuration data
 
 // Create a std::vector<std::unique_ptr</* Bar Type */>> where all progress bar types are identical
 // The provided parameters are applied sequentially to the internal progress bar objects
 auto bar5 = pace::make_dynamic<pace::config::Sweep>( 3, pace::config::Sweep() );
 auto bar6 =
-  pace::make_dynamic<pace::SweepBar<pace::Channel::Stdout>>( 3, pace::SweepBar<pace::Channel::Stdout>() );
+  pace::make_dynamic<pace::SweepBar<pace::Channel::Out>>( 3, pace::SweepBar<pace::Channel::Out>() );
 // Only the first progress bar object in bar5 and bar6 is initialized with the provided parameter; the others are default-initialized
 
 // For the last two functions, if the number of arguments does not match the number of expected objects,
@@ -1260,14 +1260,14 @@ std::vector<int> arr2 {
  0, 1, 2, 3, 4, 5, 6,
 };
 
-pace::iterate<pace::BlockBar<pace::Channel::Stdout>>( arr1,
+pace::iterate<pace::BlockBar<pace::Channel::Out>>( arr1,
                                                      arr1 + ( sizeof( arr1 ) / sizeof( int ) ),
                                                      []( int& ele ) {
                                                        ele += 1;
                                                        std::this_thread::sleep_for( 300ms );
                                                      } );
 // Iteration over a STL container.
-pace::iterate<pace::config::Block, pace::Channel::Stderr, pace::Policy::Sync>( arr2, []( int ) {
+pace::iterate<pace::config::Block, pace::Channel::Err, pace::Policy::Sync>( arr2, []( int ) {
  std::this_thread::sleep_for( 300ms );
 } );
 ```
@@ -1611,7 +1611,7 @@ In multithreaded environments, which thread “dispatches first” depends on th
 {
  pace::ProgressBar<> bar1;
  pace::SweepBar<> bar2;
- pace::SpinBar<pace::Channel::Stdout> bar3;
+ pace::SpinBar<pace::Channel::Out> bar3;
 
  bar1.config().quota( 100 );
  bar1.tick();

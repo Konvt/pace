@@ -364,14 +364,14 @@ bar.iterate( arr2, []( int& ) { std::this_thread::sleep_for( 300ms ); } );
 ## 进度条模板参数
 pace 的所有进度条类型都是模板类型，它们需要三个模板参数：`pace::Channel`、`pace::Policy` 和 `pace::Region`。
 ### 输出流
-`pace::Channel` 指定了进度条的输出方向；目前 pace 仅允许在 `pace::Channel::Stderr` 和 `pace::Channel::Stdout` 之间选择，且默认取 `Stderr`。
+`pace::Channel` 指定了进度条的输出方向；目前 pace 仅允许在 `pace::Channel::Err` 和 `pace::Channel::Out` 之间选择，且默认取 `Err`。
 
 ```cxx
 static_assert( std::is_same<pace::ProgressBar<>,
-                            pace::ProgressBar<pace::Channel::Stderr>>::value,
+                            pace::ProgressBar<pace::Channel::Err>>::value,
                 "" );
 
-pace::ProgressBar<pace::Channel::Stdout> bar; // 绑定到 stdout 上
+pace::ProgressBar<pace::Channel::Out> bar; // 绑定到 stdout 上
 ```
 
 pace 会在运行时动态检查指定的输出流是否真实地绑定在一个终端设备上；如果某个输出流并不导向终端，pace 会关闭字符渲染效果以及终端光标操纵。
@@ -388,7 +388,7 @@ pace 会在运行时动态检查指定的输出流是否真实地绑定在一个
 {
   pace::ProgressBar<> bar1;
   pace::SweepBar<> bar2;
-  pace::SpinBar<pace::Channel::Stdout> bar3;
+  pace::SpinBar<pace::Channel::Out> bar3;
 
   bar1.config().quota( 100 );
   bar1.tick();
@@ -422,10 +422,10 @@ bar.tick(); // Ok!
 
 ```cxx
 static_assert( std::is_same<pace::ProgressBar<>,
-                            pace::ProgressBar<pace::Channel::Stderr, pace::Policy::Async>>::value,
+                            pace::ProgressBar<pace::Channel::Err, pace::Policy::Async>>::value,
                 "" );
 
-pace::ProgressBar<pace::Channel::Stderr, pace::Policy::Sync> bar; // 使用同步渲染
+pace::ProgressBar<pace::Channel::Err, pace::Policy::Sync> bar; // 使用同步渲染
 ```
 ### 渲染位置
 `pace::Region` 决定了进度条在终端上的渲染位置；目前 pace 仅允许在 `pace::Region::Fixed` 和 `pace::Region::Relative` 之间选择，且默认取 `Fixed`。
@@ -576,8 +576,8 @@ assert( bar.config().fixed_width() != 0 ); // 具体值取决于数据成员的�
 ```cxx
 pace::ProgressBar<> bar;
 
-assert( pace::config::terminal_width( pace::Channel::Stderr ) > bar.config().fixed_width() );
-bar.config().bar_width( pace::config::terminal_width( pace::Channel::Stderr )
+assert( pace::config::terminal_width( pace::Channel::Err ) > bar.config().fixed_width() );
+bar.config().bar_width( pace::config::terminal_width( pace::Channel::Err )
                           - bar.config().fixed_width() );
 ```
 
@@ -839,13 +839,13 @@ pace::option::InfoBackcolor;    // 修改 Divider、Percent、Counter、Speed、
 ```cxx
 pace::MultiBar<pace::ProgressBar<>, pace::ProgressBar<>, pace::BlockBar<>> mbar1;
 // or
-pace::MultiBar<pace::ProgressBar<pace::Channel::Stdout>,
-                pace::ProgressBar<pace::Channel::Stdout>,
-                pace::ProgressBar<pace::Channel::Stdout>>
+pace::MultiBar<pace::ProgressBar<pace::Channel::Out>,
+                pace::ProgressBar<pace::Channel::Out>,
+                pace::ProgressBar<pace::Channel::Out>>
   mbar2;
 
 // 如果需要构造包含多个重复进度条类型的 MultiBar，可以使用 MultiBar_t
-pace::MultiBar_t<pace::ProgressBar<pace::Channel::Stdout>, 3> mbar3;
+pace::MultiBar_t<pace::ProgressBar<pace::Channel::Out>, 3> mbar3;
 static_assert( std::is_same_v<decltype( mbar2 ), decltype( mbar3 )> );
 
 mbar1.at<0>().config().quota( 100 );
@@ -883,7 +883,7 @@ auto mbar2 =
 #if __cplusplus >= 201703L
 // 如果在 C++17 之后，以下语句将是合法的
 auto mbar3 = pace::MultiBar( pace::config::Line(), pace::config::Block(), pace::config::Line() );
-// 这个对象的类型将会是指向 pace::Channel::Stderr 的 MultiBar
+// 这个对象的类型将会是指向 pace::Channel::Err 的 MultiBar
 
 static_assert( std::is_same<decltype( mbar3 ), decltype( mbar2 )>::value );
 #endif
@@ -901,18 +901,18 @@ pace 提供了多个名为 `make_multi` 的重载函数，以简化构造 `pace:
 
 ```cxx
 // 创建与参数数量相同大小的 MultiBar
-auto bar1 = pace::make_multi<pace::Channel::Stdout>( pace::config::Line(), pace::config::Block() );
+auto bar1 = pace::make_multi<pace::Channel::Out>( pace::config::Line(), pace::config::Block() );
 auto bar2 = pace::make_multi<>( pace::ProgressBar<>(), pace::BlockBar<>() );
 
 // 创建一个固定长度、所有进度条类型都相同的 MultiBar，并使用参数提供的配置对象初始化内部所有进度条对象
-auto bar3 = pace::make_multi<6, pace::Channel::Stdout>( pace::config::Spin() );
-auto bar4 = pace::make_multi<6>( pace::SpinBar<pace::Channel::Stdout>() );
+auto bar3 = pace::make_multi<6, pace::Channel::Out>( pace::config::Spin() );
+auto bar4 = pace::make_multi<6>( pace::SpinBar<pace::Channel::Out>() );
 // bar3 和 bar4 内部的所有进度条的配置数据都是相同的
 
 // 创建一个固定长度、所有进度条类型都相同的 MultiBar，提供的参数会按顺序作用在内部的进度条对象上
 auto bar5 = pace::make_multi<pace::config::Sweep, 3>( pace::config::Sweep() );
 auto bar6 =
-  pace::make_multi<pace::SweepBar<pace::Channel::Stdout>, 3>( pace::SweepBar<pace::Channel::Stdout>() );
+  pace::make_multi<pace::SweepBar<pace::Channel::Out>, 3>( pace::SweepBar<pace::Channel::Out>() );
 // bar5 和 bar6 只有第一个进度条对象被初始化为参数指定的内容，其他两个进度条均被默认初始化
 ```
 ### 渲染行为
@@ -927,7 +927,7 @@ auto bar6 =
 ```cxx
 // Since the newline character is output successively here,
 // the scheduling strategy has chosen synchronization to avoid inconsistent output behavior
-auto bar = pace::make_multi<pace::Channel::Stderr, pace::Policy::Sync, pace::Region::Relative>(
+auto bar = pace::make_multi<pace::Channel::Err, pace::Policy::Sync, pace::Region::Relative>(
   pace::config::Line( pace::option::Quota( 100 ) ),
   pace::config::Line( pace::option::Quota( 150 ) ),
   pace::config::Line( pace::option::Quota( 200 ) ) );
@@ -1044,21 +1044,21 @@ for ( auto& td : pool )
 
 ```cxx
 // 获得与参数数量相同的 std::unique_ptr
-auto bars1 = pace::make_dynamic<pace::Channel::Stdout>( pace::config::Line(), pace::config::Block() );
+auto bars1 = pace::make_dynamic<pace::Channel::Out>( pace::config::Line(), pace::config::Block() );
 auto bars2 = pace::make_dynamic<>( pace::ProgressBar<>(), pace::BlockBar<>() );
 // 为了存储不同进度条类型，bars1 和 bars2 都是 std::tuple 类型，内含多个 std::unique_ptr 对象
 
 // 创建一个所有进度条类型都相同的 std::vector<std::unique_ptr</* Bar Type */>>
 // 并使用参数提供的配置对象初始化内部所有进度条对象
-auto bar3 = pace::make_dynamic<pace::Channel::Stdout>( pace::config::Spin(), 6 );
-auto bar4 = pace::make_dynamic( pace::SpinBar<pace::Channel::Stdout>(), 6 );
+auto bar3 = pace::make_dynamic<pace::Channel::Out>( pace::config::Spin(), 6 );
+auto bar4 = pace::make_dynamic( pace::SpinBar<pace::Channel::Out>(), 6 );
 // bar3 和 bar4 内部的所有进度条的配置数据都是相同的
 
 // 创建一个所有进度条类型都相同的 std::vector<std::unique_ptr</* Bar Type */>>
 // 提供的参数会按顺序作用在内部的进度条对象上
 auto bar5 = pace::make_dynamic<pace::config::Sweep>( 3, pace::config::Sweep() );
 auto bar6 =
-  pace::make_dynamic<pace::SweepBar<pace::Channel::Stdout>>( 3, pace::SweepBar<pace::Channel::Stdout>() );
+  pace::make_dynamic<pace::SweepBar<pace::Channel::Out>>( 3, pace::SweepBar<pace::Channel::Out>() );
 // bar5 和 bar6 只有第一个进度条对象被初始化为参数指定的内容，其他两个进度条均被默认初始化
 
 // 对于最后两个函数，如果传入的数值和给定的对象数量不一致，会抛出异常 pace::exception::InvalidArgument
@@ -1238,14 +1238,14 @@ std::vector<int> arr2 {
  0, 1, 2, 3, 4, 5, 6,
 };
 
-pace::iterate<pace::BlockBar<pace::Channel::Stdout>>( arr1,
+pace::iterate<pace::BlockBar<pace::Channel::Out>>( arr1,
                                                      arr1 + ( sizeof( arr1 ) / sizeof( int ) ),
                                                      []( int& ele ) {
                                                        ele += 1;
                                                        std::this_thread::sleep_for( 300ms );
                                                      } );
 // Iteration over a STL container.
-pace::iterate<pace::config::Block, pace::Channel::Stderr, pace::Policy::Sync>( arr2, []( int ) {
+pace::iterate<pace::config::Block, pace::Channel::Err, pace::Policy::Sync>( arr2, []( int ) {
  std::this_thread::sleep_for( 300ms );
 } );
 ```
@@ -1583,7 +1583,7 @@ pace 采用了多线程协作模式设计，因此渲染器实际上是一个在
 {
  pace::ProgressBar<> bar1;
  pace::SweepBar<> bar2;
- pace::SpinBar<pace::Channel::Stdout> bar3;
+ pace::SpinBar<pace::Channel::Out> bar3;
 
  bar1.config().quota( 100 );
  bar1.tick();

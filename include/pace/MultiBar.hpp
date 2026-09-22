@@ -119,7 +119,7 @@ namespace pace {
     -> MultiBar<prefab::BasicBar<Cfg, S, M, Z>, prefab::BasicBar<Cfgs, S, M, Z>...>;
 
   // CTAD, only generates the default version,
-  // which means the the Sink is `Channel::Stderr` and Mode is `Policy::Async`.
+  // which means the the Sink is `Channel::Err` and Mode is `Policy::Async`.
   template<typename Config, typename... Configs
 # ifdef __cpp_concepts
            >
@@ -131,8 +131,8 @@ namespace pace {
                                                          details::traits::is_config<std::decay_t<Configs>>...>::value>>
 # endif
   MultiBar( Config, Configs... )
-    -> MultiBar<prefab::BasicBar<std::decay_t<Config>, Channel::Stderr, Policy::Async, Region::Fixed>,
-                prefab::BasicBar<std::decay_t<Configs>, Channel::Stderr, Policy::Async, Region::Fixed>...>;
+    -> MultiBar<prefab::BasicBar<std::decay_t<Config>, Channel::Err, Policy::Async, Region::Fixed>,
+                prefab::BasicBar<std::decay_t<Configs>, Channel::Err, Policy::Async, Region::Fixed>...>;
 #endif
 
   // Generates a MultiBar type containing Count instances of the given Bar type.
@@ -156,7 +156,7 @@ namespace pace {
 #endif
   { return { std::move( bar ), std::move( bars )... }; }
   // Creates a MultiBar using configuration objects.
-  template<Channel Sink = Channel::Stderr,
+  template<Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename Config,
@@ -228,7 +228,7 @@ namespace pace {
    * **All BasicBar instances are initialized using the same configuration.**
    */
   template<std::size_t Cnt,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename Config>
@@ -284,7 +284,7 @@ namespace pace {
    */
   template<typename Config,
            std::size_t Cnt,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename... Configs>
@@ -310,7 +310,7 @@ namespace pace {
    */
   template<typename Config,
            std::size_t Cnt,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename... Configs>

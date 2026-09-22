@@ -28,7 +28,7 @@ namespace pace {
    * It's structure is shown below:
    * {LeftBorder}{Prefix}{Lead}{Percent}{Counter}{Speed}{Elapsed}{ETA}{Postfix}{RightBorder}
    */
-  template<Channel Sink = Channel::Stderr, Policy Mode = Policy::Async, Region Zone = Region::Fixed>
+  template<Channel Sink = Channel::Err, Policy Mode = Policy::Async, Region Zone = Region::Fixed>
   using SpinBar = prefab::BasicBar<config::Spin, Sink, Mode, Zone>;
 
   PACE__PROVIDE_FOR( config::Spin, option::Colored, true );

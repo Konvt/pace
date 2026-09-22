@@ -22,8 +22,10 @@ namespace pace {
     } // namespace types
   } // namespace details
 
-  // A enum that specifies the type of the output stream.
-  enum class Channel : int { Stdout = 1, Stderr = 2 };
+  /// @brief A enum that specifies the type of the output stream.
+  ///        `Out`: Standard output stream
+  ///        `Err`: Standard error stream
+  enum class Channel : int { Out = 1, Err };
   enum class Policy : std::uint8_t { Async, Signal, Sync };
   enum class Region : bool { Fixed, Relative };
 

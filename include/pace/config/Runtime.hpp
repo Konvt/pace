@@ -14,16 +14,16 @@ namespace pace {
      */
     PACE__NODISCARD inline bool intty( Channel channel ) noexcept
     {
-      if ( channel == Channel::Stdout )
-        return details::io::OStream<Channel::Stdout>::itself().renderable();
-      return details::io::OStream<Channel::Stderr>::itself().renderable();
+      if ( channel == Channel::Out )
+        return details::io::OStream<Channel::Out>::itself().renderable();
+      return details::io::OStream<Channel::Err>::itself().renderable();
     }
 
     PACE__NODISCARD inline std::uint16_t terminal_width( Channel channel ) noexcept
     {
-      if ( channel == Channel::Stdout )
-        return details::io::OStream<Channel::Stdout>::itself().width();
-      return details::io::OStream<Channel::Stderr>::itself().width();
+      if ( channel == Channel::Out )
+        return details::io::OStream<Channel::Out>::itself().width();
+      return details::io::OStream<Channel::Err>::itself().width();
     }
 
     // Get the current output interval.
@@ -37,8 +37,8 @@ namespace pace {
     // Set every channels to the same output interval.
     inline void refresh_interval( details::types::Tempus new_rate ) noexcept
     {
-      details::render::Renderer<Channel::Stderr>::working_interval( new_rate );
-      details::render::Renderer<Channel::Stdout>::working_interval( new_rate );
+      details::render::Renderer<Channel::Err>::working_interval( new_rate );
+      details::render::Renderer<Channel::Out>::working_interval( new_rate );
     }
   } // namespace config
 } // namespace pace

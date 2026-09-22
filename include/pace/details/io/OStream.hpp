@@ -62,7 +62,7 @@ namespace pace {
           // `magic static` will guarantee this code to be thread-safe and performed only once.
 #if PACE__WIN && !defined( PACE_NOSTYLE ) && defined( ENABLE_VIRTUAL_TERMINAL_PROCESSING )
           HANDLE h_con;
-          if PACE__CXX17_CNSTXPR ( Sink == Channel::Stdout )
+          if PACE__CXX17_CNSTXPR ( Sink == Channel::Out )
             h_con = GetStdHandle( STD_OUTPUT_HANDLE );
           else
             h_con = GetStdHandle( STD_ERROR_HANDLE );
@@ -86,7 +86,7 @@ namespace pace {
             return true;
 #elif PACE__WIN
             HANDLE h_con;
-            if PACE__CXX17_CNSTXPR ( Sink == Channel::Stdout )
+            if PACE__CXX17_CNSTXPR ( Sink == Channel::Out )
               h_con = GetStdHandle( STD_OUTPUT_HANDLE );
             else
               h_con = GetStdHandle( STD_ERROR_HANDLE );
@@ -110,7 +110,7 @@ namespace pace {
             return 0;
 #if PACE__WIN
           HANDLE h_con;
-          if PACE__CXX17_CNSTXPR ( Sink == Channel::Stdout )
+          if PACE__CXX17_CNSTXPR ( Sink == Channel::Out )
             h_con = GetStdHandle( STD_OUTPUT_HANDLE );
           else
             h_con = GetStdHandle( STD_ERROR_HANDLE );
@@ -135,7 +135,7 @@ namespace pace {
           do {
             DWORD num_written = 0;
             auto ostream      = []() {
-              if PACE__CXX17_CNSTXPR ( Sink == Channel::Stdout )
+              if PACE__CXX17_CNSTXPR ( Sink == Channel::Out )
                 return GetStdHandle( STD_OUTPUT_HANDLE );
               else
                 return GetStdHandle( STD_ERROR_HANDLE );
@@ -166,7 +166,7 @@ namespace pace {
             total_written += static_cast<std::size_t>( num_written );
           } while ( total_written < content.size() );
 #else
-          if PACE__CXX17_CNSTXPR ( Sink == Channel::Stdout )
+          if PACE__CXX17_CNSTXPR ( Sink == Channel::Out )
             std::cout.write( content.data(), content.size() ).flush();
           else
             std::cerr.write( content.data(), content.size() ).flush();

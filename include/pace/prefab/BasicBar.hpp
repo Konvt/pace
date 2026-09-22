@@ -10,7 +10,7 @@
 namespace pace {
   namespace prefab {
     template<typename Soul,
-             Channel Sink = Channel::Stderr,
+             Channel Sink = Channel::Err,
              Policy Mode  = Policy::Async,
              Region Zone  = Region::Fixed>
     class BasicBar
@@ -177,7 +177,7 @@ namespace pace {
       .iterate( startpoint, endpoint, step, std::forward<Proc>( op ) );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename N,
@@ -209,7 +209,7 @@ namespace pace {
                                                                 std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename N,
@@ -257,7 +257,7 @@ namespace pace {
                                                                 std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename N,
@@ -290,7 +290,7 @@ namespace pace {
                                                          std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename N,
@@ -423,7 +423,7 @@ namespace pace {
       .iterate( endpoint, step, std::forward<Proc>( op ) );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename N,
@@ -455,7 +455,7 @@ namespace pace {
                                                                 std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename N,
@@ -498,7 +498,7 @@ namespace pace {
                                                                 std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename N,
@@ -530,7 +530,7 @@ namespace pace {
                                                          std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename N,
@@ -656,7 +656,7 @@ namespace pace {
       .iterate( startpoint, endpoint, std::forward<Proc>( op ) );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename N,
@@ -686,7 +686,7 @@ namespace pace {
                                                                 std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename N,
@@ -729,7 +729,7 @@ namespace pace {
                                                                 std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename N,
@@ -761,7 +761,7 @@ namespace pace {
                                                          std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename N,
@@ -882,7 +882,7 @@ namespace pace {
       .iterate( endpoint, std::forward<Proc>( op ) );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename N,
@@ -911,7 +911,7 @@ namespace pace {
                                                                 std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename N,
@@ -953,7 +953,7 @@ namespace pace {
                                                                 std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename N,
@@ -984,7 +984,7 @@ namespace pace {
                                                          std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename N,
@@ -1119,7 +1119,7 @@ namespace pace {
       .iterate( std::move( startpoint ), std::move( endpoint ), std::forward<Proc>( op ) );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename Itr,
@@ -1150,7 +1150,7 @@ namespace pace {
                                                                 std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename Itr,
@@ -1197,7 +1197,7 @@ namespace pace {
                                                                 std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename Itr,
@@ -1231,7 +1231,7 @@ namespace pace {
                                                          std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename Itr,
@@ -1386,7 +1386,7 @@ namespace pace {
       .iterate( std::forward<R>( range ), std::forward<Proc>( op ) );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            class R,
@@ -1416,7 +1416,7 @@ namespace pace {
                                                                 std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            class R,
@@ -1460,7 +1460,7 @@ namespace pace {
   }
 #ifdef __cpp_concepts
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            class R,
@@ -1479,7 +1479,7 @@ namespace pace {
                std::forward<Options>( options )... ) };
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            class R,
@@ -1504,7 +1504,7 @@ namespace pace {
   }
 #endif
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            class R,
@@ -1538,7 +1538,7 @@ namespace pace {
                                                          std::forward<Options>( options )... );
   }
   template<typename Config,
-           Channel Sink = Channel::Stderr,
+           Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            class R,
