@@ -150,7 +150,6 @@ export namespace pace {
     using pace::option::Only;
     using pace::option::Projection;
     using pace::option::operator!;
-    using pace::option::operator|;
   } // namespace option
 
   namespace details::types {

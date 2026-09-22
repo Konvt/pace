@@ -16,26 +16,34 @@ namespace pace {
 
     template<template<typename...> class... Facades>
     // If there is an error here, it indicates that there are duplicate types involved.
-    struct Only : public details::traits::TemplateSet<Facades...> {};
+    struct Only : public details::traits::TemplateSet<Facades...> {
+      PACE__FORCEINLINE friend constexpr Only operator|( Only, Only ) noexcept { return {}; }
+      template<template<typename...> class... Fs>
+      PACE__FORCEINLINE friend constexpr details::traits::TmpNominalCast_t<
+        details::traits::Combine_t<details::traits::TemplateSet<Facades...>,
+                                   details::traits::TemplateSet<Fs...>>,
+        Only>
+        operator|( Only, Only<Fs...> ) noexcept
+      { return {}; }
+    };
     template<template<typename...> class... Facades>
-    struct Except : public details::traits::TemplateSet<Facades...> {};
+    struct Except : public details::traits::TemplateSet<Facades...> {
+      PACE__FORCEINLINE friend constexpr Except operator|( Except, Except ) noexcept { return {}; }
+      template<template<typename...> class... Fs>
+      PACE__FORCEINLINE friend constexpr details::traits::TmpNominalCast_t<
+        details::traits::Combine_t<details::traits::TemplateSet<Facades...>,
+                                   details::traits::TemplateSet<Fs...>>,
+        Except>
+        operator|( Except, Except<Fs...> ) noexcept
+      { return {}; }
+    };
 
-#define PACE__METHOD( ParamType, ReturnType )                                  \
-  template<template<typename...> class... Facades>                             \
-  constexpr ReturnType<Facades...> operator!( ParamType<Facades...> ) noexcept \
+#define PACE__METHOD( ParamType, ReturnType )                                                    \
+  template<template<typename...> class... Facades>                                               \
+  PACE__FORCEINLINE constexpr ReturnType<Facades...> operator!( ParamType<Facades...> ) noexcept \
   { return {}; }
     PACE__METHOD( Except, Only );
     PACE__METHOD( Only, Except );
-#undef PACE__METHOD
-#define PACE__METHOD( ParamType )                                                                         \
-  template<template<typename...> class... F1, template<typename...> class... F2>                          \
-  constexpr details::traits::TmpNominalCast_t<                                                            \
-    details::traits::Combine_t<details::traits::TemplateSet<F1...>, details::traits::TemplateSet<F2...>>, \
-    ParamType>                                                                                            \
-    operator|( ParamType<F1...>, ParamType<F2...> ) noexcept                                              \
-  { return {}; }
-    PACE__METHOD( Only );
-    PACE__METHOD( Except );
 #undef PACE__METHOD
   } // namespace option
 
