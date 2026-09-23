@@ -15,7 +15,7 @@ namespace pace {
       { return Option(); }
     };
 
-#if PACE__CXX14
+#ifdef __cpp_variable_templates
     // Allows providing a lambda that returns a default values directly
     // instead of specializing the entire Provider.
     template<typename Config, typename Option>
@@ -34,7 +34,7 @@ namespace pace {
     // **It should not be specialized or overloaded.**
     template<typename Config, typename Option>
     constexpr Option provide_for()
-#if PACE__CXX14
+#ifdef __cpp_variable_templates
       noexcept( noexcept( config::provider_v<Config, Option>() ) )
     {
       static_assert( std::is_constructible<Option, decltype( config::provider_v<Config, Option>() )>::value,

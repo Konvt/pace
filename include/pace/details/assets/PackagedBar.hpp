@@ -13,9 +13,9 @@ namespace pace {
       public:
         using Base::Base;
 
-        constexpr PackagedBar()                                       = default;
-        constexpr PackagedBar( PackagedBar&& )                        = default;
-        PACE__CXX14_CNSTXPR PackagedBar& operator=( PackagedBar&& ) & = default;
+        PackagedBar()                             = default;
+        PackagedBar( PackagedBar&& )              = default;
+        PackagedBar& operator=( PackagedBar&& ) & = default;
 
         constexpr PackagedBar( Base&& rhs ) noexcept : Base( std::move( rhs ) ) {}
         PACE__CXX14_CNSTXPR PackagedBar& operator=( Base&& rhs ) & noexcept

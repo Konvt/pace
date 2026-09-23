@@ -1,7 +1,7 @@
 #ifndef PACE_MOTIONAL
 #define PACE_MOTIONAL
 
-#include "../core/Core.hpp"
+#include <cstdint>
 
 namespace pace {
   namespace details {
@@ -11,10 +11,10 @@ namespace pace {
       protected:
         std::uint32_t frame_cnt_;
 
-        constexpr Motional()                                    = default;
-        constexpr Motional( Motional&& )                        = default;
-        PACE__CXX14_CNSTXPR Motional& operator=( Motional&& ) & = default;
-        PACE__CXX23_CNSTXPR ~Motional()                         = default;
+        Motional()                          = default;
+        Motional( Motional&& )              = default;
+        Motional& operator=( Motional&& ) & = default;
+        ~Motional()                         = default;
 
       public:
         using Base::Base;

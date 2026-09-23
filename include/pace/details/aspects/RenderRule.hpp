@@ -107,7 +107,7 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::FontBold>() );
         }
 
-        PACE__SPECIAL_MEMBERS( RenderRule );
+        PACE__SPECIAL_MEMBERS2( RenderRule );
 
       public:
 #define PACE__METHOD( OptionName, ReturnType )                     \

@@ -16,12 +16,12 @@ namespace pace {
 
         T value;
 
-        constexpr OptionPacket( const OptionPacket& )                        = default;
-        PACE__CXX14_CNSTXPR OptionPacket& operator=( const OptionPacket& ) & = default;
-        constexpr OptionPacket( OptionPacket&& )                             = default;
-        PACE__CXX14_CNSTXPR OptionPacket& operator=( OptionPacket&& ) &      = default;
+        OptionPacket( const OptionPacket& )              = default;
+        OptionPacket& operator=( const OptionPacket& ) & = default;
+        OptionPacket( OptionPacket&& )                   = default;
+        OptionPacket& operator=( OptionPacket&& ) &      = default;
         // Intentional non-virtual destructors.
-        PACE__CXX20_CNSTXPR ~OptionPacket()                                  = default;
+        ~OptionPacket()                                  = default;
 
         PACE__CXX20_CNSTXPR void swap( T& other ) noexcept
         {
@@ -32,7 +32,7 @@ namespace pace {
         friend PACE__CXX20_CNSTXPR void swap( T& a, T& b ) noexcept { a.swap( b ); }
 
       protected:
-        constexpr OptionPacket() = default;
+        OptionPacket() = default;
         constexpr OptionPacket( T&& val ) noexcept( std::is_nothrow_move_constructible<T>::value )
           : value { std::move( val ) }
         {}
@@ -66,7 +66,7 @@ namespace pace {
   pace::details::wrappers::OptionPacket<ValueType>                                 \
   {                                                                                \
   public:                                                                          \
-    PACE__CXX20_CNSTXPR StructName() = default;                                    \
+    StructName() = default;                                                        \
     PACE__CXX20_CNSTXPR StructName( ParamType ParamName ) noexcept                 \
       : pace::details::wrappers::OptionPacket<ValueType>( std::move( ParamName ) ) \
     {}                                                                             \
@@ -80,7 +80,7 @@ namespace pace {
    pace::details::wrappers::OptionPacket<ValueType>                                              \
    {                                                                                             \
    public:                                                                                       \
-     PACE__CXX20_CNSTXPR StructName() = default;                                                 \
+     StructName() = default;                                                                     \
      PACE__CXX20_CNSTXPR StructName( std::string ParamName )                                     \
        : pace::details::wrappers::OptionPacket<ValueType>( ValueType( std::move( ParamName ) ) ) \
      {}                                                                                          \
@@ -96,7 +96,7 @@ namespace pace {
                     "the value should be default constructible" );                               \
                                                                                                  \
    public:                                                                                       \
-     PACE__CXX20_CNSTXPR StructName() = default;                                                 \
+     StructName() = default;                                                                     \
      PACE__CXX20_CNSTXPR StructName( std::string ParamName )                                     \
        : pace::details::wrappers::OptionPacket<ValueType>( ValueType( std::move( ParamName ) ) ) \
      {}                                                                                          \

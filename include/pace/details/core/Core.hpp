@@ -47,11 +47,9 @@
 
 #if PACE__CC_STD >= 202302L
 # define PACE__CXX23          1
-# define PACE__CXX23_CNSTXPR  constexpr
 # define PACE__ASSUME( expr ) [[assume( expr )]]
 #else
 # define PACE__CXX23 0
-# define PACE__CXX23_CNSTXPR
 
 # ifdef _MSC_VER
 #  define PACE__ASSUME( expr ) __assume( expr )
@@ -70,29 +68,20 @@
 # ifndef PACE__ASSUME
 #  define PACE__ASSUME( _ ) PACE__ASSERT( 0 )
 # endif
-
 #endif
 #if PACE__CC_STD >= 202002L
-# define PACE__CXX20         1
-# define PACE__CXX20_CNSTXPR constexpr
-# define PACE__CNSTEVAL      consteval
-# define PACE__UNLIKELY      [[unlikely]]
+# define PACE__CXX20    1
+# define PACE__UNLIKELY [[unlikely]]
 #else
 # define PACE__CXX20 0
-# define PACE__CXX20_CNSTXPR
-# define PACE__CNSTEVAL constexpr
 # define PACE__UNLIKELY
 #endif
 #if PACE__CC_STD >= 201703L
-# define PACE__CXX17         1
-# define PACE__CXX17_CNSTXPR constexpr
-# define PACE__CXX17_INLINE  inline
-# define PACE__FALLTHROUGH   [[fallthrough]]
-# define PACE__NODISCARD     [[nodiscard]]
+# define PACE__CXX17       1
+# define PACE__FALLTHROUGH [[fallthrough]]
+# define PACE__NODISCARD   [[nodiscard]]
 #else
 # define PACE__CXX17 0
-# define PACE__CXX17_CNSTXPR
-# define PACE__CXX17_INLINE
 
 # ifdef _MSC_VER
 #  define PACE__NODISCARD _Check_return_
@@ -111,17 +100,45 @@
 # ifndef PACE__NODISCARD
 #  define PACE__NODISCARD
 # endif
-
 #endif
 #if PACE__CC_STD >= 201402L
-# define PACE__CXX14         1
-# define PACE__CXX14_CNSTXPR constexpr
+# define PACE__CXX14 1
 #else
 # define PACE__CXX14 0
-# define PACE__CXX14_CNSTXPR
 #endif
 #if PACE__CC_STD < 201103L
 # error "The library 'pace' requires C++11"
+#endif
+
+#ifdef __cpp_consteval
+# define PACE__CNSTEVAL consteval
+#else
+# define PACE__CNSTEVAL constexpr
+#endif
+#if __cpp_constexpr >= 202211L
+# define PACE__CXX23_CNSTXPR constexpr
+#else
+# define PACE__CXX23_CNSTXPR
+#endif
+#if __cpp_constexpr >= 202002L
+# define PACE__CXX20_CNSTXPR constexpr
+#else
+# define PACE__CXX20_CNSTXPR
+#endif
+#if __cpp_constexpr >= 201603L
+# define PACE__CXX17_CNSTXPR constexpr
+#else
+# define PACE__CXX17_CNSTXPR
+#endif
+#if __cpp_constexpr >= 201304L
+# define PACE__CXX14_CNSTXPR constexpr
+#else
+# define PACE__CXX14_CNSTXPR
+#endif
+#ifdef __cpp_inline_variables
+# define PACE__CXX17_INLINE inline
+#else
+# define PACE__CXX17_INLINE
 #endif
 
 #ifdef PACE_DEBUG
@@ -143,19 +160,15 @@
 // Pack multiple macro parameters into a single one.
 #define PACE__WRAP( ... ) __VA_ARGS__
 
-#define PACE__SPECIAL_MEMBERS_CX( ClassName, Constexpr )          \
-  Constexpr ClassName( const ClassName& )              = default; \
-  Constexpr ClassName( ClassName&& )                   = default; \
-  Constexpr ClassName& operator=( const ClassName& ) & = default; \
-  Constexpr ClassName& operator=( ClassName&& ) &      = default; \
-  PACE__CXX20_CNSTXPR ~ClassName()                     = default
+#define PACE__SPECIAL_MEMBERS1( ClassName )             \
+  ClassName( const ClassName& )              = default; \
+  ClassName( ClassName&& )                   = default; \
+  ClassName& operator=( const ClassName& ) & = default; \
+  ClassName& operator=( ClassName&& ) &      = default; \
+  ~ClassName()                               = default
 
-#define PACE__SPECIAL_MEMBERS( ClassName )                                  \
-  constexpr ClassName()                                          = default; \
-  constexpr ClassName( const ClassName& )                        = default; \
-  constexpr ClassName( ClassName&& )                             = default; \
-  PACE__CXX14_CNSTXPR ClassName& operator=( const ClassName& ) & = default; \
-  PACE__CXX14_CNSTXPR ClassName& operator=( ClassName&& ) &      = default; \
-  PACE__CXX20_CNSTXPR ~ClassName()                               = default
+#define PACE__SPECIAL_MEMBERS2( ClassName ) \
+  PACE__SPECIAL_MEMBERS1( ClassName );      \
+  ClassName() = default
 
 #endif

@@ -54,8 +54,8 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::RemainForecolor>() );
         }
 
-        PACE__CXX20_CNSTXPR Remain() = default;
-        PACE__SPECIAL_MEMBERS_CX( Remain, PACE__CXX20_CNSTXPR );
+        Remain() = default;
+        PACE__SPECIAL_MEMBERS1( Remain );
 
       public:
 #define PACE__METHOD( OptionName, ParamName, ReturnType, Operation ) \

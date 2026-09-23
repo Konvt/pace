@@ -1,7 +1,6 @@
 #ifndef PACE_TEMPORAL
 #define PACE_TEMPORAL
 
-#include "../core/Core.hpp"
 #include <chrono>
 
 namespace pace {
@@ -12,10 +11,10 @@ namespace pace {
       protected:
         std::chrono::steady_clock::time_point zero_point_;
 
-        constexpr Temporal()                                    = default;
-        constexpr Temporal( Temporal&& )                        = default;
-        PACE__CXX14_CNSTXPR Temporal& operator=( Temporal&& ) & = default;
-        PACE__CXX23_CNSTXPR ~Temporal()                         = default;
+        Temporal()                          = default;
+        Temporal( Temporal&& )              = default;
+        Temporal& operator=( Temporal&& ) & = default;
+        ~Temporal()                         = default;
 
       public:
         using Base::Base;

@@ -88,8 +88,8 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::PrefixBackcolor>() );
         }
 
-        PACE__CXX20_CNSTXPR Prefix() = default;
-        PACE__SPECIAL_MEMBERS_CX( Prefix, PACE__CXX20_CNSTXPR );
+        Prefix() = default;
+        PACE__SPECIAL_MEMBERS1( Prefix );
 
       public:
 #define PACE__METHOD( OptionName, ParamName, ReturnType, Operation ) \
@@ -170,8 +170,8 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::PostfixBackcolor>() );
         }
 
-        PACE__CXX20_CNSTXPR Postfix() = default;
-        PACE__SPECIAL_MEMBERS_CX( Postfix, PACE__CXX20_CNSTXPR );
+        Postfix() = default;
+        PACE__SPECIAL_MEMBERS1( Postfix );
 
       public:
 #define PACE__METHOD( OptionName, ParamName, ReturnType, Operation ) \

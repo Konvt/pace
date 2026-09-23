@@ -32,14 +32,14 @@ namespace pace {
         return pipeline;
       }
 
-      PACE__NODISCARD static PACE__FORCEINLINE PACE__CNSTEVAL std::size_t fixed_length() noexcept
+      PACE__NODISCARD static PACE__FORCEINLINE PACE__CXX14_CNSTXPR std::size_t fixed_length() noexcept
       { return default_text().size(); }
 
       template<typename... Options>
       constexpr Percentage( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
       {}
 
-      PACE__SPECIAL_MEMBERS( Percentage );
+      PACE__SPECIAL_MEMBERS2( Percentage );
     };
   } // namespace facade
 

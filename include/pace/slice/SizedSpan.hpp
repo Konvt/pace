@@ -29,7 +29,7 @@ namespace pace {
       using sentinel = details::traits::SentinelOf_t<R>;
 
       PACE__CXX17_CNSTXPR SizedSpan( R& rnge ) noexcept : rnge_ { std::addressof( rnge ) } {}
-      PACE__CXX20_CNSTXPR ~SizedSpan() = default;
+      ~SizedSpan() = default;
 
       PACE__FORCEINLINE PACE__CXX14_CNSTXPR R& base() const noexcept { return *rnge_; }
 

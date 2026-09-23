@@ -55,8 +55,8 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::FillerBackcolor>() );
         }
 
-        PACE__CXX20_CNSTXPR Filler() = default;
-        PACE__SPECIAL_MEMBERS_CX( Filler, PACE__CXX20_CNSTXPR );
+        Filler() = default;
+        PACE__SPECIAL_MEMBERS1( Filler );
 
       public:
 #define PACE__METHOD( OptionName, ParamName, ReturnType, Operation ) \

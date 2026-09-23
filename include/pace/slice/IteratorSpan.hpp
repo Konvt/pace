@@ -43,7 +43,7 @@ namespace pace {
             details::charcodes::make_literal( "pace: negative iterator range" ) );
         size_ = static_cast<std::size_t>( length );
       }
-      PACE__CXX20_CNSTXPR ~IteratorSpan() = default;
+      ~IteratorSpan() = default;
 
       PACE__NODISCARD PACE__FORCEINLINE constexpr iterator begin() const
         noexcept( std::is_nothrow_copy_constructible<iterator>::value )

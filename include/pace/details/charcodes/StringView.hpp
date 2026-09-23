@@ -126,8 +126,8 @@ namespace pace {
 
         BasicStringView( std::nullptr_t ) = delete;
 
-        constexpr BasicStringView( const BasicStringView& )                        = default;
-        PACE__CXX14_CNSTXPR BasicStringView& operator=( const BasicStringView& ) & = default;
+        BasicStringView( const BasicStringView& )              = default;
+        BasicStringView& operator=( const BasicStringView& ) & = default;
 
         PACE__NODISCARD constexpr const_iterator cbegin() const noexcept { return data_; }
         PACE__NODISCARD constexpr iterator begin() const noexcept { return cbegin(); }

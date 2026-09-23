@@ -32,8 +32,8 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::Quota>() );
         }
 
-        constexpr Capacity() = default;
-        PACE__SPECIAL_MEMBERS_CX( Capacity, PACE__CXX14_CNSTXPR );
+        Capacity() = default;
+        PACE__SPECIAL_MEMBERS1( Capacity );
 
       public:
 #define PACE__METHOD( ReturnType )                                 \

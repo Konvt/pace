@@ -47,7 +47,7 @@ namespace pace {
      *   Thrown if any input string fails UTF-8 validation or the array size mismatches.
      */
     struct SpeedUnit : details::wrappers::OptionPacket<std::vector<details::charcodes::U8Raw>> {
-      PACE__CXX20_CNSTXPR SpeedUnit() = default;
+      SpeedUnit() = default;
 
       /**
        * @throw exception::InvalidArgument
@@ -197,8 +197,8 @@ namespace pace {
           unpack( *this, config::provide_for<Derived, option::SpeedUnit>() );
       }
 
-      PACE__CXX20_CNSTXPR Speed() = default;
-      PACE__SPECIAL_MEMBERS_CX( Speed, PACE__CXX20_CNSTXPR );
+      Speed() = default;
+      PACE__SPECIAL_MEMBERS1( Speed );
 
     public:
 #define PACE__METHOD( OptionName, ParamName, Operation, ReturnType )        \

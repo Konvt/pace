@@ -34,7 +34,7 @@ namespace pace {
       public:
         using value_type = char;
 
-        constexpr CharPipeline() = default;
+        CharPipeline() = default;
         PACE__CXX20_CNSTXPR ~CharPipeline() noexcept { delete[] start_; }
 
         PACE__CXX20_CNSTXPR CharPipeline( CharPipeline&& rhs ) noexcept

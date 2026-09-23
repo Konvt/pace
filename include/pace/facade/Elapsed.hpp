@@ -56,7 +56,7 @@ namespace pace {
       using Field = details::aspects::TimerField;
 
     public:
-      PACE__CXX20_CNSTXPR ElapsedFormat() = default;
+      ElapsedFormat() = default;
       PACE__CXX20_CNSTXPR ElapsedFormat( details::charcodes::StringView _fmt_str ) noexcept
         : details::wrappers::OptionPacket<std::vector<Field>>( Field::parse( _fmt_str ) )
       {}
@@ -177,7 +177,7 @@ namespace pace {
           unpack( *this, config::provide_for<Derived, option::ElapsedFormat>() );
       }
 
-      PACE__SPECIAL_MEMBERS( Elapsed );
+      PACE__SPECIAL_MEMBERS2( Elapsed );
 
     public:
 #define PACE__METHOD( ParamName, ReturnType )                               \

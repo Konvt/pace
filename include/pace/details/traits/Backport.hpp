@@ -8,8 +8,7 @@
 namespace pace {
   namespace details {
     namespace traits {
-      // Before C++17, not all std entities had feature macros.
-#if PACE__CXX14
+#ifdef __cpp_lib_integer_sequence
       template<std::size_t... Ns>
       using IndexSequence = std::integer_sequence<std::size_t, Ns...>;
 
@@ -51,7 +50,7 @@ namespace pace {
       using BoolConstant = std::integral_constant<bool, B>;
 #endif
 
-#if PACE__CXX14
+#ifdef __cpp_lib_is_final
       using std::is_final;
 #elif defined( __GNUC__ ) || defined( __clang__ ) || defined( _MSC_VER )
       template<typename T>

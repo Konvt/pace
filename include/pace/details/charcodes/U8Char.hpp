@@ -85,9 +85,9 @@ namespace pace {
         PACE__CXX20_CNSTXPR U8Char( char single_u8char ) noexcept : byte_ {}, length_ { 1 }, width_ { 1 }
         { byte_.front() = single_u8char; }
 
-        PACE__CXX14_CNSTXPR U8Char( const U8Char& )              = default;
-        PACE__CXX14_CNSTXPR U8Char& operator=( const U8Char& ) & = default;
-        PACE__CXX20_CNSTXPR ~U8Char()                            = default;
+        U8Char( const U8Char& )              = default;
+        U8Char& operator=( const U8Char& ) & = default;
+        ~U8Char()                            = default;
 
         PACE__NODISCARD const char* as_bytes() const noexcept { return byte_.data(); }
 

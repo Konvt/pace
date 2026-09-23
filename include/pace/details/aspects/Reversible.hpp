@@ -32,8 +32,8 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::Reversed>() );
         }
 
-        constexpr Reversible() = default;
-        PACE__SPECIAL_MEMBERS_CX( Reversible, PACE__CXX14_CNSTXPR );
+        Reversible() = default;
+        PACE__SPECIAL_MEMBERS1( Reversible );
 
       public:
 #define PACE__METHOD( ReturnType )                                 \

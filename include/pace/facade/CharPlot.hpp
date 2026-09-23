@@ -104,7 +104,7 @@ namespace pace {
       constexpr CharPlot( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
       {}
 
-      PACE__SPECIAL_MEMBERS( CharPlot );
+      PACE__SPECIAL_MEMBERS2( CharPlot );
     };
   } // namespace facade
 

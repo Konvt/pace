@@ -78,8 +78,8 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::InfoBackcolor>() );
         }
 
-        PACE__CXX20_CNSTXPR Segment() = default;
-        PACE__SPECIAL_MEMBERS_CX( Segment, PACE__CXX20_CNSTXPR );
+        Segment() = default;
+        PACE__SPECIAL_MEMBERS1( Segment );
 
       public:
 #define PACE__METHOD( OptionName, ParamName, ReturnType, Operation ) \

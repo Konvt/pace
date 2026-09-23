@@ -17,7 +17,7 @@ namespace pace {
       using Base = details::wrappers::OptionPacket<std::vector<details::charcodes::U8Text>>;
 
     public:
-      PACE__CXX20_CNSTXPR Lead() = default;
+      Lead() = default;
       /**
        * @throw exception::InvalidArgument
        *
@@ -115,7 +115,7 @@ namespace pace {
         }
 
         PACE__CXX20_CNSTXPR Frame() = default;
-        PACE__SPECIAL_MEMBERS_CX( Frame, PACE__CXX20_CNSTXPR );
+        PACE__SPECIAL_MEMBERS1( Frame );
 
       public:
 #define PACE__METHOD( OptionName, ParamName, ReturnType, Operation ) \

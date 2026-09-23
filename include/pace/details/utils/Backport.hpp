@@ -23,7 +23,7 @@ namespace pace {
   namespace details {
     namespace utils {
       // Before C++17, not all std entities had feature macros.
-#if PACE__CXX14
+#ifdef __cpp_lib_make_unique
       using std::make_unique;
 #else
       template<typename T, typename... Args>
@@ -33,7 +33,7 @@ namespace pace {
       { return std::unique_ptr<T>( ::new T( std::forward<Args>( args )... ) ); }
 #endif
 
-#if PACE__CXX14
+#ifdef __cpp_lib_exchange_function
       using std::exchange;
 #else
       template<typename T, typename U = T>
@@ -53,7 +53,7 @@ namespace pace {
       { return static_cast<int>( std::uncaught_exception() ); }
 #endif
 
-#if PACE__CXX17
+#ifdef __cpp_lib_raw_memory_algorithms
       using std::destroy_at;
 #else
       // Available only for objects that constructed by placement new.

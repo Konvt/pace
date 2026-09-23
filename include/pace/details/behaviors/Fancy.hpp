@@ -37,10 +37,10 @@ namespace pace {
         }
 
       protected:
-        constexpr Fancy()                                 = default;
-        constexpr Fancy( Fancy&& )                        = default;
-        PACE__CXX14_CNSTXPR Fancy& operator=( Fancy&& ) & = default;
-        PACE__CXX23_CNSTXPR ~Fancy()                      = default;
+        Fancy()                       = default;
+        Fancy( Fancy&& )              = default;
+        Fancy& operator=( Fancy&& ) & = default;
+        ~Fancy()                      = default;
 
       public:
         using Base::Base;

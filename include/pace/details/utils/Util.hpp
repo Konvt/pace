@@ -35,7 +35,7 @@ namespace pace {
 #ifdef __cpp_lib_is_constant_evaluated
         if ( std::is_constant_evaluated() ) {
 #endif
-#if PACE__CXX14
+#if __cpp_constexpr >= 201304L
           std::size_t digits = val == 0;
           for ( ; val > 0; val /= 10 )
             ++digits;

@@ -35,7 +35,7 @@ namespace pace {
 
       public:
 #ifdef PACE_NOSTYLE
-        constexpr TrueColor() = default;
+        TrueColor() = default;
 #else
         PACE__CXX20_CNSTXPR TrueColor() noexcept : encoding_ { render::Paint::None } {}
 #endif
@@ -54,8 +54,8 @@ namespace pace {
         }
 #endif
 
-        PACE__CXX20_CNSTXPR TrueColor( const TrueColor& )              = default;
-        PACE__CXX20_CNSTXPR TrueColor& operator=( const TrueColor& ) & = default;
+        TrueColor( const TrueColor& )              = default;
+        TrueColor& operator=( const TrueColor& ) & = default;
 
         PACE__CXX20_CNSTXPR TrueColor& operator=( wrappers::RGBValue rgb ) & noexcept
         {

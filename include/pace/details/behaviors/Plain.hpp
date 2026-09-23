@@ -36,10 +36,10 @@ namespace pace {
         }
 
       protected:
-        constexpr Plain()                                 = default;
-        constexpr Plain( Plain&& rhs )                    = default;
-        PACE__CXX14_CNSTXPR Plain& operator=( Plain&& ) & = default;
-        PACE__CXX23_CNSTXPR ~Plain()                      = default;
+        Plain()                       = default;
+        Plain( Plain&& )              = default;
+        Plain& operator=( Plain&& ) & = default;
+        ~Plain()                      = default;
 
       public:
         using Base::Base;

@@ -31,7 +31,7 @@ namespace pace {
       using PointeeOf_t = typename PointeeOf<T>::type;
 
       struct AnyValue {
-        constexpr AnyValue() = default;
+        AnyValue() = default;
         template<typename From>
         constexpr AnyValue( From&& ) noexcept
         {}

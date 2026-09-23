@@ -17,7 +17,7 @@ namespace pace {
         template<template<typename...> class... Compnts>
         PACE__NODISCARD PACE__FORCEINLINE bool any_more() const noexcept
         {
-#if PACE__CXX17
+#ifdef __cpp_fold_expressions
           return ( this->projection_.test( traits::IndexIn<Compnts, Facades...>::value ) || ... );
 #else
           bool existance = false;

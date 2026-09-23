@@ -1,7 +1,6 @@
 #ifndef PACE_SINGLETON
 #define PACE_SINGLETON
 
-#include "../core/Core.hpp"
 #include <type_traits>
 
 namespace pace {
@@ -10,10 +9,10 @@ namespace pace {
       template<typename Derived>
       class Singleton {
       protected:
-        constexpr Singleton() = default;
+        Singleton() = default;
 
       public:
-        PACE__CXX20_CNSTXPR ~Singleton() = default;
+        ~Singleton() = default;
 
         Singleton( const Singleton& )            = delete;
         Singleton& operator=( const Singleton& ) = delete;

@@ -98,7 +98,7 @@ namespace pace {
       constexpr BlockPlot( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
       {}
 
-      PACE__SPECIAL_MEMBERS( BlockPlot );
+      PACE__SPECIAL_MEMBERS2( BlockPlot );
     };
   } // namespace facade
 

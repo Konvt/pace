@@ -3,10 +3,12 @@
 
 #include "../../exception/Error.hpp"
 #include "../charcodes/StringView.hpp"
+#include "../core/Core.hpp"
 #include "../core/Types.hpp"
 #include "../utils/Singleton.hpp"
 #include "CharPipeline.hpp"
 #include <cerrno>
+
 #if PACE__WIN
 # include <vector>
 # ifndef NOMINMAX
@@ -19,6 +21,7 @@
 #else
 # include <iostream>
 #endif
+
 namespace pace {
   namespace details {
     namespace io {
@@ -173,7 +176,7 @@ namespace pace {
 #endif
         }
 
-        PACE__CXX20_CNSTXPR ~OStream() = default;
+        ~OStream() = default;
 
 #if PACE__WIN && !defined( PACE_UTF8 )
         PACE__FORCEINLINE PACE__CXX23_CNSTXPR void reset() noexcept

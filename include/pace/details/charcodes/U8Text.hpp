@@ -26,7 +26,7 @@ namespace pace {
           return characters;
         }
 
-        PACE__CXX20_CNSTXPR U8Text() = default;
+        U8Text() = default;
         explicit PACE__CXX23_CNSTXPR U8Text( std::string u8_bytes )
         {
           chars_ = parse_glyph( u8_bytes );
@@ -38,11 +38,11 @@ namespace pace {
                                     } );
           bytes_ = std::move( u8_bytes );
         }
-        PACE__CXX20_CNSTXPR U8Text( const U8Text& )              = default;
-        PACE__CXX20_CNSTXPR U8Text( U8Text&& )                   = default;
-        PACE__CXX20_CNSTXPR U8Text& operator=( const U8Text& ) & = default;
-        PACE__CXX20_CNSTXPR U8Text& operator=( U8Text&& ) &      = default;
-        PACE__CXX20_CNSTXPR ~U8Text()                            = default;
+        U8Text( const U8Text& )              = default;
+        U8Text( U8Text&& )                   = default;
+        U8Text& operator=( const U8Text& ) & = default;
+        U8Text& operator=( U8Text&& ) &      = default;
+        ~U8Text()                            = default;
 
         PACE__CXX23_CNSTXPR U8Text& operator=( charcodes::StringView u8_bytes ) &
         {

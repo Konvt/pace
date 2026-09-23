@@ -91,8 +91,8 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::EndBackcolor>() );
         }
 
-        PACE__CXX20_CNSTXPR Bar() = default;
-        PACE__SPECIAL_MEMBERS_CX( Bar, PACE__CXX20_CNSTXPR );
+        Bar() = default;
+        PACE__SPECIAL_MEMBERS1( Bar );
 
       public:
 #define PACE__METHOD( OptionName, ParamName, ReturnType, Operation ) \

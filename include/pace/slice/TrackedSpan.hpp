@@ -75,7 +75,7 @@ namespace pace {
         using reference       = details::traits::IterReference_t<Itr>;
         using pointer         = Itr;
 
-        PACE__CXX20_CNSTXPR ~iterator() = default;
+        ~iterator() = default;
 
         PACE__FORCEINLINE PACE__CXX14_CNSTXPR iterator& operator++() &
         {
@@ -159,10 +159,10 @@ namespace pace {
         : ui_ { std::move( ui ) }, view_ { std::move( view ) }
       {}
 
-      constexpr TrackedSpan( TrackedSpan&& rhs )                        = default;
-      PACE__CXX14_CNSTXPR TrackedSpan& operator=( TrackedSpan&& rhs ) & = default;
+      TrackedSpan( TrackedSpan&& rhs )              = default;
+      TrackedSpan& operator=( TrackedSpan&& rhs ) & = default;
 
-      PACE__CXX20_CNSTXPR ~TrackedSpan() = default;
+      ~TrackedSpan() = default;
 
       PACE__CXX14_CNSTXPR View replace( View view ) & noexcept(
         details::traits::AllOf<std::is_nothrow_move_constructible<View>,

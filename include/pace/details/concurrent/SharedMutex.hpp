@@ -1,24 +1,33 @@
 #ifndef PACE_SHARED_MUTEX
 #define PACE_SHARED_MUTEX
 
-#include "../core/Core.hpp"
-#if defined( __cpp_lib_shared_mutex ) || PACE__CXX14
+#include <cstddef>
+
+#if defined( __cpp_lib_shared_mutex ) || defined( __cpp_lib_shared_timed_mutex )
 # include <shared_mutex>
-#elif _WIN32_WINNT >= 0x0601
-# ifndef NOMINMAX
-#  define NOMINMAX 1
-# endif
-# include <windows.h>
-# define PACE__WIN_SRWLOCK
-#elif defined( _POSIX_READER_WRITER_LOCKS ) && _POSIX_READER_WRITER_LOCKS >= 0
-# include <cerrno>
-# include <pthread.h>
-# include <system_error>
-# define PACE__PTHREAD_RWLOCK
 #else
-# include <atomic>
-# include <condition_variable>
-# include <mutex>
+# include "../core/Core.hpp"
+# if PACE__WIN
+#  ifndef NOMINMAX
+#   define NOMINMAX 1
+#  endif
+#  include <windows.h>
+# elif PACE__UNIX
+#  include <unistd.h>
+# endif
+
+# if _WIN32_WINNT >= 0x0601
+#  define PACE__WIN_SRWLOCK
+# elif defined( _POSIX_READER_WRITER_LOCKS ) && _POSIX_READER_WRITER_LOCKS >= 0
+#  include <cerrno>
+#  include <pthread.h>
+#  include <system_error>
+#  define PACE__PTHREAD_RWLOCK
+# else
+#  include <atomic>
+#  include <condition_variable>
+#  include <mutex>
+# endif
 #endif
 
 namespace pace {
@@ -26,7 +35,7 @@ namespace pace {
     namespace concurrent {
 #ifdef __cpp_lib_shared_mutex
       using SharedMutex = std::shared_mutex;
-#elif PACE__CXX14
+#elif defined( __cpp_lib_shared_timed_mutex )
       using SharedMutex = std::shared_timed_mutex;
 #else
       class SharedMutex {

@@ -197,7 +197,7 @@ namespace pace {
         // Get the current working interval for all threads.
         PACE__NODISCARD static PACE__FORCEINLINE std::chrono::nanoseconds working_interval() noexcept
         {
-#if PACE__CXX17
+#ifdef __cpp_inline_variables
           return _working_interval.load( std::memory_order_relaxed );
 #else
           return _working_interval().load( std::memory_order_relaxed );
@@ -206,7 +206,7 @@ namespace pace {
         // Adjust the thread working interval between this loop and the next loop.
         static PACE__FORCEINLINE void working_interval( std::chrono::nanoseconds new_rate ) noexcept
         {
-#if PACE__CXX17
+#ifdef __cpp_inline_variables
           _working_interval.store( new_rate, std::memory_order_relaxed );
 #else
           _working_interval().store( new_rate, std::memory_order_relaxed );

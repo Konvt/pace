@@ -27,10 +27,10 @@ namespace pace {
         }
 
       protected:
-        constexpr Indeterminate()                                         = default;
-        constexpr Indeterminate( Indeterminate&& )                        = default;
-        PACE__CXX14_CNSTXPR Indeterminate& operator=( Indeterminate&& ) & = default;
-        PACE__CXX23_CNSTXPR ~Indeterminate()                              = default;
+        Indeterminate()                               = default;
+        Indeterminate( Indeterminate&& )              = default;
+        Indeterminate& operator=( Indeterminate&& ) & = default;
+        ~Indeterminate()                              = default;
 
       public:
         using Base::Base;

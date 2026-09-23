@@ -26,10 +26,10 @@ namespace pace {
         { return this->task_cnt_.load( std::memory_order_relaxed ) >= this->task_end_; }
 
       protected:
-        constexpr Determinate()                                       = default;
-        constexpr Determinate( Determinate&& )                        = default;
-        PACE__CXX14_CNSTXPR Determinate& operator=( Determinate&& ) & = default;
-        PACE__CXX23_CNSTXPR ~Determinate()                            = default;
+        Determinate()                             = default;
+        Determinate( Determinate&& )              = default;
+        Determinate& operator=( Determinate&& ) & = default;
+        ~Determinate()                            = default;
 
       public:
         using Base::Base;

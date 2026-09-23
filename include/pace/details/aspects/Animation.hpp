@@ -44,8 +44,8 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::Shift>() );
         }
 
-        PACE__CXX20_CNSTXPR Animation() = default;
-        PACE__SPECIAL_MEMBERS_CX( Animation, PACE__CXX20_CNSTXPR );
+        Animation() = default;
+        PACE__SPECIAL_MEMBERS1( Animation );
 
       public:
 #define PACE__METHOD( ReturnType )                                 \

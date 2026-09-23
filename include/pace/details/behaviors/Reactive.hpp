@@ -18,7 +18,7 @@ namespace pace {
           wrappers::UniqueFunction<void( Derived& )> on_self;
           bool nil_ = false;
 
-          constexpr Callback() = default;
+          Callback() = default;
           ~Callback() noexcept {}
         } hook_;
         enum class Tag : std::uint8_t { Nil, Nullary, Unary } tag_ = Tag::Nil;
@@ -68,7 +68,7 @@ namespace pace {
         }
 
       protected:
-        constexpr Reactive() = default;
+        Reactive() = default;
         PACE__CXX20_CNSTXPR Reactive( Reactive&& rhs )
           noexcept( std::is_nothrow_move_constructible<Base>::value )
           : Base( std::move( rhs ) )

@@ -52,7 +52,7 @@ namespace pace {
           unpack( *this, config::provide_for<Derived, option::ShowQuota>() );
       }
 
-      PACE__SPECIAL_MEMBERS( Counter );
+      PACE__SPECIAL_MEMBERS2( Counter );
 
     public:
 #define PACE__METHOD( OptionName, ReturnType )                              \

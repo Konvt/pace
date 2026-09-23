@@ -17,14 +17,14 @@ namespace pace {
       public:
         constexpr CodeChart( char32_t start, char32_t end, types::GlyphWidth width ) noexcept
           : start_ { start }, end_ { end }, width_ { width }
-        {       // This is an internal component, so we assume the arguments are always valid.
-#if PACE__CXX14 // C++11 requires the constexpr ctor should have an empty function body.
+        {
+#if __cpp_constexpr >= 201304L
           PACE__TRUST( start_ <= end_ );
 #endif
         }
-        constexpr CodeChart( const CodeChart& )                        = default;
-        PACE__CXX14_CNSTXPR CodeChart& operator=( const CodeChart& ) & = default;
-        PACE__CXX20_CNSTXPR ~CodeChart()                               = default;
+        CodeChart( const CodeChart& )              = default;
+        CodeChart& operator=( const CodeChart& ) & = default;
+        ~CodeChart()                               = default;
 
         // Check whether the Unicode code point is within this code chart.
         PACE__NODISCARD constexpr bool contains( char32_t codepoint ) const noexcept

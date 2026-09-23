@@ -17,11 +17,7 @@ namespace pace {
             std::size_t width {};
             charcodes::U8Char padding;
 
-#if PACE__CXX23
-            PACE__CXX23_CNSTXPR Clock() = default;
-#else
-            constexpr Clock() noexcept {}
-#endif
+            Clock() = default;
             constexpr Clock( std::size_t wdt, charcodes::U8Char pad ) noexcept
               : width { wdt }, padding { pad }
             {}

@@ -106,7 +106,7 @@ namespace pace {
       constexpr FlowPlot( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
       {}
 
-      PACE__SPECIAL_MEMBERS( FlowPlot );
+      PACE__SPECIAL_MEMBERS2( FlowPlot );
     };
   } // namespace facade
 

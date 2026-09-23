@@ -40,11 +40,11 @@ namespace pace {
           width_ = text_width( u8_bytes );
           bytes_ = std::move( u8_bytes );
         }
-        PACE__CXX20_CNSTXPR U8Raw( const U8Raw& )              = default;
-        PACE__CXX20_CNSTXPR U8Raw( U8Raw&& )                   = default;
-        PACE__CXX20_CNSTXPR U8Raw& operator=( const U8Raw& ) & = default;
-        PACE__CXX20_CNSTXPR U8Raw& operator=( U8Raw&& ) &      = default;
-        PACE__CXX20_CNSTXPR ~U8Raw()                           = default;
+        U8Raw( const U8Raw& )              = default;
+        U8Raw( U8Raw&& )                   = default;
+        U8Raw& operator=( const U8Raw& ) & = default;
+        U8Raw& operator=( U8Raw&& ) &      = default;
+        ~U8Raw()                           = default;
 
         PACE__CXX20_CNSTXPR U8Raw& operator=( charcodes::StringView u8_bytes ) &
         {

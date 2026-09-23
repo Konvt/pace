@@ -49,9 +49,9 @@ namespace pace {
         using reference         = value_type;
 
         constexpr iterator() noexcept : iterator( {}, 1, {} ) {}
-        constexpr iterator( const iterator& )                        = default;
-        PACE__CXX14_CNSTXPR iterator& operator=( const iterator& ) & = default;
-        PACE__CXX20_CNSTXPR ~iterator()                              = default;
+        iterator( const iterator& )              = default;
+        iterator& operator=( const iterator& ) & = default;
+        ~iterator()                              = default;
 
         PACE__FORCEINLINE PACE__CXX14_CNSTXPR iterator& operator++() & noexcept
         {
@@ -197,9 +197,9 @@ namespace pace {
        * If the `endpoint` is less than zero.
        */
       PACE__CXX20_CNSTXPR NumericSpan( N endpoint ) : NumericSpan( {}, endpoint, 1 ) {}
-      constexpr NumericSpan( const NumericSpan& )                        = default;
-      PACE__CXX14_CNSTXPR NumericSpan& operator=( const NumericSpan& ) & = default;
-      PACE__CXX20_CNSTXPR ~NumericSpan()                                 = default;
+      NumericSpan( const NumericSpan& )              = default;
+      NumericSpan& operator=( const NumericSpan& ) & = default;
+      ~NumericSpan()                                 = default;
 
       PACE__NODISCARD PACE__FORCEINLINE constexpr iterator begin() const noexcept
       { return iterator( start_, step_ ); }

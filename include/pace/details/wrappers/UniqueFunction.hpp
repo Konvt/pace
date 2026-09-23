@@ -46,8 +46,8 @@ namespace pace {
           void ( *const move )( AnyFn& dst, AnyFn& src ) noexcept;
 
 # if PACE__CXX20
-          friend constexpr bool operator==( const Life&, const Life& ) = default;
-          friend constexpr bool operator!=( const Life&, const Life& ) = default;
+          friend bool operator==( const Life&, const Life& ) = default;
+          friend bool operator!=( const Life&, const Life& ) = default;
 # else
           friend constexpr bool operator==( const Life& a, const Life& b ) noexcept
           { return a.destroy == b.destroy && a.move == b.move; }
@@ -63,8 +63,8 @@ namespace pace {
           const Life* life;
 
 # if PACE__CXX20
-          friend constexpr bool operator==( const VTable&, const VTable& ) = default;
-          friend constexpr bool operator!=( const VTable&, const VTable& ) = default;
+          friend bool operator==( const VTable&, const VTable& ) = default;
+          friend bool operator!=( const VTable&, const VTable& ) = default;
 # else
           friend constexpr bool operator==( const VTable& a, const VTable& b ) noexcept
           { return a.invoke == b.invoke && a.life == b.life; }
@@ -273,10 +273,10 @@ namespace pace {
         UniqueFunction( const UniqueFunction& )            = delete;
         UniqueFunction& operator=( const UniqueFunction& ) = delete;
 
-        constexpr UniqueFunction()                                          = default;
-        constexpr UniqueFunction( UniqueFunction&& )                        = default;
-        PACE__CXX14_CNSTXPR UniqueFunction& operator=( UniqueFunction&& ) & = default;
-        PACE__CXX20_CNSTXPR ~UniqueFunction()                               = default;
+        UniqueFunction()                                = default;
+        UniqueFunction( UniqueFunction&& )              = default;
+        UniqueFunction& operator=( UniqueFunction&& ) & = default;
+        ~UniqueFunction()                               = default;
 
         constexpr UniqueFunction( std::nullptr_t ) noexcept : UniqueFunction() {}
         template<typename F,

@@ -26,7 +26,7 @@ namespace pace {
       static constexpr Region region_value   = Zone;
 
       using Base::Base;
-      constexpr BasicBar() = default;
+      BasicBar() = default;
       template<typename... Args
 #ifdef __cpp_concepts
                >
@@ -45,9 +45,9 @@ namespace pace {
       BasicBar( const BasicBar& )            = delete;
       BasicBar& operator=( const BasicBar& ) = delete;
 
-      constexpr BasicBar( BasicBar&& )                        = default;
-      PACE__CXX14_CNSTXPR BasicBar& operator=( BasicBar&& ) & = default;
-      PACE__CXX20_CNSTXPR virtual ~BasicBar()                 = default;
+      BasicBar( BasicBar&& )              = default;
+      BasicBar& operator=( BasicBar&& ) & = default;
+      virtual ~BasicBar()                 = default;
 
       void swap( BasicBar& other ) noexcept
       {

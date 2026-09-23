@@ -11,6 +11,10 @@
 #include <stdexcept>
 #include <type_traits>
 
+#ifdef __cpp_lib_string_view
+# include <string_view>
+#endif
+
 namespace pace {
   namespace details {
     namespace charcodes {
@@ -50,7 +54,7 @@ namespace pace {
         Alloc alloc_;
 
       protected:
-        constexpr AllocatorStorage() = default;
+        AllocatorStorage() = default;
 
         AllocatorStorage( const AllocatorStorage& other )
           noexcept( std::is_nothrow_copy_constructible<Alloc>::value )
@@ -70,7 +74,7 @@ namespace pace {
         constexpr const Alloc& allocator() const noexcept { return alloc_; }
 
       public:
-        PACE__CXX20_CNSTXPR ~AllocatorStorage() = default;
+        ~AllocatorStorage() = default;
 
         AllocatorStorage& operator=( const AllocatorStorage& ) = delete;
         AllocatorStorage& operator=( AllocatorStorage&& )      = delete;
@@ -82,7 +86,7 @@ namespace pace {
           traits::AllOf<std::is_empty<Alloc>, traits::Not<traits::is_final<Alloc>>>::value>::type>
         : private Alloc {
       protected:
-        constexpr AllocatorStorage() = default;
+        AllocatorStorage() = default;
 
         AllocatorStorage( const AllocatorStorage& other )
           noexcept( std::is_nothrow_copy_constructible<Alloc>::value )
@@ -102,7 +106,7 @@ namespace pace {
         constexpr const Alloc& allocator() const noexcept { return static_cast<const Alloc&>( *this ); }
 
       public:
-        PACE__CXX20_CNSTXPR ~AllocatorStorage() = default;
+        ~AllocatorStorage() = default;
 
         AllocatorStorage& operator=( const AllocatorStorage& ) = delete;
         AllocatorStorage& operator=( AllocatorStorage&& )      = delete;
@@ -182,7 +186,7 @@ namespace pace {
         PACE__CXX17_CNSTXPR CoWIterator( Pointee& owner, typename Pointee::size_type pos ) noexcept
           : owner_ { std::addressof( owner ) }, pos_ { pos }
         {}
-        PACE__CXX20_CNSTXPR ~CoWIterator() = default;
+        ~CoWIterator() = default;
 
         constexpr Pointee* owner() const noexcept { return owner_; }
         PACE__NODISCARD constexpr typename Pointee::size_type offset() const noexcept { return pos_; }
@@ -326,7 +330,7 @@ namespace pace {
           using pointer         = const value_type*;
           using reference       = const value_type&;
 
-          PACE__CXX20_CNSTXPR ~unsafe_iterator() = default;
+          ~unsafe_iterator() = default;
 
           constexpr pointer base() const noexcept { return cursor_; }
 
@@ -399,7 +403,7 @@ namespace pace {
           pointer ptr;
           size_type capacity;
 
-          PACE__CXX20_CNSTXPR ~CoWBlock() = default;
+          ~CoWBlock() = default;
 
           // it's extremely surprising that the type alias `pointer` of the allocator can be a fancy pointer
           PACE__FORCEINLINE PACE__CXX14_CNSTXPR Char* str() & noexcept { return utils::to_address( ptr ); }

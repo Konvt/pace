@@ -19,7 +19,7 @@ namespace pace {
         constexpr EncodedView( const char* head, const char* tail, std::size_t width ) noexcept
           : head_ { head }, tail_ { tail }, width_ { width }
         {
-#if PACE__CXX14
+#if __cpp_constexpr >= 201304L
           PACE__TRUST( head_ <= tail_ );
           PACE__TRUST( head_ != nullptr && tail_ != nullptr );
 #endif

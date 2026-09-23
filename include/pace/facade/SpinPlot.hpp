@@ -40,7 +40,7 @@ namespace pace {
       constexpr SpinPlot( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
       {}
 
-      PACE__SPECIAL_MEMBERS( SpinPlot );
+      PACE__SPECIAL_MEMBERS2( SpinPlot );
     };
   } // namespace facade
 
