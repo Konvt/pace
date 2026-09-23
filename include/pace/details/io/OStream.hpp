@@ -3,21 +3,16 @@
 
 #include "../../exception/Error.hpp"
 #include "../charcodes/StringView.hpp"
-#include "../core/Core.hpp"
 #include "../core/Types.hpp"
 #include "../utils/Singleton.hpp"
 #include "CharPipeline.hpp"
 #include <cerrno>
 
+#include "../core/Platform.hpp"
 #if PACE__WIN
 # include <vector>
-# ifndef NOMINMAX
-#  define NOMINMAX 1
-# endif
-# include <windows.h>
 #elif PACE__UNIX
 # include <sys/ioctl.h>
-# include <unistd.h>
 #else
 # include <iostream>
 #endif

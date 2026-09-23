@@ -6,16 +6,7 @@
 #if defined( __cpp_lib_shared_mutex ) || defined( __cpp_lib_shared_timed_mutex )
 # include <shared_mutex>
 #else
-# include "../core/Core.hpp"
-# if PACE__WIN
-#  ifndef NOMINMAX
-#   define NOMINMAX 1
-#  endif
-#  include <windows.h>
-# elif PACE__UNIX
-#  include <unistd.h>
-# endif
-
+# include "../core/Platform.hpp"
 # if _WIN32_WINNT >= 0x0601
 #  define PACE__WIN_SRWLOCK
 # elif defined( _POSIX_READER_WRITER_LOCKS ) && _POSIX_READER_WRITER_LOCKS >= 0
