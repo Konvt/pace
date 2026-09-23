@@ -7,6 +7,7 @@
 #include "../utils/Singleton.hpp"
 #include "../wrappers/UniqueFunction.hpp"
 #include <atomic>
+#include <chrono>
 #include <thread>
 #ifndef __cpp_lib_atomic_wait
 # include <condition_variable>
@@ -22,14 +23,14 @@ namespace pace {
         friend class utils::Singleton<Renderer>;
 
         static constexpr auto _default_working_interval =
-          std::chrono::duration_cast<types::Tempus>( std::chrono::milliseconds( 40 ) );
+          std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::milliseconds( 40 ) );
 
 #ifdef __cpp_inline_variables
-        static std::atomic<types::Tempus> _working_interval;
+        static std::atomic<std::chrono::nanoseconds> _working_interval;
 #else
-        static std::atomic<types::Tempus>& _working_interval() noexcept
+        static std::atomic<std::chrono::nanoseconds>& _working_interval() noexcept
         {
-          static std::atomic<types::Tempus> instance { _default_working_interval };
+          static std::atomic<std::chrono::nanoseconds> instance { _default_working_interval };
           return instance;
         }
 #endif
@@ -194,7 +195,7 @@ namespace pace {
 
       public:
         // Get the current working interval for all threads.
-        PACE__NODISCARD static PACE__FORCEINLINE types::Tempus working_interval() noexcept
+        PACE__NODISCARD static PACE__FORCEINLINE std::chrono::nanoseconds working_interval() noexcept
         {
 #if PACE__CXX17
           return _working_interval.load( std::memory_order_relaxed );
@@ -203,7 +204,7 @@ namespace pace {
 #endif
         }
         // Adjust the thread working interval between this loop and the next loop.
-        static PACE__FORCEINLINE void working_interval( types::Tempus new_rate ) noexcept
+        static PACE__FORCEINLINE void working_interval( std::chrono::nanoseconds new_rate ) noexcept
         {
 #if PACE__CXX17
           _working_interval.store( new_rate, std::memory_order_relaxed );
@@ -389,7 +390,7 @@ namespace pace {
       };
 #ifdef __cpp_inline_variables
       template<Channel Tag>
-      PACE__CXX17_INLINE std::atomic<types::Tempus> Renderer<Tag>::_working_interval {
+      PACE__CXX17_INLINE std::atomic<std::chrono::nanoseconds> Renderer<Tag>::_working_interval {
         Renderer<Tag>::_default_working_interval
       };
 #endif

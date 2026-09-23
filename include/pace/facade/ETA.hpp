@@ -97,11 +97,11 @@ namespace pace {
           return pipeline << unkown_char();
 
         bool overflow = false;
-        details::types::Tempus remaining_time {};
+        std::chrono::nanoseconds remaining_time {};
         if ( params.task_quota > 0 && params.tasks_completed > 0 ) {
           auto time_per_task = params.elapsed_time / params.tasks_completed;
           if ( time_per_task.count() == 0 )
-            time_per_task = details::types::Tempus( 1 );
+            time_per_task = std::chrono::nanoseconds( 1 );
           const std::uint64_t remaining_tasks = params.task_quota - params.tasks_completed;
           if ( remaining_tasks > ( std::numeric_limits<std::uint64_t>::max )() / time_per_task.count() )
             overflow = true;

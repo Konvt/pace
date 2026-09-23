@@ -26,19 +26,35 @@ namespace pace {
       return details::io::OStream<Channel::Err>::itself().width();
     }
 
-    // Get the current output interval.
+    /// @brief Get the current output interval.
+    /// @return std::chrono::duration (a.k.a. `std::chrono::nanoseconds`)
     template<Channel Sink>
-    PACE__NODISCARD details::types::Tempus refresh_interval() noexcept
+    PACE__NODISCARD std::chrono::nanoseconds refresh_interval() noexcept
     { return details::render::Renderer<Sink>::working_interval(); }
     // Set the new output interval.
     template<Channel Sink>
-    void refresh_interval( details::types::Tempus new_rate ) noexcept
+    void refresh_interval( std::chrono::nanoseconds new_rate ) noexcept
     { details::render::Renderer<Sink>::working_interval( new_rate ); }
     // Set every channels to the same output interval.
-    inline void refresh_interval( details::types::Tempus new_rate ) noexcept
+    inline void refresh_interval( std::chrono::nanoseconds new_rate ) noexcept
     {
       details::render::Renderer<Channel::Err>::working_interval( new_rate );
       details::render::Renderer<Channel::Out>::working_interval( new_rate );
+    }
+
+    template<Channel Sink, typename Rep, typename Period>
+    void refresh_interval( std::chrono::duration<Rep, Period> new_rate ) noexcept
+    {
+      details::render::Renderer<Sink>::working_interval(
+        std::chrono::duration_cast<std::chrono::nanoseconds>( new_rate ) );
+    }
+    template<typename Rep, typename Period>
+    void refresh_interval( std::chrono::duration<Rep, Period> new_rate ) noexcept
+    {
+      details::render::Renderer<Channel::Err>::working_interval(
+        std::chrono::duration_cast<std::chrono::nanoseconds>( new_rate ) );
+      details::render::Renderer<Channel::Out>::working_interval(
+        std::chrono::duration_cast<std::chrono::nanoseconds>( new_rate ) );
     }
   } // namespace config
 } // namespace pace

@@ -152,7 +152,26 @@ export namespace pace {
     using pace::option::operator!;
   } // namespace option
 
-  namespace details::types {
-    using pace::details::types::Tempus;
-  }
+  // Explicitly instantiate commonly used types to avoid redundant type dependency calculations later.
+  template class prefab::BasicBar<config::Line, Channel::Out, Policy::Async, Region::Fixed>;
+  template class prefab::BasicBar<config::Line, Channel::Out, Policy::Sync, Region::Relative>;
+  template class prefab::BasicBar<config::Block, Channel::Out, Policy::Async, Region::Fixed>;
+  template class prefab::BasicBar<config::Block, Channel::Out, Policy::Sync, Region::Relative>;
+  template class prefab::BasicBar<config::Flow, Channel::Out, Policy::Async, Region::Fixed>;
+  template class prefab::BasicBar<config::Flow, Channel::Out, Policy::Sync, Region::Relative>;
+  template class prefab::BasicBar<config::Sweep, Channel::Out, Policy::Async, Region::Fixed>;
+  template class prefab::BasicBar<config::Sweep, Channel::Out, Policy::Sync, Region::Relative>;
+  template class prefab::BasicBar<config::Spin, Channel::Out, Policy::Async, Region::Fixed>;
+  template class prefab::BasicBar<config::Spin, Channel::Out, Policy::Sync, Region::Relative>;
+
+  template class prefab::BasicBar<config::Line, Channel::Err, Policy::Async, Region::Fixed>;
+  template class prefab::BasicBar<config::Line, Channel::Err, Policy::Sync, Region::Relative>;
+  template class prefab::BasicBar<config::Block, Channel::Err, Policy::Async, Region::Fixed>;
+  template class prefab::BasicBar<config::Block, Channel::Err, Policy::Sync, Region::Relative>;
+  template class prefab::BasicBar<config::Flow, Channel::Err, Policy::Async, Region::Fixed>;
+  template class prefab::BasicBar<config::Flow, Channel::Err, Policy::Sync, Region::Relative>;
+  template class prefab::BasicBar<config::Sweep, Channel::Err, Policy::Async, Region::Fixed>;
+  template class prefab::BasicBar<config::Sweep, Channel::Err, Policy::Sync, Region::Relative>;
+  template class prefab::BasicBar<config::Spin, Channel::Err, Policy::Async, Region::Fixed>;
+  template class prefab::BasicBar<config::Spin, Channel::Err, Policy::Sync, Region::Relative>;
 } // namespace pace

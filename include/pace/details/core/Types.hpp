@@ -1,8 +1,8 @@
 #ifndef PACE_TYPES
 #define PACE_TYPES
 
-#include <chrono>
 #include <cstddef>
+#include <cstdint>
 
 namespace pace {
   namespace details {
@@ -14,9 +14,7 @@ namespace pace {
 #else
         unsigned char;
 #endif
-      using Bit8 = std::uint8_t; // a computable and addressable Byte type
-
-      using Tempus     = std::chrono::nanoseconds;
+      using Bit8       = std::uint8_t; // a computable and addressable Byte type
       using HexRGB     = std::uint32_t;
       using GlyphWidth = std::uint8_t; // value is between [0, 3]
     } // namespace types
