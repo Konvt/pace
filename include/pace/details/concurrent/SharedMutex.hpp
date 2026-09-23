@@ -85,7 +85,7 @@ namespace pace {
             throw std::system_error( result, std::system_category(), "pthread_rwlock_wrlock" );
 # else
           std::unique_lock<std::mutex> lock { gate_ };
-          cv_.wait( lock, [this]() noexcept { return readers_.load( std::memory_order_relaxed ) == 0; } );
+          cv_.wait( lock, [this]() noexcept { return readers_.load( std::memory_order_acquire ) == 0; } );
           lock.release();
 # endif
         }
@@ -103,7 +103,7 @@ namespace pace {
           throw std::system_error( result, std::system_category(), "pthread_rwlock_trywrlock" );
 # else
           if ( readers_.load( std::memory_order_relaxed ) == 0 && gate_.try_lock() ) {
-            if ( readers_.load( std::memory_order_relaxed ) == 0 )
+            if ( readers_.load( std::memory_order_acquire ) == 0 )
               return true;
             gate_.unlock();
           }
@@ -132,7 +132,7 @@ namespace pace {
             throw std::system_error( result, std::system_category(), "pthread_rwlock_rdlock" );
 # else
           std::lock_guard<std::mutex> lock { gate_ };
-          readers_.fetch_add( 1, std::memory_order_relaxed );
+          readers_.fetch_add( 1, std::memory_order_acquire );
           PACE__ASSERT( readers_ > 0 ); // overflow checking
 # endif
         }
@@ -167,9 +167,10 @@ namespace pace {
           (void)pthread_rwlock_unlock( &native_ );
 # else
           PACE__ASSERT( readers_ > 0 ); // underflow checking
-          if ( readers_.fetch_sub( 1, std::memory_order_relaxed ) == 1 ) {
+          if ( readers_.fetch_sub( 1, std::memory_order_release ) == 1 ) {
             std::lock_guard<std::mutex> lock { gate_ };
-            cv_.notify_all();
+            if ( readers_.load( std::memory_order_relaxed ) == 0 )
+              cv_.notify_all();
           }
 # endif
         }
