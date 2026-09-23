@@ -2,7 +2,7 @@
 #define PACE_CORE
 
 #include "Version.hpp"
-#include <cstdint>
+#include <cstddef>
 
 #if defined( _WIN32 ) || defined( _WIN64 )
 # define PACE__WIN     1
