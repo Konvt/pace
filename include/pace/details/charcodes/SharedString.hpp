@@ -394,7 +394,7 @@ namespace pace {
         using reverse_unsafe_iterator = std::reverse_iterator<unsafe_iterator>;
 
       private:
-        struct CoWBlock final {
+        struct CoWBlock {
           CoWRefs refs;
           pointer ptr;
           size_type capacity;

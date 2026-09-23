@@ -16,7 +16,7 @@ namespace pace {
       using SharedLock = std::shared_lock<Mtx>;
 #else
       template<typename Mtx>
-      class SharedLock final {
+      class SharedLock {
         Mtx* mtx_;
         bool is_owner_;
 

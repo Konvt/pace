@@ -10,7 +10,7 @@ namespace pace {
       template<Channel Sink, Policy Mode, Region Zone>
       class DynamicLayout final {
         enum Locus : std::uint8_t { Offstage, Onstage, Echo };
-        struct Slot final {
+        struct Slot {
         private:
           template<typename Derived>
           static void draw( Indicator* item, io::CharPipeline& pipeline, bool style_off )

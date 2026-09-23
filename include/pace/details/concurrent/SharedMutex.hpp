@@ -16,7 +16,7 @@ namespace pace {
       using SharedMutex = std::shared_mutex;
 #else
       // A simple `Shared Mutex` implementation for any C++ version.
-      class SharedMutex final {
+      class SharedMutex {
       protected:
         std::atomic<std::uint64_t> num_readers_;
         std::mutex writer_mtx_;

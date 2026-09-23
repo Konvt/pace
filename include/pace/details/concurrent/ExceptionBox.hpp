@@ -10,7 +10,7 @@ namespace pace {
   namespace details {
     namespace concurrent {
       // A nullable container that holds an exception pointer.
-      class ExceptionBox final {
+      class ExceptionBox {
         std::exception_ptr exception_;
         mutable SharedMutex rw_mtx_;
 

@@ -11,7 +11,7 @@ namespace pace {
       class DynamicLayout;
 
       template<typename C, Channel S, Policy M, Region Z>
-      class ManagedBar final : public prefab::BasicBar<C, S, M, Z> {
+      class ManagedBar : public prefab::BasicBar<C, S, M, Z> {
         using Base    = prefab::BasicBar<C, S, M, Z>;
         using Context = std::shared_ptr<DynamicLayout<S, M, Z>>;
 

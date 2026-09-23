@@ -54,7 +54,7 @@ namespace pace {
           friend constexpr bool operator!=( const Life& a, const Life& b ) noexcept { return !( a == b ); }
 # endif
         };
-        struct VTable final {
+        struct VTable {
           R ( *invoke )( const AnyFn&, Param_t<Params>... )
 # ifdef __cpp_noexcept_function_type
             noexcept( Noexcept )

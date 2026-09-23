@@ -3,13 +3,14 @@
 
 #include "../core/Core.hpp"
 #include "../core/Types.hpp"
+#include <algorithm>
 #include <array>
 
 namespace pace {
   namespace details {
     namespace charcodes {
       // A type of wrapper that stores the mapping between Unicode code chart and character width.
-      class CodeChart final {
+      class CodeChart {
         char32_t start_, end_;
         types::GlyphWidth width_;
 
