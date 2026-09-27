@@ -30,15 +30,26 @@ namespace pace {
         struct Helper;
         template<template<typename...> class... Behaviors>
         struct Helper<traits::Relation<Behaviors...>>
-          // The Behaviors is unique, we can directly "concat" them together.
           : traits::C3Merge<traits::InheritOrder_t<Behaviors>...> {};
-        // Since the `Behaviors` parameter is auto-generated,
-        // it is not possible to follow the C3 algorithm steps by
-        // appending at the end a list of direct base classes composed of `Behaviors`,
-        // as auto-generation does not guarantee correct dependency ordering.
+
+        // template<typename /* TypeSet<...> */ MROs>
+        // struct Helper;
+        // template<typename... MROs>
+        // struct Helper<traits::TypeSet<MROs...>> : traits::C3Merge<MROs...> {};
 
       public:
+        // Treats entailments as unordered Behavior requirements.
+        // Behavior precedence is defined solely by each Behavior's own C3 hierarchy.
+        // This reuses the existing InheritOrder and avoids redundant C3 computation.
         using type = typename Helper<traits::Merge_t<traits::Relation<>, EntailOn_t<Facades>...>>::type;
+
+        // Alternative: treat each entailment list as a C3 local precedence list.
+        // This preserves declaration order, but adds an extra C3 computation per distinct entailment
+        // and may impose precedence that entailment itself does not require.
+        //
+        // using type = typename Helper<
+        //   traits::Merge_t<traits::TypeSet<>,
+        //                   traits::TypeSet<typename traits::C3<EntailOn_t<Facades>>::type>...>>::type;
       };
     } // namespace aspects
   } // namespace details

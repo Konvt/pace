@@ -69,7 +69,6 @@ namespace pace {
         private:
           template<typename VBs, typename Counts>
           struct Helper;
-
           template<template<typename...> class... VBs, std::size_t Count, std::size_t... Counts>
           struct Helper<Relation<K, VBs...>, NaturalList<Count, Counts...>> {
             using candidate_list = Relation<K, VBs...>;
@@ -89,10 +88,7 @@ namespace pace {
           };
 
           template<bool Cond, typename Candidates, typename TailCounts>
-          struct Choice {
-            using candidate_list = typename Helper<Candidates, TailCounts>::candidate_list;
-            using tail_counts    = typename Helper<Candidates, TailCounts>::tail_counts;
-          };
+          struct Choice : Helper<Candidates, TailCounts> {};
           template<typename Candidates, typename TailCounts>
           struct Choice<false, Candidates, TailCounts> {
             using candidate_list = TmpPushBack_t<Candidates, K>;
@@ -217,22 +213,22 @@ namespace pace {
 
         //////////////////////////////////////////////////
 
-        template<typename TakenCandidate, typename VBs, typename Tails, typename MergedLists>
+        template<typename TakenCandidate, typename VBs, typename Nums, typename MergedLists>
         struct DropCandidate;
-        template<template<typename...> class Candidate, typename VBs, typename Tails>
-        struct DropCandidate<Relation<Candidate>, VBs, Tails, TypeList<>> {
+        template<template<typename...> class Candidate, typename VBs, typename Nums>
+        struct DropCandidate<Relation<Candidate>, VBs, Nums, TypeList<>> {
           using candidate_list = VBs;
-          using tail_counts    = Tails;
+          using tail_counts    = Nums;
           using merged_list    = TypeList<>;
         };
         template<template<typename...> class Candidate,
                  typename VBs,
-                 typename Tails,
+                 typename Nums,
                  template<typename...> class... Rests,
                  typename... MergedLists>
-        struct DropCandidate<Relation<Candidate>, VBs, Tails, TypeList<Relation<Rests...>, MergedLists...>> {
+        struct DropCandidate<Relation<Candidate>, VBs, Nums, TypeList<Relation<Rests...>, MergedLists...>> {
         private:
-          using Result = DropCandidate<Relation<Candidate>, VBs, Tails, TypeList<MergedLists...>>;
+          using Result = DropCandidate<Relation<Candidate>, VBs, Nums, TypeList<MergedLists...>>;
 
         public:
           using candidate_list = typename Result::candidate_list;
@@ -241,16 +237,16 @@ namespace pace {
         };
         template<template<typename...> class Candidate,
                  typename VBs,
-                 typename Tails,
+                 typename Nums,
                  template<typename...> class NextHead,
                  template<typename...> class... Rests,
                  typename... MergedLists>
         struct DropCandidate<Relation<Candidate>,
                              VBs,
-                             Tails,
+                             Nums,
                              TypeList<Relation<Candidate, NextHead, Rests...>, MergedLists...>> {
         private:
-          using Decrement = FetchSub<VBs, Tails, NextHead>;
+          using Decrement = FetchSub<VBs, Nums, NextHead>;
           using Result    = DropCandidate<Relation<Candidate>,
                                           typename Decrement::candidate_list,
                                           typename Decrement::tail_counts,
@@ -261,9 +257,9 @@ namespace pace {
           using tail_counts    = typename Result::tail_counts;
           using merged_list    = TpPrepend_t<typename Result::merged_list, Relation<NextHead, Rests...>>;
         };
-        template<template<typename...> class Candidate, typename VBs, typename Tails, typename... MergedLists>
-        struct DropCandidate<Relation<Candidate>, VBs, Tails, TypeList<Relation<Candidate>, MergedLists...>>
-          : DropCandidate<Relation<Candidate>, VBs, Tails, TypeList<MergedLists...>> {};
+        template<template<typename...> class Candidate, typename VBs, typename Nums, typename... MergedLists>
+        struct DropCandidate<Relation<Candidate>, VBs, Nums, TypeList<Relation<Candidate>, MergedLists...>>
+          : DropCandidate<Relation<Candidate>, VBs, Nums, TypeList<MergedLists...>> {};
 
         //////////////////////////////////////////////////
 
