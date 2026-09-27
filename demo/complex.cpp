@@ -43,7 +43,9 @@ int main()
   } );
   pool.emplace_back( [&]() {
     bool flag = true;
-    bar.at<1>() << [&]( pace::BlockBar<>& self ) {
+    using std::get;
+    auto& second_bar = get<pace::config::Block>( bar );
+    second_bar << [&]( pace::BlockBar<>& self ) {
       if ( flag )
         self.config().prefix( "✔ Mission Accomplished" ).prefix_forecolor( pace::Color::Green );
       else
@@ -51,14 +53,14 @@ int main()
     };
 
     mt19937 rd { random_device {}() };
-    bar.at<1>().config().quota( 10000 );
+    get<pace::BlockBar<>>( bar ).config().quota( 10000 );
     const size_t terminate_val = 5000 + uniform_int_distribution<int>( 10, 1000 )( rd );
     for ( size_t i = 0; i < terminate_val; ++i ) {
-      bar.at<1>().tick();
+      second_bar.tick();
       this_thread::sleep_for( chrono::microseconds( uniform_int_distribution<int>( 1, 1105 )( rd ) ) );
     }
     flag = false;
-    bar.at<1>().reset();
+    second_bar.reset();
   } );
   bar.at<2>().tick();
 

@@ -18,6 +18,38 @@ namespace pace {
         static_assert( sizeof...( Tags ) == sizeof...( Configs ), "unexpected type mismatch" );
         static_assert( sizeof...( Configs ) > 0, "the number of progress bars cannot be zero" );
 
+        template<typename Config>
+        struct FetchElement {
+        private:
+          static_assert( traits::is_config<Config>::value, "cannot fetch an invalid type" );
+
+          template<typename Result, typename... Rests>
+          struct Helper : traits::Identity<Result> {
+            static_assert( !std::is_void<Result>::value, "cannot fetch a non-existent type" );
+          };
+          template<std::size_t Tag1, std::size_t Tag2, typename... Rests>
+          struct Helper<assets::PackagedBar<Config, Sink, Mode, Zone, Tag1>,
+                        assets::PackagedBar<Config, Sink, Mode, Zone, Tag2>,
+                        Rests...> {
+            static_assert( sizeof...( Rests ) != sizeof...( Rests ),
+                           "the target type must appear exactly once" );
+          };
+          template<std::size_t Tag, typename... Rests>
+          struct Helper<void, assets::PackagedBar<Config, Sink, Mode, Zone, Tag>, Rests...>
+            : Helper<assets::PackagedBar<Config, Sink, Mode, Zone, Tag>, Rests...> {};
+          template<typename First, typename... Rests>
+          struct Helper<void, First, Rests...> : Helper<void, Rests...> {};
+
+        public:
+          using type = typename Helper<void, assets::PackagedBar<Configs, Sink, Mode, Zone, Tags>...>::type;
+        };
+        template<typename C, Channel S, Policy M, Region Z>
+        struct FetchElement<prefab::BasicBar<C, S, M, Z>> : FetchElement<C> {
+          static_assert( S == Sink && M == Mode && Z == Zone, "try to fetch a non-existent type" );
+        };
+
+        template<typename T>
+        using FetchElement_t = typename FetchElement<T>::type;
         template<std::size_t Pos>
         using ElementAt_t = traits::TypeAt_t<Pos, assets::PackagedBar<Configs, Sink, Mode, Zone, Tags>...>;
 
@@ -77,7 +109,7 @@ namespace pace {
               /**
                * Here are the scenarios where a newline character is output:
                * 1. If the output stream is bound to a terminal and the completed progress bar does not need
-               *    to be hidden, it should be output when stages_[Pos] is equal to Step::Spare.
+               *    to be hidden, it should be output when stages_[Pos] is equal to Step::Offstage.
                * 2. If the output stream is bound to a terminal and the completed progress bar needs to be
                *    hidden, it only be output when Pos-th is still active.
                * 3. If the output stream is not bound to a terminal,
@@ -270,11 +302,21 @@ namespace pace {
         PACE__FORCEINLINE PACE__CXX14_CNSTXPR ElementAt_t<Pos>& at() & noexcept
         { return static_cast<ElementAt_t<Pos>&>( *this ); }
         template<std::size_t Pos>
-        PACE__FORCEINLINE PACE__CXX14_CNSTXPR const ElementAt_t<Pos>& at() const& noexcept
+        PACE__FORCEINLINE constexpr const ElementAt_t<Pos>& at() const& noexcept
         { return static_cast<const ElementAt_t<Pos>&>( *this ); }
         template<std::size_t Pos>
         PACE__FORCEINLINE PACE__CXX14_CNSTXPR ElementAt_t<Pos>& at() && noexcept
         { return std::move( at<Pos>() ); }
+
+        template<typename T>
+        PACE__FORCEINLINE PACE__CXX14_CNSTXPR FetchElement_t<T>& get() & noexcept
+        { return static_cast<FetchElement_t<T>&>( *this ); }
+        template<typename T>
+        PACE__FORCEINLINE constexpr const FetchElement_t<T>& get() const& noexcept
+        { return static_cast<const FetchElement_t<T>&>( *this ); }
+        template<typename T>
+        PACE__FORCEINLINE PACE__CXX14_CNSTXPR FetchElement_t<T>&& get() && noexcept
+        { return static_cast<FetchElement_t<T>&&>( *this ); }
       };
     } // namespace assets
   } // namespace details

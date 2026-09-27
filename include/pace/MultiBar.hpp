@@ -93,7 +93,7 @@ namespace pace {
     PACE__FORCEINLINE PACE__CXX14_CNSTXPR BarAt_t<Pos>& at() & noexcept
     { return package_.template at<Pos>(); }
     template<std::size_t Pos>
-    PACE__FORCEINLINE PACE__CXX14_CNSTXPR const BarAt_t<Pos>& at() const& noexcept
+    PACE__FORCEINLINE constexpr const BarAt_t<Pos>& at() const& noexcept
     { return package_.template at<Pos>(); }
     template<std::size_t Pos>
     PACE__FORCEINLINE PACE__CXX14_CNSTXPR BarAt_t<Pos>&& at() && noexcept
@@ -106,11 +106,24 @@ namespace pace {
     PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR BarAt_t<Pos>& get( MultiBar& self ) noexcept
     { return self.template at<Pos>(); }
     template<std::size_t Pos>
-    PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR const BarAt_t<Pos>& get( const MultiBar& self ) noexcept
+    PACE__FORCEINLINE friend constexpr const BarAt_t<Pos>& get( const MultiBar& self ) noexcept
     { return self.template at<Pos>(); }
     template<std::size_t Pos>
     PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR BarAt_t<Pos>&& get( MultiBar&& self ) noexcept
     { return std::move( self ).template at<Pos>(); }
+
+    template<typename T>
+    PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR auto get( MultiBar& self ) noexcept
+      -> decltype( self.package_.template get<T>() )
+    { return self.package_.template get<T>(); }
+    template<typename T>
+    PACE__FORCEINLINE friend constexpr auto get( const MultiBar& self ) noexcept
+      -> decltype( self.package_.template get<T>() )
+    { return self.package_.template get<T>( self.package_ ); }
+    template<typename T>
+    PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR auto get( MultiBar&& self ) noexcept
+      -> decltype( self.package_.template get<T>() )
+    { return std::move( self.package_ ).template get<T>( self.package_ ); }
   };
 
 #ifdef __cpp_deduction_guides
