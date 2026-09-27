@@ -102,7 +102,7 @@ namespace pace {
           "try to modifiy an unknown Facade" );
         self.projection_.reset();
         (void)std::initializer_list<bool> {
-          ( self.projection_.set( details::traits::IndexIn<Fs, Facades...>::value ), false )...
+          ( self.projection_.set( details::traits::TmpIndexIn<Fs, Facades...>::value ), false )...
         };
       }
       template<template<typename...> class... Fs>
@@ -115,7 +115,7 @@ namespace pace {
           "try to modifiy an unknown Facade" );
         self.projection_.set();
         (void)std::initializer_list<bool> {
-          ( self.projection_.reset( details::traits::IndexIn<Fs, Facades...>::value ), false )...
+          ( self.projection_.reset( details::traits::TmpIndexIn<Fs, Facades...>::value ), false )...
         };
       }
 
@@ -162,7 +162,7 @@ namespace pace {
           "try to modifiy an unknown Facade" );
         std::vector<bool> projection;
         projection.assign( sizeof...( Facades ), false );
-        (void)std::initializer_list<bool> { ( projection[details::traits::IndexIn<Fs, Facades...>::value] =
+        (void)std::initializer_list<bool> { ( projection[details::traits::TmpIndexIn<Fs, Facades...>::value] =
                                                 true )... };
         return { std::move( projection ) };
       }
@@ -185,7 +185,7 @@ namespace pace {
           "try to modifiy an unknown Facade" );
         std::vector<bool> projection;
         projection.assign( sizeof...( Facades ), true );
-        (void)std::initializer_list<bool> { ( projection[details::traits::IndexIn<Fs, Facades...>::value] =
+        (void)std::initializer_list<bool> { ( projection[details::traits::TmpIndexIn<Fs, Facades...>::value] =
                                                 false )... };
         return { std::move( projection ) };
       }
@@ -340,9 +340,9 @@ namespace pace {
                        "enabled facades must be part of the config object" );
 #endif
         std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
-        projection_.set( details::traits::IndexIn<F, Facades...>::value );
+        projection_.set( details::traits::TmpIndexIn<F, Facades...>::value );
         (void)std::initializer_list<bool> {
-          ( projection_.set( details::traits::IndexIn<Fs, Facades...>::value ), false )...
+          ( projection_.set( details::traits::TmpIndexIn<Fs, Facades...>::value ), false )...
         };
         return *this;
       }
@@ -360,9 +360,9 @@ namespace pace {
                        "enabled facades must be part of the config object" );
 #endif
         std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
-        projection_.set( details::traits::IndexIn<F, Facades...>::value );
+        projection_.set( details::traits::TmpIndexIn<F, Facades...>::value );
         (void)std::initializer_list<bool> {
-          ( projection_.set( details::traits::IndexIn<Fs, Facades...>::value ), false )...
+          ( projection_.set( details::traits::TmpIndexIn<Fs, Facades...>::value ), false )...
         };
         return std::move( *this );
       }
@@ -381,9 +381,9 @@ namespace pace {
                        "disabled facades must be part of the config object" );
 #endif
         std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
-        projection_.reset( details::traits::IndexIn<F, Facades...>::value );
+        projection_.reset( details::traits::TmpIndexIn<F, Facades...>::value );
         (void)std::initializer_list<bool> {
-          ( projection_.reset( details::traits::IndexIn<Fs, Facades...>::value ), false )...
+          ( projection_.reset( details::traits::TmpIndexIn<Fs, Facades...>::value ), false )...
         };
         return *this;
       }
@@ -401,9 +401,9 @@ namespace pace {
                        "disabled facades must be part of the config object" );
 #endif
         std::lock_guard<details::concurrent::SharedMutex> lock { this->rw_mtx_ };
-        projection_.reset( details::traits::IndexIn<F, Facades...>::value );
+        projection_.reset( details::traits::TmpIndexIn<F, Facades...>::value );
         (void)std::initializer_list<bool> {
-          ( projection_.reset( details::traits::IndexIn<Fs, Facades...>::value ), false )...
+          ( projection_.reset( details::traits::TmpIndexIn<Fs, Facades...>::value ), false )...
         };
         return std::move( *this );
       }

@@ -38,6 +38,12 @@ namespace pace {
         using type = typename Choice<TmpContains<TemplateSet<Es...>, T>::value, T>::type;
       };
 
+      template<template<typename...> class... Es, template<typename...> class T>
+      struct TmpPushFront<TemplateSet<Es...>, T> : Identity<TemplateSet<T, Es...>> {};
+
+      template<template<typename...> class... Es, template<typename...> class T>
+      struct TmpPushBack<TemplateSet<Es...>, T> : Identity<TemplateSet<Es..., T>> {};
+
       template<template<typename...> class... Es, template<template<typename...> class...> class Collection>
       struct Combine<TemplateSet<Es...>, Collection<>> : Identity<TemplateSet<Es...>> {};
       template<template<typename...> class... Es,
@@ -46,6 +52,11 @@ namespace pace {
                template<typename...> class... Ts>
       struct Combine<TemplateSet<Es...>, Collection<T, Ts...>>
         : Combine<TmpAppend_t<TemplateSet<Es...>, T>, Collection<Ts...>> {};
+
+      template<template<typename...> class... Es,
+               template<template<typename...> class...> class Collection,
+               template<typename...> class... Ts>
+      struct Concat<TemplateSet<Es...>, Collection<Ts...>> : Identity<TemplateSet<Es..., Ts...>> {};
 
       template<bool Cond, typename Visited, template<typename...> class... Elements>
       struct _impl_is_unique_tmp : std::false_type {};

@@ -9,15 +9,28 @@ namespace pace {
   namespace details {
     namespace traits {
 #ifdef __cpp_lib_integer_sequence
+      template<typename T, T... Ints>
+      using IntegerSequence = std::integer_sequence<T, Ints...>;
+
       template<std::size_t... Ns>
       using IndexSequence = std::integer_sequence<std::size_t, Ns...>;
 
       template<std::size_t N>
       using MakeIndexSequence = std::make_integer_sequence<std::size_t, N>;
 #else
-      template<std::size_t... Ns>
-      struct IndexSequence {};
+      template<typename T, T... Ints>
+      struct IntegerSequence {
+        using value_type = T;
+        static constexpr std::size_t size() noexcept { return sizeof...( Ints ); }
+      };
 
+      template<std::size_t... Ns>
+      using IndexSequence = IntegerSequence<std::size_t, Ns...>;
+
+# if PACE__BUILTIN( __make_integer_seq ) || _CCCL_MSVC_VERSION_FULL >= 190023918
+      template<std::size_t N>
+      using MakeIndexSequence = __make_integer_seq<IntegerSequence, std::size_t, N>; // NOLINT
+# else
       // This is an internal implementation and should not be used outside of this preprocessing block.
       template<typename HeadSeq, typename TailSeq>
       struct _concat_seq;
@@ -40,6 +53,7 @@ namespace pace {
 
       template<std::size_t N>
       using MakeIndexSequence = typename _impl_make_index_seq<N>::type;
+# endif
 #endif
 
 #ifdef __cpp_lib_bool_constant

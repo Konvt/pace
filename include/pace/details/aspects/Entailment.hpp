@@ -2,7 +2,6 @@
 #define PACE_ENTAILMENT
 
 #include "../traits/C3.hpp"
-#include "../traits/TypeSet.hpp"
 
 namespace pace {
   namespace details {
@@ -27,26 +26,19 @@ namespace pace {
                template<typename...> class... Facades>
       struct EntailmentLinker<AnyConfig<Facades...>> {
       private:
-        template<typename /* TypeSet<...> */ Result, typename /* Relation<...> */ Behaviors>
-        struct FlatMap;
-        template<typename /* TypeSet<...> */ Result>
-        struct FlatMap<Result, traits::Relation<>> : traits::Identity<Result> {};
-        template<typename /* TypeSet<...> */ Result,
-                 template<typename...> class Behavior,
-                 template<typename...> class... Behaviors>
-        struct FlatMap<Result, traits::Relation<Behavior, Behaviors...>>
-          : FlatMap<traits::TpAppend_t<Result, traits::InheritOrder_t<Behavior>>,
-                    traits::Relation<Behaviors...>> {};
-
-        template<typename /* TypeSet<Relation<...>, ...> */ VBLists>
+        template<typename /* Relation<...> */ Behaviors>
         struct Helper;
-        template<typename... VBLists>
-        struct Helper<traits::TypeSet<VBLists...>> : traits::C3Merge<VBLists...> {};
+        template<template<typename...> class... Behaviors>
+        struct Helper<traits::Relation<Behaviors...>>
+          // The Behaviors is unique, we can directly "concat" them together.
+          : traits::C3Merge<traits::InheritOrder_t<Behaviors>...> {};
+        // Since the `Behaviors` parameter is auto-generated,
+        // it is not possible to follow the C3 algorithm steps by
+        // appending at the end a list of direct base classes composed of `Behaviors`,
+        // as auto-generation does not guarantee correct dependency ordering.
 
       public:
-        using type = typename Helper<
-          typename FlatMap<traits::TypeSet<>,
-                           traits::Merge_t<traits::Relation<>, EntailOn_t<Facades>...>>::type>::type;
+        using type = typename Helper<traits::Merge_t<traits::Relation<>, EntailOn_t<Facades>...>>::type;
       };
     } // namespace aspects
   } // namespace details

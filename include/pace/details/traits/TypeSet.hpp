@@ -19,6 +19,18 @@ namespace pace {
       struct TpContains<TypeSet<Es...>, T> : std::is_base_of<TypeList<T>, TypeSet<Es...>> {};
 
       template<typename... Es, typename T>
+      struct TpPrepend<TypeSet<Es...>, T> {
+      private:
+        template<bool Cond, typename NewOne>
+        struct Choice : Identity<TypeSet<Es...>> {};
+        template<typename NewOne>
+        struct Choice<false, NewOne> : Identity<TypeSet<NewOne, Es...>> {};
+
+      public:
+        using type = typename Choice<TpContains<TypeSet<Es...>, T>::value, T>::type;
+      };
+
+      template<typename... Es, typename T>
       struct TpAppend<TypeSet<Es...>, T> {
       private:
         template<bool Cond, typename NewOne>
@@ -34,34 +46,50 @@ namespace pace {
       struct TpRemove<TypeSet<>, Element> : Identity<TypeSet<>> {};
       template<typename... Tail, typename Element>
       struct TpRemove<TypeSet<Element, Tail...>, Element> : Identity<TypeSet<Tail...>> {};
-#if PACE__FAST_TYPEAT
       template<typename... Es, typename Element>
       struct TpRemove<TypeSet<Es...>, Element> {
       private:
-        template<typename Removed, typename Another>
-        struct Helper;
-        template<typename... Head, typename... Tail>
-        struct Helper<TypeSet<Head...>, TypeSet<Tail...>> : Identity<TypeSet<Head..., Tail...>> {};
+        template<bool Cond, typename List>
+        struct Choice : TpRemove<List, Element> {};
+        template<typename List>
+        struct Choice<false, List> : Identity<List> {};
 
-        using Left  = Split_l<TypeSet<Es...>>;
-        using Right = Split_r<TypeSet<Es...>>;
+        template<typename Front, typename Back>
+        struct Helper;
+        template<typename... Ts, typename... Us>
+        struct Helper<TypeSet<Ts...>, TypeSet<Us...>> : Identity<TypeSet<Ts..., Us...>> {};
+
+        using Left  = TpSplit_l<TypeSet<Es...>>;
+        using Right = TpSplit_r<TypeSet<Es...>>;
 
       public:
-        using type = typename Helper<
-          TpRemove_t<typename std::conditional<TpContains<Left, Element>::value, Left, Right>::type, Element>,
-          typename std::conditional<TpContains<Left, Element>::value, Right, Left>::type>::type;
+        using type = typename Helper<typename Choice<TpContains<Left, Element>::value, Left>::type,
+                                     typename Choice<!TpContains<Left, Element>::value, Right>::type>::type;
       };
-#else
-      template<typename Head, typename... Tail, typename Element>
-      struct TpRemove<TypeSet<Head, Tail...>, Element>
-        : Identity<TpPrepend_t<TpRemove_t<TypeSet<Tail...>, Element>, Head>> {};
-#endif
 
       template<typename... Es, template<typename...> class Collection>
       struct Combine<TypeSet<Es...>, Collection<>> : Identity<TypeSet<Es...>> {};
+#if PACE__FAST_TYPEAT
+      template<typename... Es, template<typename...> class Collection, typename T>
+      struct Combine<TypeSet<Es...>, Collection<T>> : TpAppend<TypeSet<Es...>, T> {};
+      template<typename... Es, template<typename...> class Collection, typename... Ts>
+      struct Combine<TypeSet<Es...>, Collection<Ts...>> {
+      private:
+        using Left  = TpSplit_l<TypeList<Ts...>>;
+        using Right = TpSplit_r<TypeList<Ts...>>;
+        using LL    = TpSplit_l<Left>;
+        using LR    = TpSplit_r<Left>;
+        using RL    = TpSplit_l<Right>;
+        using RR    = TpSplit_r<Right>;
+
+      public:
+        using type = Combine_t<Combine_t<Combine_t<Combine_t<TypeSet<Es...>, LL>, LR>, RL>, RR>;
+      };
+#else
       template<typename... Es, template<typename...> class Collection, typename T, typename... Ts>
       struct Combine<TypeSet<Es...>, Collection<T, Ts...>>
         : Combine<TpAppend_t<TypeSet<Es...>, T>, Collection<Ts...>> {};
+#endif
 
       template<bool Cond, typename Visited, typename... Elements>
       struct _impl_is_unique_tp : std::false_type {};

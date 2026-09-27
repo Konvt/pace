@@ -18,11 +18,11 @@ namespace pace {
         PACE__NODISCARD PACE__FORCEINLINE bool any_more() const noexcept
         {
 #ifdef __cpp_fold_expressions
-          return ( this->projection_.test( traits::IndexIn<Compnts, Facades...>::value ) || ... );
+          return ( this->projection_.test( traits::TmpIndexIn<Compnts, Facades...>::value ) || ... );
 #else
           bool existance = false;
           (void)std::initializer_list<bool> { (
-            ( existance |= this->projection_.test( traits::IndexIn<Compnts, Facades...>::value ) ),
+            ( existance |= this->projection_.test( traits::TmpIndexIn<Compnts, Facades...>::value ) ),
             false )... };
           return existance;
 #endif
@@ -36,7 +36,7 @@ namespace pace {
         void render_each( io::CharPipeline& pipeline, const Parameter& params ) const
         {
           // Before the first element and the last element, we do not set a divider.
-          if ( this->projection_.test( traits::IndexIn<Element, Facades...>::value ) ) {
+          if ( this->projection_.test( traits::TmpIndexIn<Element, Facades...>::value ) ) {
             const auto brush = io::when( !params.style_off && this->colorful() );
             pipeline << brush(
               io::concat( console::resetcolor,
@@ -66,8 +66,8 @@ namespace pace {
           std::size_t num_enabled = 0;
           std::uint64_t width     = 0;
           (void)std::initializer_list<bool> { (
-            num_enabled += this->projection_.test( traits::IndexIn<Facades, Facades...>::value ),
-            width += ( this->projection_.test( traits::IndexIn<Facades, Facades...>::value )
+            num_enabled += this->projection_.test( traits::TmpIndexIn<Facades, Facades...>::value ),
+            width += ( this->projection_.test( traits::TmpIndexIn<Facades, Facades...>::value )
                          ? this->traits::BaseOf_t<typename Base::layout_type, Facades>::fixed_length()
                          : 0 ),
             false )... };

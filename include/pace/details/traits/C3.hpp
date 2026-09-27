@@ -1,8 +1,10 @@
 #ifndef PACE_C3
 #define PACE_C3
 
-#include "Backport.hpp"
+#include "Identity.hpp"
 #include "TemplateSet.hpp"
+#include "ValueList.hpp"
+#include "pace/details/traits/TypeList.hpp"
 
 namespace pace {
   namespace details {
@@ -47,108 +49,251 @@ namespace pace {
 #define PACE__INHERIT_REGISTER( Node, ... )        \
   template<>                                       \
   struct pace::details::traits::InheritOrder<Node> \
-    : pace::details::traits::Identity<pace::details::traits::TmpPrepend_t<C3_t<__VA_ARGS__>, Node>> {}
+    : pace::details::traits::Identity<             \
+        pace::details::traits::TmpPushFront_t<pace::details::traits::C3_t<__VA_ARGS__>, Node>> {}
 
       // The implementation of the "merge" function in the C3 algorithm.
       template<typename... VBLists>
       struct C3Merge {
       private:
-        // Check whether Candidate is the top priority within AnotherVBs.
-        template<template<typename...> class Candidate, typename /* Relation<...> */ AnotherVBs>
-        struct is_preferred_within;
+        template<typename /* Relation<...> */ VBs,
+                 typename /* NaturalList<...> */ Nums,
+                 template<typename...> class K,
+                 std::size_t V>
+        struct ExtendWith;
+        template<template<typename...> class... Vs,
+                 std::size_t... Cs,
+                 template<typename...> class K,
+                 std::size_t V>
+        struct ExtendWith<Relation<Vs...>, NaturalList<Cs...>, K, V> {
+        private:
+          template<typename VBs, typename Counts>
+          struct Helper;
 
-        template<template<typename...> class Candidate>
-        struct is_preferred_within<Candidate, Relation<>> : std::true_type {};
-        template<template<typename...> class Candidate, template<typename...> class... Rests>
-        struct is_preferred_within<Candidate, Relation<Candidate, Rests...>> : std::true_type {};
-        template<template<typename...> class Candidate,
-                 template<typename...> class Head,
-                 template<typename...> class... Rests>
-        struct is_preferred_within<Candidate, Relation<Head, Rests...>>
-          : Not<TmpContains<Relation<Rests...>, Candidate>> {};
+          template<template<typename...> class... VBs, std::size_t Count, std::size_t... Counts>
+          struct Helper<Relation<K, VBs...>, NaturalList<Count, Counts...>> {
+            using candidate_list = Relation<K, VBs...>;
+            using tail_counts    = NaturalList<Count + V, Counts...>;
+          };
+          template<template<typename...> class VB,
+                   template<typename...> class... VBs,
+                   std::size_t Count,
+                   std::size_t... Counts>
+          struct Helper<Relation<VB, VBs...>, NaturalList<Count, Counts...>> {
+          private:
+            using Result = Helper<Relation<VBs...>, NaturalList<Counts...>>;
+
+          public:
+            using candidate_list = TmpPushFront_t<typename Result::candidate_list, VB>;
+            using tail_counts    = NatPrepend_t<typename Result::tail_counts, Count>;
+          };
+
+          template<bool Cond, typename Candidates, typename TailCounts>
+          struct Choice {
+            using candidate_list = typename Helper<Candidates, TailCounts>::candidate_list;
+            using tail_counts    = typename Helper<Candidates, TailCounts>::tail_counts;
+          };
+          template<typename Candidates, typename TailCounts>
+          struct Choice<false, Candidates, TailCounts> {
+            using candidate_list = TmpPushBack_t<Candidates, K>;
+            using tail_counts    = NatAppend_t<TailCounts, V>;
+          };
+
+          using Result = Choice<TmpContains<Relation<Vs...>, K>::value, Relation<Vs...>, NaturalList<Cs...>>;
+
+        public:
+          using candidate_list = typename Result::candidate_list;
+          using tail_counts    = typename Result::tail_counts;
+        };
 
         //////////////////////////////////////////////////
 
-        // Check whether the next preferred candidate is from Inspected.
-        template<typename /* Relation<...> */ Inspected, typename... /* Relation<...>, ... */ MergedLists>
-        struct is_feasible;
-
-        template<typename... MergedLists>
-        struct is_feasible<Relation<>, MergedLists...> : std::false_type {
-          // MergedLists contain the source list of Candidate.
-          static_assert( sizeof...( MergedLists ) > 1,
-                         "pace::details::traits::C3::FeasibleList: MergedLists is always non-empty" );
+        template<typename /* Relation<...> */ VBs,
+                 typename /* NaturalList<...> */ Nums,
+                 template<typename...> class K>
+        struct FetchSub {
+          static_assert( sizeof( VBs ) != sizeof( VBs ),
+                         "invalid C3 merge state: expected node not found while updating tail counts" );
         };
-        template<template<typename...> class Candidate,
+        template<template<typename...> class... VBs,
+                 std::size_t Count,
+                 std::size_t... Counts,
+                 template<typename...> class K>
+        struct FetchSub<Relation<K, VBs...>, NaturalList<Count, Counts...>, K> {
+          static_assert( Count > 0, "invalid C3 merge state: attempted to decrement a zero tail count" );
+          using candidate_list = Relation<K, VBs...>;
+          using tail_counts    = NaturalList<Count - 1, Counts...>;
+        };
+        template<template<typename...> class VB,
+                 template<typename...> class... VBs,
+                 std::size_t Count,
+                 std::size_t... Counts,
+                 template<typename...> class K>
+        struct FetchSub<Relation<VB, VBs...>, NaturalList<Count, Counts...>, K> {
+        private:
+          using Result = FetchSub<Relation<VBs...>, NaturalList<Counts...>, K>;
+
+        public:
+          using candidate_list = TmpPushFront_t<typename Result::candidate_list, VB>;
+          using tail_counts    = NatPrepend_t<typename Result::tail_counts, Count>;
+        };
+
+        //////////////////////////////////////////////////
+
+        template<typename /* Relation<...> */ VBs,
+                 typename /* NaturalList<...> */ Nums,
+                 typename... MergedLists>
+        struct CollectCounter {
+          using candidate_list = VBs;
+          using tail_counts    = Nums;
+        };
+        template<typename /* Relation<...> */ Vs,
+                 typename /* NaturalList<...> */ Nums,
+                 template<typename...> class First,
                  template<typename...> class... Rests,
                  typename... MergedLists>
-        struct is_feasible<Relation<Candidate, Rests...>, MergedLists...>
-          : AllOf<is_preferred_within<Candidate, MergedLists>...> {};
-
-        // Pick out the index of the candidate from the MergedList.
-        template<typename... MergedLists>
-        struct PickCandidate {
+        // The C3 algorithm requires that any initial MergedList must contain at least one element.
+        struct CollectCounter<Vs, Nums, Relation<First, Rests...>, MergedLists...> {
         private:
-          template<std::size_t I>
-          struct Helper;
+          template<typename /* Relation<...> */ Candidates,
+                   typename /* NaturalList<...> */ TailCounts,
+                   template<typename...> class... VBs>
+          struct Helper {
+            using candidate_list = Candidates;
+            using tail_counts    = TailCounts;
+          };
+          template<typename /* Relation<...> */ Candidates,
+                   typename /* NaturalList<...> */ TailCounts,
+                   template<typename...> class VB,
+                   template<typename...> class... VBs>
+          struct Helper<Candidates, TailCounts, VB, VBs...> {
+          private:
+            using Increment = ExtendWith<Candidates, TailCounts, VB, 1>;
+            using Result =
+              Helper<typename Increment::candidate_list, typename Increment::tail_counts, VBs...>;
 
-          template<bool Cond, std::size_t Pos>
-          struct Choice : std::integral_constant<std::size_t, Pos> {};
-          template<std::size_t Pos>
-          struct Choice<false, Pos> : Helper<Pos + 1> {};
+          public:
+            using candidate_list = typename Result::candidate_list;
+            using tail_counts    = typename Result::tail_counts;
+          };
 
-          template<std::size_t I>
-          struct Helper : Choice<is_feasible<TypeAt_t<I, MergedLists...>, MergedLists...>::value, I> {};
+          using Head = ExtendWith<Vs, Nums, First, 0>;
+          using Tail = Helper<typename Head::candidate_list, typename Head::tail_counts, Rests...>;
+          using Result =
+            CollectCounter<typename Tail::candidate_list, typename Tail::tail_counts, MergedLists...>;
 
         public:
-          static constexpr std::size_t value = Helper<0>::value;
+          using candidate_list = typename Result::candidate_list;
+          using tail_counts    = typename Result::tail_counts;
         };
 
         //////////////////////////////////////////////////
 
-        // Remove the Candidate from the list (if exists).
-        template<template<typename...> class Candidate, typename /* Relation<...> */ List>
+        template<typename /* Relation<...> */ VBs, typename /* NaturalList<...> */ Nums>
+        struct TakeFeasible {
+          static_assert( sizeof( VBs ) != sizeof( VBs ),
+                         "invalid C3 linearization: no feasible candidate; "
+                         "the inheritance order may be inconsistent or cyclic" );
+        };
+        template<template<typename...> class VB, template<typename...> class... VBs, std::size_t... Counts>
+        struct TakeFeasible<Relation<VB, VBs...>, NaturalList<0, Counts...>> {
+          using candidate_list = Relation<VBs...>;
+          using tail_counts    = NaturalList<Counts...>;
+          using feasible_type  = Relation<VB>;
+        };
+        template<template<typename...> class VB,
+                 template<typename...> class... VBs,
+                 std::size_t Count,
+                 std::size_t... Counts>
+        struct TakeFeasible<Relation<VB, VBs...>, NaturalList<Count, Counts...>> {
+        private:
+          using Result = TakeFeasible<Relation<VBs...>, NaturalList<Counts...>>;
+
+        public:
+          using candidate_list = TmpPushFront_t<typename Result::candidate_list, VB>;
+          using tail_counts    = NatPrepend_t<typename Result::tail_counts, Count>;
+          using feasible_type  = typename Result::feasible_type;
+        };
+
+        //////////////////////////////////////////////////
+
+        template<typename TakenCandidate, typename VBs, typename Tails, typename MergedLists>
         struct DropCandidate;
-        template<template<typename...> class Candidate, typename List>
-        using DropCandidate_t = typename DropCandidate<Candidate, List>::type;
+        template<template<typename...> class Candidate, typename VBs, typename Tails>
+        struct DropCandidate<Relation<Candidate>, VBs, Tails, TypeList<>> {
+          using candidate_list = VBs;
+          using tail_counts    = Tails;
+          using merged_list    = TypeList<>;
+        };
+        template<template<typename...> class Candidate,
+                 typename VBs,
+                 typename Tails,
+                 template<typename...> class... Rests,
+                 typename... MergedLists>
+        struct DropCandidate<Relation<Candidate>, VBs, Tails, TypeList<Relation<Rests...>, MergedLists...>> {
+        private:
+          using Result = DropCandidate<Relation<Candidate>, VBs, Tails, TypeList<MergedLists...>>;
 
-        template<template<typename...> class Candidate, template<typename...> class... Rests>
-        struct DropCandidate<Candidate, Relation<Candidate, Rests...>> : Identity<Relation<Rests...>> {};
-        template<template<typename...> class Candidate, template<typename...> class... Rests>
-        struct DropCandidate<Candidate, Relation<Rests...>> : Identity<Relation<Rests...>> {};
+        public:
+          using candidate_list = typename Result::candidate_list;
+          using tail_counts    = typename Result::tail_counts;
+          using merged_list    = TpPrepend_t<typename Result::merged_list, Relation<Rests...>>;
+        };
+        template<template<typename...> class Candidate,
+                 typename VBs,
+                 typename Tails,
+                 template<typename...> class NextHead,
+                 template<typename...> class... Rests,
+                 typename... MergedLists>
+        struct DropCandidate<Relation<Candidate>,
+                             VBs,
+                             Tails,
+                             TypeList<Relation<Candidate, NextHead, Rests...>, MergedLists...>> {
+        private:
+          using Decrement = FetchSub<VBs, Tails, NextHead>;
+          using Result    = DropCandidate<Relation<Candidate>,
+                                          typename Decrement::candidate_list,
+                                          typename Decrement::tail_counts,
+                                          TypeList<MergedLists...>>;
+
+        public:
+          using candidate_list = typename Result::candidate_list;
+          using tail_counts    = typename Result::tail_counts;
+          using merged_list    = TpPrepend_t<typename Result::merged_list, Relation<NextHead, Rests...>>;
+        };
+        template<template<typename...> class Candidate, typename VBs, typename Tails, typename... MergedLists>
+        struct DropCandidate<Relation<Candidate>, VBs, Tails, TypeList<Relation<Candidate>, MergedLists...>>
+          : DropCandidate<Relation<Candidate>, VBs, Tails, TypeList<MergedLists...>> {};
 
         //////////////////////////////////////////////////
 
-        template<typename /* Relation<...> */ Sorted, typename... /* Relation<...>... */ MergedLists>
-        struct MakeMRO {
+        template<typename Sorted, typename VBs, typename Nums, typename MergedLists>
+        struct MakeMRO;
+        template<typename Sorted, typename VBs, typename Nums>
+        struct MakeMRO<Sorted, VBs, Nums, TypeList<>> : Identity<Sorted> {};
+        template<typename Sorted, typename VBs, typename Nums, typename... MergedLists>
+        struct MakeMRO<Sorted, VBs, Nums, TypeList<MergedLists...>> {
         private:
-          template<typename Selected>
-          struct Helper;
-          template<template<typename...> class Candidate, template<typename...> class... Others>
-          struct Helper<Relation<Candidate, Others...>>
-            : MakeMRO<TmpAppend_t<Sorted, Candidate>, DropCandidate_t<Candidate, MergedLists>...> {};
+          using Feasible = TakeFeasible<VBs, Nums>;
+          using Dropped  = DropCandidate<typename Feasible::feasible_type,
+                                         typename Feasible::candidate_list,
+                                         typename Feasible::tail_counts,
+                                         TypeList<MergedLists...>>;
 
         public:
-          using type = typename Helper<TypeAt_t<PickCandidate<MergedLists...>::value, MergedLists...>>::type;
+          using type = typename MakeMRO<Concat_t<Sorted, typename Feasible::feasible_type>,
+                                        typename Dropped::candidate_list,
+                                        typename Dropped::tail_counts,
+                                        typename Dropped::merged_list>::type;
         };
-        template<typename Sorted, typename... MergedLists>
-        using MakeMro_t = typename MakeMRO<Sorted, MergedLists...>::type;
 
-        template<typename Sorted>
-        struct MakeMRO<Sorted> : Identity<Sorted> {};
-        template<typename Sorted, typename... OtherLists>
-        struct MakeMRO<Sorted, Relation<>, OtherLists...> : MakeMRO<Sorted, OtherLists...> {};
-        template<typename Sorted, typename... OtherLists>
-        struct MakeMRO<Sorted, Relation<>, Relation<>, OtherLists...> : MakeMRO<Sorted, OtherLists...> {};
-        template<typename Sorted, typename... OtherLists>
-        struct MakeMRO<Sorted, Relation<>, Relation<>, Relation<>, OtherLists...>
-          : MakeMRO<Sorted, OtherLists...> {};
-        template<typename Sorted, typename... OtherLists>
-        struct MakeMRO<Sorted, Relation<>, Relation<>, Relation<>, Relation<>, Relation<>, OtherLists...>
-          : MakeMRO<Sorted, OtherLists...> {};
+        using Mapping = CollectCounter<Relation<>, NaturalList<>, VBLists...>;
 
       public:
-        using type = MakeMro_t<Relation<>, VBLists...>;
+        using type = typename MakeMRO<Relation<>,
+                                      typename Mapping::candidate_list,
+                                      typename Mapping::tail_counts,
+                                      TypeList<VBLists...>>::type;
       };
       template<typename... VBLists>
       using C3Merge_t = typename C3Merge<VBLists...>::type;
