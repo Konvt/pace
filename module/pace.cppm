@@ -152,6 +152,62 @@ export namespace pace {
     using pace::option::operator!;
   } // namespace option
 
+  /// NOTE: The following entities are intended solely for providing additional specialized implementations
+  ///       for the rendering engine `Builder`; if new facades need to be added,
+  ///       they should be based on the header and reference the corresponding required components.
+  namespace details {
+    namespace traits {
+      using pace::details::traits::BaseOf_t;
+    }
+
+    namespace render {
+      using pace::details::render::Assembler;
+      using pace::details::render::Builder;
+      using pace::details::render::Parameter;
+    }
+
+    namespace console {
+      using pace::details::console::Backcolor;
+      using pace::details::console::Dualcolor;
+      using pace::details::console::Forecolor;
+
+      using pace::details::console::resetbgcolor;
+      using pace::details::console::resetcolor;
+      using pace::details::console::resetfgcolor;
+      using pace::details::console::resetstyle;
+    } // namespace console
+
+    namespace io {
+      using pace::details::io::CharPipeline;
+
+      using pace::details::io::align;
+      using pace::details::io::choice;
+      using pace::details::io::concat;
+      using pace::details::io::format;
+      using pace::details::io::join;
+      using pace::details::io::nop;
+      using pace::details::io::repeat;
+      using pace::details::io::unless;
+      using pace::details::io::until;
+      using pace::details::io::when;
+    } // namespace io
+
+    namespace aspects {
+      using pace::details::aspects::Animation;
+      using pace::details::aspects::Bar;
+      using pace::details::aspects::Capacity;
+      using pace::details::aspects::Filler;
+      using pace::details::aspects::Frame;
+      using pace::details::aspects::Postfix;
+      using pace::details::aspects::Prefix;
+      using pace::details::aspects::Remain;
+      using pace::details::aspects::RenderRule;
+      using pace::details::aspects::Reversible;
+      using pace::details::aspects::Segment;
+      // no Schema
+    } // namespace aspects
+  } // namespace details
+
   // Explicitly instantiate commonly used types to avoid redundant type dependency calculations later.
   template class prefab::BasicBar<config::Line, Channel::Out, Policy::Async, Region::Fixed>;
   template class prefab::BasicBar<config::Line, Channel::Out, Policy::Sync, Region::Relative>;
