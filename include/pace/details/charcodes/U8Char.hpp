@@ -82,7 +82,8 @@ namespace pace {
         }
 
         constexpr U8Char() noexcept : byte_ {}, length_ { 0 }, width_ { 0 } {}
-        PACE__CXX20_CNSTXPR U8Char( char single_u8char ) noexcept : byte_ {}, length_ { 1 }, width_ { 1 }
+        explicit PACE__CXX20_CNSTXPR U8Char( char single_u8char ) noexcept
+          : byte_ {}, length_ { 1 }, width_ { 1 }
         { byte_.front() = single_u8char; }
 
         U8Char( const U8Char& )              = default;
