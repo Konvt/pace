@@ -52,7 +52,7 @@ namespace pace {
         charcodes::U8Raw l_border_, r_border_;
         console::TrueColor info_forecolor_, info_backcolor_;
 
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length(
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_width(
           std::size_t num_column ) const noexcept
         {
           switch ( num_column ) {

@@ -26,13 +26,13 @@ namespace pace {
         std::string orig;
         details::utils::format_to( std::back_inserter( orig ), params.progress_ratio * 100.0, 2 );
         orig.push_back( '%' );
-        pipeline << details::io::align<details::render::TextAlign::Right>( fixed_length(),
+        pipeline << details::io::align<details::render::TextAlign::Right>( fixed_width(),
                                                                            std::move( orig ) );
 
         return pipeline;
       }
 
-      PACE__NODISCARD static PACE__FORCEINLINE PACE__CXX14_CNSTXPR std::size_t fixed_length() noexcept
+      PACE__NODISCARD static PACE__FORCEINLINE PACE__CXX14_CNSTXPR std::size_t fixed_width() noexcept
       { return default_text().size(); }
 
       template<typename... Options>

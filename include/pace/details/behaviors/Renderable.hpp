@@ -196,6 +196,8 @@ namespace pace {
           PACE__ASSERT( active() == false );
         }
 
+        PACE__NODISCARD std::uint64_t layout_width() const noexcept { return config_.fixed_width(); }
+
         PACE__FORCEINLINE Soul& config() & noexcept { return config_; }
         PACE__FORCEINLINE const Soul& config() const& noexcept { return config_; }
         PACE__FORCEINLINE Soul&& config() && noexcept { return std::move( config_ ); }

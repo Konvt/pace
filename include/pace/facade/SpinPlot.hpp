@@ -33,8 +33,8 @@ namespace pace {
         return pipeline;
       }
 
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length() const noexcept
-      { return this->details::traits::BaseOf_t<Base, details::aspects::Frame>::fixed_length(); }
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_width() const noexcept
+      { return this->details::traits::BaseOf_t<Base, details::aspects::Frame>::fixed_width(); }
 
       template<typename... Options>
       constexpr SpinPlot( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )

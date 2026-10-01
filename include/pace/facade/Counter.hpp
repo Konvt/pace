@@ -38,7 +38,7 @@ namespace pace {
         return pipeline;
       }
 
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR std::uint32_t fixed_length() const noexcept
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR std::uint32_t fixed_width() const noexcept
       {
         const auto num_digits = details::utils::count_digits( this->task_quota_ );
         return static_cast<std::uint32_t>( show_quota_ ? num_digits * 2 + 1 : num_digits );

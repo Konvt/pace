@@ -17,6 +17,8 @@ int main()
                       pace::option::Quota( iteration ),
                       pace::option::ShowQuota( false ) );
 
+  pbar.config().bar_width( pace::config::terminal_width( pace::Channel::Err ) - pbar.layout_width() );
+
   auto start = chrono::high_resolution_clock::now();
   for ( size_t i = 0; i < iteration; ++i )
     pbar.tick();

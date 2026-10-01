@@ -84,8 +84,8 @@ namespace pace {
                         << this->ending_;
       }
 
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length() const noexcept
-      { return this->details::traits::BaseOf_t<Base, details::aspects::Bar>::fixed_length(); }
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_width() const noexcept
+      { return this->details::traits::BaseOf_t<Base, details::aspects::Bar>::fixed_width(); }
 
       template<typename... Options>
       constexpr SweepPlot( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )

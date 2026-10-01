@@ -138,9 +138,9 @@ namespace pace {
         if ( params.task_quota == 0 || magnitude_ <= 1 ) {
           const auto prompt = params.task_quota == 0 ? invalid_text() : undefined_text();
           if ( units_.empty() )
-            pipeline << details::io::align<details::render::TextAlign::Right>( fixed_length(), prompt );
+            pipeline << details::io::align<details::render::TextAlign::Right>( fixed_width(), prompt );
           else
-            pipeline << details::io::align<details::render::TextAlign::Right>( fixed_length(),
+            pipeline << details::io::align<details::render::TextAlign::Right>( fixed_width(),
                                                                                prompt + units_.front() );
           return pipeline;
         }
@@ -180,11 +180,11 @@ namespace pace {
         if ( !units_.empty() )
           orig.append( units_[num_powered].data(), units_[num_powered].size() );
 
-        return pipeline << details::io::align<details::render::TextAlign::Right>( fixed_length(),
+        return pipeline << details::io::align<details::render::TextAlign::Right>( fixed_width(),
                                                                                   std::move( orig ) );
       }
 
-      PACE__NODISCARD PACE__FORCEINLINE constexpr std::size_t fixed_length() const noexcept
+      PACE__NODISCARD PACE__FORCEINLINE constexpr std::size_t fixed_width() const noexcept
       { return numeric_width_ + 1 + widest_width_; }
 
       template<typename... Options>

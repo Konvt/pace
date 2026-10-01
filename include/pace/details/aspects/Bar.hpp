@@ -68,7 +68,7 @@ namespace pace {
         console::TrueColor end_forecolor_, end_backcolor_;
         std::uint16_t bar_width_;
 
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length() const noexcept
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_width() const noexcept
         { return starting_.width() + ending_.width(); }
 
         template<typename... Options>

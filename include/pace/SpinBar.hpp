@@ -113,7 +113,7 @@ namespace pace {
         }
 
         // SpinBar does not contain a progress bar.
-        std::uint64_t fixed_width() const noexcept final
+        std::uint64_t fixed_width() const noexcept
         { return this->Base::fixed_width() + this->projection_.test( 0 ); }
       };
     } // namespace render

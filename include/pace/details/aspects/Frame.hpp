@@ -99,7 +99,7 @@ namespace pace {
         std::size_t len_longest_lead_;
         console::TrueColor lead_forecolor_, lead_backcolor_;
 
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length() const noexcept
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_width() const noexcept
         { return len_longest_lead_; }
 
         template<typename... Options>

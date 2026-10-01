@@ -556,17 +556,12 @@ pace::option::InfoBackcolor;    // 修改 Divider、Percent、Counter、Speed、
 
 每个进度条都有一个默认的初始宽度（30 字符），如果希望进度条能够填满一个终端行，或者进度条太长需要缩窄，就需要使用到 `bar_width()` 方法或 `pace::option::BarWidth` 包装器更改进度指示器的宽度。
 
-如果希望进度条能够恰好占满一整个终端行，pace 的进度条类型提供了 `config().fixed_width()` 方法提供除了进度指示器之外部分的宽度。
-
-> 请不要直接调用一个**裸的**配置对象的 `fixed_width()` 方法，具体原因请参照代码注释（[BasicConfig.hpp](../include/pace/prefab/BasicConfig.hpp#L284)）。
+如果希望进度条能够恰好占满一整个终端行，pace 的进度条类型提供了 `layout_width()` 方法获取除了进度指示器之外部分的宽度。
 
 ```cxx
-pace::config::Line cfg;
-// cfg.fixed_width(); Never do this!
-
 pace::ProgressBar<> bar;
-assert( bar.config().bar_width() == 30 );  // 默认值
-assert( bar.config().fixed_width() != 0 ); // 具体值取决于数据成员的内容
+assert( bar.config().bar_width() == 30 ); // 默认值
+assert( bar.layout_width() != 0 );        // 具体值取决于数据成员的内容
 ```
 
 具体的终端行宽度（以字符为单位）可以使用 `pace::config::terminal_width()` 获取；如果传递的输出流不指向实际终端设备，那么返回值为 0。
@@ -576,9 +571,9 @@ assert( bar.config().fixed_width() != 0 ); // 具体值取决于数据成员的�
 ```cxx
 pace::ProgressBar<> bar;
 
-assert( pace::config::terminal_width( pace::Channel::Err ) > bar.config().fixed_width() );
-bar.config().bar_width( pace::config::terminal_width( pace::Channel::Err )
-                          - bar.config().fixed_width() );
+assert( pace::config::terminal_width( pace::Channel::Err ) > bar.layout_width() );
+// 令进度条恰好填满一行
+bar.config().bar_width( pace::config::terminal_width( pace::Channel::Err ) - bar.layout_width() );
 ```
 
 需要注意，如果打开了 `pace::facade::Counter` 组件，那么进度条的长度还会受到当前任务数量影响；此时必须先配置了任务数量，才能得到一个正确的进度条长度。

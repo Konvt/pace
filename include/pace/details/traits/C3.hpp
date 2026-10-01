@@ -3,8 +3,8 @@
 
 #include "Identity.hpp"
 #include "TemplateSet.hpp"
+#include "TypeList.hpp"
 #include "ValueList.hpp"
-#include "pace/details/traits/TypeList.hpp"
 
 namespace pace {
   namespace details {

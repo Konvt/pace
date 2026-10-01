@@ -572,17 +572,12 @@ The section between `Starting` and `Ending` is the progress indicator called `Ch
 
 Each progress bar has a default initial width of 30 characters. If the progress bar needs to fill an entire terminal line, or if it is too long and needs to be narrowed, the width of the progress indicator can be adjusted using the `bar_width()` method or the `pace::option::BarWidth` wrapper.
 
-If the progress bar should exactly occupy an entire terminal line, the progress bar type provided by pace exposes the width of all parts except the progress indicator through the `config().fixed_width()` method.
-
-> Do not directly call the `fixed_width()` method of a bare configuration object. Refer to the code comments ([BasicConfig.hpp](../include/pace/prefab/BasicConfig.hpp#L284)) for the specific reason.
+If the progress bar should exactly occupy an entire terminal line, the progress bar type provided by pace exposes the width of all parts except the progress indicator through the `layout_width()` method.
 
 ```cxx
-pace::config::Line cfg;
-// cfg.fixed_width(); Never do this!
-
 pace::ProgressBar<> bar;
-assert( bar.config().bar_width() == 30 );  // Default value
-assert( bar.config().fixed_width() != 0 ); // Actual value depends on member contents
+assert( bar.config().bar_width() == 30 ); // Default value
+assert( bar.layout_width() != 0 );        // Actual value depends on member contents
 ```
 
 The actual terminal line width (measured in characters) can be obtained using `pace::config::terminal_width()`. If the provided output stream does not point to a real terminal device, the return value is 0.
@@ -592,9 +587,9 @@ The actual terminal line width (measured in characters) can be obtained using `p
 ```cxx
 pace::ProgressBar<> bar;
 
-assert( pace::config::terminal_width( pace::Channel::Err ) > bar.config().fixed_width() );
-bar.config().bar_width( pace::config::terminal_width( pace::Channel::Err )
-                          - bar.config().fixed_width() );
+assert( pace::config::terminal_width( pace::Channel::Err ) > bar.layout_width() );
+// Make the progress bar fill exactly one line
+bar.config().bar_width( pace::config::terminal_width( pace::Channel::Err ) - bar.layout_width() );
 ```
 
 It should be noted that if the `pace::facade::Counter` component is enabled, the length of the progress bar is also affected by the current task count. In this case, the task count must be configured before a correct progress bar length can be obtained.

@@ -73,7 +73,7 @@ namespace pace {
           return pipeline;
         }
 
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length() const noexcept
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_width() const noexcept
         { return prefix_.width() + !prefix_.empty(); }
 
         template<typename... Options>
@@ -155,7 +155,7 @@ namespace pace {
           return pipeline;
         }
 
-        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length() const noexcept
+        PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_width() const noexcept
         { return postfix_.width() + !postfix_.empty(); }
 
         template<typename... Options>

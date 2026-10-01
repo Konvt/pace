@@ -168,7 +168,7 @@ namespace pace {
         return pipeline;
       }
 
-      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_length() const noexcept
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX20_CNSTXPR std::size_t fixed_width() const noexcept
       {
         if ( fmt_ir_.empty() )
           return 1;
