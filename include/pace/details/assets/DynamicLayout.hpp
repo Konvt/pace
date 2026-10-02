@@ -229,7 +229,7 @@ namespace pace {
                 charcodes::make_literal( "pace: another progress bar instance is already running" ) );
 
             (void)io::OStream<Sink>::itself().renderable();
-            io::OStream<Sink>::itself() << io::release;
+            io::OStream<Sink>::itself() << io::reset;
             state_.store( Phase::Awake, std::memory_order_relaxed );
 
             auto guard = utils::make_scope_fail( [&]() noexcept {

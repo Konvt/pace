@@ -26,7 +26,7 @@ namespace pace {
       OStream<Sink>& flush( OStream<Sink>& stream )
       { return stream.flush(); }
       template<Channel Sink>
-      PACE__CXX23_CNSTXPR OStream<Sink>& release( OStream<Sink>& stream ) noexcept
+      PACE__CXX23_CNSTXPR OStream<Sink>& reset( OStream<Sink>& stream ) noexcept
       {
         stream.reset();
         return stream;

@@ -94,7 +94,7 @@ namespace pace {
               charcodes::make_literal( "pace: another progress bar instance is already running" ) );
 
           (void)io::OStream<Sink>::itself().renderable();
-          io::OStream<Sink>::itself() << io::release; // reset the state.
+          io::OStream<Sink>::itself() << io::reset; // reset the state.
           auto guard = utils::make_scope_fail( [&executor]() noexcept { executor.dismiss(); } );
           executor.template activate<Mode>();
         }
