@@ -40,9 +40,9 @@ namespace pace {
     namespace aspects {
       template<typename Base, typename Derived>
       class RenderRule : public Base {
-#define PACE__UNPAKING( OptionName, EnumName, MemberName )                                      \
-  PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR void unpack( RenderRule& self,                   \
-                                                            option::OptionName&& val ) noexcept \
+#define PACE__UNPAKING( OptionName, EnumName, MemberName )                                    \
+  PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR void unpack( RenderRule& self,                 \
+                                                            option::OptionName val ) noexcept \
   { self.rules_[utils::to_underlying( Chroma::EnumName )] = val.value; }
         PACE__UNPAKING( Colored, Colored, colored_ )
         PACE__UNPAKING( FontBold, Bold, bold_ )
@@ -107,7 +107,7 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::FontBold>() );
         }
 
-        PACE__SPECIAL_MEMBERS2( RenderRule );
+        PACE__SPECIAL_MEMBERS( RenderRule );
 
       public:
 #define PACE__METHOD( OptionName, ReturnType )                     \
@@ -116,45 +116,29 @@ namespace pace {
   return static_cast<ReturnType>( *this )
 
         // Enable or disable the color effect.
-        Derived& colored( bool _enable ) & noexcept
-        { PACE__METHOD( Colored, Derived& ); }
-        Derived&& colored( bool _enable ) && noexcept
-        { PACE__METHOD( Colored, Derived&& ); }
+        Derived& colored( bool _enable ) & noexcept { PACE__METHOD( Colored, Derived& ); }
+        Derived&& colored( bool _enable ) && noexcept { PACE__METHOD( Colored, Derived&& ); }
         // Enable or disable the bold effect.
-        Derived& font_bold( bool _enable ) & noexcept
-        { PACE__METHOD( FontBold, Derived& ); }
-        Derived&& font_bold( bool _enable ) && noexcept
-        { PACE__METHOD( FontBold, Derived&& ); }
+        Derived& font_bold( bool _enable ) & noexcept { PACE__METHOD( FontBold, Derived& ); }
+        Derived&& font_bold( bool _enable ) && noexcept { PACE__METHOD( FontBold, Derived&& ); }
         // Enable or disable the faint effect.
-        Derived& font_faint( bool _enable ) & noexcept
-        { PACE__METHOD( FontFaint, Derived& ); }
-        Derived&& font_faint( bool _enable ) && noexcept
-        { PACE__METHOD( FontFaint, Derived&& ); }
+        Derived& font_faint( bool _enable ) & noexcept { PACE__METHOD( FontFaint, Derived& ); }
+        Derived&& font_faint( bool _enable ) && noexcept { PACE__METHOD( FontFaint, Derived&& ); }
         // Enable or disable the italic effect.
-        Derived& font_italic( bool _enable ) & noexcept
-        { PACE__METHOD( FontItalic, Derived& ); }
-        Derived&& font_( bool _enable ) && noexcept
-        { PACE__METHOD( FontItalic, Derived&& ); }
+        Derived& font_italic( bool _enable ) & noexcept { PACE__METHOD( FontItalic, Derived& ); }
+        Derived&& font_( bool _enable ) && noexcept { PACE__METHOD( FontItalic, Derived&& ); }
         // Enable or disable the underline effect.
-        Derived& font_underline( bool _enable ) & noexcept
-        { PACE__METHOD( FontUnderline, Derived& ); }
-        Derived&& font_underline( bool _enable ) && noexcept
-        { PACE__METHOD( FontUnderline, Derived&& ); }
+        Derived& font_underline( bool _enable ) & noexcept { PACE__METHOD( FontUnderline, Derived& ); }
+        Derived&& font_underline( bool _enable ) && noexcept { PACE__METHOD( FontUnderline, Derived&& ); }
         // Enable or disable the inverse effect.
-        Derived& font_inverse( bool _enable ) & noexcept
-        { PACE__METHOD( FontInverse, Derived& ); }
-        Derived&& font_inverse( bool _enable ) && noexcept
-        { PACE__METHOD( FontInverse, Derived&& ); }
+        Derived& font_inverse( bool _enable ) & noexcept { PACE__METHOD( FontInverse, Derived& ); }
+        Derived&& font_inverse( bool _enable ) && noexcept { PACE__METHOD( FontInverse, Derived&& ); }
         // Enable or disable the hidden effect.
-        Derived& font_hidden( bool _enable ) & noexcept
-        { PACE__METHOD( FontHidden, Derived& ); }
-        Derived&& font_hidden( bool _enable ) && noexcept
-        { PACE__METHOD( FontHidden, Derived&& ); }
+        Derived& font_hidden( bool _enable ) & noexcept { PACE__METHOD( FontHidden, Derived& ); }
+        Derived&& font_hidden( bool _enable ) && noexcept { PACE__METHOD( FontHidden, Derived&& ); }
         // Enable or disable the crossed effect.
-        Derived& font_crossed( bool _enable ) & noexcept
-        { PACE__METHOD( FontCrossed, Derived& ); }
-        Derived&& font_crossed( bool _enable ) && noexcept
-        { PACE__METHOD( FontCrossed, Derived&& ); }
+        Derived& font_crossed( bool _enable ) & noexcept { PACE__METHOD( FontCrossed, Derived& ); }
+        Derived&& font_crossed( bool _enable ) && noexcept { PACE__METHOD( FontCrossed, Derived&& ); }
 
 #undef PACE__METHOD
 #define PACE__METHOD( Offset )                                            \
@@ -162,34 +146,25 @@ namespace pace {
   return rules_[utils::to_underlying( Chroma::Offset )]
 
         // Check whether the color effect is enabled.
-        PACE__NODISCARD bool colored() const noexcept
-        { PACE__METHOD( Colored ); }
+        PACE__NODISCARD bool colored() const noexcept { PACE__METHOD( Colored ); }
         // Check whether the bold effect is enabled.
-        PACE__NODISCARD bool font_bold() const noexcept
-        { PACE__METHOD( Bold ); }
+        PACE__NODISCARD bool font_bold() const noexcept { PACE__METHOD( Bold ); }
         // Check whether the faint effect is enabled.
-        PACE__NODISCARD bool font_faint() const noexcept
-        { PACE__METHOD( Faint ); }
+        PACE__NODISCARD bool font_faint() const noexcept { PACE__METHOD( Faint ); }
         // Check whether the italic effect is enabled.
-        PACE__NODISCARD bool font_italic() const noexcept
-        { PACE__METHOD( Italic ); }
+        PACE__NODISCARD bool font_italic() const noexcept { PACE__METHOD( Italic ); }
         // Check whether the underline effect is enabled.
-        PACE__NODISCARD bool font_underline() const noexcept
-        { PACE__METHOD( Underline ); }
+        PACE__NODISCARD bool font_underline() const noexcept { PACE__METHOD( Underline ); }
         // Check whether the inverse effect is enabled.
-        PACE__NODISCARD bool font_inverse() const noexcept
-        { PACE__METHOD( Inverse ); }
+        PACE__NODISCARD bool font_inverse() const noexcept { PACE__METHOD( Inverse ); }
         // Check whether the hidden effect is enabled.
-        PACE__NODISCARD bool font_hidden() const noexcept
-        { PACE__METHOD( Hidden ); }
+        PACE__NODISCARD bool font_hidden() const noexcept { PACE__METHOD( Hidden ); }
         // Check whether the crossed effect is enabled.
-        PACE__NODISCARD bool font_crossed() const noexcept
-        { PACE__METHOD( Crossed ); }
+        PACE__NODISCARD bool font_crossed() const noexcept { PACE__METHOD( Crossed ); }
 
 #undef PACE__METHOD
 
-        PACE__CXX14_CNSTXPR void swap( RenderRule& other ) noexcept
-        { std::swap( rules_, other.rules_ ); }
+        PACE__CXX14_CNSTXPR void swap( RenderRule& other ) noexcept { std::swap( rules_, other.rules_ ); }
       };
     } // namespace aspects
 

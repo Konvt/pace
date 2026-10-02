@@ -30,12 +30,13 @@ namespace pace {
     namespace aspects {
       template<typename Base, typename Derived>
       class Remain : public Base {
-#define PACE__UNPAKING( OptionName, MemberName, Operation, Constexpr )                              \
-  PACE__FORCEINLINE friend Constexpr void unpack( Remain& self, option::OptionName&& val ) noexcept \
+#define PACE__UNPAKING( OptionName, Reference, MemberName, Operation )                                  \
+  PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Remain& self,                               \
+                                                            option::OptionName Reference val ) noexcept \
   { self.MemberName = Operation( val.value ); }
-        PACE__UNPAKING( Remain, remain_, std::move, PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( RemainForecolor, remain_forecolor_, , PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( RemainBackcolor, remain_backcolor_, , PACE__CXX20_CNSTXPR )
+        PACE__UNPAKING( Remain, &&, remain_, std::move )
+        PACE__UNPAKING( RemainForecolor, , remain_forecolor_, )
+        PACE__UNPAKING( RemainBackcolor, , remain_backcolor_, )
 #undef PACE__UNPAKING
 
       protected:
@@ -54,8 +55,7 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::RemainForecolor>() );
         }
 
-        Remain() = default;
-        PACE__SPECIAL_MEMBERS1( Remain );
+        PACE__SPECIAL_MEMBERS( Remain );
 
       public:
 #define PACE__METHOD( OptionName, ParamName, ReturnType, Operation ) \

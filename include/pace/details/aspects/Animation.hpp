@@ -30,7 +30,7 @@ namespace pace {
       template<typename Base, typename Derived>
       class Animation : public Base {
         PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR void unpack( Animation& self,
-                                                                  option::Shift&& val ) noexcept
+                                                                  option::Shift val ) noexcept
         { self.shift_factor_ = val.value < 0 ? ( 1.0 / ( -val.value ) ) : val.value; }
 
       protected:
@@ -44,8 +44,7 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::Shift>() );
         }
 
-        Animation() = default;
-        PACE__SPECIAL_MEMBERS1( Animation );
+        PACE__SPECIAL_MEMBERS( Animation );
 
       public:
 #define PACE__METHOD( ReturnType )                                 \

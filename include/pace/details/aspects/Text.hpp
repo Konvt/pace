@@ -50,12 +50,13 @@ namespace pace {
     namespace aspects {
       template<typename Base, typename Derived>
       class Prefix : public Base {
-#define PACE__UNPAKING( OptionName, MemberName, Operation, Constexpr )                              \
-  PACE__FORCEINLINE friend Constexpr void unpack( Prefix& self, option::OptionName&& val ) noexcept \
+#define PACE__UNPAKING( OptionName, Reference, MemberName, Operation )                                  \
+  PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Prefix& self,                               \
+                                                            option::OptionName Reference val ) noexcept \
   { self.MemberName = Operation( val.value ); }
-        PACE__UNPAKING( Prefix, prefix_, std::move, PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( PrefixForecolor, prfx_forecolor_, , PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( PrefixBackcolor, prfx_backcolor_, , PACE__CXX20_CNSTXPR )
+        PACE__UNPAKING( Prefix, &&, prefix_, std::move )
+        PACE__UNPAKING( PrefixForecolor, , prfx_forecolor_, )
+        PACE__UNPAKING( PrefixBackcolor, , prfx_backcolor_, )
 #undef PACE__UNPAKING
 
       protected:
@@ -88,8 +89,7 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::PrefixBackcolor>() );
         }
 
-        Prefix() = default;
-        PACE__SPECIAL_MEMBERS1( Prefix );
+        PACE__SPECIAL_MEMBERS( Prefix );
 
       public:
 #define PACE__METHOD( OptionName, ParamName, ReturnType, Operation ) \
@@ -132,12 +132,13 @@ namespace pace {
 
       template<typename Base, typename Derived>
       class Postfix : public Base {
-#define PACE__UNPAKING( OptionName, MemberName, Operation, Constexpr )                               \
-  PACE__FORCEINLINE friend Constexpr void unpack( Postfix& self, option::OptionName&& val ) noexcept \
+#define PACE__UNPAKING( OptionName, Reference, MemberName, Operation )                                  \
+  PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Postfix& self,                              \
+                                                            option::OptionName Reference val ) noexcept \
   { self.MemberName = Operation( val.value ); }
-        PACE__UNPAKING( Postfix, postfix_, std::move, PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( PostfixForecolor, pstfx_forecolor_, , PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( PostfixBackcolor, pstfx_backcolor_, , PACE__CXX20_CNSTXPR )
+        PACE__UNPAKING( Postfix, &&, postfix_, std::move )
+        PACE__UNPAKING( PostfixForecolor, , pstfx_forecolor_, )
+        PACE__UNPAKING( PostfixBackcolor, , pstfx_backcolor_, )
 #undef PACE__UNPAKING
 
       protected:
@@ -170,8 +171,7 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::PostfixBackcolor>() );
         }
 
-        Postfix() = default;
-        PACE__SPECIAL_MEMBERS1( Postfix );
+        PACE__SPECIAL_MEMBERS( Postfix );
 
       public:
 #define PACE__METHOD( OptionName, ParamName, ReturnType, Operation ) \

@@ -68,33 +68,9 @@ namespace pace {
         return std::copy( buffer.data(), result.ptr, itr );
 # else
         std::array<char, ( integral_part > fraction_part ? integral_part : fraction_part )> buffer;
-
-        const auto scale = static_cast<std::uint64_t>( std::pow( 10, precision ) );
-        PACE__ASSERT( scale <= ( std::numeric_limits<std::uint64_t>::max )() );
-        const auto scaled = static_cast<std::uint64_t>( std::round( scale * std::abs( val ) ) );
-        PACE__ASSERT( scaled <= ( std::numeric_limits<std::uint64_t>::max )() );
-        auto integer  = scaled / scale;
-        auto fraction = scaled % scale;
-        auto pos      = buffer.size();
-
-        do {
-          buffer[--pos] = static_cast<char>( '0' + integer % 10 );
-          integer /= 10;
-        } while ( integer != 0 );
-        if ( std::signbit( val ) )
-          ( *itr++ ) = '-';
-        itr = std::copy( buffer.begin() + pos, buffer.end(), itr );
-        pos = buffer.size();
-
-        if ( precision > 0 ) {
-          ( *itr++ ) = '.';
-          while ( precision-- > 0 ) {
-            buffer[--pos] = static_cast<char>( '0' + fraction % 10 );
-            fraction /= 10;
-          }
-          itr = std::copy( buffer.begin() + pos, buffer.end(), itr );
-        }
-        return itr;
+        const auto num_written = std::snprintf( buffer.data(), buffer.size(), "%.*f", precision, val );
+        PACE__TRUST( num_written > 0 );
+        return std::copy( buffer.cbegin(), buffer.cbegin() + num_written, itr );
 # endif
 #endif
       }

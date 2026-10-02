@@ -88,10 +88,10 @@ namespace pace {
           }
         }
         PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Frame& self,
-                                                                  option::LeadForecolor&& val ) noexcept
+                                                                  option::LeadForecolor val ) noexcept
         { self.lead_forecolor_ = val.value; }
         PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Frame& self,
-                                                                  option::LeadBackcolor&& val ) noexcept
+                                                                  option::LeadBackcolor val ) noexcept
         { self.lead_backcolor_ = val.value; }
 
       protected:
@@ -114,8 +114,7 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::LeadBackcolor>() );
         }
 
-        PACE__CXX20_CNSTXPR Frame() = default;
-        PACE__SPECIAL_MEMBERS1( Frame );
+        PACE__SPECIAL_MEMBERS( Frame );
 
       public:
 #define PACE__METHOD( OptionName, ParamName, ReturnType, Operation ) \

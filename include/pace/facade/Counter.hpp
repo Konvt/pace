@@ -20,7 +20,7 @@ namespace pace {
     template<typename Base, typename Derived>
     class Counter : public Base {
       PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR void unpack( Counter& self,
-                                                                option::ShowQuota&& val ) noexcept
+                                                                option::ShowQuota val ) noexcept
       { self.show_quota_ = val.value; }
 
       bool show_quota_;
@@ -52,7 +52,7 @@ namespace pace {
           unpack( *this, config::provide_for<Derived, option::ShowQuota>() );
       }
 
-      PACE__SPECIAL_MEMBERS2( Counter );
+      PACE__SPECIAL_MEMBERS( Counter );
 
     public:
 #define PACE__METHOD( OptionName, ReturnType )                              \
@@ -61,10 +61,8 @@ namespace pace {
   return static_cast<ReturnType>( *this )
 
       // Decide whether to display the total number of tasks in the counter.
-      Derived& show_quota( bool _enable ) & noexcept
-      { PACE__METHOD( ShowQuota, Derived& ); }
-      Derived&& show_quota( bool _enable ) && noexcept
-      { PACE__METHOD( ShowQuota, Derived&& ); }
+      Derived& show_quota( bool _enable ) & noexcept { PACE__METHOD( ShowQuota, Derived& ); }
+      Derived&& show_quota( bool _enable ) && noexcept { PACE__METHOD( ShowQuota, Derived&& ); }
 
 #undef PACE__METHOD
 

@@ -35,6 +35,7 @@ namespace pace {
   PACE__PROVIDE_FOR( config::Spin, option::FontBold, true );
   PACE__PROVIDE_FOR( config::Spin, option::ShowQuota, true );
   PACE__PROVIDE_FOR( config::Spin, option::Shift, -3 );
+  PACE__PROVIDE_FOR( config::Spin, option::PercentDecs, 2 );
   PACE__PROVIDE_FOR( config::Spin, option::Magnitude, 1000 );
   PACE__PROVIDE_FOR( config::Spin, option::Divider, " | " );
   PACE__PROVIDE_FOR( config::Spin, option::InfoForecolor, Color::Cyan );

@@ -37,14 +37,15 @@ namespace pace {
     namespace aspects {
       template<typename Base, typename Derived>
       class Segment : public Base {
-#define PACE__UNPAKING( OptionName, MemberName, Operation, Constexpr )                               \
-  PACE__FORCEINLINE friend Constexpr void unpack( Segment& self, option::OptionName&& val ) noexcept \
+#define PACE__UNPAKING( OptionName, Reference, MemberName, Operation )                                  \
+  PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Segment& self,                              \
+                                                            option::OptionName Reference val ) noexcept \
   { self.MemberName = Operation( val.value ); }
-        PACE__UNPAKING( Divider, divider_, std::move, PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( LeftBorder, l_border_, std::move, PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( RightBorder, r_border_, std::move, PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( InfoForecolor, info_forecolor_, , PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( InfoBackcolor, info_backcolor_, , PACE__CXX20_CNSTXPR )
+        PACE__UNPAKING( Divider, &&, divider_, std::move )
+        PACE__UNPAKING( LeftBorder, &&, l_border_, std::move )
+        PACE__UNPAKING( RightBorder, &&, r_border_, std::move )
+        PACE__UNPAKING( InfoForecolor, , info_forecolor_, )
+        PACE__UNPAKING( InfoBackcolor, , info_backcolor_, )
 #undef PACE__UNPAKING
 
       protected:
@@ -78,8 +79,7 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::InfoBackcolor>() );
         }
 
-        Segment() = default;
-        PACE__SPECIAL_MEMBERS1( Segment );
+        PACE__SPECIAL_MEMBERS( Segment );
 
       public:
 #define PACE__METHOD( OptionName, ParamName, ReturnType, Operation ) \

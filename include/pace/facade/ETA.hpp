@@ -196,7 +196,7 @@ namespace pace {
           unpack( *this, config::provide_for<Derived, option::ETAFormat>() );
       }
 
-      PACE__SPECIAL_MEMBERS2( ETA );
+      PACE__SPECIAL_MEMBERS( ETA );
 
     public:
 #define PACE__METHOD( ParamName, ReturnType )                               \

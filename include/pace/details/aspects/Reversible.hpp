@@ -18,7 +18,7 @@ namespace pace {
       template<typename Base, typename Derived>
       class Reversible : public Base {
         PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Reversible& self,
-                                                                  option::Reversed&& val ) noexcept
+                                                                  option::Reversed val ) noexcept
         { self.reversed_ = val.value; }
 
       protected:
@@ -32,8 +32,7 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::Reversed>() );
         }
 
-        Reversible() = default;
-        PACE__SPECIAL_MEMBERS1( Reversible );
+        PACE__SPECIAL_MEMBERS( Reversible );
 
       public:
 #define PACE__METHOD( ReturnType )                                 \

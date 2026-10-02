@@ -31,12 +31,13 @@ namespace pace {
     namespace aspects {
       template<typename Base, typename Derived>
       class Filler : public Base {
-#define PACE__UNPAKING( OptionName, MemberName, Operation, Constexpr )                              \
-  PACE__FORCEINLINE friend Constexpr void unpack( Filler& self, option::OptionName&& val ) noexcept \
+#define PACE__UNPAKING( OptionName, Reference, MemberName, Operation )                                  \
+  PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Filler& self,                               \
+                                                            option::OptionName Reference val ) noexcept \
   { self.MemberName = Operation( val.value ); }
-        PACE__UNPAKING( Filler, filler_, std::move, PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( FillerForecolor, filler_forecolor_, , PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( FillerBackcolor, filler_backcolor_, , PACE__CXX20_CNSTXPR )
+        PACE__UNPAKING( Filler, &&, filler_, std::move )
+        PACE__UNPAKING( FillerForecolor, , filler_forecolor_, )
+        PACE__UNPAKING( FillerBackcolor, , filler_backcolor_, )
 #undef PACE__UNPAKING
 
       protected:
@@ -55,8 +56,7 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::FillerBackcolor>() );
         }
 
-        Filler() = default;
-        PACE__SPECIAL_MEMBERS1( Filler );
+        PACE__SPECIAL_MEMBERS( Filler );
 
       public:
 #define PACE__METHOD( OptionName, ParamName, ReturnType, Operation ) \

@@ -35,6 +35,7 @@ namespace pace {
   PACE__PROVIDE_FOR( config::Sweep, option::ShowQuota, true );
   PACE__PROVIDE_FOR( config::Sweep, option::Shift, -3 );
   PACE__PROVIDE_FOR( config::Sweep, option::BarWidth, 30 );
+  PACE__PROVIDE_FOR( config::Sweep, option::PercentDecs, 2 );
   PACE__PROVIDE_FOR( config::Sweep, option::Magnitude, 1000 );
   PACE__PROVIDE_FOR( config::Sweep, option::Starting, "[" );
   PACE__PROVIDE_FOR( config::Sweep, option::Ending, "]" );

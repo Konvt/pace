@@ -141,6 +141,9 @@ export namespace pace {
     // ETA
     using pace::option::ETAFormat;
 
+    // Percentage
+    using pace::option::PercentDecs;
+
     // Speed
     using pace::option::Magnitude;
     using pace::option::SpeedUnit;

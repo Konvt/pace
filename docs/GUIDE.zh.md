@@ -517,14 +517,15 @@ pace::option::RightBorder; // 修改整个进度条右侧的终止边框
 pace::option::Prefix;      // 修改前置描述信息
 pace::option::Postfix;     // 修改尾随描述信息
 
-pace::option::Starting;  // 修改进度条块左侧、Percent 右侧的元素
-pace::option::Ending;    // 修改进度条块右侧、Counter 左侧的元素
-pace::option::Filler;    // 修改已迭代部分的填充字符
-pace::option::Lead;      // 修改可变动画部分的各个帧
-pace::option::Remain;    // 修改未迭代部分的填充字符
-pace::option::Reversed;  // 调整进度条的增长方向（false 表示从左到右）
-pace::option::Shift;     // 调整动画部分（Lead）的动画速度
-pace::option::BarWidth;  // 调整进度条的宽度
+pace::option::Starting;    // 修改进度条块左侧、Percent 右侧的元素
+pace::option::Ending;      // 修改进度条块右侧、Counter 左侧的元素
+pace::option::Filler;      // 修改已迭代部分的填充字符
+pace::option::Lead;        // 修改可变动画部分的各个帧
+pace::option::Remain;      // 修改未迭代部分的填充字符
+pace::option::Reversed;    // 调整进度条的增长方向（false 表示从左到右）
+pace::option::Shift;       // 调整动画部分（Lead）的动画速度
+pace::option::BarWidth;    // 调整进度条的宽度
+pace::option::PercentDecs; // 调整百分比的小数部分的长度
 
 pace::option::SpeedUnit; // 修改 Speed 部分的单位
 pace::option::Magnitude; // 调整 Speed 部分的进位倍率
@@ -607,13 +608,14 @@ pace::option::RightBorder; // 修改整个进度条右侧的终止边框
 pace::option::Prefix;      // 修改前置描述信息
 pace::option::Postfix;     // 修改尾随描述信息
 
-pace::option::Starting;  // 修改进度条块左侧、Percent 右侧的元素
-pace::option::Ending;    // 修改进度条块右侧、Counter 左侧的元素
-pace::option::Lead;      // 修改可变动画部分的各个帧
-pace::option::Filler;    // 修改已迭代部分的填充字符
-pace::option::Remain;    // 修改未迭代部分的填充字符
-pace::option::Reversed;  // 调整进度条的增长方向（false 表示从左到右）
-pace::option::BarWidth;  // 调整进度条的宽度
+pace::option::Starting;    // 修改进度条块左侧、Percent 右侧的元素
+pace::option::Ending;      // 修改进度条块右侧、Counter 左侧的元素
+pace::option::Lead;        // 修改可变动画部分的各个帧
+pace::option::Filler;      // 修改已迭代部分的填充字符
+pace::option::Remain;      // 修改未迭代部分的填充字符
+pace::option::Reversed;    // 调整进度条的增长方向（false 表示从左到右）
+pace::option::BarWidth;    // 调整进度条的宽度
+pace::option::PercentDecs; // 调整百分比的小数部分的长度
 
 pace::option::SpeedUnit; // 修改 Speed 部分的单位
 pace::option::Magnitude; // 调整 Speed 部分的进位倍率
@@ -668,17 +670,19 @@ pace::option::FontInverse;   // 字体反显
 pace::option::FontHidden;    // 隐藏字体
 pace::option::FontCrossed;   // 删除线
 
-pace::option::LeftBorder;  // 修改整个进度条左侧的起始边框
-pace::option::RightBorder; // 修改整个进度条右侧的终止边框
+pace::option::LeftBorder;    // 修改整个进度条左侧的起始边框
+pace::option::RightBorder;   // 修改整个进度条右侧的终止边框
 
-pace::option::Prefix;      // 修改前置描述信息
-pace::option::Postfix;     // 修改尾随描述信息
+pace::option::Prefix;  // 修改前置描述信息
+pace::option::Postfix; // 修改尾随描述信息
 
-pace::option::Lead;      // 修改可变动画部分的各个帧
-pace::option::Shift;     // 调整动画部分（Lead）的动画速度
+pace::option::Lead;    // 修改可变动画部分的各个帧
+pace::option::Shift;   // 调整动画部分（Lead）的动画速度
 
-pace::option::SpeedUnit; // 修改 Speed 部分的单位
-pace::option::Magnitude; // 调整 Speed 部分的进位倍率
+pace::option::PercentDecs; // 调整百分比的小数部分的长度
+
+pace::option::SpeedUnit;   // 修改 Speed 部分的单位
+pace::option::Magnitude;   // 调整 Speed 部分的进位倍率
 
 pace::option::Quota;   // 调整任务数量
 pace::option::Divider; // 修改位于两个元素之间的间隔符
@@ -726,12 +730,13 @@ pace::option::RightBorder; // 修改整个进度条右侧的终止边框
 pace::option::Prefix;      // 修改前置描述信息
 pace::option::Postfix;     // 修改尾随描述信息
 
-pace::option::Starting;  // 修改进度条块左侧、Percent 右侧的元素
-pace::option::Ending;    // 修改进度条块右侧、Counter 左侧的元素
-pace::option::Filler;    // 修改进度条背景的填充字符
-pace::option::Lead;      // 修改可变动画部分的各个帧
-pace::option::Shift;     // 调整动画部分（Lead）的动画速度
-pace::option::BarWidth;  // 调整进度条的宽度
+pace::option::Starting;    // 修改进度条块左侧、Percent 右侧的元素
+pace::option::Ending;      // 修改进度条块右侧、Counter 左侧的元素
+pace::option::Filler;      // 修改进度条背景的填充字符
+pace::option::Lead;        // 修改可变动画部分的各个帧
+pace::option::Shift;       // 调整动画部分（Lead）的动画速度
+pace::option::BarWidth;    // 调整进度条的宽度
+pace::option::PercentDecs; // 调整百分比的小数部分的长度
 
 pace::option::SpeedUnit; // 修改 Speed 部分的单位
 pace::option::Magnitude; // 调整 Speed 部分的进位倍率
@@ -790,12 +795,13 @@ pace::option::RightBorder; // 修改整个进度条右侧的终止边框
 pace::option::Prefix;      // 修改前置描述信息
 pace::option::Postfix;     // 修改尾随描述信息
 
-pace::option::Starting;  // 修改进度条块左侧、Percent 右侧的元素
-pace::option::Ending;    // 修改进度条块右侧、Counter 左侧的元素
-pace::option::Filler;    // 修改进度条背景的填充字符
-pace::option::Lead;      // 修改可变动画部分的各个帧
-pace::option::Shift;     // 调整动画部分（Lead）的动画速度
-pace::option::BarWidth;  // 调整进度条的宽度
+pace::option::Starting;    // 修改进度条块左侧、Percent 右侧的元素
+pace::option::Ending;      // 修改进度条块右侧、Counter 左侧的元素
+pace::option::Filler;      // 修改进度条背景的填充字符
+pace::option::Lead;        // 修改可变动画部分的各个帧
+pace::option::Shift;       // 调整动画部分（Lead）的动画速度
+pace::option::BarWidth;    // 调整进度条的宽度
+pace::option::PercentDecs; // 调整百分比的小数部分的长度
 
 pace::option::SpeedUnit; // 修改 Speed 部分的单位
 pace::option::Magnitude; // 调整 Speed 部分的进位倍率

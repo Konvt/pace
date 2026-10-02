@@ -25,10 +25,10 @@ namespace pace {
         }
 
         union SGR {
-          Color ansi;
           std::array<std::uint8_t, 3> rgb;
+          Color ansi;
 
-          PACE__CXX20_CNSTXPR SGR() noexcept : rgb {} {}
+          SGR() = default;
         } sgr_;
         render::Paint encoding_;
 #endif

@@ -91,7 +91,7 @@ namespace pace {
       constexpr SweepPlot( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
       {}
 
-      PACE__SPECIAL_MEMBERS2( SweepPlot );
+      PACE__SPECIAL_MEMBERS( SweepPlot );
     };
   } // namespace facade
 

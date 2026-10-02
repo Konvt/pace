@@ -36,6 +36,7 @@ namespace pace {
   PACE__PROVIDE_FOR( config::Line, option::ShowQuota, true );
   PACE__PROVIDE_FOR( config::Line, option::Shift, -2 );
   PACE__PROVIDE_FOR( config::Line, option::BarWidth, 30 );
+  PACE__PROVIDE_FOR( config::Line, option::PercentDecs, 2 );
   PACE__PROVIDE_FOR( config::Line, option::Magnitude, 1000 );
   PACE__PROVIDE_FOR( config::Line, option::Starting, "[" );
   PACE__PROVIDE_FOR( config::Line, option::Ending, "]" );

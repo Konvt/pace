@@ -177,7 +177,7 @@ namespace pace {
           unpack( *this, config::provide_for<Derived, option::ElapsedFormat>() );
       }
 
-      PACE__SPECIAL_MEMBERS2( Elapsed );
+      PACE__SPECIAL_MEMBERS( Elapsed );
 
     public:
 #define PACE__METHOD( ParamName, ReturnType )                               \

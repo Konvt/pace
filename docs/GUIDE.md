@@ -533,14 +533,15 @@ pace::option::RightBorder; // Modify the right ending border of the entire progr
 pace::option::Prefix;      // Modify the prefix description
 pace::option::Postfix;     // Modify the postfix description
 
-pace::option::Starting;  // Modify the element between Percent and the left side of the bar block
-pace::option::Ending;    // Modify the element between the right side of the bar block and Counter
-pace::option::Filler;    // Modify the fill character of the completed section
-pace::option::Lead;      // Modify each frame of the animated section
-pace::option::Remain;    // Modify the fill character of the remaining section
-pace::option::Reversed;  // Adjust the growth direction of the progress bar (`false` means left-to-right)
-pace::option::Shift;     // Adjust the animation speed of the animated section (Lead)
-pace::option::BarWidth;  // Adjust the width of the progress bar
+pace::option::Starting;    // Modify the element between Percent and the left side of the bar block
+pace::option::Ending;      // Modify the element between the right side of the bar block and Counter
+pace::option::Filler;      // Modify the fill character of the completed section
+pace::option::Lead;        // Modify each frame of the animated section
+pace::option::Remain;      // Modify the fill character of the remaining section
+pace::option::Reversed;    // Adjust the growth direction of the progress bar (`false` means left-to-right)
+pace::option::Shift;       // Adjust the animation speed of the animated section (Lead)
+pace::option::BarWidth;    // Adjust the width of the progress bar
+pace::option::PercentDecs; // Adjust the length of the decimals part of the percentage.
 
 pace::option::SpeedUnit; // Modify the unit used in the Speed section
 pace::option::Magnitude; // Adjust the carry ratio used in the Speed section
@@ -623,13 +624,14 @@ pace::option::RightBorder; // Modify the ending border on the right side of the 
 pace::option::Prefix;      // Modify the prefix description
 pace::option::Postfix;     // Modify the postfix description
 
-pace::option::Starting;  // Modify the element on the left side of the progress block and on the right side of Percent
-pace::option::Ending;    // Modify the element on the right side of the progress block and on the left side of Counter
-pace::option::Lead;      // Modify each frame of the animated section
-pace::option::Filler;    // Modify the fill character for the completed portion
-pace::option::Remain;    // Modify the fill character for the remaining portion
-pace::option::Reversed;  // Adjust the growth direction of the progress bar (false means left-to-right)
-pace::option::BarWidth;  // Adjust the width of the progress bar
+pace::option::Starting;    // Modify the element on the left side of the progress block and on the right side of Percent
+pace::option::Ending;      // Modify the element on the right side of the progress block and on the left side of Counter
+pace::option::Lead;        // Modify each frame of the animated section
+pace::option::Filler;      // Modify the fill character for the completed portion
+pace::option::Remain;      // Modify the fill character for the remaining portion
+pace::option::Reversed;    // Adjust the growth direction of the progress bar (false means left-to-right)
+pace::option::BarWidth;    // Adjust the width of the progress bar
+pace::option::PercentDecs; // Adjust the length of the decimals part of the percentage.
 
 pace::option::SpeedUnit; // Modify the unit used in the Speed section
 pace::option::Magnitude; // Adjust the carry ratio used in the Speed section
@@ -685,17 +687,19 @@ pace::option::FontInverse;   // Inverse font display
 pace::option::FontHidden;    // Hidden font
 pace::option::FontCrossed;   // Strikethrough
 
-pace::option::LeftBorder;  // Modify the starting border on the left side of the entire progress bar
-pace::option::RightBorder; // Modify the ending border on the right side of the entire progress bar
+pace::option::LeftBorder;    // Modify the starting border on the left side of the entire progress bar
+pace::option::RightBorder;   // Modify the ending border on the right side of the entire progress bar
 
-pace::option::Prefix;      // Modify the prefix description
-pace::option::Postfix;     // Modify the postfix description
+pace::option::Prefix;  // Modify the prefix description
+pace::option::Postfix; // Modify the postfix description
 
-pace::option::Lead;      // Modify each frame of the animated section
-pace::option::Shift;     // Adjust the animation speed of the animated section (Lead)
+pace::option::Lead;    // Modify each frame of the animated section
+pace::option::Shift;   // Adjust the animation speed of the animated section (Lead)
 
-pace::option::SpeedUnit; // Modify the unit used in the Speed section
-pace::option::Magnitude; // Adjust the carry ratio used in the Speed section
+pace::option::PercentDecs; // Adjust the length of the decimals part of the percentage.
+
+pace::option::SpeedUnit;   // Modify the unit used in the Speed section
+pace::option::Magnitude;   // Adjust the carry ratio used in the Speed section
 
 pace::option::Quota;   // Adjust the task count
 pace::option::Divider; // Modify the separator placed between two elements
@@ -743,12 +747,13 @@ pace::option::RightBorder; // Modify the ending border on the right side of the 
 pace::option::Prefix;      // Modify the prefix description
 pace::option::Postfix;     // Modify the postfix description
 
-pace::option::Starting;  // Modify the element on the left side of the progress bar block and on the right side of Percent
-pace::option::Ending;    // Modify the element on the right side of the progress bar block and on the left side of Counter
-pace::option::Filler;    // Modify the fill character of the progress bar background
-pace::option::Lead;      // Modify each frame of the animated section
-pace::option::Shift;     // Adjust the animation speed of the animated section (Lead)
-pace::option::BarWidth;  // Adjust the width of the progress bar
+pace::option::Starting;    // Modify the element on the left side of the progress bar block and on the right side of Percent
+pace::option::Ending;      // Modify the element on the right side of the progress bar block and on the left side of Counter
+pace::option::Filler;      // Modify the fill character of the progress bar background
+pace::option::Lead;        // Modify each frame of the animated section
+pace::option::Shift;       // Adjust the animation speed of the animated section (Lead)
+pace::option::BarWidth;    // Adjust the width of the progress bar
+pace::option::PercentDecs; // Adjust the length of the decimals part of the percentage.
 
 pace::option::SpeedUnit; // Modify the unit used in the Speed section
 pace::option::Magnitude; // Adjust the carry multiplier used in the Speed section
@@ -807,12 +812,13 @@ pace::option::RightBorder; // Modify the ending border on the right side of the 
 pace::option::Prefix;      // Modify the prefix description
 pace::option::Postfix;     // Modify the postfix description
 
-pace::option::Starting;  // Modify the element on the left side of the progress bar block and on the right side of Percent
-pace::option::Ending;    // Modify the element on the right side of the progress bar block and on the left side of Counter
-pace::option::Filler;    // Modify the fill character of the progress bar background
-pace::option::Lead;      // Modify each frame of the animated section
-pace::option::Shift;     // Adjust the animation speed of the animated section (Lead)
-pace::option::BarWidth;  // Adjust the width of the progress bar
+pace::option::Starting;    // Modify the element on the left side of the progress bar block and on the right side of Percent
+pace::option::Ending;      // Modify the element on the right side of the progress bar block and on the left side of Counter
+pace::option::Filler;      // Modify the fill character of the progress bar background
+pace::option::Lead;        // Modify each frame of the animated section
+pace::option::Shift;       // Adjust the animation speed of the animated section (Lead)
+pace::option::BarWidth;    // Adjust the width of the progress bar
+pace::option::PercentDecs; // Adjust the length of the decimals part of the percentage.
 
 pace::option::SpeedUnit; // Modify the unit used in the Speed section
 pace::option::Magnitude; // Adjust the carry multiplier used in the Speed section

@@ -17,8 +17,7 @@ namespace pace {
     namespace aspects {
       template<typename Base, typename Derived>
       class Capacity : public Base {
-        PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Capacity& self,
-                                                                  option::Quota&& val ) noexcept
+        PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Capacity& self, option::Quota val ) noexcept
         { self.task_quota_ = val.value; }
 
       protected:
@@ -32,8 +31,7 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::Quota>() );
         }
 
-        Capacity() = default;
-        PACE__SPECIAL_MEMBERS1( Capacity );
+        PACE__SPECIAL_MEMBERS( Capacity );
 
       public:
 #define PACE__METHOD( ReturnType )                                 \

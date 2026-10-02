@@ -50,16 +50,17 @@ namespace pace {
     namespace aspects {
       template<typename Base, typename Derived>
       class Bar : public Base {
-#define PACE__UNPAKING( OptionName, MemberName, Operation, Constexpr )                           \
-  PACE__FORCEINLINE friend Constexpr void unpack( Bar& self, option::OptionName&& val ) noexcept \
+#define PACE__UNPAKING( OptionName, Reference, MemberName, Operation )                                  \
+  PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Bar& self,                                  \
+                                                            option::OptionName Reference val ) noexcept \
   { self.MemberName = Operation( val.value ); }
-        PACE__UNPAKING( Starting, starting_, std::move, PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( Ending, ending_, std::move, PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( BarWidth, bar_width_, , PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( StartForecolor, start_forecolor_, , PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( StartBackcolor, start_backcolor_, , PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( EndForecolor, end_forecolor_, , PACE__CXX20_CNSTXPR )
-        PACE__UNPAKING( EndBackcolor, end_backcolor_, , PACE__CXX20_CNSTXPR )
+        PACE__UNPAKING( Starting, &&, starting_, std::move )
+        PACE__UNPAKING( Ending, &&, ending_, std::move )
+        PACE__UNPAKING( BarWidth, , bar_width_, )
+        PACE__UNPAKING( StartForecolor, , start_forecolor_, )
+        PACE__UNPAKING( StartBackcolor, , start_backcolor_, )
+        PACE__UNPAKING( EndForecolor, , end_forecolor_, )
+        PACE__UNPAKING( EndBackcolor, , end_backcolor_, )
 #undef PACE__UNPAKING
 
       protected:
@@ -91,8 +92,7 @@ namespace pace {
             unpack( *this, config::provide_for<Derived, option::EndBackcolor>() );
         }
 
-        Bar() = default;
-        PACE__SPECIAL_MEMBERS1( Bar );
+        PACE__SPECIAL_MEMBERS( Bar );
 
       public:
 #define PACE__METHOD( OptionName, ParamName, ReturnType, Operation ) \

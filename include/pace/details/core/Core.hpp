@@ -160,15 +160,12 @@
 // Pack multiple macro parameters into a single one.
 #define PACE__WRAP( ... ) __VA_ARGS__
 
-#define PACE__SPECIAL_MEMBERS1( ClassName )             \
+#define PACE__SPECIAL_MEMBERS( ClassName )              \
+  ClassName()                                = default; \
   ClassName( const ClassName& )              = default; \
   ClassName( ClassName&& )                   = default; \
   ClassName& operator=( const ClassName& ) & = default; \
   ClassName& operator=( ClassName&& ) &      = default; \
   ~ClassName()                               = default
-
-#define PACE__SPECIAL_MEMBERS2( ClassName ) \
-  PACE__SPECIAL_MEMBERS1( ClassName );      \
-  ClassName() = default
 
 #endif

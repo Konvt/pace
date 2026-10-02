@@ -88,8 +88,7 @@ namespace pace {
   namespace facade {
     template<typename Base, typename Derived>
     class Speed : public Base {
-      PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Speed& self,
-                                                                option::Magnitude&& val ) noexcept
+      PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR void unpack( Speed& self, option::Magnitude val ) noexcept
       {
         self.magnitude_ = val.value;
         if ( self.magnitude_ > 1 )
@@ -197,8 +196,7 @@ namespace pace {
           unpack( *this, config::provide_for<Derived, option::SpeedUnit>() );
       }
 
-      Speed() = default;
-      PACE__SPECIAL_MEMBERS1( Speed );
+      PACE__SPECIAL_MEMBERS( Speed );
 
     public:
 #define PACE__METHOD( OptionName, ParamName, Operation, ReturnType )        \

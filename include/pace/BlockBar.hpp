@@ -35,6 +35,7 @@ namespace pace {
   PACE__PROVIDE_FOR( config::Block, option::Reversed, false );
   PACE__PROVIDE_FOR( config::Block, option::ShowQuota, true );
   PACE__PROVIDE_FOR( config::Block, option::BarWidth, 30 );
+  PACE__PROVIDE_FOR( config::Block, option::PercentDecs, 2 );
   PACE__PROVIDE_FOR( config::Block, option::Magnitude, 1000 );
   PACE__PROVIDE_FOR( config::Block, option::Filler, u8"\u2588" );
   PACE__PROVIDE_FOR( config::Block, option::Remain, " " );
