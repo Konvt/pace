@@ -12,7 +12,9 @@
 namespace pace {
   namespace option {
     // Control the length of the decimal part.
-    struct PercentDecs : PACE__DERIVING_OPTION2( PercentDecs, std::uint8_t, _decimals );
+    // The requested precision is capped to prevent specifying more decimal places
+    // than can be meaningfully represented by the underlying floating-point type.
+    struct PercentDecs : PACE__DERIVING_OPTION2( PercentDecs, std::uint16_t, _decimals );
   }
 
   namespace facade {
@@ -22,7 +24,16 @@ namespace pace {
                                                                 option::PercentDecs val ) noexcept
       { self.decimals_ = val.value; }
 
-      std::uint8_t decimals_;
+      std::uint16_t decimals_;
+
+      // Cap precision at the maximum number of decimal places needed for an exact representation.
+      template<typename Value>
+      static constexpr int meaningful_precision( std::uint16_t precision ) noexcept
+      {
+        return (std::min<int>)( static_cast<int>( precision ),
+                                std::numeric_limits<Value>::digits
+                                  - std::numeric_limits<Value>::min_exponent );
+      }
 
     protected:
       details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
@@ -34,14 +45,20 @@ namespace pace {
                                                                       decimals_ > 0 ? "nan.%" : "n/a%" );
 
         std::string orig;
-        details::utils::format_to( std::back_inserter( orig ), params.progress_ratio * 100.0, decimals_ );
+        details::utils::format_to( std::back_inserter( orig ),
+                                   params.progress_ratio * 100.0,
+                                   meaningful_precision<details::types::Float>( decimals_ ) );
         orig.push_back( '%' );
         return pipeline << details::io::align<details::render::TextAlign::Right>( fixed_width(),
                                                                                   std::move( orig ) );
       }
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR std::size_t fixed_width() const noexcept
-      { return 4 /* the length of "100" and "%" */ + decimals_ + static_cast<std::size_t>( decimals_ > 0 ); }
+      {
+        return 4 /* the length of "100" and "%" */
+             + meaningful_precision<details::types::Float>( decimals_ )
+             + static_cast<std::size_t>( decimals_ > 0 );
+      }
 
       template<typename... Options>
       PACE__CXX14_CNSTXPR Percentage( details::traits::TypeSet<Options...> tag ) noexcept : Base( tag )
@@ -60,8 +77,9 @@ namespace pace {
   return static_cast<ReturnType>( *this )
 
       // Control the length of the decimal part.
-      Derived& percent_decs( std::uint8_t _decimals ) & { PACE__METHOD( PercentDecs, _decimals, Derived& ); }
-      Derived&& percent_decs( std::uint8_t _decimals ) &&
+      Derived& percent_decs( std::uint16_t _decimals ) & { PACE__METHOD( PercentDecs, _decimals, Derived& ); }
+      // Control the length of the decimal part.
+      Derived&& percent_decs( std::uint16_t _decimals ) &&
       { PACE__METHOD( PercentDecs, _decimals, Derived&& ); }
 
 #undef PACE__METHOD
