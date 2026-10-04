@@ -1,7 +1,7 @@
 #ifndef PACE_VALUE_LIST
 #define PACE_VALUE_LIST
 
-#include "Identity.hpp"
+#include <cstddef>
 
 namespace pace {
   namespace details {
@@ -19,7 +19,9 @@ namespace pace {
       using NatPrepend_t = typename NatPrepend<Nats, N>::type;
 
       template<std::size_t... Ns, std::size_t N>
-      struct NatPrepend<NaturalList<Ns...>, N> : Identity<NaturalList<N, Ns...>> {};
+      struct NatPrepend<NaturalList<Ns...>, N> {
+        using type = NaturalList<N, Ns...>;
+      };
 
       template<typename Nats, std::size_t N>
       struct NatAppend;
@@ -27,7 +29,9 @@ namespace pace {
       using NatAppend_t = typename NatAppend<Nats, N>::type;
 
       template<std::size_t... Ns, std::size_t N>
-      struct NatAppend<NaturalList<Ns...>, N> : Identity<NaturalList<Ns..., N>> {};
+      struct NatAppend<NaturalList<Ns...>, N> {
+        using type = NaturalList<Ns..., N>;
+      };
     } // namespace traits
   } // namespace details
 } // namespace pace

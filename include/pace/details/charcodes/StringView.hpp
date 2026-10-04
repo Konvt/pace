@@ -5,7 +5,7 @@
 #ifdef __cpp_lib_string_view
 # include <string_view>
 #else
-# include "../traits/Identity.hpp"
+# include "../traits/TypeIdentity.hpp"
 # include <iterator>
 # include <limits>
 # include <stdexcept>
@@ -236,17 +236,17 @@ namespace pace {
 
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator==(
           BasicStringView a,
-          traits::Identity_t<BasicStringView> b ) noexcept
+          traits::TypeIdentity_t<BasicStringView> b ) noexcept
         { return a.compare( b ) == 0; }
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator!=(
           BasicStringView a,
-          traits::Identity_t<BasicStringView> b ) noexcept
+          traits::TypeIdentity_t<BasicStringView> b ) noexcept
         { return !( a == b ); }
 
 # ifdef __cpp_lib_three_way_comparison
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR auto operator<=>(
           BasicStringView a,
-          traits::Identity_t<BasicStringView> b ) noexcept
+          traits::TypeIdentity_t<BasicStringView> b ) noexcept
         {
           return static_cast<traits::ComparisonCategory_t<Traits>>(
             a.compare( 0, a.length_, b.data(), b.size() ) <=> 0 );
@@ -254,19 +254,19 @@ namespace pace {
 # else
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator<(
           BasicStringView a,
-          traits::Identity_t<BasicStringView> b ) noexcept
+          traits::TypeIdentity_t<BasicStringView> b ) noexcept
         { return a.compare( b ) < 0; }
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator<=(
           BasicStringView a,
-          traits::Identity_t<BasicStringView> b ) noexcept
+          traits::TypeIdentity_t<BasicStringView> b ) noexcept
         { return a.compare( b ) <= 0; }
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator>(
           BasicStringView a,
-          traits::Identity_t<BasicStringView> b ) noexcept
+          traits::TypeIdentity_t<BasicStringView> b ) noexcept
         { return a.compare( b ) > 0; }
         PACE__NODISCARD friend PACE__CXX17_CNSTXPR bool operator>=(
           BasicStringView a,
-          traits::Identity_t<BasicStringView> b ) noexcept
+          traits::TypeIdentity_t<BasicStringView> b ) noexcept
         { return a.compare( b ) >= 0; }
 # endif
       };

@@ -2,7 +2,6 @@
 #define PACE_TEMPLATE_SET
 
 #include "Algorithm.hpp"
-#include "Identity.hpp"
 #include "TemplateList.hpp"
 
 namespace pace {
@@ -18,9 +17,13 @@ namespace pace {
       struct TmpPrepend<TemplateSet<Es...>, T> {
       private:
         template<bool Cond, template<typename...> class NewOne>
-        struct Choice : Identity<TemplateSet<Es...>> {};
+        struct Choice {
+          using type = TemplateSet<Es...>;
+        };
         template<template<typename...> class NewOne>
-        struct Choice<false, NewOne> : Identity<TemplateSet<NewOne, Es...>> {};
+        struct Choice<false, NewOne> {
+          using type = TemplateSet<NewOne, Es...>;
+        };
 
       public:
         using type = typename Choice<TmpContains<TemplateSet<Es...>, T>::value, T>::type;
@@ -30,22 +33,32 @@ namespace pace {
       struct TmpAppend<TemplateSet<Es...>, T> {
       private:
         template<bool Cond, template<typename...> class NewOne>
-        struct Choice : Identity<TemplateSet<Es...>> {};
+        struct Choice {
+          using type = TemplateSet<Es...>;
+        };
         template<template<typename...> class NewOne>
-        struct Choice<false, NewOne> : Identity<TemplateSet<Es..., NewOne>> {};
+        struct Choice<false, NewOne> {
+          using type = TemplateSet<Es..., NewOne>;
+        };
 
       public:
         using type = typename Choice<TmpContains<TemplateSet<Es...>, T>::value, T>::type;
       };
 
       template<template<typename...> class... Es, template<typename...> class T>
-      struct TmpPushFront<TemplateSet<Es...>, T> : Identity<TemplateSet<T, Es...>> {};
+      struct TmpPushFront<TemplateSet<Es...>, T> {
+        using type = TemplateSet<T, Es...>;
+      };
 
       template<template<typename...> class... Es, template<typename...> class T>
-      struct TmpPushBack<TemplateSet<Es...>, T> : Identity<TemplateSet<Es..., T>> {};
+      struct TmpPushBack<TemplateSet<Es...>, T> {
+        using type = TemplateSet<Es..., T>;
+      };
 
       template<template<typename...> class... Es, template<template<typename...> class...> class Collection>
-      struct Combine<TemplateSet<Es...>, Collection<>> : Identity<TemplateSet<Es...>> {};
+      struct Combine<TemplateSet<Es...>, Collection<>> {
+        using type = TemplateSet<Es...>;
+      };
       template<template<typename...> class... Es,
                template<template<typename...> class...> class Collection,
                template<typename...> class T,
@@ -56,7 +69,9 @@ namespace pace {
       template<template<typename...> class... Es,
                template<template<typename...> class...> class Collection,
                template<typename...> class... Ts>
-      struct Concat<TemplateSet<Es...>, Collection<Ts...>> : Identity<TemplateSet<Es..., Ts...>> {};
+      struct Concat<TemplateSet<Es...>, Collection<Ts...>> {
+        using type = TemplateSet<Es..., Ts...>;
+      };
 
       template<bool Cond, typename Visited, template<typename...> class... Elements>
       struct _impl_is_unique_tmp : std::false_type {};

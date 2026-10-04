@@ -13,6 +13,9 @@
 #ifdef __cpp_lib_ranges
 # include <ranges>
 #endif
+#ifdef __cpp_lib_bitops
+# include <bit>
+#endif
 #if !defined( __cpp_lib_forward_like )                                              \
   || ( defined( __clang__ ) && !defined( _LIBCPP_VERSION ) && __clang_major__ >= 19 \
        && __clang_major__ <= 20 )
@@ -327,6 +330,22 @@ namespace pace {
         static_assert( !std::is_void<T>::value, "invalid type" );
         return construct_at( reinterpret_cast<T*>( location ), std::forward<Args>( args )... );
       }
+
+#ifdef __cpp_lib_bitops
+      using std::popcount;
+#else
+      constexpr int popcount( std::uint32_t x ) noexcept
+      {
+# if __cpp_constexpr >= 201304L
+        x -= ( x >> 1 ) & 0x55555555u;
+        x = ( x & 0x33333333u ) + ( ( x >> 2 ) & 0x33333333u );
+        x = ( x + ( x >> 4 ) ) & 0x0F0F0F0Fu;
+        return static_cast<int>( ( x * 0x01010101u ) >> 24 );
+# else
+        return x == 0 ? 0 : 1 + popcount( x & ( x - 1 ) );
+# endif
+      }
+#endif
 
 #ifdef __cpp_lib_to_underlying
       using std::to_underlying;

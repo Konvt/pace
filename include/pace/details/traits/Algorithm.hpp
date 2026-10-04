@@ -2,7 +2,6 @@
 #define PACE_ALGORITHM
 
 #include "Backport.hpp"
-#include "Identity.hpp"
 #include <tuple>
 
 namespace pace {
@@ -56,7 +55,9 @@ namespace pace {
       template<template<template<typename...> class...> class From,
                template<typename...> class... Tmps,
                template<template<typename...> class...> class To>
-      struct TmpNominalCast<From<Tmps...>, To> : Identity<To<Tmps...>> {};
+      struct TmpNominalCast<From<Tmps...>, To> {
+        using type = To<Tmps...>;
+      };
 
       template<typename Collection, typename Element>
       struct TpContains;
@@ -72,9 +73,9 @@ namespace pace {
       using TpAppend_t = typename TpAppend<Collection, Element>::type;
 
       template<typename Collection, typename Element>
-      struct TpRemove;
+      struct TpErase;
       template<typename Collection, typename Element>
-      using TpRemove_t = typename TpRemove<Collection, Element>::type;
+      using TpErase_t = typename TpErase<Collection, Element>::type;
 
       // Checks if a List starts with the specified type sequence.
       template<typename List, typename... Elements>
@@ -179,7 +180,9 @@ namespace pace {
                                      TpSplit_r<std::tuple<TailCollections...>>>::type;
 #else
         template<typename First, typename... Rests>
-        struct Helper : Identity<First> {};
+        struct Helper {
+          using type = First;
+        };
         template<typename First, typename Second, typename... Tail>
         struct Helper<First, Second, Tail...> : Merge<Combine_t<First, Second>, Tail...> {};
 
@@ -191,7 +194,9 @@ namespace pace {
       using Merge_t = typename Merge<FirstCollection, TailCollections...>::type;
 
       template<typename Collection>
-      struct Merge<Collection> : Identity<Collection> {};
+      struct Merge<Collection> {
+        using type = Collection;
+      };
       template<typename Head, typename Tail>
       struct Merge<Head, Tail> : Combine<Head, Tail> {};
     } // namespace traits

@@ -2,7 +2,6 @@
 #define PACE_TYPE_SET
 
 #include "Algorithm.hpp"
-#include "Identity.hpp"
 #include "TypeList.hpp"
 
 namespace pace {
@@ -22,9 +21,13 @@ namespace pace {
       struct TpPrepend<TypeSet<Es...>, T> {
       private:
         template<bool Cond, typename NewOne>
-        struct Choice : Identity<TypeSet<Es...>> {};
+        struct Choice {
+          using type = TypeSet<Es...>;
+        };
         template<typename NewOne>
-        struct Choice<false, NewOne> : Identity<TypeSet<NewOne, Es...>> {};
+        struct Choice<false, NewOne> {
+          using type = TypeSet<NewOne, Es...>;
+        };
 
       public:
         using type = typename Choice<TpContains<TypeSet<Es...>, T>::value, T>::type;
@@ -34,30 +37,42 @@ namespace pace {
       struct TpAppend<TypeSet<Es...>, T> {
       private:
         template<bool Cond, typename NewOne>
-        struct Choice : Identity<TypeSet<Es...>> {};
+        struct Choice {
+          using type = TypeSet<Es...>;
+        };
         template<typename NewOne>
-        struct Choice<false, NewOne> : Identity<TypeSet<Es..., NewOne>> {};
+        struct Choice<false, NewOne> {
+          using type = TypeSet<Es..., NewOne>;
+        };
 
       public:
         using type = typename Choice<TpContains<TypeSet<Es...>, T>::value, T>::type;
       };
 
       template<typename Element>
-      struct TpRemove<TypeSet<>, Element> : Identity<TypeSet<>> {};
+      struct TpErase<TypeSet<>, Element> {
+        using type = TypeSet<>;
+      };
       template<typename... Tail, typename Element>
-      struct TpRemove<TypeSet<Element, Tail...>, Element> : Identity<TypeSet<Tail...>> {};
+      struct TpErase<TypeSet<Element, Tail...>, Element> {
+        using type = TypeSet<Tail...>;
+      };
       template<typename... Es, typename Element>
-      struct TpRemove<TypeSet<Es...>, Element> {
+      struct TpErase<TypeSet<Es...>, Element> {
       private:
         template<bool Cond, typename List>
-        struct Choice : TpRemove<List, Element> {};
+        struct Choice : TpErase<List, Element> {};
         template<typename List>
-        struct Choice<false, List> : Identity<List> {};
+        struct Choice<false, List> {
+          using type = List;
+        };
 
         template<typename Front, typename Back>
         struct Helper;
         template<typename... Ts, typename... Us>
-        struct Helper<TypeSet<Ts...>, TypeSet<Us...>> : Identity<TypeSet<Ts..., Us...>> {};
+        struct Helper<TypeSet<Ts...>, TypeSet<Us...>> {
+          using type = TypeSet<Ts..., Us...>;
+        };
 
         using Left  = TpSplit_l<TypeSet<Es...>>;
         using Right = TpSplit_r<TypeSet<Es...>>;
@@ -68,7 +83,9 @@ namespace pace {
       };
 
       template<typename... Es, template<typename...> class Collection>
-      struct Combine<TypeSet<Es...>, Collection<>> : Identity<TypeSet<Es...>> {};
+      struct Combine<TypeSet<Es...>, Collection<>> {
+        using type = TypeSet<Es...>;
+      };
 #if PACE__FAST_TYPEAT
       template<typename... Es, template<typename...> class Collection, typename T>
       struct Combine<TypeSet<Es...>, Collection<T>> : TpAppend<TypeSet<Es...>, T> {};

@@ -2,7 +2,7 @@
 #define PACE_TRAITS_BACKPORT
 
 #include "../core/Core.hpp"
-#include "Identity.hpp"
+#include <type_traits>
 #include <utility>
 
 namespace pace {
@@ -34,22 +34,25 @@ namespace pace {
       // This is an internal implementation and should not be used outside of this preprocessing block.
       template<typename HeadSeq, typename TailSeq>
       struct _concat_seq;
-      template<typename HeadSeq, typename TailSeq>
-      using _concat_seq_t = typename _concat_seq<HeadSeq, TailSeq>::type;
-
       template<std::size_t... HeadI, std::size_t... TailI>
-      struct _concat_seq<IndexSequence<HeadI...>, IndexSequence<TailI...>>
-        : Identity<IndexSequence<HeadI..., ( sizeof...( HeadI ) + TailI )...>> {};
+      struct _concat_seq<IndexSequence<HeadI...>, IndexSequence<TailI...>> {
+        using type = IndexSequence<HeadI..., ( sizeof...( HeadI ) + TailI )...>;
+      };
 
       // Internal implementation, it should not be used outside of this preprocessing block.
       template<std::size_t N>
-      struct _impl_make_index_seq
-        : Identity<_concat_seq_t<typename _impl_make_index_seq<N / 2>::type,
-                                 typename _impl_make_index_seq<N - N / 2>::type>> {};
+      struct _impl_make_index_seq {
+        using type = typename _concat_seq<typename _impl_make_index_seq<N / 2>::type,
+                                          typename _impl_make_index_seq<N - N / 2>::type>::type;
+      };
       template<>
-      struct _impl_make_index_seq<0> : Identity<IndexSequence<>> {};
+      struct _impl_make_index_seq<0> {
+        using type = IndexSequence<>;
+      };
       template<>
-      struct _impl_make_index_seq<1> : Identity<IndexSequence<0>> {};
+      struct _impl_make_index_seq<1> {
+        using type = IndexSequence<0>;
+      };
 
       template<std::size_t N>
       using MakeIndexSequence = typename _impl_make_index_seq<N>::type;
@@ -85,7 +88,9 @@ namespace pace {
       using Not = std::negation<Pred>;
 #else
       template<typename, typename Pred, typename... Preds>
-      struct _impl_all_of : Identity<Pred> {};
+      struct _impl_all_of {
+        using type = Pred;
+      };
       template<typename Pred1, typename Pred2, typename... Preds>
       struct _impl_all_of<typename std::enable_if<bool( Pred1::value )>::type, Pred1, Pred2, Preds...>
         : _impl_all_of<void, Pred2, Preds...> {};
@@ -95,7 +100,9 @@ namespace pace {
       struct AllOf<> : std::true_type {};
 
       template<typename, typename Pred, typename... Preds>
-      struct _impl_any_of : Identity<Pred> {};
+      struct _impl_any_of {
+        using type = Pred;
+      };
       template<typename Pred1, typename Pred2, typename... Preds>
       struct _impl_any_of<typename std::enable_if<!bool( Pred1::value )>::type, Pred1, Pred2, Preds...>
         : _impl_any_of<void, Pred2, Preds...> {};

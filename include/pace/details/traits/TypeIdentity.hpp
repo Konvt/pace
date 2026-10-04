@@ -1,5 +1,5 @@
-#ifndef PACE_IDENTITY
-#define PACE_IDENTITY
+#ifndef PACE_TYPE_IDENTITY
+#define PACE_TYPE_IDENTITY
 
 #include <type_traits>
 
@@ -8,16 +8,16 @@ namespace pace {
     namespace traits {
 #ifdef __cpp_lib_type_identity
       template<typename T>
-      using Identity = std::type_identity<T>;
+      using TypeIdentity = std::type_identity<T>;
       template<typename T>
-      using Identity_t = std::type_identity_t<T>;
+      using TypeIdentity_t = std::type_identity_t<T>;
 #else
       template<typename T>
-      struct Identity {
+      struct TypeIdentity {
         using type = T;
       };
       template<typename T>
-      using Identity_t = typename Identity<T>::type;
+      using TypeIdentity_t = typename TypeIdentity<T>::type;
 #endif
     }
   } // namespace details

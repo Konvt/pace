@@ -2,6 +2,7 @@
 #define PACE_OPTION_PACKET
 
 #include "../traits/TemplateSet.hpp"
+#include "../traits/TypeIdentity.hpp"
 #include "../traits/TypeSet.hpp"
 #include <type_traits>
 #include <utility>
@@ -41,14 +42,14 @@ namespace pace {
 
     namespace traits {
       template<template<typename...> class Component>
-      struct OptionOf : Identity<TypeSet<>> {};
+      struct OptionOf : TypeIdentity<TypeSet<>> {};
       template<template<typename...> class Component>
       using OptionOf_t = typename OptionOf<Component>::type;
 
 #define PACE__OPTION_REGISTER( Component, ... )     \
   template<>                                        \
   struct pace::details::traits::OptionOf<Component> \
-    : pace::details::traits::Identity<pace::details::traits::TypeSet<__VA_ARGS__>> {}
+    : pace::details::traits::TypeIdentity<pace::details::traits::TypeSet<__VA_ARGS__>> {}
 
       // Resolves and links option declarations into a list.
       template<typename ComponentList>

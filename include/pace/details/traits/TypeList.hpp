@@ -3,7 +3,6 @@
 
 #include "Algorithm.hpp"
 #include "Backport.hpp"
-#include "Identity.hpp"
 
 namespace pace {
   namespace details {
@@ -18,32 +17,42 @@ namespace pace {
       struct TypeList {};
 
       template<typename... Es, typename Element>
-      struct TpPrepend<TypeList<Es...>, Element> : Identity<TypeList<Element, Es...>> {};
+      struct TpPrepend<TypeList<Es...>, Element> {
+        using type = TypeList<Element, Es...>;
+      };
 
       template<typename... Es, typename Element>
-      struct TpAppend<TypeList<Es...>, Element> : Identity<TypeList<Es..., Element>> {};
+      struct TpAppend<TypeList<Es...>, Element> {
+        using type = TypeList<Es..., Element>;
+      };
 
       template<typename Element>
-      struct TpRemove<TypeList<>, Element> : Identity<TypeList<>> {};
+      struct TpErase<TypeList<>, Element> {
+        using type = TypeList<>;
+      };
       template<typename Head, typename... Tail, typename Element>
-      struct TpRemove<TypeList<Head, Tail...>, Element>
+      struct TpErase<TypeList<Head, Tail...>, Element>
 #if PACE__FAST_TYPEAT
-        : Combine<TpRemove_t<TpSplit_l<TypeList<Head, Tail...>>, Element>,
-                  TpRemove_t<TpSplit_r<TypeList<Head, Tail...>>, Element>>
+        : Combine<TpErase_t<TpSplit_l<TypeList<Head, Tail...>>, Element>,
+                  TpErase_t<TpSplit_r<TypeList<Head, Tail...>>, Element>>
 #else
-        : Identity<TpPrepend_t<TpRemove_t<TypeList<Tail...>, Element>, Head>>
+        : TpPrepend<TpErase_t<TypeList<Tail...>, Element>, Head>
 #endif
       {
       };
 
       template<typename... Es, template<typename...> class Collection, typename... Ts>
-      struct Combine<TypeList<Es...>, Collection<Ts...>> : Identity<TypeList<Es..., Ts...>> {};
+      struct Combine<TypeList<Es...>, Collection<Ts...>> {
+        using type = TypeList<Es..., Ts...>;
+      };
 
       template<typename Element, std::size_t N>
       struct TpFill {
       private:
         template<bool Cond, typename List>
-        struct Choice : Identity<List> {};
+        struct Choice {
+          using type = List;
+        };
         template<typename List>
         struct Choice<false, List> : TpAppend<List, Element> {};
 
@@ -56,9 +65,13 @@ namespace pace {
       using TpFill_t = typename TpFill<Element, N>::type;
 
       template<typename Element>
-      struct TpFill<Element, 0> : Identity<TypeList<>> {};
+      struct TpFill<Element, 0> {
+        using type = TypeList<>;
+      };
       template<typename Element>
-      struct TpFill<Element, 1> : Identity<TypeList<Element>> {};
+      struct TpFill<Element, 1> {
+        using type = TypeList<Element>;
+      };
 
       template<typename... Ts>
       struct TpStartsWith<TypeList<>, Ts...> : std::true_type {};

@@ -7,14 +7,14 @@ namespace pace {
   namespace details {
     namespace aspects {
       template<template<typename...> class Facade>
-      struct EntailOn : traits::Identity<traits::Relation<>> {};
+      struct EntailOn : traits::TypeIdentity<traits::Relation<>> {};
       template<template<typename...> class Facade>
       using EntailOn_t = typename EntailOn<Facade>::type;
 
 #define PACE__ENTAIL_REGISTER( Facade, ... )      \
   template<>                                      \
   struct pace::details::aspects::EntailOn<Facade> \
-    : pace::details::traits::Identity<pace::details::traits::Relation<__VA_ARGS__>> {}
+    : pace::details::traits::TypeIdentity<pace::details::traits::Relation<__VA_ARGS__>> {}
 
       // Resolves and links behaviors into a linear inheritance hierarchy.
       template<typename Config>

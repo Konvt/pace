@@ -24,8 +24,9 @@ namespace pace {
           static_assert( traits::is_config<Config>::value, "cannot fetch an invalid type" );
 
           template<typename Result, typename... Rests>
-          struct Helper : traits::Identity<Result> {
+          struct Helper {
             static_assert( !std::is_void<Result>::value, "cannot fetch a non-existent type" );
+            using type = Result;
           };
           template<std::size_t Tag1, std::size_t Tag2, typename... Rests>
           struct Helper<assets::PackagedBar<Config, Sink, Mode, Zone, Tag1>,
