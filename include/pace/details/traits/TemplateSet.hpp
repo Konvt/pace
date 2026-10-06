@@ -46,6 +46,15 @@ namespace pace {
       };
 
       template<template<typename...> class... Es, template<typename...> class T>
+      struct TmpErase<TemplateSet<T, Es...>, T> {
+        using type = TemplateSet<Es...>;
+      };
+      template<template<typename...> class E,
+               template<typename...> class... Es,
+               template<typename...> class T>
+      struct TmpErase<TemplateSet<E, Es...>, T> : TmpPushFront<TmpErase_t<TemplateSet<Es...>, T>, E> {};
+
+      template<template<typename...> class... Es, template<typename...> class T>
       struct TmpPushFront<TemplateSet<Es...>, T> {
         using type = TemplateSet<T, Es...>;
       };

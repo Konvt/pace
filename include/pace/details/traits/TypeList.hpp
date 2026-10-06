@@ -26,6 +26,58 @@ namespace pace {
         using type = TypeList<Es..., Element>;
       };
 
+      template<typename... Es, typename T>
+      struct TpInsertAt<TypeList<Es...>, sizeof...( Es ), T> {
+        using type = TypeList<Es..., T>;
+      };
+      template<typename... Es, std::size_t I, typename T>
+      struct TpInsertAt<TypeList<Es...>, I, T> {
+        static_assert( I < sizeof...( Es ), "index out of bounds" );
+#if PACE__FAST_TYPEAT
+      private:
+        template<bool GoFront, typename Front, typename Back, std::size_t Pos>
+        struct Helper;
+        template<typename... Fs, typename Back>
+        struct Helper<true, TypeList<Fs...>, Back, sizeof...( Fs )> : Combine<TypeList<Fs..., T>, Back> {};
+        template<typename... Fs, typename Back, std::size_t Pos>
+        struct Helper<true, TypeList<Fs...>, Back, Pos>
+          : Combine<typename Helper<( Pos <= sizeof...( Fs ) / 2 ),
+                                    TpSplit_l<TypeList<Fs...>>,
+                                    TpSplit_r<TypeList<Fs...>>,
+                                    Pos>::type,
+                    Back> {};
+        template<typename Front, typename... Bs>
+        struct Helper<false, Front, TypeList<Bs...>, 0> : Combine<Front, TypeList<T, Bs...>> {};
+        template<typename... Fs, typename... Bs, std::size_t Pos>
+        struct Helper<false, TypeList<Fs...>, TypeList<Bs...>, Pos>
+          : Combine<TypeList<Fs...>,
+                    typename Helper<( Pos - sizeof...( Fs ) <= sizeof...( Bs ) / 2 ),
+                                    TpSplit_l<TypeList<Bs...>>,
+                                    TpSplit_r<TypeList<Bs...>>,
+                                    Pos - sizeof...( Fs )>::type> {};
+
+      public:
+        using type = typename Helper<( I <= sizeof...( Es ) / 2 ),
+                                     TpSplit_l<TypeList<Es...>>,
+                                     TpSplit_r<TypeList<Es...>>,
+                                     I>::type;
+#else
+      private:
+        template<std::size_t Offset, typename List>
+        struct Helper;
+        template<typename U, typename... Us>
+        struct Helper<I, TypeList<U, Us...>> {
+          using type = TypeList<T, U, Us...>;
+        };
+        template<std::size_t Offset, typename U, typename... Us>
+        struct Helper<Offset, TypeList<U, Us...>>
+          : TpPrepend<typename Helper<Offset + 1, TypeList<Us...>>::type, U> {};
+
+      public:
+        using type = typename Helper<0, TypeList<Es...>>::type;
+#endif
+      };
+
       template<typename Element>
       struct TpErase<TypeList<>, Element> {
         using type = TypeList<>;
@@ -39,6 +91,54 @@ namespace pace {
         : TpPrepend<TpErase_t<TypeList<Tail...>, Element>, Head>
 #endif
       {
+      };
+
+      template<typename... Es, std::size_t I, typename T>
+      struct TpReplace<TypeList<Es...>, I, T> {
+      private:
+        template<std::size_t Offset, typename List>
+        struct Helper {
+          static_assert( Offset != Offset, "index out of bounds" );
+        };
+        template<typename U, typename... Us>
+        struct Helper<I, TypeList<U, Us...>> {
+          using type = TypeList<T, Us...>;
+        };
+        template<std::size_t Offset, typename U, typename... Us>
+        struct Helper<Offset, TypeList<U, Us...>>
+          : TpPrepend<typename Helper<Offset + 1, TypeList<Us...>>::type, U> {};
+
+      public:
+        using type = typename Helper<0, TypeList<Es...>>::type;
+      };
+
+      template<typename... Ts, std::size_t I>
+      struct Take<TypeList<Ts...>, I> {
+      private:
+        template<std::size_t Offset, typename List>
+        struct Helper {
+          static_assert( Offset != Offset, "index out of bounds" );
+        };
+        template<typename U, typename... Us>
+        struct Helper<I, TypeList<U, Us...>> {
+          using type     = TypeList<Us...>;
+          using out_type = U;
+        };
+        template<std::size_t Offset, typename U, typename... Us>
+        struct Helper<Offset, TypeList<U, Us...>> {
+        private:
+          using Result = Helper<Offset + 1, TypeList<Us...>>;
+
+        public:
+          using type     = TpPrepend_t<typename Result::type, U>;
+          using out_type = typename Result::out_type;
+        };
+
+        using Result = Helper<0, TypeList<Ts...>>;
+
+      public:
+        using type     = typename Result::type;
+        using out_type = typename Result::out_type;
       };
 
       template<typename... Es, template<typename...> class Collection, typename... Ts>

@@ -32,6 +32,70 @@ namespace pace {
 # define PACE__FAST_TYPEAT 1
 #endif
 
+      template<typename Collection, typename Element>
+      struct TpContains;
+
+      template<typename Collection, typename T>
+      struct TpPrepend;
+      template<typename Collection, typename T>
+      using TpPrepend_t = typename TpPrepend<Collection, T>::type;
+
+      template<typename Collection, typename Element>
+      struct TpAppend;
+      template<typename Collection, typename Element>
+      using TpAppend_t = typename TpAppend<Collection, Element>::type;
+
+      template<typename Collection, std::size_t I, typename Element>
+      struct TpInsertAt;
+      template<typename Collection, std::size_t I, typename Element>
+      using TpInsertAt_t = typename TpInsertAt<Collection, I, Element>::type;
+
+      template<typename Collection, typename Element>
+      struct TpErase;
+      template<typename Collection, typename Element>
+      using TpErase_t = typename TpErase<Collection, Element>::type;
+
+      template<typename Collection, std::size_t I, typename T>
+      struct TpReplace;
+      template<typename Collection, std::size_t I, typename T>
+      using TpReplace_t = typename TpReplace<Collection, I, T>::type;
+
+      // Checks if a List starts with the specified type sequence.
+      template<typename List, typename... Elements>
+      struct TpStartsWith;
+
+      template<typename Collection, template<typename...> class Element>
+      struct TmpContains;
+
+      // Inserts an element while preserving the collection's semantics (e.g. uniqueness for sets).
+      template<typename Collection, template<typename...> class Element>
+      struct TmpPrepend;
+      template<typename Collection, template<typename...> class Element>
+      using TmpPrepend_t = typename TmpPrepend<Collection, Element>::type;
+
+      // Inserts an element while preserving the collection's semantics (e.g. uniqueness for sets).
+      template<typename Collection, template<typename...> class Element>
+      struct TmpAppend;
+      template<typename Collection, template<typename...> class Element>
+      using TmpAppend_t = typename TmpAppend<Collection, Element>::type;
+
+      template<typename Collection, template<typename...> class Element>
+      struct TmpErase;
+      template<typename Collection, template<typename...> class Element>
+      using TmpErase_t = typename TmpErase<Collection, Element>::type;
+
+      // Unconditionally inserts an element at the front, without enforcing collection semantics.
+      template<typename Collection, template<typename...> class T>
+      struct TmpPushFront;
+      template<typename Collection, template<typename...> class Element>
+      using TmpPushFront_t = typename TmpPushFront<Collection, Element>::type;
+
+      // Unconditionally inserts an element at the back, without enforcing collection semantics.
+      template<typename Collection, template<typename...> class T>
+      struct TmpPushBack;
+      template<typename Collection, template<typename...> class Element>
+      using TmpPushBack_t = typename TmpPushBack<Collection, Element>::type;
+
       template<template<typename...> class Target, template<typename...> class... Tmps>
       struct TmpIndexIn {
       private:
@@ -59,58 +123,16 @@ namespace pace {
         using type = To<Tmps...>;
       };
 
-      template<typename Collection, typename Element>
-      struct TpContains;
-
-      template<typename Collection, typename T>
-      struct TpPrepend;
-      template<typename Collection, typename T>
-      using TpPrepend_t = typename TpPrepend<Collection, T>::type;
-
-      template<typename Collection, typename Element>
-      struct TpAppend;
-      template<typename Collection, typename Element>
-      using TpAppend_t = typename TpAppend<Collection, Element>::type;
-
-      template<typename Collection, typename Element>
-      struct TpErase;
-      template<typename Collection, typename Element>
-      using TpErase_t = typename TpErase<Collection, Element>::type;
-
-      // Checks if a List starts with the specified type sequence.
-      template<typename List, typename... Elements>
-      struct TpStartsWith;
-
-      template<typename Collection, template<typename...> class Element>
-      struct TmpContains;
-
-      // Inserts an element while preserving the collection's semantics (e.g. uniqueness for sets).
-      template<typename Collection, template<typename...> class Element>
-      struct TmpPrepend;
-      template<typename Collection, template<typename...> class Element>
-      using TmpPrepend_t = typename TmpPrepend<Collection, Element>::type;
-
-      // Inserts an element while preserving the collection's semantics (e.g. uniqueness for sets).
-      template<typename Collection, template<typename...> class Element>
-      struct TmpAppend;
-      template<typename Collection, template<typename...> class Element>
-      using TmpAppend_t = typename TmpAppend<Collection, Element>::type;
-
-      // Unconditionally inserts an element at the front, without enforcing collection semantics.
-      template<typename Collection, template<typename...> class T>
-      struct TmpPushFront;
-      template<typename Collection, template<typename...> class Element>
-      using TmpPushFront_t = typename TmpPushFront<Collection, Element>::type;
-
-      // Unconditionally inserts an element at the back, without enforcing collection semantics.
-      template<typename Collection, template<typename...> class T>
-      struct TmpPushBack;
-      template<typename Collection, template<typename...> class Element>
-      using TmpPushBack_t = typename TmpPushBack<Collection, Element>::type;
-
       // Check whether the elements in the collection are unique.
       template<typename Collection>
       struct is_unique;
+
+      template<typename Collection, std::size_t I>
+      struct Take;
+      template<typename Collection, std::size_t I>
+      using Take_t = typename Take<Collection, I>::type;
+      template<typename Collection, std::size_t I>
+      using Take_ot = typename Take<Collection, I>::out_type;
 
       // Combines two collections while preserving the first collection's semantics.
       template<typename FirstCollection, typename SecondCollection>

@@ -1,3 +1,11 @@
+Experimental HAMT-backed C3 implementation.
+
+This implementation is experimental and has not yet been benchmarked against the baseline implementation.
+
+The goal is to investigate whether indexed type-level lookup can improve compile-time performance for sufficiently complex inheritance graphs.
+
+---
+
 [中文文档见此](docs/README.zh.md)。
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Konvt/pace)
