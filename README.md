@@ -1,8 +1,12 @@
 Experimental HAMT-backed C3 implementation.
 
-This implementation is experimental and has not yet been benchmarked against the baseline implementation.
+> [!CAUTION]
+>
+> This experiment did not demonstrate a decisive advantage over the trivial implementation within the scope of this project.
+>
+> A similar optimization may be reconsidered with C++26 static reflection.
 
-The goal is to investigate whether indexed type-level lookup can improve compile-time performance for sufficiently complex inheritance graphs.
+The goal was to investigate whether indexed type-level lookup could improve compile-time performance for sufficiently complex inheritance graphs.
 
 ---
 
