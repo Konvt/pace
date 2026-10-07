@@ -53,7 +53,7 @@ namespace pace {
         pace::details::traits::TmpPushFront_t<pace::details::traits::C3_t<__VA_ARGS__>, Node>> {}
 
       // The implementation of the "merge" function in the C3 algorithm.
-      template<typename... VBLists>
+      template<typename /* Relation<...> */... VBLists>
       struct C3Merge {
       private:
         template<typename /* Relation<...> */ VBs,
@@ -67,7 +67,7 @@ namespace pace {
                  std::size_t V>
         struct ExtendWith<Relation<Vs...>, NaturalList<Cs...>, K, V> {
         private:
-          template<typename VBs, typename Counts>
+          template<typename /* Relation<...> */ VBs, typename /* NaturalList<...> */ Counts>
           struct Helper;
           template<template<typename...> class... VBs, std::size_t Count, std::size_t... Counts>
           struct Helper<Relation<K, VBs...>, NaturalList<Count, Counts...>> {
@@ -87,7 +87,9 @@ namespace pace {
             using tail_counts    = NatPrepend_t<typename Result::tail_counts, Count>;
           };
 
-          template<bool Cond, typename Candidates, typename TailCounts>
+          template<bool Cond,
+                   typename /* Relation<...> */ Candidates,
+                   typename /* NaturalList<...> */ TailCounts>
           struct Choice : Helper<Candidates, TailCounts> {};
           template<typename Candidates, typename TailCounts>
           struct Choice<false, Candidates, TailCounts> {
@@ -138,7 +140,7 @@ namespace pace {
 
         template<typename /* Relation<...> */ VBs,
                  typename /* NaturalList<...> */ Nums,
-                 typename... MergedLists>
+                 typename /* Relation<...> */... MergedLists>
         struct CollectCounter {
           using candidate_list = VBs;
           using tail_counts    = Nums;
@@ -195,7 +197,7 @@ namespace pace {
         struct TakeFeasible<Relation<VB, VBs...>, NaturalList<0, Counts...>> {
           using candidate_list = Relation<VBs...>;
           using tail_counts    = NaturalList<Counts...>;
-          using feasible_type  = Relation<VB>;
+          using feasible_type  = TemplateList<VB>;
         };
         template<template<typename...> class VB,
                  template<typename...> class... VBs,
@@ -213,22 +215,28 @@ namespace pace {
 
         //////////////////////////////////////////////////
 
-        template<typename TakenCandidate, typename VBs, typename Nums, typename MergedLists>
-        struct DropCandidate;
-        template<template<typename...> class Candidate, typename VBs, typename Nums>
-        struct DropCandidate<Relation<Candidate>, VBs, Nums, TypeList<>> {
+        template<typename /* TemplateList<> */ Candidate,
+                 typename /* Relation<...> */ VBs,
+                 typename /* NaturalList<...> */ Nums,
+                 typename /* TypeList<...> */ MergedLists>
+        struct DropCandidate {
+          // static_assert( std::is_same<MergedLists, TypeList<>>::value );
+
           using candidate_list = VBs;
           using tail_counts    = Nums;
           using merged_list    = TypeList<>;
         };
         template<template<typename...> class Candidate,
-                 typename VBs,
-                 typename Nums,
+                 typename /* Relation<...> */ VBs,
+                 typename /* NaturalList<...> */ Nums,
                  template<typename...> class... Rests,
-                 typename... MergedLists>
-        struct DropCandidate<Relation<Candidate>, VBs, Nums, TypeList<Relation<Rests...>, MergedLists...>> {
+                 typename /* Relation<...> */... MergedLists>
+        struct DropCandidate<TemplateList<Candidate>,
+                             VBs,
+                             Nums,
+                             TypeList<Relation<Rests...>, MergedLists...>> {
         private:
-          using Result = DropCandidate<Relation<Candidate>, VBs, Nums, TypeList<MergedLists...>>;
+          using Result = DropCandidate<TemplateList<Candidate>, VBs, Nums, TypeList<MergedLists...>>;
 
         public:
           using candidate_list = typename Result::candidate_list;
@@ -236,18 +244,18 @@ namespace pace {
           using merged_list    = TpPrepend_t<typename Result::merged_list, Relation<Rests...>>;
         };
         template<template<typename...> class Candidate,
-                 typename VBs,
-                 typename Nums,
+                 typename /* Relation<...> */ VBs,
+                 typename /* NaturalList<...> */ Nums,
                  template<typename...> class NextHead,
                  template<typename...> class... Rests,
-                 typename... MergedLists>
-        struct DropCandidate<Relation<Candidate>,
+                 typename /* Relation<...> */... MergedLists>
+        struct DropCandidate<TemplateList<Candidate>,
                              VBs,
                              Nums,
                              TypeList<Relation<Candidate, NextHead, Rests...>, MergedLists...>> {
         private:
           using Decrement = FetchSub<VBs, Nums, NextHead>;
-          using Result    = DropCandidate<Relation<Candidate>,
+          using Result    = DropCandidate<TemplateList<Candidate>,
                                           typename Decrement::candidate_list,
                                           typename Decrement::tail_counts,
                                           TypeList<MergedLists...>>;
@@ -257,26 +265,39 @@ namespace pace {
           using tail_counts    = typename Result::tail_counts;
           using merged_list    = TpPrepend_t<typename Result::merged_list, Relation<NextHead, Rests...>>;
         };
-        template<template<typename...> class Candidate, typename VBs, typename Nums, typename... MergedLists>
-        struct DropCandidate<Relation<Candidate>, VBs, Nums, TypeList<Relation<Candidate>, MergedLists...>>
-          : DropCandidate<Relation<Candidate>, VBs, Nums, TypeList<MergedLists...>> {};
+        template<template<typename...> class Candidate,
+                 typename /* Relation<...> */ VBs,
+                 typename /* NaturalList<...> */ Nums,
+                 typename /* Relation<...> */... MergedLists>
+        struct DropCandidate<TemplateList<Candidate>,
+                             VBs,
+                             Nums,
+                             TypeList<Relation<Candidate>, MergedLists...>>
+          : DropCandidate<TemplateList<Candidate>, VBs, Nums, TypeList<MergedLists...>> {};
 
         //////////////////////////////////////////////////
 
-        template<typename Sorted, typename VBs, typename Nums, typename MergedLists>
-        struct MakeMRO;
-        template<typename Sorted, typename VBs, typename Nums>
-        struct MakeMRO<Sorted, VBs, Nums, TypeList<>> {
+        template<typename /* Relation<...> */ Sorted,
+                 typename /* Relation<...> */ VBs,
+                 typename /* NaturalList<...> */ Nums,
+                 typename /* TypeList<...> */ MergedLists>
+        struct MakeMRO {
+          // static_assert( std::is_same<MergedLists, TypeList<>>::value );
+
           using type = Sorted;
         };
-        template<typename Sorted, typename VBs, typename Nums, typename... MergedLists>
-        struct MakeMRO<Sorted, VBs, Nums, TypeList<MergedLists...>> {
+        template<typename /* Relation<...> */ Sorted,
+                 typename /* Relation<...> */ VBs,
+                 typename /* NaturalList<...> */ Nums,
+                 typename /* Relation<...> */ FirstList,
+                 typename /* Relation<...> */... OtherLists>
+        struct MakeMRO<Sorted, VBs, Nums, TypeList<FirstList, OtherLists...>> {
         private:
           using Feasible = TakeFeasible<VBs, Nums>;
           using Dropped  = DropCandidate<typename Feasible::feasible_type,
                                          typename Feasible::candidate_list,
                                          typename Feasible::tail_counts,
-                                         TypeList<MergedLists...>>;
+                                         TypeList<FirstList, OtherLists...>>;
 
         public:
           using type = typename MakeMRO<Concat_t<Sorted, typename Feasible::feasible_type>,
@@ -293,7 +314,7 @@ namespace pace {
                                       typename Mapping::tail_counts,
                                       TypeList<VBLists...>>::type;
       };
-      template<typename... VBLists>
+      template<typename /* Relation<...> */... VBLists>
       using C3Merge_t = typename C3Merge<VBLists...>::type;
 
       template<template<typename...> class VB, template<typename...> class... VBs>
@@ -308,18 +329,18 @@ namespace pace {
 
        * It relies on the template `InheritOrder` and `c3` classes to work.
        */
-      template<typename VBs>
+      template<typename /* Relation<...> */ VBs>
       struct LI {
       private:
-        template<typename Linearized, typename RBC, typename... Args>
-        struct Helper;
-        template<typename Linearized, typename RBC, typename... Args>
-        using Helper_t = typename Helper<Linearized, RBC, Args...>::type;
+        template<typename /* Relation<...> */ Order, typename RBC, typename... Args>
+        struct Helper {
+          // static_assert( std::is_same<Linearized, Relation<>>::value );
 
-        template<typename RBC, typename... Args>
-        struct Helper<Relation<>, RBC, Args...> {
           using type = RBC;
         };
+        template<typename /* Relation<...> */ Order, typename RBC, typename... Args>
+        using Helper_t = typename Helper<Order, RBC, Args...>::type;
+
         template<template<typename...> class Head,
                  template<typename...> class... Tail,
                  typename RBC,
@@ -340,9 +361,9 @@ namespace pace {
         using type = typename LI<Relation<VB, VBs...>>::template type<RBC, Args...>;
       };
 
-      template<typename Linearized, template<typename...> class Target>
+      template<typename /* template<...> */ Linearized, template<typename...> class Target>
       struct BaseOf;
-      template<typename Linearized, template<typename...> class Target>
+      template<typename /* template<...> */ Linearized, template<typename...> class Target>
       using BaseOf_t = typename BaseOf<Linearized, Target>::type;
 
       template<template<typename...> class Target, typename Base, typename... Rest>
@@ -350,7 +371,7 @@ namespace pace {
         using type = Target<Base, Rest...>;
       };
       template<template<typename...> class Linearized,
-               typename Base,
+               typename /* template<...> */ Base,
                typename... Rest,
                template<typename...> class Target>
       struct BaseOf<Linearized<Base, Rest...>, Target> : BaseOf<Base, Target> {};
