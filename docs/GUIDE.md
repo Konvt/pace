@@ -224,7 +224,7 @@ pace::config::Line config2;
 config2.quota( 100 )
   .speed_unit( { "B/s", "kiB/s", "MiB/s", "GiB/s" } )
   .magnitude( 1024 )
-  .info_forecolor( "#39C5BB" );
+  .info_forecolor( "#66CCFF" );
 
 auto config3 = config2; // variadic template parameters can still be used after construction
 config3.with( pace::option::Prefix( "Do something" ), pace::option::PrefixForecolor( 0xFFE211 ) );

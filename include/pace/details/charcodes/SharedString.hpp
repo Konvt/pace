@@ -2854,8 +2854,8 @@ namespace pace {
       // For now, we have only used the char type.
       using SharedString = BasicSharedString<char>;
 
-      PACE__FORCEINLINE PACE__CXX20_CNSTXPR SharedString operator""_cow( const char* str,
-                                                                         std::size_t len ) noexcept
+      PACE__FORCEINLINE PACE__CXX20_CNSTXPR SharedString operator""_ss( const char* str,
+                                                                        std::size_t len ) noexcept
       { return { make_literal( str, len ) }; }
     } // namespace charcodes
   } // namespace details

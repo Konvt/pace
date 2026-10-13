@@ -23,11 +23,10 @@ namespace pace {
           const auto first_byte = raw_u8_str.front();
           auto validator        = [=]( std::size_t expected_len ) -> char32_t {
             if ( expected_len > raw_u8_str.size() )
-              PACE__UNLIKELY throw exception::InvalidArgument( "pace: incomplete UTF-8 sequence"_cow );
+              PACE__UNLIKELY throw exception::InvalidArgument( "pace: incomplete UTF-8 sequence"_ss );
             for ( std::size_t i = 1; i < expected_len; ++i ) {
               if ( ( raw_u8_str[i] & 0xC0 ) != 0x80 )
-                PACE__UNLIKELY throw exception::InvalidArgument(
-                  "pace: invalid UTF-8 continuation byte"_cow );
+                PACE__UNLIKELY throw exception::InvalidArgument( "pace: invalid UTF-8 continuation byte"_ss );
             }
 
             char32_t ret, overlong;
@@ -49,7 +48,7 @@ namespace pace {
             default: utils::unreachable();
             }
             if ( ret < overlong )
-              PACE__UNLIKELY throw exception::InvalidArgument( "pace: overlong UTF-8 sequence"_cow );
+              PACE__UNLIKELY throw exception::InvalidArgument( "pace: overlong UTF-8 sequence"_ss );
             return ret;
           };
 
@@ -60,15 +59,15 @@ namespace pace {
           else if ( ( first_byte & 0xF0 ) == 0xE0 ) {
             const auto codepoint = validator( 3 );
             if ( codepoint >= 0xD800 && codepoint <= 0xDFFF )
-              PACE__UNLIKELY throw exception::InvalidArgument( "pace: UTF-8 surrogate code point"_cow );
+              PACE__UNLIKELY throw exception::InvalidArgument( "pace: UTF-8 surrogate code point"_ss );
             return { codepoint, 3 };
           } else if ( ( first_byte & 0xF8 ) == 0xF0 ) {
             const auto codepoint = validator( 4 );
             if ( codepoint > 0x10FFFF )
-              PACE__UNLIKELY throw exception::InvalidArgument( "pace: UTF-8 code point out of range"_cow );
+              PACE__UNLIKELY throw exception::InvalidArgument( "pace: UTF-8 code point out of range"_ss );
             return { codepoint, 4 };
           } else
-            PACE__UNLIKELY throw exception::InvalidArgument( "pace: illegal UTF-8 leading byte"_cow );
+            PACE__UNLIKELY throw exception::InvalidArgument( "pace: illegal UTF-8 leading byte"_ss );
         }
 
         PACE__NODISCARD static PACE__CXX20_CNSTXPR U8Char from_bytes( charcodes::StringView bytes )
