@@ -787,7 +787,7 @@ The section between the `Starting` and `Ending` elements is called `SweepPlot`, 
 The behavior of this part in `pace::SweepBar` is consistent with that of `pace::ProgressBar`. Refer to the previous chapter for details.
 
 ## FlowBar
-In terms of runtime behavior, `pace::SweepBar` does not always require configuring the task count. Instead, you can directly call `tick` to start running immediately.
+In terms of runtime behavior, `pace::FlowBar` does not always require configuring the task count. Instead, you can directly call `tick` to start running immediately.
 ### Element composition
 `FlowBar` consists of the following elements:
 
@@ -1343,10 +1343,10 @@ struct pace::config::Provider<AnotherConfig, pace::option::Projection> {
   }
 };
 
-// In C++14 and later, a lambda-based variable template provider_v can be used
+// In C++14 and later, a lambda-based variable template provider can be used
 // In this case, there is no need to specialize the entire Provider type
 template<>
-auto pace::config::provider_v<AnotherConfig, pace::option::Prefix> =
+auto pace::config::provider<AnotherConfig, pace::option::Prefix> =
   []() -> pace::option::Prefix { return { "sample" }; };
 
 int main()
@@ -1477,18 +1477,18 @@ struct pace::details::aspects::EntailOn<Clock> {
 using AnotherConfig = pace::prefab::BasicConfig<pace::facade::Elapsed, pace::facade::ETA, Clock>;
 
 template<>
-auto pace::config::provider_v<AnotherConfig, pace::option::Colored> =
+auto pace::config::provider<AnotherConfig, pace::option::Colored> =
   []() { return pace::option::Colored( true ); };
 template<>
-auto pace::config::provider_v<AnotherConfig, pace::option::Divider> =
+auto pace::config::provider<AnotherConfig, pace::option::Divider> =
   []() { return pace::option::Divider( " | " ); };
 template<>
-auto pace::config::provider_v<AnotherConfig, ClockColor> =
+auto pace::config::provider<AnotherConfig, ClockColor> =
   []() -> pace::details::console::TrueColor { return { 0xFF8899 }; };
 template<>
-auto pace::config::provider_v<AnotherConfig, TimeFormat> = []() -> TimeFormat { return { true }; };
+auto pace::config::provider<AnotherConfig, TimeFormat> = []() -> TimeFormat { return { true }; };
 template<>
-auto pace::config::provider_v<AnotherConfig, pace::option::Projection> =
+auto pace::config::provider<AnotherConfig, pace::option::Projection> =
   []() { return AnotherConfig::bake( pace::option::Except<>() ); };
 
 int main()

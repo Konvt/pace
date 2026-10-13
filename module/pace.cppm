@@ -49,7 +49,7 @@ export namespace pace {
 
     using pace::config::provide_for;
     using pace::config::Provider;
-    using pace::config::provider_v;
+    using pace::config::provider;
 
     using pace::config::Block;
     using pace::config::Flow;

@@ -19,7 +19,7 @@ namespace pace {
     // Allows providing a lambda that returns a default values directly
     // instead of specializing the entire Provider.
     template<typename Config, typename Option>
-    PACE__CXX17_INLINE constexpr const auto provider_v = Provider<Config, Option>::provide;
+    PACE__CXX17_INLINE constexpr const auto provider = Provider<Config, Option>::provide;
 #endif
 
 #define PACE__PROVIDE_FOR( Config, Option, Defaults )                                    \
@@ -35,18 +35,18 @@ namespace pace {
     template<typename Config, typename Option>
     constexpr Option provide_for()
 #ifdef __cpp_variable_templates
-      noexcept( noexcept( config::provider_v<Config, Option>() ) )
+      noexcept( noexcept( config::provider<Config, Option>() ) )
     {
-      static_assert( std::is_constructible<Option, decltype( config::provider_v<Config, Option>() )>::value,
-                     "the provider_v specialization must be an invocable object" );
-      return config::provider_v<Config, Option>();
+      static_assert( std::is_constructible<Option, decltype( config::provider<Config, Option>() )>::value,
+                     "the provider specialization must be an invocable object" );
+      return config::provider<Config, Option>();
     }
 #else
       noexcept( noexcept( config::Provider<Config, Option>::provide() ) )
     {
       static_assert(
         std::is_constructible<Option, decltype( config::Provider<Config, Option>::provide() )>::value,
-        "the provider_v::provide must be an invocable object" );
+        "the provider::provide must be an invocable object" );
       return config::Provider<Config, Option>::provide();
     }
 #endif

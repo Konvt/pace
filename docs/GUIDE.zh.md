@@ -770,7 +770,7 @@ pace::option::InfoBackcolor;    // 修改 Divider、Percent、Counter、Speed、
 `pace::SweepBar` 的这部分行为表现与 `pace::ProgressBar` 一致，可以参阅之前的章节。
 
 ## FlowBar
-在运行期行为上，`pace::SweepBar` 不需要总是配置任务数量，反之可以直接调用 `tick` 立即开始运行。
+在运行期行为上，`pace::FlowBar` 不需要总是配置任务数量，反之可以直接调用 `tick` 立即开始运行。
 ### 元素构成
 `FlowBar` 由以下几种元素组成：
 
@@ -1315,10 +1315,10 @@ struct pace::config::Provider<AnotherConfig, pace::option::Projection> {
   }
 };
 
-// 如果使用 C++14 及之后的标准，可以利用 lambda 特化变量模板 provider_v
+// 如果使用 C++14 及之后的标准，可以利用 lambda 特化变量模板 provider
 // 此时不需要特化整个 Provider 类型
 template<>
-auto pace::config::provider_v<AnotherConfig, pace::option::Prefix> =
+auto pace::config::provider<AnotherConfig, pace::option::Prefix> =
   []() -> pace::option::Prefix { return { "sample" }; };
 
 int main()
@@ -1450,18 +1450,18 @@ struct pace::details::aspects::EntailOn<Clock> {
 using AnotherConfig = pace::prefab::BasicConfig<pace::facade::Elapsed, pace::facade::ETA, Clock>;
 
 template<>
-auto pace::config::provider_v<AnotherConfig, pace::option::Colored> =
+auto pace::config::provider<AnotherConfig, pace::option::Colored> =
   []() { return pace::option::Colored( true ); };
 template<>
-auto pace::config::provider_v<AnotherConfig, pace::option::Divider> =
+auto pace::config::provider<AnotherConfig, pace::option::Divider> =
   []() { return pace::option::Divider( " | " ); };
 template<>
-auto pace::config::provider_v<AnotherConfig, ClockColor> =
+auto pace::config::provider<AnotherConfig, ClockColor> =
   []() -> pace::details::console::TrueColor { return { 0xFF8899 }; };
 template<>
-auto pace::config::provider_v<AnotherConfig, TimeFormat> = []() -> TimeFormat { return { true }; };
+auto pace::config::provider<AnotherConfig, TimeFormat> = []() -> TimeFormat { return { true }; };
 template<>
-auto pace::config::provider_v<AnotherConfig, pace::option::Projection> =
+auto pace::config::provider<AnotherConfig, pace::option::Projection> =
   []() { return AnotherConfig::bake( pace::option::Except<>() ); };
 
 int main()
