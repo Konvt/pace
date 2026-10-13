@@ -24,7 +24,7 @@ namespace pace {
                        "the config type must derive from RenderRule" );
         using MostDerived = Derived<Soul, Sink, Mode, Zone>;
 
-        virtual void do_halt( bool forced = false ) noexcept
+        virtual void do_halt( bool forced = false )
         {
           auto& executor = render::Renderer<Sink>::itself();
           PACE__ASSERT( executor.empty() == false );
@@ -124,6 +124,9 @@ namespace pace {
               state_.store( Phase::Stop, std::memory_order_relaxed );
             else
               state_.store( Phase::Finish, std::memory_order_release );
+            // do_halt() throws an exception only when Forced is false;
+            // if an exception is thrown, the state is guaranteed not to be in Phase::Stop,
+            //  so the object can still be properly reset on the next call.
             this->do_halt( Forced );
           } else
             state_.store( Phase::Stop, std::memory_order_relaxed );

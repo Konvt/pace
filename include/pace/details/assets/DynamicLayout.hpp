@@ -245,14 +245,10 @@ namespace pace {
               eliminate();
               items_.emplace_back( item );
             }
-            // an optimization, used to use a lighter rendering method when in Sync mode.
-            if PACE__CXX17_CNSTXPR ( Mode == Policy::Sync )
-              executor.template commit<Mode>();
-            else
-              executor.template trigger<Mode>();
+            executor.template trigger<Mode>();
           }
         }
-        void pop( const Indicator* item, bool forced = false ) noexcept
+        void pop( const Indicator* item, bool forced = false )
         {
           auto& executor = render::Renderer<Sink>::itself();
           PACE__ASSERT( executor.empty() == false );

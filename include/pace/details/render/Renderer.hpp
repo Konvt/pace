@@ -52,11 +52,8 @@ namespace pace {
                             ├─ activate<Async>() → Warmup → Loop
                             │                                └ trigger<Async>() → Warmup
                             │
-                            ├─ activate<Signal>() → Primed → Pulse
-                            │                                  └ trigger<Signal>() → Primed
-                            │
-                            └─ activate<Sync>() → Idle
-                                                   └ trigger<Sync>() → Shot → Idle
+                            └─ activate<Signal>() → Primed → Pulse
+                                                               └ trigger<Signal>() → Primed
 
           any state
             └─ abort() → Asleep → Dormant
@@ -64,7 +61,7 @@ namespace pace {
           any state
             └─ drop() → Dead
         ***********************************************************/
-        enum class Phase : std::uint8_t { Dead, Asleep, Dormant, Warmup, Loop, Primed, Pulse, Shot, Idle };
+        enum class Phase : std::uint8_t { Dead, Asleep, Dormant, Warmup, Loop, Primed, Pulse };
         std::atomic<Phase> state_ { Phase::Dead };
 
         void launch() &
@@ -141,26 +138,6 @@ namespace pace {
                           && state_.load( std::memory_order_relaxed ) == Phase::Pulse );
                 } break;
 
-                case Phase::Shot: {
-                  std::lock_guard<std::mutex> lock { res_mtx_ };
-                  task_();
-                  concurrent::atomic_commit_all( state_,
-                                                 Phase::Shot,
-                                                 Phase::Idle,
-                                                 std::memory_order_release );
-                }
-                  PACE__FALLTHROUGH;
-                case Phase::Idle: {
-#ifdef __cpp_lib_atomic_wait
-                  state_.wait( Phase::Idle, std::memory_order_relaxed );
-#else
-                  std::unique_lock<std::mutex> lock { sched_mtx_ };
-                  cond_var_.wait( lock, [this]() noexcept {
-                    return state_.load( std::memory_order_relaxed ) != Phase::Idle;
-                  } );
-#endif
-                } break;
-
                 default: utils::unreachable();
                 }
               }
@@ -219,47 +196,40 @@ namespace pace {
         template<Policy Mode>
         void activate() &
         { // This method is NOT designed for concurrent calls.
-          if ( state_.load( std::memory_order_acquire ) == Phase::Dead ) {
-            if ( runner_.get_id() == std::thread::id() )
-              launch();
-            else {
-              shutdown();
-              launch();
-            }
-          }
-
-          PACE__ASSERT( state_ != Phase::Dead );
-          PACE__ASSERT( task_ != nullptr );
-          // The operations below are all thread safe without locking.
           box_.rethrow();
-          PACE__CXX17_CNSTXPR const auto desired = []() noexcept {
-            if PACE__CXX17_CNSTXPR ( Mode == Policy::Async )
-              return Phase::Warmup;
-            else if PACE__CXX17_CNSTXPR ( Mode == Policy::Signal )
-              return Phase::Primed;
-            else if PACE__CXX17_CNSTXPR ( Mode == Policy::Sync )
-              return Phase::Idle;
-          };
-          auto expected = Phase::Dormant;
-          if ( state_.compare_exchange_strong( expected, desired(), std::memory_order_release ) ) {
-            quota_.store( 0, std::memory_order_relaxed );
-            concurrent::atomic_notify_one( state_ );
-            if PACE__CXX17_CNSTXPR ( Mode != Policy::Sync ) {
+          if PACE__CXX17_CNSTXPR ( Mode == Policy::Sync ) {
+            std::lock_guard<std::mutex> lock { res_mtx_ };
+            task_();
+          } else {
+            if ( state_.load( std::memory_order_acquire ) == Phase::Dead ) {
+              if ( runner_.get_id() == std::thread::id() )
+                launch();
+              else {
+                shutdown();
+                launch();
+              }
+            }
+            PACE__ASSERT( state_ != Phase::Dead );
+            PACE__ASSERT( task_ != nullptr );
+            constexpr const Phase desired = []() PACE__CXX17_CNSTXPR noexcept {
+              if PACE__CXX17_CNSTXPR ( Mode == Policy::Async )
+                return Phase::Warmup;
+              else if PACE__CXX17_CNSTXPR ( Mode == Policy::Signal )
+                return Phase::Primed;
+            }();
+            auto expected = Phase::Dormant;
+            if ( state_.compare_exchange_strong( expected, desired, std::memory_order_release ) ) {
+              quota_.store( 0, std::memory_order_relaxed );
+              concurrent::atomic_notify_one( state_ );
 #ifdef __cpp_lib_atomic_wait
-              state_.wait( desired(), std::memory_order_relaxed );
+              state_.wait( desired, std::memory_order_relaxed );
 #else
               {
                 std::lock_guard<std::mutex> lock { sched_mtx_ };
                 cond_var_.notify_one();
               }
               concurrent::spin_wait(
-                [&]() noexcept { return state_.load( std::memory_order_relaxed ) != desired(); } );
-#endif
-            } else {
-              std::lock_guard<std::mutex> lock { res_mtx_ };
-              task_();
-#ifndef __cpp_lib_atomic_wait
-              cond_var_.notify_one();
+                [&]() noexcept { return state_.load( std::memory_order_relaxed ) != desired; } );
 #endif
             }
           }
@@ -289,44 +259,47 @@ namespace pace {
         template<Policy Mode>
         void trigger() & noexcept
         { // This method is designed for concurrent calls.
+          if PACE__CXX17_CNSTXPR ( Mode == Policy::Sync ) {
+            std::lock_guard<std::mutex> lock { res_mtx_ };
+            task_();
+          } else {
 #ifdef __cpp_lib_atomic_wait
-          const auto state_transfer = [this]( Phase expected, Phase desired ) noexcept {
-            if ( concurrent::atomic_commit_one( state_, expected, desired, std::memory_order_acquire ) )
-              state_.wait( desired, std::memory_order_relaxed );
-          };
-          if PACE__CXX17_CNSTXPR ( Mode == Policy::Async )
-            state_transfer( Phase::Loop, Phase::Warmup );
-          else if PACE__CXX17_CNSTXPR ( Mode == Policy::Signal ) {
-            quota_.fetch_add( 1, std::memory_order_relaxed );
-            auto expected = Phase::Pulse;
-            if ( state_.compare_exchange_strong( expected, Phase::Primed, std::memory_order_relaxed ) ) {
-              quota_.notify_one();
-              state_.wait( Phase::Primed, std::memory_order_relaxed );
-            }
-          } else if PACE__CXX17_CNSTXPR ( Mode == Policy::Sync )
-            state_transfer( Phase::Idle, Phase::Shot );
-#else
-          const auto state_transfer = [this]( Phase expected, Phase desired ) noexcept {
-            if ( state_.compare_exchange_strong( expected, desired, std::memory_order_acquire ) ) {
-              {
-                std::lock_guard<std::mutex> lock { sched_mtx_ };
-                cond_var_.notify_one();
+            const auto state_transfer = [this]( Phase expected, Phase desired ) noexcept {
+              if ( concurrent::atomic_commit_one( state_, expected, desired, std::memory_order_acquire ) )
+                state_.wait( desired, std::memory_order_relaxed );
+            };
+            if PACE__CXX17_CNSTXPR ( Mode == Policy::Async )
+              state_transfer( Phase::Loop, Phase::Warmup );
+            else if PACE__CXX17_CNSTXPR ( Mode == Policy::Signal ) {
+              quota_.fetch_add( 1, std::memory_order_relaxed );
+              auto expected = Phase::Pulse;
+              if ( state_.compare_exchange_strong( expected, Phase::Primed, std::memory_order_relaxed ) ) {
+                quota_.notify_one();
+                state_.wait( Phase::Primed, std::memory_order_relaxed );
               }
-              concurrent::spin_wait(
-                [&]() noexcept { return state_.load( std::memory_order_relaxed ) != desired; } );
             }
-          };
-          if PACE__CXX17_CNSTXPR ( Mode == Policy::Async ) {
-            auto expected = Phase::Loop;
-            if ( state_.compare_exchange_strong( expected, Phase::Warmup, std::memory_order_relaxed ) )
-              concurrent::spin_wait(
-                [this]() noexcept { return state_.load( std::memory_order_relaxed ) != Phase::Warmup; } );
-          } else if PACE__CXX17_CNSTXPR ( Mode == Policy::Signal ) {
-            quota_.fetch_add( 1, std::memory_order_relaxed );
-            state_transfer( Phase::Pulse, Phase::Primed );
-          } else if PACE__CXX17_CNSTXPR ( Mode == Policy::Sync )
-            state_transfer( Phase::Idle, Phase::Shot );
+#else
+            const auto state_transfer = [this]( Phase expected, Phase desired ) noexcept {
+              if ( state_.compare_exchange_strong( expected, desired, std::memory_order_acquire ) ) {
+                {
+                  std::lock_guard<std::mutex> lock { sched_mtx_ };
+                  cond_var_.notify_one();
+                }
+                concurrent::spin_wait(
+                  [&]() noexcept { return state_.load( std::memory_order_relaxed ) != desired; } );
+              }
+            };
+            if PACE__CXX17_CNSTXPR ( Mode == Policy::Async ) {
+              auto expected = Phase::Loop;
+              if ( state_.compare_exchange_strong( expected, Phase::Warmup, std::memory_order_relaxed ) )
+                concurrent::spin_wait(
+                  [this]() noexcept { return state_.load( std::memory_order_relaxed ) != Phase::Warmup; } );
+            } else if PACE__CXX17_CNSTXPR ( Mode == Policy::Signal ) {
+              quota_.fetch_add( 1, std::memory_order_relaxed );
+              state_transfer( Phase::Pulse, Phase::Primed );
+            }
 #endif
+          }
         }
 
         void abort() noexcept
@@ -338,7 +311,7 @@ namespace pace {
                                                   std::memory_order_acquire );
           };
           if ( try_update( Phase::Warmup ) || try_update( Phase::Loop ) || try_update( Phase::Primed )
-               || try_update( Phase::Pulse ) || try_update( Phase::Shot ) || try_update( Phase::Idle ) ) {
+               || try_update( Phase::Pulse ) ) {
 #ifdef __cpp_lib_atomic_wait
             state_.wait( Phase::Asleep, std::memory_order_relaxed );
 #else
@@ -372,7 +345,7 @@ namespace pace {
           shutdown();
         }
 
-        PACE__NODISCARD bool try_appoint( wrappers::UniqueFunction<void()>&& task ) &
+        PACE__NODISCARD bool try_appoint( wrappers::UniqueFunction<void()>&& task ) & noexcept
         { // This method IS designed for concurrent calls.
           std::lock_guard<std::mutex> lock { res_mtx_ };
           if ( task_ != nullptr )

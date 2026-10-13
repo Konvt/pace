@@ -17,7 +17,7 @@ namespace pace {
 
         Context context_;
 
-        PACE__FORCEINLINE void do_halt( bool forced ) noexcept final { context_->pop( this, forced ); }
+        PACE__FORCEINLINE void do_halt( bool forced ) final { context_->pop( this, forced ); }
         PACE__FORCEINLINE void do_boot() & final { context_->append( this ); }
 
       public:

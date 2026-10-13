@@ -136,7 +136,7 @@ namespace pace {
           return do_render<Pos + 1>( pipeline, istty, style_off, hide_done ); // tail recursive
         }
 
-        void do_halt( bool forced ) noexcept final
+        void do_halt( bool forced ) final
         { // This virtual function is invoked only via the vtable,
           // hence the default arguments from the base class declaration are always used.
           // Any default arguments provided in the derived class are ignored.
