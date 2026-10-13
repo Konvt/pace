@@ -126,7 +126,7 @@ namespace pace {
               state_.store( Phase::Finish, std::memory_order_release );
             // do_halt() throws an exception only when Forced is false;
             // if an exception is thrown, the state is guaranteed not to be in Phase::Stop,
-            //  so the object can still be properly reset on the next call.
+            // so the object can still be properly reset on the next call.
             this->do_halt( Forced );
           } else
             state_.store( Phase::Stop, std::memory_order_relaxed );

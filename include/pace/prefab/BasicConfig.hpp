@@ -38,6 +38,13 @@ namespace pace {
       { return {}; }
     };
 
+#ifdef __cpp_variable_templates
+    template<template<typename...> class... Facades>
+    PACE__CXX17_INLINE constexpr Only<Facades...> only;
+    template<template<typename...> class... Facades>
+    PACE__CXX17_INLINE constexpr Except<Facades...> except;
+#endif
+
 #define PACE__METHOD( ParamType, ReturnType )                                                    \
   template<template<typename...> class... Facades>                                               \
   PACE__FORCEINLINE constexpr ReturnType<Facades...> operator!( ParamType<Facades...> ) noexcept \
@@ -412,9 +419,9 @@ namespace pace {
       friend auto operator<<( BasicConfig& self, Option&& opt )
 #ifdef __cpp_concepts
         -> decltype( auto )
-        requires is_setting<Option>::value
+        requires is_setting<std::decay_t<Option>>::value
 #else
-        -> typename std::enable_if<is_setting<Option>::value, BasicConfig&>::type
+        -> typename std::enable_if<is_setting<typename std::decay<Option>::type>::value, BasicConfig&>::type
 #endif
       { return self.with( std::forward<Option>( opt ) ); }
       template<typename Option>

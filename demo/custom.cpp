@@ -21,8 +21,13 @@ int main()
     .font_bold( true )
     .font_underline( true )
     .elapsed_format( u8"\u23F3 %:-3Ss" )
-    .enable_all()
     .quota( 2147483647 );
+
+#ifdef __cpp_variable_templates
+  another.config() << pace::option::except<>;
+#else
+  another.config() << pace::option::Except<>();
+#endif
 
   for ( size_t _ = 0; _ < 2147483647; ++_ )
     another.tick();

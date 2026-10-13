@@ -211,7 +211,7 @@ namespace pace {
             }
             PACE__ASSERT( state_ != Phase::Dead );
             PACE__ASSERT( task_ != nullptr );
-            constexpr const Phase desired = []() PACE__CXX17_CNSTXPR noexcept {
+            PACE__CXX17_CNSTXPR const Phase desired = []() PACE__CXX17_CNSTXPR noexcept {
               if PACE__CXX17_CNSTXPR ( Mode == Policy::Async )
                 return Phase::Warmup;
               else if PACE__CXX17_CNSTXPR ( Mode == Policy::Signal )

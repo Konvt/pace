@@ -270,6 +270,9 @@ auto selection = pace::option::Only<pace::facade::CharPlot>() | pace::option::On
 // However, a progress bar type will reject an Only or Except
 // containing components that do not belong to it
 // pgbar.with( selection | pace::option::Only<pace::facade::BlockPlot>() ); No!
+
+// With C++14 and later standards, you can directly use a template variable to construct a selector
+pgbar.with( pace::option::only<pace::facade::CharPlot, pace::facade::Elapsed, pace::facade::ETA> );
 ```
 
 ## Component Subfeatures

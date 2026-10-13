@@ -262,6 +262,9 @@ auto selection = pace::option::Only<pace::facade::CharPlot>() | pace::option::On
 
 // 但是进度条类型不会接受一个包含了不属于它组件的 Only 或 Except
 // pgbar.with( selection | pace::option::Only<pace::facade::BlockPlot>() ); No!
+
+// 在使用 C++14 之后的标准时，可以直接使用模板变量构造一个选择器
+pgbar.with( pace::option::only<pace::facade::CharPlot, pace::facade::Elapsed, pace::facade::ETA> );
 ```
 
 ## 组件子功能

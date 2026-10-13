@@ -69,10 +69,12 @@ namespace pace {
 # else
         std::array<char, ( integral_part > fraction_part ? integral_part : fraction_part )> buffer;
         const auto num_written = [&]() {
-          if PACE__CXX17_CNSTXPR ( std::is_same<Floating, long double>::value )
-            return std::snprintf( buffer.data(), buffer.size(), "%.*Lf", precision, val );
+          static_assert( std::is_same<Floating, long double>::value == false,
+                         "we are not currently using long double" );
+          // if PACE__CXX17_CNSTXPR ( std::is_same<Floating, long double>::value )
+          //   return std::snprintf( buffer.data(), buffer.size(), "%.*Lf", precision, val );
           return std::snprintf( buffer.data(), buffer.size(), "%.*f", precision, val );
-        };
+        }();
         PACE__TRUST( num_written > 0 );
         return std::copy( buffer.cbegin(), buffer.cbegin() + num_written, itr );
 # endif
