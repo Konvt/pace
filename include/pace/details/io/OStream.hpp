@@ -47,8 +47,6 @@ namespace pace {
         , public utils::Singleton<OStream<Sink>> {
         friend class utils::Singleton<OStream>;
 
-        std::atomic<bool> cache_ { true };
-
 #if PACE__WIN && !defined( PACE_UTF8 )
         std::vector<WCHAR> wb_buffer_;
         std::vector<char> localized_;
@@ -79,28 +77,24 @@ namespace pace {
         // Detect whether the specified output stream is bound to a terminal.
         bool renderable() noexcept
         {
-          const bool value = []() noexcept {
 #if defined( PACE_INTTY ) || PACE__UNKNOWN
-            return true;
+          return true;
 #elif PACE__WIN
-            HANDLE h_con;
-            if PACE__CXX17_CNSTXPR ( Sink == Channel::Out )
-              h_con = GetStdHandle( STD_OUTPUT_HANDLE );
-            else
-              h_con = GetStdHandle( STD_ERROR_HANDLE );
-            if ( h_con == INVALID_HANDLE_VALUE )
-              PACE__UNLIKELY return false;
-            return GetFileType( h_con ) == FILE_TYPE_CHAR;
+          HANDLE h_con;
+          if PACE__CXX17_CNSTXPR ( Sink == Channel::Out )
+            h_con = GetStdHandle( STD_OUTPUT_HANDLE );
+          else
+            h_con = GetStdHandle( STD_ERROR_HANDLE );
+          if ( h_con == INVALID_HANDLE_VALUE )
+            PACE__UNLIKELY return false;
+          return GetFileType( h_con ) == FILE_TYPE_CHAR;
 #else
-            return isatty( static_cast<int>( Sink ) );
+          // The overhead of calling isatty is no more than 1ms (actually around 500 ns).
+          // On Windows, this overhead is even lower, approximately 100 ns.
+          // So we directly call and return the result without caching it.
+          return isatty( static_cast<int>( Sink ) );
 #endif
-          }();
-          cache_.store( value, std::memory_order_release );
-          return value;
         }
-        // Read the cached `renderable()` infomation.
-        PACE__NODISCARD PACE__FORCEINLINE bool capable() const noexcept
-        { return cache_.load( std::memory_order_relaxed ); }
 
         PACE__NODISCARD std::uint16_t width() noexcept
         {
