@@ -244,7 +244,7 @@ namespace pace {
               eliminate();
               items_.emplace_back( item );
             }
-            executor.template trigger<Mode>();
+            executor.trigger();
           }
         }
         void pop( const Indicator* item, bool forced = false )
@@ -253,7 +253,7 @@ namespace pace {
           PACE__ASSERT( executor.empty() == false );
           PACE__ASSERT( online_count() != 0 );
           if ( !forced )
-            executor.template trigger<Mode>();
+            executor.trigger();
 
           std::lock_guard<std::mutex> lock1 { sched_mtx_ };
           std::unique_lock<concurrent::SharedMutex> lock2 { res_mtx_ };

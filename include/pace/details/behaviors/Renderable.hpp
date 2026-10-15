@@ -29,7 +29,7 @@ namespace pace {
           auto& executor = render::Renderer<Sink>::itself();
           PACE__ASSERT( executor.empty() == false );
           if ( !forced )
-            executor.template trigger<Mode>();
+            executor.trigger();
           executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().reset(); } );
         }
         virtual void do_boot() &

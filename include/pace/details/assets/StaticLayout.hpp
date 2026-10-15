@@ -145,7 +145,7 @@ namespace pace {
           auto& executor = render::Renderer<Sink>::itself();
           PACE__ASSERT( executor.empty() == false );
           if ( !forced )
-            executor.template trigger<Mode>();
+            executor.trigger();
 
           if ( alive_cnt_.fetch_sub( 1, std::memory_order_relaxed ) > 1 )
             return;
@@ -208,11 +208,8 @@ namespace pace {
               executor.dismiss();
             } );
             executor.template activate<Mode>();
-          } else if PACE__CXX17_CNSTXPR ( Mode == Policy::Sync )
-            // an optimization, used to use a lighter rendering method when in Sync mode.
-            executor.template commit<Mode>();
-          else
-            executor.template trigger<Mode>();
+          } else
+            executor.trigger();
           alive_cnt_.fetch_add( 1, std::memory_order_relaxed );
           PACE__ASSERT( alive_cnt_ <= sizeof...( Configs ) );
         }
