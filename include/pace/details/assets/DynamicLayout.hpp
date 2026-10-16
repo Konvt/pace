@@ -1,6 +1,7 @@
 #ifndef PACE_DYNAMIC_LAYOUT
 #define PACE_DYNAMIC_LAYOUT
 
+#include "../console/Screen.hpp"
 #include "../io/OStream.hpp"
 #include "ManagedBar.hpp"
 
@@ -50,7 +51,7 @@ namespace pace {
         void do_render() &
         {
           auto& ostream        = io::OStream<Sink>::itself();
-          const auto istty     = ostream.renderable();
+          const auto istty     = console::Screen<Sink>::renderable();
           const auto style_off = !istty && config::auto_style_off();
           const auto hide_done = config::hide_completed();
 
@@ -184,7 +185,7 @@ namespace pace {
             PACE__ASSERT( items_.empty() );
             if ( !executor.try_appoint( [this]() {
                    auto& ostream        = io::OStream<Sink>::itself();
-                   const auto istty     = ostream.renderable();
+                   const auto istty     = console::Screen<Sink>::renderable();
                    const auto hide_done = config::hide_completed();
                    switch ( state_.load( std::memory_order_relaxed ) ) {
                    case Phase::Awake: {
@@ -225,7 +226,7 @@ namespace pace {
                    default: return;
                    }
                  } ) )
-              PACE__UNLIKELY throw exception::InvalidState(
+              PACE__UNLIKELY throw exception::StateError(
                 charcodes::make_literal( "pace: another progress bar instance is already running" ) );
 
             io::OStream<Sink>::itself() << io::reset;

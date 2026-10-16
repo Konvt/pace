@@ -162,7 +162,7 @@ namespace pace {
           if ( state_.load( std::memory_order_relaxed ) == Phase::Stop ) {
             if ( !executor.try_appoint( [this]() {
                    auto& ostream        = io::OStream<Sink>::itself();
-                   const auto istty     = ostream.renderable();
+                   const auto istty     = console::Screen<Sink>::renderable();
                    const auto style_off = !istty && config::auto_style_off();
                    switch ( state_.load( std::memory_order_relaxed ) ) {
                    case Phase::Awake: {
@@ -197,7 +197,7 @@ namespace pace {
                    default: break;
                    }
                  } ) )
-              PACE__UNLIKELY throw exception::InvalidState(
+              PACE__UNLIKELY throw exception::StateError(
                 charcodes::make_literal( "pace: another progress bar instance is already running" ) );
 
             io::OStream<Sink>::itself() << io::reset;

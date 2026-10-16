@@ -15,11 +15,11 @@ namespace pace {
     namespace behaviors {
       template<typename Base, typename Derived>
       class Incremental : public Base {
-        // Throws the exception::InvalidState if current object is active.
+        // Throws the exception::StateError if current object is active.
         PACE__FORCEINLINE void throw_if_active()
         {
           if ( static_cast<Derived*>( this )->active() )
-            PACE__UNLIKELY throw exception::InvalidState(
+            PACE__UNLIKELY throw exception::StateError(
               charcodes::make_literal( "pace: try to iterate using an active object" ) );
         }
 

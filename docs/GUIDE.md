@@ -76,7 +76,7 @@ Due to design considerations, *most progress bar type interfaces in pace are sim
 
 Progress bars are designed around executing a task with a fixed quota, so nearly all progress bar types require a task quota parameter, followed by iterative calls to the `tick()` method.
 
-For `pace::ProgressBar` and `pace::BlockBar`, calling `tick()` without providing an initial quota parameter will throw the `pace::exception::InvalidState` exception.
+For `pace::ProgressBar` and `pace::BlockBar`, calling `tick()` without providing an initial quota parameter will throw the `pace::exception::StateError` exception.
 
 All progress bar types in pace are template types, but all template parameters provide default values, so an empty parameter object can be instantiated directly.
 
@@ -87,7 +87,7 @@ All progress bar types in pace are template types, but all template parameters p
   // pace::ProgressBar bar;
   try {
     bar.tick();
-  } catch ( const pace::exception::InvalidState& e ) {
+  } catch ( const pace::exception::StateError& e ) {
     std::cerr << e.what() << std::endl;
   }
 }
@@ -399,7 +399,7 @@ By default, `pace::config::auto_style_off()` always returns `true`, but its retu
 
 In particular, if the macro `PACE_INTTY` is defined before including the pace library, pace will forcibly treat all output streams as terminal-attached. Likewise, if the macro `PACE_NOSTYLE` is defined, pace will forcibly disable all character rendering effects.
 
-It should be noted that, among all progress bar objects bound to the same output stream, at most one is allowed to run at the same time. Otherwise, the exception `pace::exception::InvalidState` will be thrown.
+It should be noted that, among all progress bar objects bound to the same output stream, at most one is allowed to run at the same time. Otherwise, the exception `pace::exception::StateError` will be thrown.
 
 ```cxx
 {
@@ -412,7 +412,7 @@ It should be noted that, among all progress bar objects bound to the same output
 
   try {
     bar2.tick(); // Oops!
-  } catch ( const pace::exception::InvalidState& e ) {
+  } catch ( const pace::exception::StateError& e ) {
     std::cerr << std::endl << e.what() << std::endl;
   }
 
@@ -508,7 +508,7 @@ The actual behavior can be modified by calling `pace::config::hide_completed( bo
 
 # The Differences Of Components
 ## ProgressBar
-In runtime behavior, when `config().quota()` is 0 and the `tick` method is invoked, `pace::ProgressBar` throws a `pace::exception::InvalidState` exception.
+In runtime behavior, when `config().quota()` is 0 and the `tick` method is invoked, `pace::ProgressBar` throws a `pace::exception::StateError` exception.
 ### Element composition
 `pace::ProgressBar` consists of the following elements:
 
@@ -599,7 +599,7 @@ bar.config().bar_width( pace::config::terminal_width( pace::Channel::Err ) - bar
 It should be noted that if the `pace::facade::Counter` component is enabled, the length of the progress bar is also affected by the current task count. In this case, the task count must be configured before a correct progress bar length can be obtained.
 
 ## BlockBar
-At runtime, when `config().quota()` is 0 and the `tick` method is invoked, `pace::BlockBar` throws a `pace::exception::InvalidState` exception.
+At runtime, when `config().quota()` is 0 and the `tick` method is invoked, `pace::BlockBar` throws a `pace::exception::StateError` exception.
 ### Element composition
 `pace::BlockBar` consists of the following elements:
 
@@ -1064,7 +1064,7 @@ Since `pace::DynamicBar` is only a factory-type component, pace provides a `make
 
 Note: The objects returned by this function are std::unique_ptr, and the objects they point to **do not have the ability to determine whether they belong to the same `pace::DynamicBar` or another one**. Therefore, `std::unique_ptr` instances created by different `pace::DynamicBar` objects are type-compatible at the type level.
 
-Mixing `std::unique_ptr` from different sources will often throw a `pace::exception::InvalidState` exception, indicating that a running progress bar instance already exists.
+Mixing `std::unique_ptr` from different sources will often throw a `pace::exception::StateError` exception, indicating that a running progress bar instance already exists.
 
 ```cxx
 // Obtain std::unique_ptr objects equal to the number of arguments
@@ -1611,7 +1611,7 @@ Progress bar instances may operate on different output streams. Therefore, the g
 
 Globally, pace enforces that only one progress bar instance per output stream may dispatch tasks to the renderer at any given time.
 
-If multiple progress bar objects are created in the same scope and attempt to dispatch tasks sequentially, the first one succeeds, while subsequent attempts throw a `pace::exception::InvalidState` exception due to the renderer already being occupied.
+If multiple progress bar objects are created in the same scope and attempt to dispatch tasks sequentially, the first one succeeds, while subsequent attempts throw a `pace::exception::StateError` exception due to the renderer already being occupied.
 
 In multithreaded environments, which thread “dispatches first” depends on the thread scheduling strategy.
 
@@ -1626,7 +1626,7 @@ In multithreaded environments, which thread “dispatches first” depends on th
 
  try {
    bar2.tick(); // Oops!
- } catch ( const pace::exception::InvalidState& e ) {
+ } catch ( const pace::exception::StateError& e ) {
    std::cerr << std::endl << e.what() << std::endl;
  }
 

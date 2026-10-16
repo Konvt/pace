@@ -1,7 +1,6 @@
 #ifndef PACE_OSTREAM
 #define PACE_OSTREAM
 
-#include "../../exception/Error.hpp"
 #include "../charcodes/StringView.hpp"
 #include "../core/Types.hpp"
 #include "../utils/Singleton.hpp"
@@ -12,7 +11,7 @@
 #if PACE__WIN
 # include <vector>
 #elif PACE__UNIX
-# include <sys/ioctl.h>
+# include "../../exception/Error.hpp
 #else
 # include <iostream>
 #endif
@@ -57,85 +56,23 @@ namespace pace {
           // Enable virtual terminal processing on the specified output channel (Windows only).
           // `magic static` will guarantee this code to be thread-safe and performed only once.
 #if PACE__WIN && !defined( PACE_NOSTYLE ) && defined( ENABLE_VIRTUAL_TERMINAL_PROCESSING )
-          HANDLE h_con;
-          if PACE__CXX17_CNSTXPR ( Sink == Channel::Out )
-            h_con = GetStdHandle( STD_OUTPUT_HANDLE );
-          else
-            h_con = GetStdHandle( STD_ERROR_HANDLE );
-          if ( h_con == INVALID_HANDLE_VALUE )
-            PACE__UNLIKELY return;
-
+          const auto ostream = sys::std_handle<Sink>();
           DWORD mode {};
-          if ( !GetConsoleMode( h_con, &mode ) )
+          if ( !GetConsoleMode( ostream, &mode ) )
             PACE__UNLIKELY return;
           mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-          SetConsoleMode( h_con, mode );
+          SetConsoleMode( ostream, mode );
 #endif
         }
 
       public:
-        // Detect whether the specified output stream is bound to a terminal.
-        bool renderable() noexcept
-        {
-#if defined( PACE_INTTY ) || PACE__UNKNOWN
-          return true;
-#elif PACE__WIN
-          HANDLE h_con;
-          if PACE__CXX17_CNSTXPR ( Sink == Channel::Out )
-            h_con = GetStdHandle( STD_OUTPUT_HANDLE );
-          else
-            h_con = GetStdHandle( STD_ERROR_HANDLE );
-          if ( h_con == INVALID_HANDLE_VALUE )
-            PACE__UNLIKELY return false;
-          return GetFileType( h_con ) == FILE_TYPE_CHAR;
-#else
-          // The overhead of calling isatty is no more than 1ms (actually around 500 ns).
-          // On Windows, this overhead is even lower, approximately 100 ns.
-          // So we directly call and return the result without caching it.
-          return isatty( static_cast<int>( Sink ) );
-#endif
-        }
-
-        PACE__NODISCARD std::uint16_t width() noexcept
-        {
-          if ( !renderable() )
-            return 0;
-#if PACE__WIN
-          HANDLE h_con;
-          if PACE__CXX17_CNSTXPR ( Sink == Channel::Out )
-            h_con = GetStdHandle( STD_OUTPUT_HANDLE );
-          else
-            h_con = GetStdHandle( STD_ERROR_HANDLE );
-          if ( h_con != INVALID_HANDLE_VALUE ) {
-            CONSOLE_SCREEN_BUFFER_INFO csbi;
-            if ( GetConsoleScreenBufferInfo( h_con, &csbi ) )
-              return csbi.srWindow.Right - csbi.srWindow.Left + 1;
-          }
-#elif PACE__UNIX
-          struct winsize ws;
-          auto fd = static_cast<int>( Sink );
-          if ( ioctl( fd, TIOCGWINSZ, &ws ) != -1 )
-            return ws.ws_col;
-#endif
-          return 0;
-        }
-
         static PACE__FORCEINLINE void emit( charcodes::StringView content )
         {
 #if PACE__WIN
           std::size_t total_written = 0;
           do {
-            DWORD num_written = 0;
-            auto ostream      = []() {
-              if PACE__CXX17_CNSTXPR ( Sink == Channel::Out )
-                return GetStdHandle( STD_OUTPUT_HANDLE );
-              else
-                return GetStdHandle( STD_ERROR_HANDLE );
-            }();
-            if ( ostream == INVALID_HANDLE_VALUE )
-              PACE__UNLIKELY throw exception::SystemError(
-                std::error_code( errno, std::generic_category() ),
-                charcodes::make_literal( "pace: cannot open the standard output stream" ) );
+            DWORD num_written  = 0;
+            const auto ostream = sys::std_handle<Sink>();
             WriteFile( ostream,
                        content.data() + total_written,
                        static_cast<DWORD>( content.size() - total_written ),
@@ -153,7 +90,8 @@ namespace pace {
               num_written = (std::max<ssize_t>)( 0, num_written );
             else if ( num_written < 0 )
               PACE__UNLIKELY throw exception::SystemError(
-                std::error_code( errno, std::generic_category() ),
+                errno,
+                std::generic_category(),
                 charcodes::make_literal( "pace: write to output stream failed" ) );
             total_written += static_cast<std::size_t>( num_written );
           } while ( total_written < content.size() );

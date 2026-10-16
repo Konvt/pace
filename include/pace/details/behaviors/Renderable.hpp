@@ -3,6 +3,7 @@
 
 #include "../../Indicator.hpp"
 #include "../console/Escode.hpp"
+#include "../console/Screen.hpp"
 #include "../io/OStream.hpp"
 #include "../render/Builder.hpp"
 #include "../render/Renderer.hpp"
@@ -38,7 +39,7 @@ namespace pace {
           if ( !executor.try_appoint( [this]() {
                  // No exceptions are caught here, this should be done by the thread manager.
                  auto& ostream        = io::OStream<Sink>::itself();
-                 const auto istty     = ostream.renderable();
+                 const auto istty     = console::Screen<Sink>::renderable();
                  const auto style_off = !istty && config::auto_style_off();
                  switch ( state_.load( std::memory_order_relaxed ) ) {
                  case Phase::Awake: {
@@ -90,7 +91,7 @@ namespace pace {
                  default: return;
                  }
                } ) )
-            PACE__UNLIKELY throw exception::InvalidState(
+            PACE__UNLIKELY throw exception::StateError(
               charcodes::make_literal( "pace: another progress bar instance is already running" ) );
 
           io::OStream<Sink>::itself() << io::reset; // reset the state.

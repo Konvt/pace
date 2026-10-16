@@ -76,7 +76,7 @@
 
 进度条是以执行一个固定数量大小的任务为目标设计的，因此几乎所有进度条类型都需要获取一个任务数量参数，然后调用 `tick()` 方法进行迭代。
 
-对于 `pace::ProgressBar` 和 `pace::BlockBar` 来说，不注入初始任务参数就调用 `tick()` 会抛出异常 `pace::exception::InvalidState`。
+对于 `pace::ProgressBar` 和 `pace::BlockBar` 来说，不注入初始任务参数就调用 `tick()` 会抛出异常 `pace::exception::StateError`。
 
 pace 的所有进度条类型都是模板类型，但模板参数都被赋予了默认值，因此可以直接实例化一个空参数对象。
 
@@ -87,7 +87,7 @@ pace 的所有进度条类型都是模板类型，但模板参数都被赋予了
   // pace::ProgressBar bar;
   try {
     bar.tick();
-  } catch ( const pace::exception::InvalidState& e ) {
+  } catch ( const pace::exception::StateError& e ) {
     std::cerr << e.what() << std::endl;
   }
 }
@@ -385,7 +385,7 @@ pace 会在运行时动态检查指定的输出流是否真实地绑定在一个
 
 特别的，在 include pace 库之前，如果定义了宏 `PACE_INTTY`，则会强制令 pace 认为任何输出流都绑定到终端上；如果定义了宏 `PACE_NOSTYLE`，则会强制令 pace 关闭所有字符渲染效果。
 
-需要注意的是，绑定到相同输出流上的所有进度条对象，在同一时刻至多只允许一个在运行，否则会抛出异常 `pace::exception::InvalidState`。
+需要注意的是，绑定到相同输出流上的所有进度条对象，在同一时刻至多只允许一个在运行，否则会抛出异常 `pace::exception::StateError`。
 
 ```cxx
 {
@@ -398,7 +398,7 @@ pace 会在运行时动态检查指定的输出流是否真实地绑定在一个
 
   try {
     bar2.tick(); // Oops!
-  } catch ( const pace::exception::InvalidState& e ) {
+  } catch ( const pace::exception::StateError& e ) {
     std::cerr << std::endl << e.what() << std::endl;
   }
 
@@ -492,7 +492,7 @@ pace 允许自动隐藏已经完成的进度条字符串。当函数 `pace::conf
 
 # 组件差异
 ## ProgressBar
-在运行期行为上，当 `config().quota()` 为 0 而试图调用 `tick` 方法，`pace::ProgressBar` 会抛出 `pace::exception::InvalidState` 异常。
+在运行期行为上，当 `config().quota()` 为 0 而试图调用 `tick` 方法，`pace::ProgressBar` 会抛出 `pace::exception::StateError` 异常。
 ### 元素构成
 `pace::ProgressBar` 由以下几种元素组成：
 
@@ -583,7 +583,7 @@ bar.config().bar_width( pace::config::terminal_width( pace::Channel::Err ) - bar
 需要注意，如果打开了 `pace::facade::Counter` 组件，那么进度条的长度还会受到当前任务数量影响；此时必须先配置了任务数量，才能得到一个正确的进度条长度。
 
 ## BlockBar
-在运行期行为上，当 `config().quota()` 为 0 而试图调用 `tick` 方法，`pace::BlockBar` 会抛出 `pace::exception::InvalidState` 异常。
+在运行期行为上，当 `config().quota()` 为 0 而试图调用 `tick` 方法，`pace::BlockBar` 会抛出 `pace::exception::StateError` 异常。
 ### 元素构成
 `pace::BlockBar` 由以下几种元素组成：
 
@@ -1044,7 +1044,7 @@ for ( auto& td : pool )
 
 注意：这个函数返回的对象类型是 `std::unique_ptr`，而 `std::unique_ptr` 指向的对象本身**没有反向判断自身与另一个对象是否归属于同一个 `pace::DynamicBar`**的功能；所以多个不同的 `pace::DynamicBar` 所返回的 `std::unique_ptr` 在类型角度上看是相等的。
 
-混用不同来源的 `std::unique_ptr` 往往会抛出异常 `pace::exception::InvalidState`，告知已经存在一个正在运行的进度条实例。
+混用不同来源的 `std::unique_ptr` 往往会抛出异常 `pace::exception::StateError`，告知已经存在一个正在运行的进度条实例。
 
 ```cxx
 // 获得与参数数量相同的 std::unique_ptr
@@ -1583,7 +1583,7 @@ pace 采用了多线程协作模式设计，因此渲染器实际上是一个在
 
 在全局范围内，pace 要求同一时刻，指向同一个输出流的情况下，只能有一个进度条实例向全局渲染器派发任务。
 
-如果在同一作用域内创建了多个进度条对象并先后发起任务，则最先派发任务的进度条会成功工作，后续尝试派发任务的进度条会因全局渲染器已被占用而在其任务调用处抛出 `pace::exception::InvalidState` 异常。
+如果在同一作用域内创建了多个进度条对象并先后发起任务，则最先派发任务的进度条会成功工作，后续尝试派发任务的进度条会因全局渲染器已被占用而在其任务调用处抛出 `pace::exception::StateError` 异常。
 
 在多线程环境下，哪个线程是“最先派发任务”的线程要取决于具体的线程调度策略。
 
@@ -1598,7 +1598,7 @@ pace 采用了多线程协作模式设计，因此渲染器实际上是一个在
 
  try {
    bar2.tick(); // Oops!
- } catch ( const pace::exception::InvalidState& e ) {
+ } catch ( const pace::exception::StateError& e ) {
    std::cerr << std::endl << e.what() << std::endl;
  }
 

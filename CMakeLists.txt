@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.12)
 
 set(PACE_IS_TOP_LEVEL OFF)
 if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
@@ -93,7 +93,7 @@ if(PACE_PACKAGE)
 
   # Adjust the directory tree structure to conform to the release package structure
   # instead of the GNU installation structure
-  set(PACE_MOVEUP "${CMAKE_SOURCE_DIR}/cmake/moveup.cmake")
+  set(PACE_MOVEUP "${CMAKE_CURRENT_SOURCE_DIR}/cmake/moveup.cmake")
   set(PACE_ADJT_STAMP "adjusted")
   add_custom_command(
     OUTPUT "${PACE_PKG_ROOT}/${PACE_ADJT_STAMP}"

@@ -1,5 +1,5 @@
-#ifndef PACE_IO_MONOID
-#define PACE_IO_MONOID
+#ifndef PACE_MONOID
+#define PACE_MONOID
 
 #include "../traits/Util.hpp"
 #include "../utils/Backport.hpp"

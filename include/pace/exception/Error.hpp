@@ -26,10 +26,10 @@ namespace pace {
     };
 
     // Exception for error state of object.
-    class InvalidState : public Error {
+    class StateError : public Error {
     public:
       using Error::Error;
-      ~InvalidState() override = default;
+      ~StateError() override = default;
     };
 
     // Exception for local system error.
@@ -40,6 +40,9 @@ namespace pace {
     public:
       SystemError( std::error_code err, details::charcodes::SharedString mes ) noexcept
         : Error( std::move( mes ) ), err_ { err }
+      {}
+      SystemError( int val, const std::error_category& cat, details::charcodes::SharedString mes ) noexcept
+        : Error( std::move( mes ) ), err_ { val, cat }
       {}
       ~SystemError() override = default;
 

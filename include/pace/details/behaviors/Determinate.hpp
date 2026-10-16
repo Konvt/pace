@@ -15,7 +15,7 @@ namespace pace {
         {
           this->task_end_ = this->config_.quota();
           if ( this->task_end_ == 0 ) {
-            PACE__UNLIKELY throw exception::InvalidState(
+            PACE__UNLIKELY throw exception::StateError(
               charcodes::make_literal( "pace: the number of task quota is zero" ) );
           }
           this->task_cnt_.store( 0, std::memory_order_relaxed );

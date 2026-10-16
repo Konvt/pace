@@ -29,7 +29,7 @@ export namespace pace {
   namespace exception {
     using pace::exception::Error;
     using pace::exception::InvalidArgument;
-    using pace::exception::InvalidState;
+    using pace::exception::StateError;
     using pace::exception::SystemError;
   }
 

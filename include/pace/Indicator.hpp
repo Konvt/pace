@@ -64,7 +64,7 @@ namespace pace {
       Indicator::_hide_completed().store( flag, std::memory_order_relaxed );
 #endif
     }
-    inline bool hide_completed() noexcept
+    PACE__NODISCARD inline bool hide_completed() noexcept
     {
 #ifdef __cpp_inline_variables
       return Indicator::_hide_completed.load( std::memory_order_relaxed );
@@ -84,7 +84,7 @@ namespace pace {
       Indicator::_auto_style_off().store( flag, std::memory_order_relaxed );
 #endif
     }
-    inline bool auto_style_off() noexcept
+    PACE__NODISCARD inline bool auto_style_off() noexcept
     {
 #ifdef __cpp_inline_variables
       return Indicator::_auto_style_off;
