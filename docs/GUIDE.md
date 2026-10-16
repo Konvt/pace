@@ -60,7 +60,7 @@
     - [Custom rendering](#custom-rendering)
 - [Design Notes](#design-notes)
   - [Assertion Checks](#assertion-checks)
-  - [Consistency Between Update Count and Total Task Count](#consistency-between-update-count-and-total-task-count)
+  - [Thread Safety, Update Count and Consistency With Total Task Count](#thread-safety-update-count-and-consistency-with-total-task-count)
   - [Lifecycle of Bar Objects](#lifecycle-of-bar-objects)
   - [Unicode Support](#unicode-support)
   - [Renderer Design](#renderer-design)
@@ -1533,7 +1533,7 @@ For example, pace does not allow any progress bar object to call `operator=()` o
 
 Self-assignment is also checked and rejected via assertions.
 
-## Consistency Between Update Count and Total Task Count
+## Thread Safety, Update Count and Consistency With Total Task Count
 Progress bar types in pace are activated when any `tick` method is called. When the number of completed tasks produced by `tick` reaches the predefined quota, the progress bar automatically stops.
 
 At the same time, pace guarantees that within the same task lifecycle (from the first `tick` call to the last), all calls to `tick` and `reset` are thread-safe.
@@ -1562,6 +1562,10 @@ pool.emplace_back( [&]() {
 In the above code, the combined number of `tick` calls across threads exceeds the configured quota of `1000`. Therefore, the excess `(500 + 700 + 1000 * 0.8) - 1000 = 1000` calls are not guaranteed to be thread-safe. These calls may either be discarded or counted into the next runtime cycle of the progress bar.
 
 In addition, `tick_to` only guarantees that the total task progress is **not lower than** the specified percentage after the call. It does not guarantee synchronization of `tick` counts across threads. That is, if multiple threads are concurrently calling `tick`, invoking `tick_to` may result in some `tick` calls being lost.
+
+Similarly, when multiple threads are *simultaneously* calling `tick`, it becomes thread-unsafe if another thread suddenly attempts to call `reset` or `abort`; It will also lead to the occurrence of UB.
+
+> In fact, any concurrent calls involving *mutually exclusive ownership* are not guaranteed to be thread-safe—examples include multiple threads moving simultaneously, or attempting to call `reset` or `abort` while several `tick` threads are running.
 
 ## Lifecycle of Bar Objects
 

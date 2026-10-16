@@ -139,10 +139,19 @@ namespace pace {
             if ( state_.load( std::memory_order_relaxed ) == Phase::Stop ) {
               static_cast<MostDerived*>( this )->on_awaken();
               state_.store( Phase::Awake, std::memory_order_relaxed );
-
-              auto guard = utils::make_scope_fail(
-                [this]() noexcept { state_.store( Phase::Stop, std::memory_order_relaxed ); } );
-              this->do_boot();
+              // make the initialization be atomic
+              std::forward<F>( ticker )();
+              {
+                auto guard = utils::make_scope_fail(
+                  [this]() noexcept { state_.store( Phase::Stop, std::memory_order_relaxed ); } );
+                this->do_boot();
+              }
+              if ( static_cast<const MostDerived*>( this )->test_completion() ) {
+                // Since `Reactive` can also attempt to acquire write locks,
+                // it is necessary to always acquire write locks here.
+                do_reset<false>();
+              }
+              break;
             }
           }
             PACE__FALLTHROUGH;
@@ -153,8 +162,6 @@ namespace pace {
             if ( static_cast<const MostDerived*>( this )->test_completion() )
               PACE__UNLIKELY
               {
-                // Since `Reactive` can also attempt to acquire write locks,
-                // it is necessary to always acquire write locks here.
                 std::lock_guard<std::mutex> lock { mtx_ };
                 do_reset<false>();
               }

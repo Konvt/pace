@@ -204,14 +204,12 @@ namespace pace {
         PACE__FORCEINLINE void commit() &
         { // This method IS designed for concurrent calls.
           if PACE__CXX17_CNSTXPR ( Mode == Policy::Signal ) {
-            if ( state_.load( std::memory_order_relaxed ) != Phase::Dormant ) {
-              quota_.fetch_add( 1, std::memory_order_relaxed );
-              concurrent::atomic_notify_one( quota_ );
+            quota_.fetch_add( 1, std::memory_order_relaxed );
+            concurrent::atomic_notify_one( quota_ );
 #ifndef __cpp_lib_atomic_wait
-              std::lock_guard<std::mutex> lock { sched_mtx_ };
-              cond_var_.notify_one();
+            std::lock_guard<std::mutex> lock { sched_mtx_ };
+            cond_var_.notify_one();
 #endif
-            }
           } else if PACE__CXX17_CNSTXPR ( Mode == Policy::Sync ) {
             // If the lock cannot be obtained,
             // it indicates that multiple threads are simultaneously calling this method.
@@ -277,8 +275,7 @@ namespace pace {
         { // This method is NOT designed for concurrent calls.
           abort();
           std::lock_guard<std::mutex> lock { res_mtx_ };
-          if ( task_ != nullptr )
-            task_ = nullptr;
+          task_ = nullptr;
           (void)fn();
         }
         void dismiss() noexcept
