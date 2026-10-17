@@ -6,7 +6,6 @@
 #include "../details/behaviors/Incremental.hpp"
 #include "../details/behaviors/Renderable.hpp"
 #include "../details/render/Parameter.hpp"
-#include "../details/render/TextAlign.hpp"
 #include "../details/traits/C3.hpp"
 
 namespace pace {
@@ -41,7 +40,7 @@ namespace pace {
       {
         if ( params.task_quota == 0 )
           PACE__UNLIKELY return pipeline
-            << details::io::align<details::render::TextAlign::Right>( fixed_width(),
+            << details::io::align<details::utils::TextAlign::Right>( fixed_width(),
                                                                       decimals_ > 0 ? "nan.%" : "n/a%" );
 
         std::string orig;
@@ -49,7 +48,7 @@ namespace pace {
                                    params.progress_ratio * 100.0,
                                    meaningful_precision<details::types::Float>( decimals_ ) );
         orig.push_back( '%' );
-        return pipeline << details::io::align<details::render::TextAlign::Right>( fixed_width(),
+        return pipeline << details::io::align<details::utils::TextAlign::Right>( fixed_width(),
                                                                                   std::move( orig ) );
       }
 

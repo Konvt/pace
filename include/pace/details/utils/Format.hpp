@@ -1,17 +1,22 @@
 #ifndef PACE_FORMAT
 #define PACE_FORMAT
 
+#include "../charcodes/StringView.hpp"
 #include "../core/Core.hpp"
 #include "../io/CharPipeline.hpp"
-#include <array>
-#include <cmath>
+#include "../io/Monoid.hpp"
+#include "Backport.hpp"
 #include <string>
 #include <type_traits>
 #ifdef __cpp_lib_format
 # include <format>
-#elif defined( __cpp_lib_to_chars )
-# include <charconv>
-# include <limits>
+#else
+# include "Util.hpp"
+# include <array>
+# ifdef __cpp_lib_to_chars
+#  include <charconv>
+#  include <limits>
+# endif
 #endif
 
 namespace pace {
@@ -90,6 +95,90 @@ namespace pace {
         format_to( std::back_inserter( formatted ), val, precision );
         return formatted;
       }
+
+      // text layout
+      enum class TextAlign : std::uint8_t { Left, Right, Center };
+
+      template<TextAlign Style, typename Out>
+      PACE__FORCEINLINE PACE__CXX20_CNSTXPR Out align_to( Out itr,
+                                                          charcodes::StringView str,
+                                                          std::size_t width )
+      {
+        if ( str.size() >= width )
+          return std::copy( str.cbegin(), str.cend(), itr );
+        if PACE__CXX17_CNSTXPR ( Style == TextAlign::Right ) {
+          if ( width > str.size() )
+            itr = std::fill_n( itr, width - str.size(), ' ' );
+          itr = std::copy( str.cbegin(), str.cend(), itr );
+        } else if PACE__CXX17_CNSTXPR ( Style == TextAlign::Left ) {
+          itr = std::copy( str.cbegin(), str.cend(), itr );
+          if ( width > str.size() )
+            itr = std::fill_n( itr, width - str.size(), ' ' );
+        } else {
+          const auto pad         = width - str.size();
+          const std::size_t left = pad / 2;
+          if ( width > str.size() )
+            itr = std::fill_n( itr, left, ' ' );
+          itr = std::copy( str.cbegin(), str.cend(), itr );
+          if ( width > str.size() )
+            itr = std::fill_n( itr, pad - left, ' ' );
+        }
+        return itr;
+      }
+
+      template<TextAlign Style, typename Out, typename Integer>
+      PACE__FORCEINLINE PACE__CXX20_CNSTXPR
+        typename std::enable_if<std::is_integral<Integer>::value, Out>::type
+        align_to( Out itr, Integer val, std::size_t width )
+      {
+#ifdef __cpp_lib_format
+        if PACE__CXX17_CNSTXPR ( Style == TextAlign::Left )
+          return std::format_to( itr, "{: <{}}", val, width );
+        else if PACE__CXX17_CNSTXPR ( Style == TextAlign::Center )
+          return std::format_to( itr, "{: ^{}}", val, width );
+        else
+          return std::format_to( itr, "{: >{}}", val, width );
+#else
+        const auto num_digits = utils::count_digits( val );
+        if ( num_digits >= width )
+          return utils::format_to( itr, val );
+        if PACE__CXX17_CNSTXPR ( Style == TextAlign::Right ) {
+          if ( width > num_digits )
+            itr = std::fill_n( itr, width - num_digits, ' ' );
+          itr = utils::format_to( itr, val );
+        } else if PACE__CXX17_CNSTXPR ( Style == TextAlign::Left ) {
+          itr = utils::format_to( itr, val );
+          if ( width > num_digits )
+            itr = std::fill_n( itr, width - num_digits, ' ' );
+        } else {
+          const auto pad         = width - num_digits;
+          const std::size_t left = pad / 2;
+          if ( width > num_digits )
+            itr = std::fill_n( itr, left, ' ' );
+          itr = utils::format_to( itr, val );
+          if ( width > num_digits )
+            itr = std::fill_n( itr, pad - left, ' ' );
+        }
+        return itr;
+#endif
+      }
+
+      template<TextAlign Style, typename Out, typename Floating>
+      PACE__FORCEINLINE PACE__CXX20_CNSTXPR
+        typename std::enable_if<std::is_floating_point<Floating>::value, Out>::type
+        align_to( Out itr, Floating val, std::size_t width, int precision = 3 )
+      {
+#ifdef __cpp_lib_format
+        if PACE__CXX17_CNSTXPR ( Style == TextAlign::Left )
+          return std::format_to( itr, "{: <{}.{}f}", val, width, precision );
+        else if PACE__CXX17_CNSTXPR ( Style == TextAlign::Center )
+          return std::format_to( itr, "{: ^{}.{}f}", val, width, precision );
+        else
+          return std::format_to( itr, "{: >{}.{}f}", val, width, precision );
+#else
+        return align_to<Style>( itr, utils::format( val, precision ), width );
+#endif
+      }
     } // namespace utils
 
     namespace io {
@@ -101,8 +190,8 @@ namespace pace {
 
         std::tuple<Value, Args...> value;
 
-        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
-                                                                               const Format& self )
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR io::CharPipeline& operator<<( io::CharPipeline& pipeline,
+                                                                                   const Format& self )
         {
           utils::apply(
             [&]( const Value& val, const Args&... args ) {
@@ -112,8 +201,8 @@ namespace pace {
             self.value );
           return pipeline;
         }
-        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
-                                                                               Format&& self )
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR io::CharPipeline& operator<<( io::CharPipeline& pipeline,
+                                                                                   Format&& self )
         {
           utils::apply(
             [&]( Value&& val, Args&&... args ) {
@@ -132,6 +221,73 @@ namespace pace {
       {
         return {
           { std::forward<Value>( value ), std::forward<Args>( args )... }
+        };
+      }
+
+      template<typename Style, typename Value, typename... Args>
+      struct Align;
+      template<utils::TextAlign Style, typename Value, typename... Args>
+      struct Align<std::integral_constant<utils::TextAlign, Style>, Value, Args...> {
+        static_assert( traits::Not<traits::AnyOf<std::is_rvalue_reference<Value>,
+                                                 std::is_rvalue_reference<Args>...>>::value,
+                       "dangling reference" );
+
+        std::tuple<std::size_t, Value, Args...> value;
+
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR io::CharPipeline& operator<<( io::CharPipeline& pipeline,
+                                                                                   const Align& self )
+        {
+          utils::apply(
+            [&]( std::size_t width, const Value& val, const Args&... args ) {
+              using utils::align_to;
+              align_to<Style>( std::back_inserter( pipeline ), val, width, args... );
+            },
+            self.value );
+          return pipeline;
+        }
+        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR io::CharPipeline& operator<<( io::CharPipeline& pipeline,
+                                                                                   Align&& self )
+        {
+          utils::apply(
+            [&]( std::size_t width, Value&& val, Args&&... args ) {
+              using utils::align_to;
+              align_to<Style>( std::back_inserter( pipeline ),
+                               std::forward<Value>( val ),
+                               width,
+                               std::forward<Args>( args )... );
+            },
+            std::move( self.value ) );
+          return pipeline;
+        }
+      };
+
+      template<utils::TextAlign Style>
+      struct Currying<Align, std::integral_constant<utils::TextAlign, Style>, std::size_t> {
+        std::tuple<std::size_t> capture;
+
+        template<typename Value, typename... Args>
+        PACE__NODISCARD
+          PACE__FORCEINLINE constexpr Align<std::integral_constant<utils::TextAlign, Style>, Value, Args...>
+          operator()( Value&& val, Args&&... args ) const
+        {
+          return {
+            { std::get<0>( capture ), std::forward<Value>( val ), std::forward<Args>( args )... }
+          };
+        }
+      };
+
+      template<utils::TextAlign Style>
+      PACE__NODISCARD PACE__FORCEINLINE
+        io::Currying<Align, std::integral_constant<utils::TextAlign, Style>, std::size_t>
+        align( std::size_t width ) noexcept
+      { return { { width } }; }
+      template<utils::TextAlign Style, typename Value, typename... Args>
+      PACE__NODISCARD
+        PACE__FORCEINLINE constexpr Align<std::integral_constant<utils::TextAlign, Style>, Value, Args...>
+        align( std::size_t width, Value&& val, Args&&... args )
+      {
+        return {
+          { width, std::forward<Value>( val ), std::forward<Args>( args )... }
         };
       }
     } // namespace io

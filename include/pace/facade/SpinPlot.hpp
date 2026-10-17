@@ -6,7 +6,6 @@
 #include "../details/behaviors/Fancy.hpp"
 #include "../details/behaviors/Indeterminate.hpp"
 #include "../details/render/Parameter.hpp"
-#include "../details/render/TextAlign.hpp"
 
 namespace pace {
   namespace facade {
@@ -27,8 +26,8 @@ namespace pace {
           details::io::concat(
             details::console::resetcolor,
             details::console::Dualcolor { this->lead_forecolor_, this->lead_backcolor_ } ) )
-                 << details::io::align<details::render::TextAlign::Left>( this->len_longest_lead_,
-                                                                          this->lead_[frame_cnt] );
+                 << details::io::align<details::utils::TextAlign::Left>( this->len_longest_lead_,
+                                                                         this->lead_[frame_cnt] );
 
         return pipeline;
       }

@@ -6,7 +6,6 @@
 #include "../details/behaviors/Indeterminate.hpp"
 #include "../details/behaviors/Plain.hpp"
 #include "../details/render/Parameter.hpp"
-#include "../details/render/TextAlign.hpp"
 #include "../details/traits/C3.hpp"
 #include "../details/utils/Util.hpp"
 
@@ -29,7 +28,7 @@ namespace pace {
       details::io::CharPipeline& build( details::io::CharPipeline& pipeline,
                                         const details::render::Parameter& params ) const
       {
-        pipeline << details::io::align<details::render::TextAlign::Right>(
+        pipeline << details::io::align<details::utils::TextAlign::Right>(
           details::utils::count_digits( params.task_quota ),
           params.tasks_completed );
 
