@@ -59,7 +59,7 @@ namespace pace {
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                        ostream << console::resetcursor;
                      else
-                       ostream << console::prevline << console::linestart;
+                       ostream << console::prevline;
                    }
 
                    static_cast<MostDerived*>( this )->monologue( ostream, style_off );
@@ -74,7 +74,7 @@ namespace pace {
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                        ostream << console::resetcursor;
                      else
-                       ostream << console::prevline << console::linestart;
+                       ostream << console::prevline;
                    }
 
                    static_cast<MostDerived*>( this )->epilogue( ostream, style_off );

@@ -182,14 +182,12 @@ namespace pace {
                    case Phase::Refresh: {
                      if ( istty ) {
                        if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
-                         ostream << console::resetcursor;
+                         ostream << console::restorecursor;
                        else
-                         ostream << io::repeat(
-                           std::count_if( stages_.cbegin(),
-                                          stages_.cend(),
-                                          []( Locus stage ) noexcept { return stage != Locus::Offstage; } ),
-                           console::prevline )
-                                 << console::linestart;
+                         ostream << io::prevline_n(
+                           std::count_if( stages_.cbegin(), stages_.cend(), []( Locus stage ) noexcept {
+                             return stage != Locus::Offstage;
+                           } ) );
                      }
                      do_render( ostream, istty, style_off, config::hide_completed() );
                      ostream << io::flush;

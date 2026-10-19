@@ -20,15 +20,18 @@ namespace pace {
       class Renderer final : public utils::Singleton<Renderer<Sink>> {
         friend class utils::Singleton<Renderer>;
 
+        // Since nanoseconds are too small
+        // and certain configurations make it impossible for rendering duration to be less than 1 μs,
+        // we require the rendering interval to be specified in microseconds.
         static constexpr auto _default_working_interval =
-          std::chrono::duration_cast<std::chrono::nanoseconds>( std::chrono::milliseconds( 40 ) );
+          std::chrono::duration_cast<std::chrono::microseconds>( std::chrono::milliseconds( 40 ) );
 
 #ifdef __cpp_inline_variables
-        static std::atomic<std::chrono::nanoseconds> _working_interval;
+        static std::atomic<std::chrono::microseconds> _working_interval;
 #else
-        static std::atomic<std::chrono::nanoseconds>& _working_interval() noexcept
+        static std::atomic<std::chrono::microseconds>& _working_interval() noexcept
         {
-          static std::atomic<std::chrono::nanoseconds> instance { _default_working_interval };
+          static std::atomic<std::chrono::microseconds> instance { _default_working_interval };
           return instance;
         }
 #endif
@@ -139,7 +142,7 @@ namespace pace {
 
       public:
         // Get the current working interval for all threads.
-        PACE__NODISCARD static PACE__FORCEINLINE std::chrono::nanoseconds working_interval() noexcept
+        PACE__NODISCARD static PACE__FORCEINLINE std::chrono::microseconds working_interval() noexcept
         {
 #ifdef __cpp_inline_variables
           return _working_interval.load( std::memory_order_relaxed );
@@ -148,7 +151,7 @@ namespace pace {
 #endif
         }
         // Adjust the thread working interval between this loop and the next loop.
-        static PACE__FORCEINLINE void working_interval( std::chrono::nanoseconds new_rate ) noexcept
+        static PACE__FORCEINLINE void working_interval( std::chrono::microseconds new_rate ) noexcept
         {
 #ifdef __cpp_inline_variables
           _working_interval.store( new_rate, std::memory_order_relaxed );
@@ -181,11 +184,12 @@ namespace pace {
               }
             }
             PACE__ASSERT( state_ != Phase::Dead );
-            PACE__CXX17_CNSTXPR const Phase desired = []() PACE__CXX17_CNSTXPR noexcept {
+            PACE__CXX17_CNSTXPR const auto desired = []() PACE__CXX17_CNSTXPR noexcept {
               if PACE__CXX17_CNSTXPR ( Mode == Policy::Async )
                 return Phase::Loop;
               else if PACE__CXX17_CNSTXPR ( Mode == Policy::Signal )
                 return Phase::Pulse;
+              return Phase::Dormant;
             }();
             auto expected = Phase::Dormant;
             if ( state_.compare_exchange_strong( expected, desired, std::memory_order_relaxed ) ) {
@@ -317,7 +321,7 @@ namespace pace {
       };
 #ifdef __cpp_inline_variables
       template<Channel Sink>
-      PACE__CXX17_INLINE std::atomic<std::chrono::nanoseconds> Renderer<Sink>::_working_interval {
+      PACE__CXX17_INLINE std::atomic<std::chrono::microseconds> Renderer<Sink>::_working_interval {
         Renderer<Sink>::_default_working_interval
       };
 #endif

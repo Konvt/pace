@@ -3,6 +3,7 @@
 
 #include "../console/Screen.hpp"
 #include "../io/OStream.hpp"
+#include "../utils/Backport.hpp"
 #include "ManagedBar.hpp"
 
 namespace pace {
@@ -207,17 +208,14 @@ namespace pace {
                        concurrent::SharedLock<concurrent::SharedMutex> lock { res_mtx_ };
                        if ( istty ) {
                          if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed ) {
-                           ostream << console::resetcursor;
+                           ostream << console::restorecursor;
                            if ( !hide_done && num_modified_lines_ > 0 ) {
                              ostream << io::repeat( num_modified_lines_, console::nextline )
                                      << console::savecursor;
                              num_modified_lines_ = 0;
                            }
-                         } else {
-                           ostream << io::repeat( num_modified_lines_, console::prevline )
-                                   << console::linestart;
-                           num_modified_lines_ = 0;
-                         }
+                         } else
+                           ostream << io::prevline_n( utils::exchange( num_modified_lines_, 0 ) );
                        }
                        do_render();
                      }
