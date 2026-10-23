@@ -1133,7 +1133,7 @@ while ( bar3->active() )
 ```
 
 ## NumericSpan
-`pace::slice::NumericSpan` is a template type used to represent a numerical range defined by a start point, an end point, and a step size. Mathematically, this range is expressed as `[start, end)`.
+`pace::views::NumericSpan` is a template type used to represent a numerical range defined by a start point, an end point, and a step size. Mathematically, this range is expressed as `[start, end)`.
 
 During construction or when modifying member values, the following conditions will trigger an exception `pace::exception::InvalidArgument`:
 
@@ -1141,7 +1141,7 @@ During construction or when modifying member values, the following conditions wi
 2. The start is less than the end while the step is negative;
 3. The step is zero.
 ### Member methods
-`pace::slice::NumericSpan` provides the following methods:
+`pace::views::NumericSpan` provides the following methods:
 
 ```cxx
 iterator begin() const noexcept; // returns an iterator pointing to the start of the numerical range
@@ -1155,14 +1155,14 @@ N step() const noexcept;            // returns the current step size
 void swap( NumericSpan& ) noexcept; // swaps two numerical ranges
 ```
 ### Iterator type
-`pace::slice::NumericSpan::iterator` is a forward iterator. It overloads, but is not limited to, operators such as `operator++()`, `operator++( int )`, `operator+=()`, `operator*()`, and equality comparison operators.
+`pace::views::NumericSpan::iterator` is a forward iterator. It overloads, but is not limited to, operators such as `operator++()`, `operator++( int )`, `operator+=()`, `operator*()`, and equality comparison operators.
 
-The number of valid iterations corresponds to the value returned by `pace::slice::NumericSpan::size()`. In particular, if the step size exceeds the numerical range, advancing the iterator may produce values beyond the end of the range.
+The number of valid iterations corresponds to the value returned by `pace::views::NumericSpan::size()`. In particular, if the step size exceeds the numerical range, advancing the iterator may produce values beyond the end of the range.
 
 ## IteratorSpan
-`pace::slice::IteratorSpan` is a template type used to represent an abstract range defined by two iterators. It can be regarded as a simplified version of `std::ranges::subrange`.
+`pace::views::IteratorSpan` is a template type used to represent an abstract range defined by two iterators. It can be regarded as a simplified version of `std::ranges::subrange`.
 
-`pace::slice::IteratorSpan` requires that the provided iterator type must be copy-constructible, and must support computing the distance between two iterator instances; otherwise, compilation will fail.
+`pace::views::IteratorSpan` requires that the provided iterator type must be copy-constructible, and must support computing the distance between two iterator instances; otherwise, compilation will fail.
 
 If the provided iterators are a pair of reverse iterators over a non-reversible type, an exception `pace::exception::InvalidArgument` will be thrown.
 
@@ -1171,16 +1171,16 @@ int arr1[50] = {};
 std::vector<int> arr2;
 
 try {
- auto reverse_span1 = pace::slice::IteratorSpan<int*>( arr1 + 49, arr1 - 1 );
+ auto reverse_span1 = pace::views::IteratorSpan<int*>( arr1 + 49, arr1 - 1 );
 } catch ( const pace::exception::InvalidArgument& ) {
  // ...
 }
 auto reverse_span2 =
- pace::slice::IteratorSpan<std::reverse_iterator<std::vector<int>::iterator>>( arr2.rbegin(),
+ pace::views::IteratorSpan<std::reverse_iterator<std::vector<int>::iterator>>( arr2.rbegin(),
                                                                                arr2.rend() );
 ```
 ### Member methods
-`pace::slice::IteratorSpan` provides the following methods:
+`pace::views::IteratorSpan` provides the following methods:
 
 ```cxx
 iterator begin() const noexcept; // returns an iterator pointing to the start of the abstract range
@@ -1191,14 +1191,14 @@ iterator end() const noexcept;   // returns an iterator pointing to the end of t
 void swap( IteratorSpan& ) noexcept; // swaps two abstract ranges
 ```
 ### Iterator type
-The iterator type of `pace::slice::IteratorSpan` is the same as the one passed in.
+The iterator type of `pace::views::IteratorSpan` is the same as the one passed in.
 
 ## SizedSpan
-`pace::slice::SizedSpan` is a template type used to represent an iterable range that satisfies the concept `std::ranges::sized_range` and does not satisfy the concept `std::ranges::view`.
+`pace::views::SizedSpan` is a template type used to represent an iterable range that satisfies the concept `std::ranges::sized_range` and does not satisfy the concept `std::ranges::view`.
 
-In simple terms, `pace::slice::SizedSpan` can be regarded as a simplified version of `std::ranges::ref_view`; it is a view over container types and array types.
+In simple terms, `pace::views::SizedSpan` can be regarded as a simplified version of `std::ranges::ref_view`; it is a view over container types and array types.
 ### Member functions
-`pace::slice::SizedSpan` provides the following methods:
+`pace::views::SizedSpan` provides the following methods:
 
 ```cxx
 /* iterator */ begin() const; // Returns an iterator pointing to the beginning of the abstract range
@@ -1209,18 +1209,18 @@ In simple terms, `pace::slice::SizedSpan` can be regarded as a simplified versio
 void swap(SizedSpan&) noexcept; // Swaps two abstract ranges
 ```
 ### Iterator type
-The iterator type of `pace::slice::SizedSpan::iterator` is equivalent to the iterator type of its underlying range.
+The iterator type of `pace::views::SizedSpan::iterator` is equivalent to the iterator type of its underlying range.
 
 ## TrackedSpan
-`pace::slice::TrackedSpan` is a template type used to represent an iterable range associated with a progress bar type.
+`pace::views::TrackedSpan` is a template type used to represent an iterable range associated with a progress bar type.
 
-`pace::slice::TrackedSpan` only accepts an object of a view type satisfying the concept `std::ranges::sized_range`, together with a progress bar object. Its purpose is to simplify the interaction between progress bar instances and enhanced for-loops or other contexts requiring iterators.
+`pace::views::TrackedSpan` only accepts an object of a view type satisfying the concept `std::ranges::sized_range`, together with a progress bar object. Its purpose is to simplify the interaction between progress bar instances and enhanced for-loops or other contexts requiring iterators.
 
 This is a move-only special type. It should only be constructed and returned by factory functions, such as a progress bar’s `iterate` method, and should not be constructed manually.
 
-Calling the `begin` method of `pace::slice::TrackedSpan` produces a side effect: the object will attempt to set the task count of the referenced progress bar instance based on the size of its internal abstract range.
+Calling the `begin` method of `pace::views::TrackedSpan` produces a side effect: the object will attempt to set the task count of the referenced progress bar instance based on the size of its internal abstract range.
 ### Member functions
-`pace::slice::TrackedSpan` provides the following methods:
+`pace::views::TrackedSpan` provides the following methods:
 
 ```cxx
 /* iterator */ begin() &;          // Assigns a value to the internal progress bar instance and returns the starting iterator
@@ -1231,7 +1231,7 @@ explicit operator bool() noexcept; // Checks whether the object is non-empty
 void swap(TrackedSpan&) noexcept; // Swaps two proxy ranges
 ```
 ### Iterator type
-The iterator type of `pace::slice::TrackedSpan::iterator` is a forward iterator. The increment operator of this iterator attempts to call the `tick()` method of the bound progress bar instance, which may trigger side effects in unexpected contexts.
+The iterator type of `pace::views::TrackedSpan::iterator` is a forward iterator. The increment operator of this iterator attempts to call the `tick()` method of the bound progress bar instance, which may trigger side effects in unexpected contexts.
 
 ## iterate
 `iterate` is an overloaded name for a series of template functions. It is a wrapper interface for the `iterate` method of the pace progress bar type.

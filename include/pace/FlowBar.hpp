@@ -9,7 +9,7 @@
 #include "facade/Speed.hpp"
 #include "prefab/BasicBar.hpp"
 #include "prefab/BasicConfig.hpp"
-#include "slice/TrackedSpan.hpp"
+#include "views/TrackedSpan.hpp"
 
 namespace pace {
   namespace config {

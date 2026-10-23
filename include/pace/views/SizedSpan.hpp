@@ -8,7 +8,7 @@
 #endif
 
 namespace pace {
-  namespace slice {
+  namespace views {
     template<typename R>
     class SizedSpan
 #ifdef __cpp_lib_ranges
@@ -54,7 +54,7 @@ namespace pace {
 
       explicit constexpr operator bool() const noexcept { return !empty(); }
     };
-  } // namespace slice
+  } // namespace views
 } // namespace pace
 
 #endif

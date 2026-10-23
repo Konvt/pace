@@ -1112,7 +1112,7 @@ while ( bar3->active() )
 ```
 
 ## NumericSpan
-`pace::slice::NumericSpan` 是一个模板类型，它被用于表达一个数值范围的起始点、终止点和步长；该数值范围在数学上被表示为：`[start, end)`。
+`pace::views::NumericSpan` 是一个模板类型，它被用于表达一个数值范围的起始点、终止点和步长；该数值范围在数学上被表示为：`[start, end)`。
 
 在构造过程、或者更改成员数值过程中，以下情况会导致异常 `pace::exception::InvalidArgument` 抛出：
 
@@ -1120,7 +1120,7 @@ while ( bar3->active() )
 2. 起点小于终点，而步长是负数；
 3. 步长为零。
 ### 成员方法
-`pace::slice::NumericSpan` 有以下几个方法：
+`pace::views::NumericSpan` 有以下几个方法：
 
 ```cxx
 iterator begin() const noexcept; // 返回一个指向数值范围起点的迭代器
@@ -1134,14 +1134,14 @@ N step() const noexcept;            // 返回当前步长
 void swap( NumericSpan& ) noexcept; // 交换两个数值范围
 ```
 ### 迭代器类型
-`pace::slice::NumericSpan::iterator` 属于前向迭代器，重载了包括但不限于 `operator++()`、`operator++( int )`、`operator+=()`、`operator*()` 和判等运算符在内的运算符函数。
+`pace::views::NumericSpan::iterator` 属于前向迭代器，重载了包括但不限于 `operator++()`、`operator++( int )`、`operator+=()`、`operator*()` 和判等运算符在内的运算符函数。
 
-迭代器的有效迭代次数与 `pace::slice::NumericSpan` 的方法 `size()` 返回的值相同；特别的，如果步长大于数值范围，那么迭代器在前进一步后的值将会超出数值范围的终止点。
+迭代器的有效迭代次数与 `pace::views::NumericSpan` 的方法 `size()` 返回的值相同；特别的，如果步长大于数值范围，那么迭代器在前进一步后的值将会超出数值范围的终止点。
 
 ## IteratorSpan
-`pace::slice::IteratorSpan` 是一个模板类型，它被用于表达两个迭代器所划定的抽象范围；可以被视作是 `std::ranges::subrange` 的简化版本。
+`pace::views::IteratorSpan` 是一个模板类型，它被用于表达两个迭代器所划定的抽象范围；可以被视作是 `std::ranges::subrange` 的简化版本。
 
-`pace::slice::IteratorSpan` 要求传入的迭代器类型必须满足复制构造，并且必须能够计算两个迭代器对象之间的距离，否则会导致编译失败。
+`pace::views::IteratorSpan` 要求传入的迭代器类型必须满足复制构造，并且必须能够计算两个迭代器对象之间的距离，否则会导致编译失败。
 
 如果传入的迭代器是一组非逆序类型的逆序迭代器，那么会抛出异常 `pace::exception::InvalidArgument`。
 
@@ -1150,16 +1150,16 @@ int arr1[50] = {};
 std::vector<int> arr2;
 
 try {
- auto reverse_span1 = pace::slice::IteratorSpan<int*>( arr1 + 49, arr1 - 1 );
+ auto reverse_span1 = pace::views::IteratorSpan<int*>( arr1 + 49, arr1 - 1 );
 } catch ( const pace::exception::InvalidArgument& ) {
  // ...
 }
 auto reverse_span2 =
- pace::slice::IteratorSpan<std::reverse_iterator<std::vector<int>::iterator>>( arr2.rbegin(),
+ pace::views::IteratorSpan<std::reverse_iterator<std::vector<int>::iterator>>( arr2.rbegin(),
                                                                                arr2.rend() );
 ```
 ### 成员方法
-`pace::slice::IteratorSpan` 有以下几个方法：
+`pace::views::IteratorSpan` 有以下几个方法：
 
 ```cxx
 iterator begin() const noexcept; // 返回一个指向抽象范围起点的迭代器
@@ -1170,14 +1170,14 @@ iterator end() const noexcept;   // 返回一个指向抽象范围终点的迭�
 void swap( IteratorSpan& ) noexcept; // 交换两个抽象范围
 ```
 ### 迭代器类型
-`pace::slice::IteratorSpan` 的迭代器类型与传入的相同。
+`pace::views::IteratorSpan` 的迭代器类型与传入的相同。
 
 ## SizedSpan
-`pace::slice::SizedSpan` 是一个模板类型，它用于表示满足概念 `std::ranges::sized_range` 且不满足概念 `std::ranges::view` 的迭代范围。
+`pace::views::SizedSpan` 是一个模板类型，它用于表示满足概念 `std::ranges::sized_range` 且不满足概念 `std::ranges::view` 的迭代范围。
 
-简单来说，`pace::slice::SizedSpan` 可以看作是 `std::ranges::ref_view` 的简化版本；它是对容器类型以及数组类型的**视图**。
+简单来说，`pace::views::SizedSpan` 可以看作是 `std::ranges::ref_view` 的简化版本；它是对容器类型以及数组类型的**视图**。
 ### 成员方法
-`pace::slice::SizedSpan` 有以下几个方法：
+`pace::views::SizedSpan` 有以下几个方法：
 ```cxx
 /* iterator */ begin() const; // 返回一个指向抽象范围起点的迭代器
 /* sentinel */ end() const;   // 返回一个指向抽象范围终点的迭代器
@@ -1187,18 +1187,18 @@ void swap( IteratorSpan& ) noexcept; // 交换两个抽象范围
 void swap( SizedSpan& ) noexcept; // 交换两个抽象范围
 ```
 ### 迭代器类型
-`pace::slice::SizedSpan::iterator` 的迭代器类型等价于其底层范围的迭代器类型。
+`pace::views::SizedSpan::iterator` 的迭代器类型等价于其底层范围的迭代器类型。
 
 ## TrackedSpan
-`pace::slice::TrackedSpan` 是一个模板类型，它用于表达某个进度条类型的迭代范围。
+`pace::views::TrackedSpan` 是一个模板类型，它用于表达某个进度条类型的迭代范围。
 
-`pace::slice::TrackedSpan` 只能接受一个满足概念 `std::ranges::sized_range` 的*视图类型*对象，和一个进度条对象；它的作用是为了简化进度条实例与 Enhanced-for 等需要使用迭代器的场景的交互。
+`pace::views::TrackedSpan` 只能接受一个满足概念 `std::ranges::sized_range` 的*视图类型*对象，和一个进度条对象；它的作用是为了简化进度条实例与 Enhanced-for 等需要使用迭代器的场景的交互。
 
 这是一个 move-only 的特殊类型，它只应该被工厂函数，如进度条的 `iterate` 方法，构造并返回，而不应该手动构造。
 
-调用 `pace::slice::TrackedSpan` 的 `begin` 方法会导致副作用：`pace::slice::TrackedSpan` 对象将尝试根据内部的抽象范围大小，对其引用的进度条实例设置任务数量。
+调用 `pace::views::TrackedSpan` 的 `begin` 方法会导致副作用：`pace::views::TrackedSpan` 对象将尝试根据内部的抽象范围大小，对其引用的进度条实例设置任务数量。
 ### 成员方法
-`pace::slice::TrackedSpan` 有以下几个方法：
+`pace::views::TrackedSpan` 有以下几个方法：
 
 ```cxx
 /* iterator */ begin() &;          // 为内部的进度条实例赋值，并返回起始迭代器
@@ -1209,7 +1209,7 @@ explicit operator bool() noexcept; // 检查当前对象是否非空
 void swap( TrackedSpan& ) noexcept; // 交换两个代理范围
 ```
 ### 迭代器类型
-`pace::slice::TrackedSpan::iterator` 属于前向迭代器，该迭代器的自增运算符会尝试调用与之绑定的进度条实例的 `tick()` 方法，因此会在意料之外的场景触发副作用。
+`pace::views::TrackedSpan::iterator` 属于前向迭代器，该迭代器的自增运算符会尝试调用与之绑定的进度条实例的 `tick()` 方法，因此会在意料之外的场景触发副作用。
 
 ## iterate
 `iterate` 是一系列模板函数的重载名称，它是 pace 的进度条类型的 `iterate` 方法的包装接口。

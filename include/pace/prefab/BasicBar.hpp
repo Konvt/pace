@@ -85,14 +85,14 @@ namespace pace {
   template<typename Bar, typename N, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, N step, Options&&... options ) ->
 #ifdef __cpp_concepts
-    slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>
+    views::TrackedSpan<views::NumericSpan<N>, std::shared_ptr<Bar>>
     requires( std::is_arithmetic_v<N> && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> )
 #else
     typename std::enable_if<details::traits::AllOf<std::is_arithmetic<N>,
                                                    details::traits::is_iterable_bar<Bar>,
                                                    std::is_constructible<Bar, Options&&...>>::value,
-                            slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
+                            views::TrackedSpan<views::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
     return {
@@ -107,7 +107,7 @@ namespace pace {
                                                   Act&& act,
                                                   Options&&... options ) ->
 #ifdef __cpp_concepts
-    slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>
+    views::TrackedSpan<views::NumericSpan<N>, std::shared_ptr<Bar>>
     requires(
       std::is_arithmetic_v<N> && details::traits::is_iterable_bar<Bar>::value
       && details::traits::is_reactive_bar<Bar>::value
@@ -124,7 +124,7 @@ namespace pace {
           typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
           Bar>,
         std::is_constructible<Bar, Options&&...>>::value,
-      slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
+      views::TrackedSpan<views::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
     return {
@@ -199,7 +199,7 @@ namespace pace {
     -> typename std::enable_if<
       details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
                              std::is_constructible<Config, Options&&...>>::value,
-      slice::TrackedSpan<slice::NumericSpan<N>,
+      views::TrackedSpan<views::NumericSpan<N>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
@@ -246,7 +246,7 @@ namespace pace {
                                                    << std::declval<Act&&>() )>::type,
           prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
-      slice::TrackedSpan<slice::NumericSpan<N>,
+      views::TrackedSpan<views::NumericSpan<N>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
@@ -343,14 +343,14 @@ namespace pace {
   template<typename Bar, typename N, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N endpoint, N step, Options&&... options ) ->
 #ifdef __cpp_concepts
-    slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>
+    views::TrackedSpan<views::NumericSpan<N>, std::shared_ptr<Bar>>
     requires( std::is_floating_point_v<N> && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> )
 #else
     typename std::enable_if<details::traits::AllOf<std::is_floating_point<N>,
                                                    details::traits::is_iterable_bar<Bar>,
                                                    std::is_constructible<Bar, Options&&...>>::value,
-                            slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
+                            views::TrackedSpan<views::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
     return {
@@ -361,7 +361,7 @@ namespace pace {
   template<typename Bar, typename N, typename Act, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N endpoint, N step, Act&& act, Options&&... options ) ->
 #ifdef __cpp_concepts
-    slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>
+    views::TrackedSpan<views::NumericSpan<N>, std::shared_ptr<Bar>>
     requires(
       std::is_floating_point_v<N> && details::traits::is_iterable_bar<Bar>::value
       && details::traits::is_reactive_bar<Bar>::value
@@ -378,7 +378,7 @@ namespace pace {
           typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
           Bar>,
         std::is_constructible<Bar, Options&&...>>::value,
-      slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
+      views::TrackedSpan<views::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
     return {
@@ -446,7 +446,7 @@ namespace pace {
                              details::traits::is_config<Config>,
                              details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
                              std::is_constructible<Config, Options&&...>>::value,
-      slice::TrackedSpan<slice::NumericSpan<N>,
+      views::TrackedSpan<views::NumericSpan<N>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
@@ -488,7 +488,7 @@ namespace pace {
                                                    << std::declval<Act&&>() )>::type,
           prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
-      slice::TrackedSpan<slice::NumericSpan<N>,
+      views::TrackedSpan<views::NumericSpan<N>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
@@ -577,14 +577,14 @@ namespace pace {
   template<typename Bar, typename N, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, Options&&... options ) ->
 #ifdef __cpp_concepts
-    slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>
+    views::TrackedSpan<views::NumericSpan<N>, std::shared_ptr<Bar>>
     requires( std::is_integral_v<N> && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> )
 #else
     typename std::enable_if<details::traits::AllOf<std::is_integral<N>,
                                                    details::traits::is_iterable_bar<Bar>,
                                                    std::is_constructible<Bar, Options&&...>>::value,
-                            slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
+                            views::TrackedSpan<views::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
     return {
@@ -596,7 +596,7 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, Act&& act, Options&&... options )
     ->
 #ifdef __cpp_concepts
-    slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>
+    views::TrackedSpan<views::NumericSpan<N>, std::shared_ptr<Bar>>
     requires(
       std::is_integral_v<N> && details::traits::is_iterable_bar<Bar>::value
       && details::traits::is_reactive_bar<Bar>::value
@@ -612,7 +612,7 @@ namespace pace {
           typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
           Bar>,
         std::is_constructible<Bar, Options&&...>>::value,
-      slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
+      views::TrackedSpan<views::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
     return {
@@ -677,7 +677,7 @@ namespace pace {
     -> typename std::enable_if<
       details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
                              std::is_constructible<Config, Options&&...>>::value,
-      slice::TrackedSpan<slice::NumericSpan<N>,
+      views::TrackedSpan<views::NumericSpan<N>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
@@ -719,7 +719,7 @@ namespace pace {
                                                    << std::declval<Act&&>() )>::type,
           prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
-      slice::TrackedSpan<slice::NumericSpan<N>,
+      views::TrackedSpan<views::NumericSpan<N>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
@@ -808,20 +808,20 @@ namespace pace {
   template<typename Bar, typename N, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N endpoint, Options&&... options ) ->
 #ifdef __cpp_concepts
-    slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>
+    views::TrackedSpan<views::NumericSpan<N>, std::shared_ptr<Bar>>
     requires( std::is_integral_v<N> && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> )
 #else
     typename std::enable_if<details::traits::AllOf<std::is_integral<N>,
                                                    details::traits::is_iterable_bar<Bar>,
                                                    std::is_constructible<Bar, Options&&...>>::value,
-                            slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
+                            views::TrackedSpan<views::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   { return { { endpoint }, std::make_shared<Bar>( std::forward<Options>( options )... ) }; }
   template<typename Bar, typename N, typename Act, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N endpoint, Act&& act, Options&&... options ) ->
 #ifdef __cpp_concepts
-    slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>
+    views::TrackedSpan<views::NumericSpan<N>, std::shared_ptr<Bar>>
     requires(
       std::is_integral_v<N> && details::traits::is_iterable_bar<Bar>::value
       && details::traits::is_reactive_bar<Bar>::value
@@ -838,7 +838,7 @@ namespace pace {
           typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
           Bar>,
         std::is_constructible<Bar, Options&&...>>::value,
-      slice::TrackedSpan<slice::NumericSpan<N>, std::shared_ptr<Bar>>>::type
+      views::TrackedSpan<views::NumericSpan<N>, std::shared_ptr<Bar>>>::type
 #endif
   {
     return { { endpoint },
@@ -903,7 +903,7 @@ namespace pace {
     -> typename std::enable_if<
       details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
                              std::is_constructible<Config, Options&&...>>::value,
-      slice::TrackedSpan<slice::NumericSpan<N>,
+      views::TrackedSpan<views::NumericSpan<N>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
@@ -944,7 +944,7 @@ namespace pace {
                                                    << std::declval<Act&&>() )>::type,
           prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
-      slice::TrackedSpan<slice::NumericSpan<N>,
+      views::TrackedSpan<views::NumericSpan<N>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
@@ -1030,7 +1030,7 @@ namespace pace {
   template<typename Bar, typename Itr, typename Snt, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( Itr startpoint, Snt endpoint, Options&&... options ) ->
 #ifdef __cpp_concepts
-    slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>, std::shared_ptr<Bar>>
+    views::TrackedSpan<views::IteratorSpan<Itr, Snt>, std::shared_ptr<Bar>>
     requires( details::traits::is_sized_cursor<Itr, Snt>::value
               && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> )
@@ -1038,7 +1038,7 @@ namespace pace {
     typename std::enable_if<details::traits::AllOf<details::traits::is_sized_cursor<Itr, Snt>,
                                                    details::traits::is_iterable_bar<Bar>,
                                                    std::is_constructible<Bar, Options&&...>>::value,
-                            slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>, std::shared_ptr<Bar>>>::type
+                            views::TrackedSpan<views::IteratorSpan<Itr, Snt>, std::shared_ptr<Bar>>>::type
 #endif
   {
     return {
@@ -1052,7 +1052,7 @@ namespace pace {
                                                   Act&& act,
                                                   Options&&... options ) ->
 #ifdef __cpp_concepts
-    slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>, std::shared_ptr<Bar>>
+    views::TrackedSpan<views::IteratorSpan<Itr, Snt>, std::shared_ptr<Bar>>
     requires(
       details::traits::is_sized_cursor<Itr, Snt>::value && details::traits::is_iterable_bar<Bar>::value
       && details::traits::is_reactive_bar<Bar>::value
@@ -1069,7 +1069,7 @@ namespace pace {
           typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
           Bar>,
         std::is_constructible<Bar, Options&&...>>::value,
-      slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>, std::shared_ptr<Bar>>>::type
+      views::TrackedSpan<views::IteratorSpan<Itr, Snt>, std::shared_ptr<Bar>>>::type
 #endif
   {
     return {
@@ -1141,7 +1141,7 @@ namespace pace {
     -> typename std::enable_if<
       details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
                              std::is_constructible<Config, Options&&...>>::value,
-      slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>,
+      views::TrackedSpan<views::IteratorSpan<Itr, Snt>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
@@ -1187,7 +1187,7 @@ namespace pace {
                                                    << std::declval<Act&&>() )>::type,
           prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
-      slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>,
+      views::TrackedSpan<views::IteratorSpan<Itr, Snt>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
@@ -1279,7 +1279,7 @@ namespace pace {
   template<typename Bar, class R, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( R&& range, Options&&... options ) ->
 #ifdef __cpp_concepts
-    slice::TrackedSpan<slice::SizedSpan<std::remove_reference_t<R>>, std::shared_ptr<Bar>>
+    views::TrackedSpan<views::SizedSpan<std::remove_reference_t<R>>, std::shared_ptr<Bar>>
     requires( details::traits::is_sized_range<R>::value && !std::ranges::view<std::remove_reference_t<R>>
               && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> )
@@ -1287,14 +1287,14 @@ namespace pace {
     typename std::enable_if<details::traits::AllOf<details::traits::is_sized_range<R>,
                                                    details::traits::is_iterable_bar<Bar>,
                                                    std::is_constructible<Bar, Options&&...>>::value,
-                            slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
+                            views::TrackedSpan<views::SizedSpan<typename std::remove_reference<R>::type>,
                                                std::shared_ptr<Bar>>>::type
 #endif
   { return { { std::forward<R>( range ) }, std::make_shared<Bar>( std::forward<Options>( options )... ) }; }
   template<typename Bar, class R, typename Act, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( R&& range, Act&& act, Options&&... options ) ->
 #ifdef __cpp_concepts
-    slice::TrackedSpan<slice::SizedSpan<std::remove_reference_t<R>>, std::shared_ptr<Bar>>
+    views::TrackedSpan<views::SizedSpan<std::remove_reference_t<R>>, std::shared_ptr<Bar>>
     requires(
       details::traits::is_sized_range<R>::value && !std::ranges::view<std::remove_reference_t<R>>
       && details::traits::is_iterable_bar<Bar>::value && details::traits::is_reactive_bar<Bar>::value
@@ -1311,7 +1311,7 @@ namespace pace {
           typename std::remove_reference<decltype( std::declval<Bar>() << std::forward<Act>( act ) )>::type,
           Bar>,
         std::is_constructible<Bar, Options&&...>>::value,
-      slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
+      views::TrackedSpan<views::SizedSpan<typename std::remove_reference<R>::type>,
                          std::shared_ptr<Bar>>>::type
 #endif
   {
@@ -1325,10 +1325,10 @@ namespace pace {
               && std::ranges::view<R> && details::traits::is_iterable_bar<Bar>::value
               && std::is_constructible_v<Bar, Options && ...> )
   PACE__NODISCARD PACE__FORCEINLINE
-    slice::TrackedSpan<R, std::shared_ptr<Bar>> iterate( R view, Options&&... options )
+    views::TrackedSpan<R, std::shared_ptr<Bar>> iterate( R view, Options&&... options )
   { return { std::move( view ), std::make_shared<Bar>( std::forward<Options>( options )... ) }; }
   template<typename Bar, class R, typename Act, typename... Options>
-  PACE__NODISCARD PACE__FORCEINLINE slice::TrackedSpan<R, std::shared_ptr<Bar>>
+  PACE__NODISCARD PACE__FORCEINLINE views::TrackedSpan<R, std::shared_ptr<Bar>>
     iterate( R view, Act&& act, Options&&... options )
     requires(
       details::traits::is_sized_range<R>::value && std::ranges::view<R>
@@ -1408,7 +1408,7 @@ namespace pace {
     -> typename std::enable_if<
       details::traits::AllOf<details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>,
                              std::is_constructible<Config, Options&&...>>::value,
-      slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
+      views::TrackedSpan<views::SizedSpan<typename std::remove_reference<R>::type>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
@@ -1450,7 +1450,7 @@ namespace pace {
                                                    << std::declval<Act&&>() )>::type,
           prefab::BasicBar<Config, Sink, Mode, Zone>>,
         std::is_constructible<Config, Options&&...>>::value,
-      slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>,
+      views::TrackedSpan<views::SizedSpan<typename std::remove_reference<R>::type>,
                          std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
@@ -1470,7 +1470,7 @@ namespace pace {
               && details::traits::is_iterable_bar<prefab::BasicBar<Config, Sink, Mode, Zone>>::value
               && std::is_constructible_v<Config, Options && ...> )
   PACE__NODISCARD PACE__FORCEINLINE
-    slice::TrackedSpan<R, std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>> iterate(
+    views::TrackedSpan<R, std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>> iterate(
       R view,
       Options&&... options )
   {
@@ -1486,7 +1486,7 @@ namespace pace {
            typename Act,
            typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE
-    slice::TrackedSpan<R, std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>
+    views::TrackedSpan<R, std::shared_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>
     iterate( R view, Act&& act, Options&&... options )
     requires( details::traits::is_sized_range<R>::value
               && std::ranges::view<R> && details::traits::is_config<Config>::value

@@ -9,7 +9,7 @@
 #endif
 
 namespace pace {
-  namespace slice {
+  namespace views {
     /**
      * An undirectional range delimited by a pair of iterators, including pointer types.
      *
@@ -67,7 +67,7 @@ namespace pace {
 
       explicit constexpr operator bool() const noexcept { return !empty(); }
     };
-  } // namespace slice
+  } // namespace views
 } // namespace pace
 
 #endif

@@ -9,7 +9,7 @@
 #endif
 
 namespace pace {
-  namespace slice {
+  namespace views {
     /**
      * A range that contains a bar object and an unidirectional abstract view of range,
      * which transforms the iterations in the abstract into a visual display of the object.
@@ -182,12 +182,12 @@ namespace pace {
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX17_CNSTXPR sentinel end() const
       { return { details::utils::end( view_ ), ui_ }; }
     };
-  } // namespace slice
+  } // namespace views
 } // namespace pace
 
 #ifdef __cpp_lib_ranges
 template<typename View, typename UIRef>
-inline constexpr bool std::ranges::enable_borrowed_range<pace::slice::TrackedSpan<View, UIRef>> =
+inline constexpr bool std::ranges::enable_borrowed_range<pace::views::TrackedSpan<View, UIRef>> =
   std::ranges::borrowed_range<View>;
 #endif
 

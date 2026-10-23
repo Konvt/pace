@@ -13,7 +13,7 @@
 #endif
 
 namespace pace {
-  namespace slice {
+  namespace views {
     /**
      * An bidirectional range delimited by an numeric interval [start, end).
      *
@@ -240,12 +240,12 @@ namespace pace {
       { return start_ + step_ * static_cast<N>( inc ); }
       explicit constexpr operator bool() const noexcept { return !empty(); }
     };
-  } // namespace slice
+  } // namespace views
 } // namespace pace
 
 #ifdef __cpp_lib_ranges
 template<typename N>
-inline constexpr bool std::ranges::enable_borrowed_range<pace::slice::NumericSpan<N>> = true;
+inline constexpr bool std::ranges::enable_borrowed_range<pace::views::NumericSpan<N>> = true;
 #endif
 
 #endif

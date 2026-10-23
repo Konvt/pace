@@ -57,7 +57,7 @@ namespace pace {
                  case Phase::Refresh: {
                    if ( istty ) {
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
-                       ostream << console::resetcursor;
+                       ostream << console::restorecursor;
                      else
                        ostream << console::prevline;
                    }
@@ -72,7 +72,7 @@ namespace pace {
                  case Phase::Finish: {
                    if ( istty ) {
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
-                       ostream << console::resetcursor;
+                       ostream << console::restorecursor;
                      else
                        ostream << console::prevline;
                    }

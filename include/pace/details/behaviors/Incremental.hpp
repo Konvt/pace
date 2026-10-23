@@ -1,12 +1,12 @@
 #ifndef PACE_INCREMENTAL
 #define PACE_INCREMENTAL
 
-#include "../../slice/IteratorSpan.hpp"
-#include "../../slice/NumericSpan.hpp"
-#include "../../slice/SizedSpan.hpp"
+#include "../../views/IteratorSpan.hpp"
+#include "../../views/NumericSpan.hpp"
+#include "../../views/SizedSpan.hpp"
 
 namespace pace {
-  namespace slice {
+  namespace views {
     template<typename, typename>
     class TrackedSpan;
   }
@@ -89,11 +89,11 @@ namespace pace {
         template<typename N>
         PACE__NODISCARD auto iterate( N startpoint, N endpoint, N step ) &
 #ifdef __cpp_concepts
-          -> slice::TrackedSpan<slice::NumericSpan<N>, Derived*>
+          -> views::TrackedSpan<views::NumericSpan<N>, Derived*>
           requires std::is_arithmetic_v<N>
 #else
           -> typename std::enable_if<std::is_arithmetic<N>::value,
-                                     slice::TrackedSpan<slice::NumericSpan<N>, Derived*>>::type
+                                     views::TrackedSpan<views::NumericSpan<N>, Derived*>>::type
 #endif
         { // default parameter will cause ambiguous overloads
           // so we have to write them all
@@ -118,11 +118,11 @@ namespace pace {
         template<typename N>
         PACE__NODISCARD auto iterate( N endpoint, N step ) &
 #ifdef __cpp_concepts
-          -> slice::TrackedSpan<slice::NumericSpan<N>, Derived*>
+          -> views::TrackedSpan<views::NumericSpan<N>, Derived*>
           requires std::is_floating_point_v<N>
 #else
           -> typename std::enable_if<std::is_floating_point<N>::value,
-                                     slice::TrackedSpan<slice::NumericSpan<N>, Derived*>>::type
+                                     views::TrackedSpan<views::NumericSpan<N>, Derived*>>::type
 #endif
         {
           throw_if_active();
@@ -147,11 +147,11 @@ namespace pace {
         template<typename N>
         PACE__NODISCARD auto iterate( N startpoint, N endpoint ) &
 #ifdef __cpp_concepts
-          -> slice::TrackedSpan<slice::NumericSpan<N>, Derived*>
+          -> views::TrackedSpan<views::NumericSpan<N>, Derived*>
           requires std::is_integral_v<N>
 #else
           -> typename std::enable_if<std::is_integral<N>::value,
-                                     slice::TrackedSpan<slice::NumericSpan<N>, Derived*>>::type
+                                     views::TrackedSpan<views::NumericSpan<N>, Derived*>>::type
 #endif
         {
           throw_if_active();
@@ -175,11 +175,11 @@ namespace pace {
         template<typename N>
         PACE__NODISCARD auto iterate( N endpoint ) &
 #ifdef __cpp_concepts
-          -> slice::TrackedSpan<slice::NumericSpan<N>, Derived*>
+          -> views::TrackedSpan<views::NumericSpan<N>, Derived*>
           requires std::is_integral_v<N>
 #else
           -> typename std::enable_if<std::is_integral<N>::value,
-                                     slice::TrackedSpan<slice::NumericSpan<N>, Derived*>>::type
+                                     views::TrackedSpan<views::NumericSpan<N>, Derived*>>::type
 #endif
         {
           throw_if_active();
@@ -203,11 +203,11 @@ namespace pace {
           traits::AllOf<std::is_nothrow_move_constructible<Itr>,
                         std::is_nothrow_move_constructible<Snt>>::value )
 #ifdef __cpp_concepts
-          -> slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>, Derived*>
+          -> views::TrackedSpan<views::IteratorSpan<Itr, Snt>, Derived*>
           requires traits::is_sized_cursor<Itr, Snt>::value
 #else
           -> typename std::enable_if<traits::is_sized_cursor<Itr, Snt>::value,
-                                     slice::TrackedSpan<slice::IteratorSpan<Itr, Snt>, Derived*>>::type
+                                     views::TrackedSpan<views::IteratorSpan<Itr, Snt>, Derived*>>::type
 #endif
         {
           throw_if_active();
@@ -229,17 +229,17 @@ namespace pace {
         }
 
         // Visualize unidirectional traversal of a abstract range interval defined by `container`'s
-        // slice.
+        // views.
         template<class R>
         PACE__NODISCARD auto iterate( R& container ) &
 #ifdef __cpp_concepts
-          -> slice::TrackedSpan<slice::SizedSpan<std::remove_reference_t<R>>, Derived*>
+          -> views::TrackedSpan<views::SizedSpan<std::remove_reference_t<R>>, Derived*>
           requires( traits::is_sized_range<std::remove_reference_t<R>>::value
                     && !std::ranges::view<std::remove_reference_t<R>> )
 #else
           -> typename std::enable_if<
             traits::is_sized_range<typename std::remove_reference<R>::type>::value,
-            slice::TrackedSpan<slice::SizedSpan<typename std::remove_reference<R>::type>, Derived*>>::type
+            views::TrackedSpan<views::SizedSpan<typename std::remove_reference<R>::type>, Derived*>>::type
 #endif
         {
           throw_if_active();
@@ -248,7 +248,7 @@ namespace pace {
 #ifdef __cpp_concepts
         template<class R>
           requires( traits::is_sized_range<R>::value && std::ranges::view<R> )
-        PACE__NODISCARD slice::TrackedSpan<R, Derived*> iterate( R view ) &
+        PACE__NODISCARD views::TrackedSpan<R, Derived*> iterate( R view ) &
         {
           throw_if_active();
           return { std::move( view ), static_cast<Derived*>( this ) };

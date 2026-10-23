@@ -33,11 +33,11 @@ export namespace pace {
     using pace::exception::SystemError;
   }
 
-  namespace slice {
-    using pace::slice::IteratorSpan;
-    using pace::slice::NumericSpan;
-    using pace::slice::SizedSpan;
-    using pace::slice::TrackedSpan;
+  namespace views {
+    using pace::views::IteratorSpan;
+    using pace::views::NumericSpan;
+    using pace::views::SizedSpan;
+    using pace::views::TrackedSpan;
   }
 
   namespace config {
