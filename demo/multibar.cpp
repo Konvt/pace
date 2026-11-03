@@ -24,10 +24,15 @@ int main()
                                            pace::option::InfoForecolor( "#7DD4DF" ) ),
                       pace::config::Block( pace::option::Lead( { " ", "▖", "▞", "▛" } ),
                                            pace::option::InfoForecolor( "#8AB7EB" ) ) );
-  mbar.at<0>().config().quota( ( tuple_size<decltype( mbar )>::value - 1 ) * 2 );
+  mbar.at<0>()
+    .config()
+    .quota( ( tuple_size<decltype( mbar )>::value - 1 ) * 2 )
+    .disable<pace::facade::Counter, pace::facade::Speed, pace::facade::Elapsed, pace::facade::ETA>();
   // Bind a callback that will be executed at the end of the iteration below.
-  mbar.at<0>() <<
-    [&]( pace::FlowBar<>& self ) { self.config().filler_forecolor( pace::Color::Green ).lead( "" ); };
+  mbar.at<0>() << [&]( typename tuple_element<0, decltype( mbar )>::type& self ) {
+    // After C++14, `auto& self` is more recommended.
+    self.config().filler_forecolor( pace::Color::Green ).lead( "" );
+  };
   // Bind a callback to mark that the current bar has been compeleted.
   mbar.at<1>() << [&]() { mbar.at<0>().tick(); };
   mbar.at<2>() << [&]() { mbar.at<0>().tick(); };

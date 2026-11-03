@@ -85,9 +85,9 @@ namespace pace {
     { return sizeof...( Configs ) + 1; }
     // Check whether a progress bar is running
     PACE__NODISCARD PACE__FORCEINLINE bool active() const noexcept { return package_.online(); }
-    // Returns the number of progress bars which is running.
-    PACE__NODISCARD PACE__FORCEINLINE std::size_t active_count() const noexcept
-    { return package_.online_count(); }
+    /// @return The number of terminal lines currently occupied by the progress bar,
+    //          which is useful when using `Region::Relative` layout and needing to output extra information.
+    PACE__NODISCARD PACE__FORCEINLINE std::size_t layout_height() const noexcept { return package_.height(); }
 
     template<std::size_t Pos>
     PACE__FORCEINLINE PACE__CXX14_CNSTXPR BarAt_t<Pos>& at() & noexcept
@@ -273,7 +273,7 @@ namespace pace {
     -> MultiBar_t<Bar, Cnt>
     requires( Cnt > 0 && sizeof...( Objs ) <= Cnt && details::traits::is_bar<Bar>::value
               && ( ( ( std::is_same_v<std::remove_cv_t<Bar>, std::decay_t<Objs>> && ... )
-                     && !( std::is_lvalue_reference_v<Objs &&> || ... ) )
+                     && !( std::is_lvalue_reference_v<Objs&&> || ... ) )
                    || ( std::is_same_v<typename Bar::config_type, std::decay_t<Objs>> && ... ) ) )
 #else
     -> typename std::enable_if<

@@ -79,6 +79,18 @@ namespace pace {
           atomic_notify_all( atom );
         return cas;
       }
+
+      template<typename T>
+      PACE__FORCEINLINE void atomic_wait( std::atomic<T>& atom,
+                                          T old,
+                                          std::memory_order order = std::memory_order_seq_cst )
+      {
+#ifdef __cpp_lib_atomic_wait
+        atom.wait( old, order );
+#else
+        spin_wait( [&]() { return atom.load( order ) != old; } );
+#endif
+      }
     } // namespace concurrent
   } // namespace details
 } // namespace pace

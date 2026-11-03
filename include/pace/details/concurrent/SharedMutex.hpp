@@ -62,15 +62,17 @@ namespace pace {
         }
 # endif
 
+# ifdef PACE__PTHREAD_RWLOCK
         ~SharedMutex() noexcept
         {
-# ifdef PACE__PTHREAD_RWLOCK
           // The standard mutex destructor is noexcept.
           // Destroying a locked mutex is already outside the valid lifetime requirements,
           // so the error cannot usefully be propagated here.
           (void)pthread_rwlock_destroy( &native_ );
-# endif
         }
+# else
+        ~SharedMutex() = default;
+# endif
 
         SharedMutex( const SharedMutex& )            = delete;
         SharedMutex& operator=( const SharedMutex& ) = delete;

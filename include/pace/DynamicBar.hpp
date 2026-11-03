@@ -56,29 +56,20 @@ namespace pace {
     PACE__NODISCARD PACE__FORCEINLINE bool active() const noexcept
     {
       details::concurrent::SharedLock<details::concurrent::SharedMutex> lock { mtx_ };
-      return core_ != nullptr && core_->online_count() != 0;
+      return core_ != nullptr && core_->online();
     }
+    /// @return The number of progress bars associated with the current object.
     PACE__NODISCARD PACE__FORCEINLINE std::size_t size() const noexcept
     {
       details::concurrent::SharedLock<details::concurrent::SharedMutex> lock { mtx_ };
       return core_ != nullptr ? core_.use_count() - 1 : 0;
     }
-    PACE__NODISCARD PACE__FORCEINLINE std::size_t active_count() const noexcept
+    /// @return The number of terminal lines currently occupied by the progress bar,
+    //          which is useful when using `Region::Relative` layout and needing to output extra information.
+    PACE__NODISCARD PACE__FORCEINLINE std::size_t layout_height() const noexcept
     {
       details::concurrent::SharedLock<details::concurrent::SharedMutex> lock { mtx_ };
-      return core_ != nullptr ? core_->online_count() : 0;
-    }
-    PACE__FORCEINLINE void reset()
-    {
-      std::lock_guard<details::concurrent::SharedMutex> lock { mtx_ };
-      if ( core_ != nullptr )
-        core_->shut();
-    }
-    PACE__FORCEINLINE void abort() noexcept
-    {
-      std::lock_guard<details::concurrent::SharedMutex> lock { mtx_ };
-      if ( core_ != nullptr )
-        core_->kill();
+      return core_ != nullptr ? core_->height() : 0;
     }
 
     template<typename Config>
@@ -117,7 +108,7 @@ namespace pace {
 #ifdef __cpp_concepts
       -> std::unique_ptr<Bar>
       requires( details::traits::is_bar<Bar>::value && Bar::channel_value == Sink && Bar::policy_value == Mode
-                && Bar::region_value == Zone && std::is_constructible_v<Bar, Options && ...> )
+                && Bar::region_value == Zone && std::is_constructible_v<Bar, Options&&...> )
 #else
       -> typename std::enable_if<
         details::traits::AllOf<details::traits::is_bar<Bar>,
@@ -138,7 +129,7 @@ namespace pace {
     PACE__NODISCARD auto insert( Options&&... options )
 #ifdef __cpp_concepts
       -> std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>
-      requires( details::traits::is_config<Config>::value && std::is_constructible_v<Config, Options && ...> )
+      requires( details::traits::is_config<Config>::value && std::is_constructible_v<Config, Options&&...> )
 #else
       -> typename std::enable_if<details::traits::AllOf<details::traits::is_config<Config>,
                                                         std::is_constructible<Config, Options&&...>>::value,
@@ -271,7 +262,7 @@ namespace pace {
 #ifdef __cpp_concepts
     requires( details::traits::is_bar<Bar>::value
               && ( ( ( std::is_same_v<std::remove_cv_t<Bar>, std::remove_cv_t<Objs>> && ... )
-                     && !( std::is_lvalue_reference_v<Objs &&> || ... ) )
+                     && !( std::is_lvalue_reference_v<Objs&&> || ... ) )
                    || ( std::is_same<typename Bar::config_type, std::decay_t<Objs>>::value && ... ) ) )
 #else
     -> typename std::enable_if<

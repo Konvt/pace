@@ -25,7 +25,7 @@ namespace pace {
   ///        `Err`: Standard error stream
   enum class Channel : int { Out = 1, Err };
   enum class Policy : std::uint8_t { Async, Signal, Sync };
-  enum class Region : bool { Fixed, Relative };
+  enum class Region : std::uint8_t { Fixed, Relative, Bottom, Top };
 
   // The ANSI 8 colors
   enum class Color : std::uint8_t {

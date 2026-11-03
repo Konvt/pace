@@ -5,6 +5,7 @@
 #include "../traits/Backport.hpp"
 #include <exception>
 #include <functional>
+#include <iterator>
 #include <memory>
 #include <utility>
 #if !defined( __cpp_lib_invoke ) || ( defined( _MSC_VER ) && !defined( __cpp_lib_is_invocable ) )
@@ -25,7 +26,6 @@
 namespace pace {
   namespace details {
     namespace utils {
-      // Before C++17, not all std entities had feature macros.
 #ifdef __cpp_lib_make_unique
       using std::make_unique;
 #else

@@ -4,6 +4,7 @@
 #include "../core/Core.hpp"
 #include "../core/Platform.hpp"
 #include "../core/Types.hpp"
+#include "../utils/Backport.hpp"
 #include "../utils/Singleton.hpp"
 
 #if PACE__UNIX
@@ -18,8 +19,11 @@ namespace pace {
   namespace details {
     namespace console {
       template<Channel Sink>
-      class Screen final : private utils::Singleton<Screen<Sink>> {
-        // pseudo singleton
+      class Screen final : public utils::Singleton<Screen<Sink>> {
+        // It's internal components, and is only called by the rendering thread
+        // (there is only one such thread), so atomic is not used.
+        std::uint16_t vertical_snapshot_ = 0;
+
       public:
         // Detect whether the specified output stream is bound to a terminal.
         PACE__NODISCARD static bool renderable() noexcept
@@ -74,6 +78,10 @@ namespace pace {
 #endif
           return 0;
         }
+
+        // Update the height snapshot and return the old one.
+        std::uint16_t vertical_alteration( std::uint16_t new_height ) noexcept
+        { return utils::exchange( vertical_snapshot_, new_height ); }
       };
     } // namespace console
   } // namespace details

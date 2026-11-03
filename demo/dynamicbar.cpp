@@ -30,6 +30,10 @@ int main()
     } while ( bar2->active() );
   } );
   pool.emplace_back( [&dbar]() {
+    // As long as you no longer need to create new progress bars
+    // or access layout information and other status data,
+    // you can even destruct/transfer the previous DynamicBar object.
+    auto stolen = std::move( dbar );
     auto bar = dbar.insert<pace::config::Line>( pace::option::Prefix( "No.3" ), pace::option::Quota( 1000 ) );
     // Do some ticks, then reset the current bar before completing.
     for ( int i = 0; i < 500; ++i ) {
@@ -42,6 +46,13 @@ int main()
     bar->config().info_forecolor( {} );
     // an empty string is also fine
     bar->config().info_forecolor( "" );
+
+    // Outputting too quickly can cause some terminal emulators to fail to respond properly,
+    // and as a result, the escape sequences will be executed in the wrong order.
+    // It does not cause rendering errors, but the cursor may be moved to the wrong location.
+    // Therefore, we need to take a break.
+    if ( pace::config::hide_completed() )
+      this_thread::sleep_for( chrono::milliseconds( 50 ) );
 
     // Restart a new iteration, and the "No.3" bar will reappear at the bottom of the terminal.
     for ( int i = 0; i < 400; ++i ) {

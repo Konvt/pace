@@ -3,8 +3,11 @@
 
 #include "../assets/PackagedBar.hpp"
 #include "../io/OStream.hpp"
+#include "../utils/Backport.hpp"
+#include "../utils/ScopeGuard.hpp"
 #include "../utils/Util.hpp"
 #include <initializer_list>
+#include <mutex>
 #include <tuple>
 
 namespace pace {
@@ -54,86 +57,125 @@ namespace pace {
         template<std::size_t Pos>
         using ElementAt_t = traits::TypeAt_t<Pos, assets::PackagedBar<Configs, Sink, Mode, Zone, Tags>...>;
 
-        std::atomic<std::size_t> alive_cnt_;
-        mutable std::mutex mtx_;
+        std::size_t alive_cnt_ = 0;
+        mutable concurrent::SharedMutex res_mtx_;
+        mutable std::mutex sched_mtx_;
 
-        enum class Phase : std::uint8_t { Stop, Awake, Refresh };
+        enum class Phase : std::uint8_t { Stop, Awake, Refresh, Finish };
         std::atomic<Phase> state_ { Phase::Stop };
 
         enum class Locus : std::uint8_t { Offstage, Onstage, Echo };
-        // Bitmask indicating which bars produced output in the current render pass.
         std::array<Locus, sizeof...( Configs )> stages_;
 
-        template<std::size_t Pos, typename... Args>
-        PACE__FORCEINLINE PACE__CXX14_CNSTXPR typename std::enable_if<( Pos >= sizeof...( Configs ) )>::type
-          do_render( Args&&... ) &
-        {}
-        template<std::size_t Pos = 0>
-        typename std::enable_if<( Pos < sizeof...( Configs ) )>::type do_render( io::CharPipeline& pipeline,
-                                                                                 bool istty,
-                                                                                 bool style_off,
-                                                                                 bool hide_done ) &
+        /// @return Indicates whether the current rendering needs to occupy a separate line.
+        template<std::size_t Pos>
+        PACE__NODISCARD bool do_render( io::CharPipeline& pipeline,
+                                        bool istty,
+                                        bool style_off,
+                                        bool hide_done ) &
         {
           PACE__ASSERT( online() );
           switch ( stages_[Pos] ) {
           case Locus::Echo: {
             if ( !istty || hide_done )
               stages_[Pos] = Locus::Offstage;
-            else if ( !this->ElementAt_t<Pos>::active() ) {
-              pipeline << console::nextline;
+            if ( !this->ElementAt_t<Pos>::active() ) {
+              if ( istty )
+                return true;
               break;
             }
           }
-            PACE__FALLTHROUGH;
+            goto Resurrection; // NOLINT(cppcoreguidelines-avoid-goto): avoid repeating the active() check
           case Locus::Offstage: {
             if ( !this->ElementAt_t<Pos>::active() )
               break;
-            /**
-             * The newly added progress bar needs to obtain a screen line,
-             * and the progress bar under the Locus::Echo no longer outputs anything except for newline.
-             * We must reclaim it, even if this might go against the original intention of the Locus::Echo.
-             */
-            if ( istty && !hide_done && stages_[Pos] != Locus::Echo ) {
-              auto itr = std::find( stages_.begin(), stages_.end(), Locus::Echo );
-              if ( itr != stages_.end() )
-                *itr = Locus::Offstage;
+            // The newly added progress bar needs to obtain a screen line,
+            // and the progress bar under the Locus::Echo no longer outputs anything except for newline.
+            // We must reclaim it, even if this might go against the original intention of the Locus::Echo.
+            if ( istty && !hide_done ) {
+              if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom ) {
+                const auto ritr = std::find( stages_.rbegin() + Pos + 1, stages_.rend(), Locus::Echo );
+                if ( ritr != stages_.rend() )
+                  *ritr = Locus::Offstage;
+              } else {
+                const auto itr = std::find( stages_.begin() + Pos + 1, stages_.end(), Locus::Echo );
+                if ( itr != stages_.end() )
+                  *itr = Locus::Offstage;
+              }
             }
+Resurrection:
             stages_[Pos] = Locus::Onstage;
           }
             PACE__FALLTHROUGH;
           case Locus::Onstage: {
-            this->ElementAt_t<Pos>::draw( pipeline, style_off );
+            const auto painted = this->ElementAt_t<Pos>::draw( pipeline, style_off );
 
-            if ( istty )
+            if ( istty && painted )
               pipeline << console::linewipe;
-            if ( !this->ElementAt_t<Pos>::active() ) {
-              /**
-               * Here are the scenarios where a newline character is output:
-               * 1. If the output stream is bound to a terminal and the completed progress bar does not need
-               *    to be hidden, it should be output when stages_[Pos] is equal to Step::Offstage.
-               * 2. If the output stream is bound to a terminal and the completed progress bar needs to be
-               *    hidden, it only be output when Pos-th is still active.
-               * 3. If the output stream is not bound to a terminal,
-               *    it should be output whenever Pos-th has just been rendered.
-               */
-              if ( istty && hide_done )
-                pipeline << console::linestart;
-              else
-                pipeline << console::nextline;
-              if ( istty && !hide_done )
-                stages_[Pos] = Locus::Echo;
-              else
-                stages_[Pos] = Locus::Offstage;
-            } else
-              pipeline << console::nextline;
-            if ( istty && hide_done )
-              pipeline << console::linewipe;
+            if ( this->ElementAt_t<Pos>::active() )
+              return true;
+            /**
+             * Here are the scenarios where a newline character is output:
+             * 1. If the output stream is bound to a terminal and the completed progress bar does not need
+             *    to be hidden, it should be output when stages_[Pos] is equal to Phase::Offstage.
+             * 2. If the output stream is bound to a terminal and the completed progress bar needs to be
+             *    hidden, it only be output when Pos-th is still active.
+             * 3. If the output stream is not bound to a terminal,
+             *    it should be output whenever Pos-th has just been rendered.
+             */
+            if ( !istty || !hide_done ) {
+              stages_[Pos] = istty ? Locus::Echo : Locus::Offstage;
+              return true;
+            }
+            stages_[Pos] = Locus::Offstage;
+            pipeline << console::linestart << console::linewipe;
           } break;
 
           default: utils::unreachable();
           }
 
-          return do_render<Pos + 1>( pipeline, istty, style_off, hide_done ); // tail recursive
+          return false;
+        }
+        PACE__FORCEINLINE void do_schedule( io::CharPipeline& pipeline, bool istty ) &
+        {
+          const auto style_off    = !istty && config::auto_style_off();
+          const auto hide_done    = config::hide_completed();
+          std::size_t active_rows = 0;
+          if ( istty && hide_done )
+            // read only, lock free
+            active_rows = std::count( stages_.cbegin(), stages_.cend(), Locus::Onstage );
+
+          std::size_t num_newlines = 0;
+          if ( Zone != Region::Bottom || !istty ) {
+            std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
+            (void)std::initializer_list<bool> { ( do_render<Tags>( pipeline, istty, style_off, hide_done )
+                                                    ? ( ++num_newlines, pipeline << console::nextline, false )
+                                                    : false )... };
+          } else {
+            std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
+            // In Bottom mode, we have a fixed lower boundary;
+            // rendering from top to bottom would make it difficult to predict
+            // the actual number of rows required, so we need to render in reverse.
+            (void)std::initializer_list<bool> { (
+              do_render<sizeof...( Configs ) - Tags - 1>( pipeline, istty, style_off, hide_done )
+                ? ( ++num_newlines, pipeline << console::prevline, false )
+                : false )... };
+          }
+
+          if ( istty && hide_done && active_rows > num_newlines ) {
+            // If multiple bars complete simultaneously in a single rendering cycle,
+            // and the number of newly added or updated bars is insufficient to exceed
+            // the number of disappearing bars,
+            // some terminal lines may fail to be properly erased due to rendering logic issues;
+            // here we supplement the difference and erase them accordingly.
+            const auto vanish = active_rows - num_newlines;
+            if PACE__CXX17_CNSTXPR ( Zone != Region::Bottom )
+              pipeline << io::repeat( vanish, io::concat( console::linewipe, console::nextline ) )
+                       << io::cursorup( vanish );
+            else
+              pipeline << io::repeat( vanish, io::concat( console::linewipe, console::prevline ) )
+                       << io::cursordown( vanish );
+          }
         }
 
         void do_halt( bool forced ) final
@@ -141,57 +183,144 @@ namespace pace {
           // hence the default arguments from the base class declaration are always used.
           // Any default arguments provided in the derived class are ignored.
           PACE__ASSERT( online() );
-          PACE__ASSERT( alive_cnt_ > 0 );
           auto& executor = render::Renderer<Sink>::itself();
           PACE__ASSERT( executor.empty() == false );
-          if ( !forced )
-            executor.trigger();
 
-          if ( alive_cnt_.fetch_sub( 1, std::memory_order_relaxed ) > 1 )
-            return;
-          std::lock_guard<std::mutex> lock { mtx_ };
-          if ( alive_cnt_.load( std::memory_order_relaxed ) == 0 ) {
-            state_.store( Phase::Stop, std::memory_order_relaxed );
+          std::lock_guard<std::mutex> lock { sched_mtx_ };
+          PACE__ASSERT( alive_cnt_ > 0 );
+          if ( --alive_cnt_ == 0 ) {
+            if ( forced )
+              state_.store( Phase::Stop, std::memory_order_release );
+            else {
+              state_.store( Phase::Finish, std::memory_order_release );
+              executor.execute();
+            }
             executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().reset(); } );
-          }
+          } else if ( !forced )
+            executor.execute();
         }
         void do_boot() & final
         {
           auto& executor = render::Renderer<Sink>::itself();
-          std::lock_guard<std::mutex> lock { mtx_ };
+          std::lock_guard<std::mutex> lock { sched_mtx_ };
           if ( state_.load( std::memory_order_relaxed ) == Phase::Stop ) {
             if ( !executor.try_appoint( [this]() {
-                   auto& ostream        = io::OStream<Sink>::itself();
-                   const auto istty     = console::Screen<Sink>::renderable();
-                   const auto style_off = !istty && config::auto_style_off();
-                   switch ( state_.load( std::memory_order_relaxed ) ) {
+                   auto guard = utils::make_scope_fail(
+                     [this]() noexcept { state_.store( Phase::Stop, std::memory_order_release ); } );
+                   auto& ostream    = io::OStream<Sink>::itself();
+                   const auto istty = console::Screen<Sink>::renderable();
+                   switch ( state_.load( std::memory_order_acquire ) ) {
                    case Phase::Awake: {
-                     if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
-                       if ( istty )
+                     if ( istty ) {
+                       if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed || Zone == Region::Relative ) {
+                         ostream << console::linestart;
+                         if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
+                           ostream << console::savecursor;
+                       } else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top ) {
                          ostream << console::savecursor;
+                         auto& screen      = console::Screen<Sink>::itself();
+                         const auto height = screen.height();
+                         (void)screen.vertical_alteration( height );
+                         if ( height > sizeof...( Configs ) ) {
+                           if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
+                             ostream << io::nextline_n( sizeof...( Configs ) )
+                                     << io::setscroll( 1, height - sizeof...( Configs ) )
+                                     << console::restorecursor << io::cursordown( sizeof...( Configs ) )
+                                     << io::cursorup( sizeof...( Configs ) ) << console::savecursor;
+                           else
+                             ostream << io::setscroll( sizeof...( Configs ) + 1, height )
+                                     << console::restorecursor << io::cursorup( sizeof...( Configs ) )
+                                     << io::cursordown( sizeof...( Configs ) ) << console::savecursor;
+                         }
+                         if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
+                           ostream << io::setline( height );
+                         else
+                           ostream << console::firstline;
+                       }
+                     } else
+                       console::Screen<Sink>::itself().vertical_alteration( 0 );
+
                      // Since the Renderer ensures that only one thread is performing rendering at any time,
                      // all access to stages_ always occurs within a same thread,
                      // so we do not need to use a mutex to protect it.
                      std::fill( stages_.begin(), stages_.end(), Locus::Offstage );
-                     do_render( ostream, istty, style_off, config::hide_completed() );
-                     ostream << io::flush;
+                     do_schedule( ostream, istty );
+
+                     if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
+                       if ( istty )
+                         ostream << console::restorecursor;
 
                      auto expected = Phase::Awake;
-                     state_.compare_exchange_strong( expected, Phase::Refresh, std::memory_order_relaxed );
+                     state_.compare_exchange_strong( expected, Phase::Refresh, std::memory_order_release );
+                     ostream << io::flush;
                    } break;
+
                    case Phase::Refresh: {
                      if ( istty ) {
                        if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                          ostream << console::restorecursor;
-                       else
+                       else if PACE__CXX17_CNSTXPR ( Zone == Region::Relative )
                          ostream << io::prevline_n(
-                           std::count_if( stages_.cbegin(), stages_.cend(), []( Locus stage ) noexcept {
-                             return stage != Locus::Offstage;
-                           } ) );
-                     }
-                     do_render( ostream, istty, style_off, config::hide_completed() );
+                           stages_.size() - std::count( stages_.cbegin(), stages_.cend(), Locus::Offstage ) );
+                       else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top ) {
+                         ostream << console::savecursor;
+                         auto& screen          = console::Screen<Sink>::itself();
+                         const auto height     = screen.height();
+                         const auto old_height = screen.vertical_alteration( height );
+                         if ( height != old_height && height > sizeof...( Configs ) ) {
+                           if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
+                             ostream << io::setscroll( 1, height - sizeof...( Configs ) )
+                                     << io::when( height < old_height,
+                                                  io::concat( console::restorecursor,
+                                                              io::cursordown( sizeof...( Configs ) ),
+                                                              io::cursorup( sizeof...( Configs ) ),
+                                                              console::savecursor ) );
+                           else
+                             ostream << io::setscroll( sizeof...( Configs ) + 1, height )
+                                     << io::when( height < old_height,
+                                                  io::concat( console::restorecursor,
+                                                              io::cursorup( sizeof...( Configs ) ),
+                                                              io::cursordown( sizeof...( Configs ) ),
+                                                              console::savecursor ) );
+                         }
+                         if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
+                           ostream << io::setline( height );
+                         else
+                           ostream << console::firstline;
+                       }
+                     } else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
+                       (void)console::Screen<Sink>::itself().vertical_alteration( 0 );
+
+                     do_schedule( ostream, istty );
+
+                     if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
+                       if ( istty )
+                         ostream << console::restorecursor;
                      ostream << io::flush;
                    } break;
+
+                   case Phase::Finish: {
+                     if ( istty ) {
+                       if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
+                         ostream << console::restorecursor;
+                       else if PACE__CXX17_CNSTXPR ( Zone == Region::Relative )
+                         ostream << io::prevline_n(
+                           stages_.size() - std::count( stages_.cbegin(), stages_.cend(), Locus::Offstage ) );
+                       else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
+                         ostream << console::savecursor << io::setline( console::Screen<Sink>::height() );
+                       else if PACE__CXX17_CNSTXPR ( Zone == Region::Top )
+                         ostream << console::savecursor << console::firstline;
+                     }
+
+                     do_schedule( ostream, istty );
+
+                     if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
+                       if ( istty )
+                         ostream << console::resetscroll << console::restorecursor;
+                     ostream << io::flush;
+                     state_.store( Phase::Stop, std::memory_order_release );
+                   } break;
+
                    default: break;
                    }
                  } ) )
@@ -201,15 +330,17 @@ namespace pace {
             io::OStream<Sink>::itself() << io::reset;
             state_.store( Phase::Awake, std::memory_order_relaxed );
 
-            auto guard2 = utils::make_scope_fail( [&]() noexcept {
-              state_.store( Phase::Stop, std::memory_order_relaxed );
+            auto guard = utils::make_scope_fail( [&]() noexcept {
+              state_.store( Phase::Stop, std::memory_order_release );
               executor.dismiss();
             } );
             executor.template activate<Mode>();
-          } else
-            executor.trigger();
-          alive_cnt_.fetch_add( 1, std::memory_order_relaxed );
+          } else {
+            PACE__ASSERT( state_ != Phase::Finish );
+            executor.template trigger<Mode>();
+          }
           PACE__ASSERT( alive_cnt_ <= sizeof...( Configs ) );
+          ++alive_cnt_;
         }
 
         template<typename Tuple, std::size_t... Is>
@@ -260,27 +391,35 @@ namespace pace {
           };
           return *this;
         }
-        ~StaticLayout() noexcept { kill(); }
+        ~StaticLayout() noexcept
+        { kill(); }
 
         void shut()
         {
-          if ( online() && !details::render::Renderer<Sink>::itself().empty() )
-            (void)std::initializer_list<bool> { ( this->ElementAt_t<Tags>::reset(), false )... };
-          PACE__ASSERT( alive_cnt_ == 0 );
+          // We cannot lock `sched_mtx_` here, because it will reverse the locking order
+          // between `sched_mtx_` and the mutex held by the bar object itself.
+          (void)std::initializer_list<bool> { ( this->ElementAt_t<Tags>::reset(), false )... };
           PACE__ASSERT( online() == false );
         }
         void kill() noexcept
         {
-          if ( online() && !details::render::Renderer<Sink>::itself().empty() )
-            (void)std::initializer_list<bool> { ( this->ElementAt_t<Tags>::abort(), false )... };
-          PACE__ASSERT( alive_cnt_ == 0 );
+          (void)std::initializer_list<bool> { ( this->ElementAt_t<Tags>::abort(), false )... };
           PACE__ASSERT( online() == false );
         }
 
         PACE__NODISCARD PACE__FORCEINLINE bool online() const noexcept
         { return state_.load( std::memory_order_relaxed ) != Phase::Stop; }
-        PACE__NODISCARD PACE__FORCEINLINE std::size_t online_count() const noexcept
-        { return alive_cnt_.load( std::memory_order_relaxed ); }
+        PACE__NODISCARD PACE__FORCEINLINE std::size_t height() const noexcept
+        {
+          if ( state_.load( std::memory_order_relaxed ) == Phase::Stop )
+            return 0;
+          concurrent::SharedLock<concurrent::SharedMutex> lock { res_mtx_ };
+          std::size_t count = 0;
+          (void)std::initializer_list<bool> {
+            ( count += ( stages_[Tags] != Locus::Offstage || this->ElementAt_t<Tags>::active() ), false )...
+          }; // Avoid returning 1 during the critical moment right after activating.
+          return count + ( count > 0 );
+        }
 
         void swap( StaticLayout& other ) noexcept
         { // The thread insecurity here is deliberately designed.

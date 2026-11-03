@@ -37,14 +37,9 @@ namespace pace {
         constexpr AnyValue( From&& ) noexcept
         {}
 
-        template<typename To,
-                 typename = typename std::enable_if<std::is_default_constructible<To>::value>::type>
+        template<typename To>
         constexpr operator To() const noexcept
         { return {}; }
-        // only available in non-evaluation contexts
-        template<typename To,
-                 typename = typename std::enable_if<!std::is_default_constructible<To>::value>::type>
-        constexpr operator To() const noexcept;
       };
 
       template<typename P>

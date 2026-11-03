@@ -23,14 +23,14 @@ namespace pace {
       public:
         ManagedBar( Context context, C&& config ) noexcept
           : Base( std::move( config ) ), context_ { std::move( context ) }
-        {}
+        { PACE__ASSERT( context_ != nullptr ); }
         ManagedBar( Context context, prefab::BasicBar<C, S, M, Z>&& bar ) noexcept
           : Base( std::move( bar ) ), context_ { std::move( context ) }
-        {}
+        { PACE__ASSERT( context_ != nullptr ); }
         template<typename... Args>
         ManagedBar( Context context, Args&&... args )
           : Base( std::forward<Args>( args )... ), context_ { std::move( context ) }
-        {}
+        { PACE__ASSERT( context_ != nullptr ); }
 
         // This thing is always wrapped by `std::unique_ptr` under normal circumstances,
         // so there is no need to add move semantics support for it;
@@ -50,7 +50,7 @@ namespace pace {
          * and further calls to `abort` will have no effect.
          * So even if the base class destructor calls `abort` again, it is safe.
          */
-        virtual ~ManagedBar() noexcept { this->abort(); }
+        ~ManagedBar() noexcept override { this->abort(); }
 
         using Base::draw;
       };

@@ -141,10 +141,10 @@ namespace pace {
 
       template<typename Alloc, typename Derived, typename = void>
       struct SwapAllocator {
-        PACE__CXX14_CNSTXPR void pocs( Alloc& ) noexcept
+        PACE__CXX14_CNSTXPR void pocs( Alloc& other ) noexcept
         {
           // Calling swap is UB when the allocator does not satisfy POCS and the allocators are not equal.
-          PACE__ASSERT( this->allocator() == other.allocator() );
+          PACE__ASSERT( static_cast<Derived*>( this )->allocator() == other.allocator() );
         }
       };
       template<typename Alloc, typename Derived>
@@ -609,7 +609,6 @@ namespace pace {
           PACE__TRUST( cap > count );
           transfer_to<Next>( cap, [&]( Char* dest, size_type new_cap ) noexcept {
             PACE__TRUST( count <= new_cap );
-            (void)new_cap;
             Traits::copy( dest, first, count );
             return count;
           } );
@@ -622,7 +621,6 @@ namespace pace {
           PACE__TRUST( cap > count );
           transfer_to<Next>( cap, [&]( Char* dest, size_type new_cap ) noexcept {
             PACE__TRUST( count <= new_cap );
-            (void)new_cap;
             Traits::assign( dest, count, ch );
             return count;
           } );
@@ -663,7 +661,6 @@ namespace pace {
           transfer_to<Next>( (std::max)( total_length, dynamic_capacity( small_capacity() ) ) + 1,
                              [&]( Char* dest, size_type new_cap ) noexcept {
                                PACE__TRUST( total_length <= new_cap );
-                               (void)new_cap;
                                Traits::copy( dest, prefix, prefix_len );
                                Traits::assign( dest + prefix_len, count, inserted );
                                Traits::copy( dest + prefix_len + count, suffix, suffix_len );
@@ -675,7 +672,7 @@ namespace pace {
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR void duplicate_from( size_type cap, Operation&& op )
         {
           PACE__TRUST( tag_ == Kind::Dynamic );
-          PACE__ASSERT( *as_.remote_.refs_ > 1 );
+          PACE__ASSERT( *as_.remote.refs > 1 );
           auto cow = make_cow( cap );
           try {
             const size_type num_written = std::forward<Operation>( op )( cow.str(), cap - 1 );
@@ -694,7 +691,6 @@ namespace pace {
           PACE__TRUST( cap > count );
           duplicate_from( cap, [&]( Char* dest, size_type new_cap ) noexcept {
             PACE__TRUST( count <= new_cap );
-            (void)new_cap;
             Traits::copy( dest, first, count );
             return count;
           } );
@@ -711,7 +707,6 @@ namespace pace {
           duplicate_from( (std::max)( total_length, dynamic_capacity( as_.remote.capacity - 1 ) ) + 1,
                           [&]( Char* dest, size_type new_cap ) noexcept {
                             PACE__TRUST( count <= new_cap );
-                            (void)new_cap;
                             assemble( dest, prefix, prefix_len, suffix, suffix_len, inserted, count );
                             return total_length;
                           } );
@@ -728,7 +723,6 @@ namespace pace {
           duplicate_from( (std::max)( total_length, dynamic_capacity( as_.remote.capacity - 1 ) ) + 1,
                           [&]( Char* dest, size_type new_cap ) noexcept {
                             PACE__TRUST( count <= new_cap );
-                            (void)new_cap;
                             Traits::copy( dest, prefix, prefix_len );
                             Traits::assign( dest + prefix_len, count, inserted );
                             Traits::copy( dest + prefix_len + count, suffix, suffix_len );
@@ -740,7 +734,7 @@ namespace pace {
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR void expand_with( size_type cap, Operation&& op )
         {
           PACE__TRUST( tag_ == Kind::Dynamic );
-          PACE__ASSERT( *as_.remote_.refs_ == 1 );
+          PACE__ASSERT( *as_.remote.refs == 1 );
           throw_if_exceed( cap - 1 );
           auto str = allocate( cap );
           try {
@@ -760,7 +754,6 @@ namespace pace {
           PACE__ASSERT( cap > count );
           expand_with( cap, [&]( Char* dest, size_type new_cap ) noexcept {
             PACE__TRUST( count <= new_cap );
-            (void)new_cap;
             Traits::copy( dest, first, count );
             return count;
           } );
@@ -794,7 +787,6 @@ namespace pace {
                        [&]( Char* dest, size_type new_cap ) noexcept {
                          const auto total_length = prefix_len + suffix_len + count;
                          PACE__TRUST( total_length <= new_cap );
-                         (void)new_cap;
                          Traits::copy( dest, count, inserted );
                          Traits::assign( dest + prefix_len, prefix, prefix_len );
                          Traits::copy( dest + prefix_len + count, suffix, suffix_len );
@@ -1147,7 +1139,6 @@ namespace pace {
             transfer_to<Kind::Dynamic>( (std::max)( length, dynamic_capacity( small_capacity() ) ) + 1,
                                         [&]( Char* dest, size_type new_cap ) {
                                           PACE__TRUST( length <= new_cap );
-                                          (void)new_cap;
                                           std::copy( first, last, dest );
                                           return length;
                                         } );
@@ -1176,7 +1167,6 @@ namespace pace {
             transfer_to<Kind::Dynamic>( (std::max)( length, dynamic_capacity( small_capacity() ) ) + 1,
                                         [&]( Char* dest, size_type new_cap ) {
                                           PACE__TRUST( length <= new_cap );
-                                          (void)new_cap;
                                           std::ranges::copy( std::forward<R>( rg ), dest );
                                           return length;
                                         } );
@@ -2072,7 +2062,6 @@ namespace pace {
           case Kind::Dynamic: {
             auto append_to = [&]( Char* dest, size_type new_cap ) noexcept {
               PACE__TRUST( total_length <= new_cap );
-              (void)new_cap;
               Traits::copy( dest, as_.remote.str(), length_ );
               Traits::assign( dest + length_, count, ch );
               return total_length;

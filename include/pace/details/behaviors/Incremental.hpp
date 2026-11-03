@@ -18,7 +18,7 @@ namespace pace {
         // Throws the exception::StateError if current object is active.
         PACE__FORCEINLINE void throw_if_active()
         {
-          if ( static_cast<Derived*>( this )->active() )
+          if ( this->active() )
             PACE__UNLIKELY throw exception::StateError(
               charcodes::make_literal( "pace: try to iterate using an active object" ) );
         }
@@ -45,16 +45,18 @@ namespace pace {
 
         PACE__FORCEINLINE void tick() & final
         {
-          static_cast<Derived*>( this )->do_tick(
-            [this]() noexcept { this->task_cnt_.fetch_add( 1, std::memory_order_relaxed ); } );
+          this->do_tick( [this]() noexcept {
+            task_cnt_.fetch_add( 1, std::memory_order_relaxed );
+            return true;
+          } );
         }
         PACE__FORCEINLINE void tick( std::uint64_t next_step ) &
         {
-          static_cast<Derived*>( this )->do_tick( [&]() noexcept {
-            const auto task_cnt = this->task_cnt_.load( std::memory_order_relaxed );
-            this->task_cnt_.fetch_add( task_cnt + next_step > this->task_end_ ? this->task_end_ - task_cnt
-                                                                              : next_step,
-                                       std::memory_order_relaxed );
+          this->do_tick( [&]() noexcept {
+            const auto task_cnt = task_cnt_.load( std::memory_order_relaxed );
+            task_cnt_.fetch_add( task_cnt + next_step > task_end_ ? task_end_ - task_cnt : next_step,
+                                 std::memory_order_relaxed );
+            return true;
           } );
         }
         /**
@@ -66,18 +68,19 @@ namespace pace {
          */
         PACE__FORCEINLINE void tick_to( std::uint8_t percentage ) &
         {
-          static_cast<Derived*>( this )->do_tick( [&]() noexcept {
-            auto updater = [this]( std::uint64_t target ) noexcept {
-              auto current = this->task_cnt_.load( std::memory_order_relaxed );
-              while ( !this->task_cnt_.compare_exchange_weak( current, target, std::memory_order_relaxed )
+          this->do_tick( [&]() noexcept {
+            const auto updater = [this]( std::uint64_t target ) noexcept {
+              auto current = task_cnt_.load( std::memory_order_relaxed );
+              while ( !task_cnt_.compare_exchange_weak( current, target, std::memory_order_relaxed )
                       && target <= current ) {}
             };
-            if ( percentage <= 100 ) {
-              const auto target = static_cast<std::uint64_t>( this->task_end_ * percentage * 0.01 );
-              PACE__ASSERT( target <= this->task_end_ );
+            if ( percentage < 100 ) {
+              const auto target = static_cast<std::uint64_t>( task_end_ * percentage * 0.01 );
+              PACE__ASSERT( target < task_end_ );
               updater( target );
             } else
-              updater( this->task_end_ );
+              updater( task_end_ );
+            return true;
           } );
         }
 

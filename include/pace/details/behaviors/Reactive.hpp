@@ -87,10 +87,10 @@ namespace pace {
       public:
         using Base::Base;
 
-#define PACE__METHOD( UnionMem, TagVal, ReturnType )                        \
-  std::lock_guard<std::mutex> lock { static_cast<Derived*>( this )->mtx_ }; \
-  utils::construct_at( &UnionMem, std::forward<F>( fn ) );                  \
-  tag_ = Tag::TagVal;                                                       \
+#define PACE__METHOD( UnionMem, TagVal, ReturnType )       \
+  std::lock_guard<std::mutex> lock { this->mtx_ };         \
+  utils::construct_at( &UnionMem, std::forward<F>( fn ) ); \
+  tag_ = Tag::TagVal;                                      \
   return static_cast<ReturnType>( *this )
 
         template<typename F>
@@ -99,7 +99,7 @@ namespace pace {
 #ifdef __cpp_concepts
           -> decltype( auto )
           requires( !std::is_null_pointer_v<std::decay_t<F>>
-                    && std::is_constructible_v<wrappers::UniqueFunction<void()>, F &&> )
+                    && std::is_constructible_v<wrappers::UniqueFunction<void()>, F&&> )
 #else
           -> typename std::enable_if<
             traits::AllOf<traits::Not<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
@@ -113,7 +113,7 @@ namespace pace {
 #ifdef __cpp_concepts
           -> decltype( auto )
           requires( !std::is_null_pointer_v<std::decay_t<F>>
-                    && std::is_constructible_v<wrappers::UniqueFunction<void()>, F &&> )
+                    && std::is_constructible_v<wrappers::UniqueFunction<void()>, F&&> )
 #else
           -> typename std::enable_if<
             traits::AllOf<traits::Not<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
@@ -127,7 +127,7 @@ namespace pace {
 #ifdef __cpp_concepts
           -> decltype( auto )
           requires( !std::is_null_pointer_v<std::decay_t<F>>
-                    && std::is_constructible_v<wrappers::UniqueFunction<void( Derived& )>, F &&> )
+                    && std::is_constructible_v<wrappers::UniqueFunction<void( Derived& )>, F&&> )
 #else
           -> typename std::enable_if<
             traits::AllOf<traits::Not<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
@@ -141,7 +141,7 @@ namespace pace {
 #ifdef __cpp_concepts
           -> decltype( auto )
           requires( !std::is_null_pointer_v<std::decay_t<F>>
-                    && std::is_constructible_v<wrappers::UniqueFunction<void( Derived& )>, F &&> )
+                    && std::is_constructible_v<wrappers::UniqueFunction<void( Derived& )>, F&&> )
 #else
           -> typename std::enable_if<
             traits::AllOf<traits::Not<std::is_same<typename std::decay<F>::type, std::nullptr_t>>,
@@ -151,9 +151,9 @@ namespace pace {
         { PACE__METHOD( hook_.on_self, Unary, Derived&& ); }
 
 #undef PACE__METHOD
-#define PACE__METHOD( ReturnType )                                          \
-  std::lock_guard<std::mutex> lock { static_cast<Derived*>( this )->mtx_ }; \
-  destroy();                                                                \
+#define PACE__METHOD( ReturnType )                 \
+  std::lock_guard<std::mutex> lock { this->mtx_ }; \
+  destroy();                                       \
   return static_cast<ReturnType>( *this )
 
         Derived& action() & noexcept { PACE__METHOD( Derived& ); }
@@ -165,8 +165,8 @@ namespace pace {
         PACE__FORCEINLINE friend auto operator<<( Reactive& self, F&& fn )
 #ifdef __cpp_concepts
           -> decltype( auto )
-          requires( std::is_constructible_v<wrappers::UniqueFunction<void()>, F &&>
-                    || std::is_constructible_v<wrappers::UniqueFunction<void( Derived& )>, F &&> )
+          requires( std::is_constructible_v<wrappers::UniqueFunction<void()>, F&&>
+                    || std::is_constructible_v<wrappers::UniqueFunction<void( Derived& )>, F&&> )
 #else
           -> typename std::enable_if<
             traits::AllOf<
@@ -179,8 +179,8 @@ namespace pace {
         PACE__FORCEINLINE friend auto operator<<( Reactive&& self, F&& fn )
 #ifdef __cpp_concepts
           -> decltype( auto )
-          requires( std::is_constructible_v<wrappers::UniqueFunction<void()>, F &&>
-                    || std::is_constructible_v<wrappers::UniqueFunction<void( Derived& )>, F &&> )
+          requires( std::is_constructible_v<wrappers::UniqueFunction<void()>, F&&>
+                    || std::is_constructible_v<wrappers::UniqueFunction<void( Derived& )>, F&&> )
 #else
           -> typename std::enable_if<
             traits::AllOf<

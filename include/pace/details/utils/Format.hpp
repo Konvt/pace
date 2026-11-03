@@ -6,6 +6,7 @@
 #include "../io/CharPipeline.hpp"
 #include "../io/Monoid.hpp"
 #include "Backport.hpp"
+#include <cmath>
 #include <string>
 #include <type_traits>
 #ifdef __cpp_lib_format

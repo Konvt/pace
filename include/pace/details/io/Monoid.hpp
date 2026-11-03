@@ -27,7 +27,7 @@ namespace pace {
         std::tuple<Sep, Emi, Emis...> value;
 
         template<typename CharPipeline>
-        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+        PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
                                                                                const Join& self )
         {
           utils::apply(
@@ -39,7 +39,7 @@ namespace pace {
           return pipeline;
         }
         template<typename CharPipeline>
-        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+        PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
                                                                                Join&& self )
         {
           utils::apply(
@@ -77,10 +77,11 @@ namespace pace {
       };
 
       template<typename Separator>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Currying<Join, Separator> join( Separator&& separator )
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Currying<Join, Separator> join(
+        Separator&& separator )
       { return { { std::forward<Separator>( separator ) } }; }
       template<typename Separator, typename... Emissions>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Join<Separator, Emissions...> join(
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Join<Separator, Emissions...> join(
         Separator&& separator,
         Emissions&&... emissions )
       {
@@ -98,7 +99,7 @@ namespace pace {
         Join() = default;
         PACE__CXX14_CNSTXPR Join( std::initializer_list<traits::AnyValue> ) noexcept {}
 
-        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+        PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
                                                                                const Join& )
         { return pipeline; }
       };
@@ -128,7 +129,7 @@ namespace pace {
 
         std::tuple<Predicate, Positive, Negative, Args...> value;
 
-        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+        PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
                                                                                const Choice& self )
         {
           return utils::apply(
@@ -144,7 +145,7 @@ namespace pace {
             },
             self.value );
         }
-        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+        PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
                                                                                Choice&& self )
         {
           utils::apply(
@@ -225,10 +226,11 @@ namespace pace {
       };
 
       template<typename Predicate>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Currying<Choice, Predicate> choice( Predicate&& predicate )
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Currying<Choice, Predicate> choice(
+        Predicate&& predicate )
       { return { { std::forward<Predicate>( predicate ) } }; }
       template<typename Predicate, typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR
         typename std::enable_if<traits::is_invocable_r<bool, Predicate, Args...>::value,
                                 Currying<Choice, Predicate, void, void, Args...>>::type
         choice( Predicate&& predicate, Args&&... args )
@@ -238,7 +240,7 @@ namespace pace {
         };
       }
       template<typename Predicate, typename Positive, typename Negative, typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR
         typename std::enable_if<traits::is_invocable_r<bool, Predicate, Args...>::value,
                                 Choice<Predicate, Positive, Negative, Args...>>::type
         choice( Predicate&& predicate, Positive&& positive, Negative&& negative, Args&&... args )
@@ -248,6 +250,24 @@ namespace pace {
            std::forward<Positive>( positive ),
            std::forward<Negative>( negative ),
            std::forward<Args>( args )... }
+        };
+      }
+
+      template<typename Positive, typename Negative>
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR
+        Currying<Choice, utils::Identity, void, void, bool>
+        choice( bool condition )
+      {
+        return {
+          { {}, condition }
+        };
+      }
+      template<typename Positive, typename Negative>
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Choice<utils::Identity, Positive, Negative, bool>
+        choice( bool condition, Positive&& positive, Negative&& negative )
+      {
+        return {
+          { {}, std::forward<Positive>( positive ), std::forward<Negative>( negative ), condition }
         };
       }
 
@@ -325,7 +345,7 @@ namespace pace {
       };
 
       template<typename Predicate>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Currying<Choice, Predicate, void, Nop> when(
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Currying<Choice, Predicate, void, Nop> when(
         Predicate&& predicate )
       {
         return {
@@ -333,7 +353,7 @@ namespace pace {
         };
       }
       template<typename Predicate, typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR
         typename std::enable_if<traits::is_invocable_r<bool, Predicate, Args...>::value,
                                 Currying<Choice, Predicate, void, Nop, Args...>>::type
         when( Predicate&& predicate, Args&&... args )
@@ -343,7 +363,7 @@ namespace pace {
         };
       }
       template<typename Predicate, typename Emission, typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR
         typename std::enable_if<traits::is_invocable_r<bool, Predicate, Args...>::value,
                                 Choice<Predicate, Emission, Nop, Args...>>::type
         when( Predicate&& predicate, Emission&& emission, Args&&... args )
@@ -363,7 +383,7 @@ namespace pace {
         };
       }
       template<typename Emission>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Choice<utils::Identity, Emission, Nop, bool> when(
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Choice<utils::Identity, Emission, Nop, bool> when(
         bool condition,
         Emission&& emission )
       {
@@ -446,7 +466,7 @@ namespace pace {
       };
 
       template<typename Predicate>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Currying<Choice, Predicate, Nop, void> unless(
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Currying<Choice, Predicate, Nop, void> unless(
         Predicate&& predicate )
       {
         return {
@@ -454,7 +474,7 @@ namespace pace {
         };
       }
       template<typename Predicate, typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR
         typename std::enable_if<traits::is_invocable_r<bool, Predicate, Args...>::value,
                                 Currying<Choice, Predicate, Nop, void, Args...>>::type
         unless( Predicate&& predicate, Args&&... args )
@@ -464,7 +484,7 @@ namespace pace {
         };
       }
       template<typename Predicate, typename Emission, typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR
         typename std::enable_if<traits::is_invocable_r<bool, Predicate, Args...>::value,
                                 Choice<Predicate, Nop, Emission, Args...>>::type
         unless( Predicate&& predicate, Emission&& emission, Args&&... args )
@@ -484,9 +504,8 @@ namespace pace {
         };
       }
       template<typename Emission>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Choice<utils::Identity, Nop, Emission, bool> unless(
-        bool condition,
-        Emission&& emission )
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Choice<utils::Identity, Nop, Emission, bool>
+        unless( bool condition, Emission&& emission )
       {
         return {
           { {}, {}, std::forward<Emission>( emission ), condition }
@@ -504,7 +523,7 @@ namespace pace {
 
         std::tuple<Predicate, Emission, Args...> value;
 
-        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+        PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
                                                                                const Until& self )
         {
           utils::apply(
@@ -515,7 +534,7 @@ namespace pace {
             self.value );
           return pipeline;
         }
-        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+        PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
                                                                                Until&& self )
         {
           utils::apply(
@@ -592,10 +611,11 @@ namespace pace {
       };
 
       template<typename Predicate>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Currying<Until, Predicate> until( Predicate&& predicate )
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Currying<Until, Predicate> until(
+        Predicate&& predicate )
       { return { { std::forward<Predicate>( predicate ) } }; }
       template<typename Predicate, typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR
         typename std::enable_if<traits::is_invocable_r<bool, Predicate, Args...>::value,
                                 Currying<Until, Predicate, Args...>>::type
         until( Predicate&& predicate, Args&&... args )
@@ -605,7 +625,7 @@ namespace pace {
         };
       }
       template<typename Predicate, typename Emission, typename... Args>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR
         typename std::enable_if<traits::is_invocable_r<bool, Predicate, Args...>::value,
                                 Until<Predicate, Emission, Args...>>::type
         until( Predicate&& predicate, Emission&& emission, Args&&... args )
@@ -633,11 +653,11 @@ namespace pace {
                                        void() )> : std::true_type {};
 
         template<typename E>
-        static PACE__CXX23_CNSTXPR auto emit_to( CharPipeline& pipeline, E&& emis, std::size_t times ) ->
+        static PACE__CXX20_CNSTXPR auto emit_to( CharPipeline& pipeline, E&& emis, std::size_t times ) ->
           typename std::enable_if<is_appendable<E>::value>::type
         { pipeline.append( std::forward<E>( emis ), times ); }
         template<typename E>
-        static PACE__CXX23_CNSTXPR auto emit_to( CharPipeline& pipeline, E&& emis, std::size_t times ) ->
+        static PACE__CXX20_CNSTXPR auto emit_to( CharPipeline& pipeline, E&& emis, std::size_t times ) ->
           typename std::enable_if<!is_appendable<E>::value>::type
         {
           for ( std::size_t i = 0; i < times; ++i )
@@ -647,13 +667,13 @@ namespace pace {
       public:
         std::tuple<Emission, std::size_t> value;
 
-        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+        PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
                                                                                const Until& self )
         {
           emit_to( pipeline, std::get<0>( self.value ), std::get<1>( self.value ) );
           return pipeline;
         }
-        PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
+        PACE__FORCEINLINE friend PACE__CXX20_CNSTXPR CharPipeline& operator<<( CharPipeline& pipeline,
                                                                                Until&& self )
         {
           emit_to( pipeline, std::get<0>( std::move( self ).value ), std::get<1>( self.value ) );
@@ -675,7 +695,7 @@ namespace pace {
         std::size_t times ) noexcept
       { return { { times } }; }
       template<typename Emission>
-      PACE__NODISCARD PACE__FORCEINLINE constexpr Until<void, Emission, std::size_t> repeat(
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR Until<void, Emission, std::size_t> repeat(
         std::size_t times,
         Emission&& emission )
       {
