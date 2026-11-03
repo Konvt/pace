@@ -415,7 +415,7 @@ bar.tick(); // Ok!
 ### 渲染策略
 `pace::Policy` 决定了进度条的渲染策略方式；目前 pace 有三个 `Policy` 参数：`pace::Policy::Async`、`pace::Policy::Signal` 和 `pace::Policy::Sync`，不同的渲染策略决定了由哪个线程负责执行渲染行为。
 
-在 `pace::Policy::Async` 模式下，所有渲染行为都由渲染器的后台线程执行，渲染行为与前台线程完全脱离，且每次渲染输出后该线程都会休眠一定时间，这个休眠的时间可以通过 `pace::config::refresh_interval()` 查看，使用 `pace::config::refresh_interval( pace::details::types::Tempus )` 修改。
+在 `pace::Policy::Async` 模式下，所有渲染行为都由渲染器的后台线程执行，渲染行为与前台线程完全脱离，且每次渲染输出后该线程都会休眠一定时间，这个休眠的时间可以通过 `pace::config::refresh_interval()` 查看，使用 `pace::config::refresh_interval( std::chrono::microseconds )` 修改。
 
 在 `pace::Policy::Signal` 模式下，每次调用 `tick()` 或 `tick_to()` 时，调用该方法的线程会向渲染器提交一个渲染请求，每个渲染任务依然由后台线程执行，但每次执行渲染任务后不会休眠。如果短时间内有多个任务同时提交给渲染器，那么渲染器会尽最大可能快速消耗这些任务请求；但由于异步执行性质，每个渲染行为的实际执行时间会略微晚于调用 `tick()` 或 `tick_to()` 的时间。
 
@@ -431,7 +431,7 @@ static_assert( std::is_same<pace::ProgressBar<>,
 pace::ProgressBar<pace::Channel::Err, pace::Policy::Sync> bar; // 使用同步渲染
 ```
 ### 渲染位置
-`pace::Region` 决定了进度条在终端上的渲染位置；目前 pace 仅允许在 `pace::Region::Fixed` 和 `pace::Region::Relative` 之间选择，且默认取 `Fixed`。
+`pace::Region` 决定了进度条在终端上的渲染位置，默认取 `Fixed`。
 
 `pace::Region::Fixed` 会在首次渲染时保存当前终端光标位置，并始终相对该位置刷新进度条；此时同一输出流上的其他内容都会被进度条刷新覆盖。
 
@@ -439,7 +439,9 @@ pace::ProgressBar<pace::Channel::Err, pace::Policy::Sync> bar; // 使用同步�
 
 但如果进度条字符串宽度过长，使用 `pace::Region::Relative` 会导致终端渲染异常。
 
-> 任意一个进度条的渲染结构共包含两个终端行（假定进度条长度不超过单行字符上限）：一行是进度条本身，一行则是空行；
+`pace::Region::Bottom` 和 `pace::Region::Top` 会固定在终端最底部或最顶部渲染进度条，且被占用的区域不会参与终端页面滚动，此时可以正常输出日志信息。
+
+> 进度条的布局高度可以通过 `layout_height()` 方法获取；当进度条不活跃时会返回 0。
 
 使用 `pace::Region::Relative` 模式同时输出进度条以及自定义信息时，一般必须配合使用 `pace::Policy::Signal` 或 `pace::Policy::Sync`，否则会因为异步渲染机制导致终端滚动。
 
@@ -451,6 +453,7 @@ for ( size_t i = 0; i < 95; ++i )
   bar.tick(); /* do something... */
 
 // Notice: At least two newlines must be inserted after the output information
+assert( bar.layout_height() == 2 );
 std::cerr << "Extra log information\n\n" << std::flush;
 
 while ( bar.active() )
@@ -924,7 +927,9 @@ auto bar6 =
 
 因为 `pace::MultiBar` 会在多行同时渲染多个进度条，使用 `pace::Region::Relative` 时，进度条的渲染结构所占的行数将会由 `pace::MultiBar` 容纳的进度条类型数量决定。
 
-`pace::MultiBar` 容纳的进度条数量可由 `active_count()` 方法得到，而渲染结构所占行数将会是该方法返回的数量 +1。
+`pace::MultiBar` 的渲染高度可以由 `layout_height()` 方法得到，该方法返回的是距离调用该方法时最近的一次渲染所占用的行数量。
+
+> 使用 `Region::Relative` 且需要输出额外日志信息时，应该输出不少于该方法返回行数量的换行符，否则输出的信息会被覆盖。
 
 示例：
 
@@ -942,8 +947,8 @@ for ( size_t i = 0; i < 95; ++i ) {
 }
 
 std::cerr << "Extra log information";
-// Notice: At least `active_count() + 1` nextline must be inserted after the output information
-for ( size_t i = 0; i < bar.active_count() + 1; ++i )
+// Notice: At least `layout_height()` nextline must be inserted after the output information
+for ( size_t i = 0; i < bar.layout_height(); ++i )
   std::cerr << '\n';
 std::cerr << std::flush;
 
@@ -1078,7 +1083,9 @@ try {
 ### 渲染行为
 `pace::DynamicBar` 的渲染行为与 `pace::MultiBar` 类似：`pace::DynamicBar` 会在多行同时渲染多个进度条，因此使用 `pace::Region::Relative` 时，进度条的渲染结构所占的行数会由 `pace::DynamicBar` 中正在运行的进度条数量决定。
 
-`pace::DynamicBar` 容纳的进度条数量可由 `active_count()` 方法得到，而渲染结构所占行数将会是该方法返回的数量 +1。
+`pace::DynamicBar` 的渲染高度可以由 `layout_height()` 方法得到，该方法返回的是距离调用该方法时最近的一次渲染所占用的行数量。
+
+> 使用 `Region::Relative` 且需要输出额外日志信息时，应该输出不少于该方法返回行数量的换行符，否则输出的信息会被覆盖。
 
 示例：
 
@@ -1097,8 +1104,8 @@ for ( size_t i = 0; i < 95; ++i ) {
 }
 
 std::cerr << "Extra log information";
-// Notice: At least `active_count() + 1` nextline must be inserted after the output information
-for ( size_t i = 0; i < dbar.active_count() + 1; ++i )
+// Notice: At least `layout_height()` nextline must be inserted after the output information
+for ( size_t i = 0; i < dbar.layout_height(); ++i )
   std::cerr << '\n';
 std::cerr << std::flush;
 
@@ -1110,6 +1117,10 @@ while ( bar2->active() )
 while ( bar3->active() )
   bar3->tick();
 ```
+
+需要注意的是，所有与 `DynamicBar` 相关联的进度条对象的**所有权**都不属于 `DynamicBar`，因此与 `MultiBar` 不同，`DynamicBar` 无法提供一个可靠的全局性 `reset()` 或 `abort()` 方法支持。
+
+如果需要同时关闭所有已启动进度条，必须手动跟踪这些进度条并逐一调用 `reset()` 或 `abort()`，当然尝试关闭一个已经关闭的进度条是安全的，只要不违反[并发调用约束](#线程安全更新计数与任务总数一致性)。
 
 ## NumericSpan
 `pace::views::NumericSpan` 是一个模板类型，它被用于表达一个数值范围的起始点、终止点和步长；该数值范围在数学上被表示为：`[start, end)`。
@@ -1635,7 +1646,7 @@ pace 而且的所有进度条类型都完全依赖模板元编程在编译期生
 
 ## 内部设计
 ### 基础数据结构设计
-从性能角度出发，pace 在内部编写了许多针对性优化的数据结构，包括但不限于模板元编程组件、简化版的 `std::move_only_function`、根据 C++ 标准提供不同实现的数值格式化函数、绕过标准库缓冲区的 IO 函数等。
+从性能角度出发，pace 在内部编写了许多针对性优化的数据结构，包括但不限于模板元编程组件、简化版的 `std::move_only_function`和绕过标准库缓冲区的 IO 函数等。
 
 这些组件只适用于 pace 自身，pace 不对外做任何可用性和兼容性保证。
 ### 进度条类型设计

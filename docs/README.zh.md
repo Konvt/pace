@@ -6,6 +6,7 @@
 - **C++11 及更高版本兼容**: 支持从 C++11 到 C++23 的所有已发布标准。
 - **Unicode 支持**: 按 UTF-8 编码解析每个字符串。
 - **RGB 支持**: 可通过十六进制 RGB 值定制进度条颜色。
+- **`apt`-like 风格**：允许在终端底部或顶部渲染进度条。
 - **模块化设计**: 可以在编译期生成新的进度条。
 - **线程安全设计**: 可以在多线程环境下安全使用。
 - **类 `tqdm` 接口**: 基于模板元编程的链式调用方法。
@@ -162,6 +163,15 @@ cmake --build build --target uninstall
 如果你在使用已经支持 `module` 功能的编译器，那么可以使用 `module/` 中的 `pace.cppm` 文件，并在项目中调用它。
 
 在正式使用时，请务必一并在代码文件中 `import std`，否则就目前来看会出现奇怪的编译错误。
+
+可以在项目 `CMakeLists.txt` 中加入下列代码以自动编译模块接口文件：
+
+```cmake
+set(PACE_MODULE ON)
+# ...
+add_executable(YourProject ${SOURCES})
+target_link_libraries(YourProject PRIVATE pace::module)
+```
 ### 仅头文件
 你可以将 `include/pace` 复制到项目的包含路径中，随后在源文件内直接包含对应头文件。
 

@@ -8,6 +8,7 @@
 - **C++11 & later compatible**: Supports all standard revisions from C++11 through C++23.
 - **Unicode support**: Parse each string in UTF-8 encoding.
 - **RGB color support**: Customizable progress bar colors.
+- **`apt`-like style**: Allows the rendering of progress bars at the bottom or top of the terminal.
 - **Modular design**: Generate new progress bars during compile-time.
 - **Thread-safe design**: Can be safely used in multi-threaded environments.
 - **`tqdm`-like interface**: Chainable methods powered by template metaprogramming.
@@ -164,6 +165,15 @@ cmake --build build --target uninstall
 If you are using a compiler that already supports the `module` feature, you can use the `pace.cppm` file in the `module/` and import it within your project.
 
 When using it officially, be sure to `import std` in the code file at the same time; otherwise, strange compilation errors will occur as of now.
+
+The following code can be added to the project `CMakeLists.txt` to automatically compile the module interface files:
+
+```cmake
+set(PACE_MODULE ON)
+# ...
+add_executable(YourProject ${SOURCES})
+target_link_libraries(YourProject PRIVATE pace::module)
+```
 ### Header-only
 You can copy `include/pace` to the inclusion path of the project, and then directly include the corresponding header file within the source file.
 

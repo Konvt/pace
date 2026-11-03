@@ -429,7 +429,7 @@ If multiple progress bars need to be rendered on the same output stream, use `pa
 ### Rendering policy
 `pace::Policy` determines the rendering strategy of the progress bar. Currently, pace provides three policy types: `pace::Policy::Async`, `pace::Policy::Signal`, and `pace::Policy::Sync`. Different rendering policies determine which thread is responsible for performing rendering operations.
 
-Under `pace::Policy::Async`, all rendering operations are executed by the renderer's background thread. Rendering is completely detached from the foreground thread, and after each rendering operation the background thread sleeps for a certain interval. This interval can be queried using `pace::config::refresh_interval()` and modified using `pace::config::refresh_interval( pace::details::types::Tempus )`.
+Under `pace::Policy::Async`, all rendering operations are executed by the renderer's background thread. Rendering is completely detached from the foreground thread, and after each rendering operation the background thread sleeps for a certain interval. This interval can be queried using `pace::config::refresh_interval()` and modified using `pace::config::refresh_interval( std::chrono::microseconds )`.
 
 Under `pace::Policy::Signal`, every call to `tick()` or `tick_to()` submits a rendering request to the renderer from the calling thread. Each rendering task is still executed by the background thread, but the thread does not sleep after processing a task.
 
@@ -447,13 +447,17 @@ static_assert( std::is_same<pace::ProgressBar<>,
 pace::ProgressBar<pace::Channel::Err, pace::Policy::Sync> bar; // Use synchronous rendering
 ```
 ### Rendering region
-`pace::Region` determines the rendering position of the progress bar in the terminal. Currently, pace only allows choosing between `pace::Region::Fixed` and `pace::Region::Relative`, and defaults to `Fixed`.
+`pace::Region` determines the rendering position of the progress bar in the terminal, defaults to `Fixed`.
 
 `pace::Region::Fixed` saves the current terminal cursor position during the first rendering and always refreshes the progress bar relative to that position. In this mode, any other content written to the same output stream will be overwritten by subsequent progress bar refreshes.
 
 `pace::Region::Relative` rewinds according to the number of lines produced during the previous rendering and overwrites the old progress bar content. In this mode, if additional information is written to the same output stream and followed by a suitable number of newline characters, the extra information can be preserved.
 
 However, if the progress bar string becomes excessively wide, using `pace::Region::Relative` may lead to terminal rendering issues.
+
+`pace::Region::Bottom` and `pace::Region::Top` render the progress bar at the very bottom or top of the terminal, respectively, and the occupied area does not participate in terminal page scrolling, so log messages can be output normally.
+
+> The layout height of the progress bar can be obtained via the `layout_height()` method; it returns 0 when the progress bar is inactive.
 
 > The rendering structure of any progress bar occupies two terminal lines in total (assuming the progress bar length does not exceed the single-line character limit): one line for the progress bar itself and one empty line.
 
@@ -467,6 +471,7 @@ for ( size_t i = 0; i < 95; ++i )
   bar.tick(); /* do something... */
 
 // Notice: At least two newlines must be inserted after the output information
+assert( bar.layout_height() == 2 );
 std::cerr << "Extra log information\n\n" << std::flush;
 
 while ( bar.active() )
@@ -944,7 +949,9 @@ The rendering strategy of `pace::MultiBar` is similar to other progress bars, bu
 
 Since `pace::MultiBar` renders multiple progress bars across multiple lines, when using `pace::Region::Relative`, the number of lines occupied depends on the number of contained progress bar types.
 
-The number of active progress bars can be obtained via `active_count()`, and the rendering structure occupies `active_count() + 1` lines.
+The rendered height of `pace::DynamicBar` can be obtained via the `layout_height()` method, which returns the number of rows occupied by the most recent rendering at the time the method is called.
+
+> When using `Region::Relative` and needing to output additional log information, output at least as many newline characters as the number of rows returned by this method; otherwise, the output will be overwritten.
 
 Example:
 
@@ -962,8 +969,8 @@ for ( size_t i = 0; i < 95; ++i ) {
 }
 
 std::cerr << "Extra log information";
-// Note: at least `active_count() + 1` newline characters must be inserted after output
-for ( size_t i = 0; i < bar.active_count() + 1; ++i )
+// Notice: At least `layout_height()` nextline must be inserted after the output information
+for ( size_t i = 0; i < bar.layout_height(); ++i )
   std::cerr << '\n';
 std::cerr << std::flush;
 
@@ -1099,7 +1106,9 @@ try {
 ### Rendering behavior
 The rendering behavior of `pace::DynamicBar` is similar to `pace::MultiBar`: it renders multiple progress bars simultaneously across multiple lines. Therefore, when using pace::Region::Relative, the number of rows occupied by the rendering structure depends on the number of active progress bars in `pace::DynamicBar`.
 
-The number of progress bars managed by `pace::DynamicBar` can be obtained via the `active_count()` method, and the rendering structure will occupy `active_count() + 1` lines.
+The rendered height of `pace::DynamicBar` can be obtained via the `layout_height()` method, which returns the number of rows occupied by the most recent rendering at the time the method is called.
+
+> When using `Region::Relative` and needing to output additional log information, output at least as many newline characters as the number of rows returned by this method; otherwise, the output will be overwritten.
 
 Example:
 
@@ -1118,8 +1127,8 @@ for ( size_t i = 0; i < 95; ++i ) {
 }
 
 std::cerr << "Extra log information";
-// Notice: At least `active_count() + 1` nextline must be inserted after the output information
-for ( size_t i = 0; i < dbar.active_count() + 1; ++i )
+// Notice: At least `layout_height()` nextline must be inserted after the output information
+for ( size_t i = 0; i < dbar.layout_height(); ++i )
   std::cerr << '\n';
 std::cerr << std::flush;
 
@@ -1131,6 +1140,10 @@ while ( bar2->active() )
 while ( bar3->active() )
   bar3->tick();
 ```
+
+It should be noted that the **ownership** of all progress bar objects associated with `DynamicBar` does not belong to `DynamicBar`. Therefore, unlike `MultiBar`, `DynamicBar` cannot provide reliable support for global `reset()` or `abort()` methods.
+
+If you need to close all started progress bars at the same time, you must manually track these progress bars and call `reset()` or `abort()` on each one individually. Of course, attempting to close an already closed progress bar is safe, as long as it does not violate [the concurrent call constraints](#thread-safety-update-count-and-consistency-with-total-task-count).
 
 ## NumericSpan
 `pace::views::NumericSpan` is a template type used to represent a numerical range defined by a start point, an end point, and a step size. Mathematically, this range is expressed as `[start, end)`.
@@ -1663,7 +1676,7 @@ Additionally, all progress bar types in pace are generated entirely at compile t
 
 ## Internal Design
 ### Base data structure design
-From a performance perspective, pace implements many specialized optimized data structures internally, including but not limited to template metaprogramming components, a simplified `std::move_only_function`, number formatting utilities with different implementations depending on the C++ standard, and IO functions that bypass standard library buffering.
+From a performance perspective, pace implements many specialized optimized data structures internally, including but not limited to template metaprogramming components, a simplified `std::move_only_function` and IO functions that bypass standard library buffering.
 
 These components are internal-only and not guaranteed for external compatibility or usability.
 ### Progress bar type design
