@@ -1,29 +1,31 @@
 ---
-name: Bug report
-about: Create a bug report
-title: ''
-labels: ''
-assignees: ''
-
+name: Bug Report
+about: Report unexpected behavior or a potential bug.
+title: "[Bug]: "
+labels: bug
 ---
 
-**Description**
-A clear and concise description of what the bug is.
+## Description
+A clear description of the issue.
 
-**Reproduction steps**
-How do you trigger the bug?
+## Reproduction
+Provide a minimal example or steps to reproduce the issue.
 
-**Expected and actual results**
-A clear and concise description of what you expected to happen.
+```cpp
 
-**Minimal code example**
-If possible, provide a small and self-contained example that triggers the bug.
+```
 
-**Error messages**
-Please provide any kind of error output (compilation errors, exception messages, stack traces, etc.) which can help to diagnose the error.
+## Expected Behavior
+What did you expect to happen?
 
-**Compiler and operating system**
-On which operating systems and compilers have you observed the issue? Include as many relevant details about the environment you experienced the bug in.
+## Actual Behavior
+What actually happened?
 
-**Additional context**
-Add any other context about the problem here.
+## Environment
+- Project version:
+- Compiler:
+- C++ standard:
+- Operating system:
+
+## Additional Information
+Any other information that might be helpful.

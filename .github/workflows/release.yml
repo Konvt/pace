@@ -52,7 +52,7 @@ jobs:
           semver = os.environ['GITHUB_REF'].replace('refs/tags/v', '')
           with open('CHANGELOG.md', 'r', encoding='utf-8') as file:
             match = re.search(
-              rf'## \[{semver}\] - [A-Za-z0-9]+-[A-Za-z0-9]+-[A-Za-z0-9]+\s*\n(.*?)(?:## \[.+\] - \d+-\d+-\d+|-\s*-\s*-)',
+              rf'## \[{semver}\] - [A-Za-z0-9]+-[A-Za-z0-9]+-[A-Za-z0-9]+\s*\n(.*?)(?:## \[.+\] - \d+-\d+-\d+|---)',
               file.read(), re.S)
             if match is None:
               raise ValueError(f'match failed: expected version: "{semver}"')
