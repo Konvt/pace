@@ -13,7 +13,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "PACE_BUILD_DEMO": "ON"
+        "PACE_DEMO": "ON"
       }
     },
     {
@@ -23,7 +23,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "PACE_BUILD_DEMO": "ON"
+        "PACE_DEMO": "ON"
       }
     },
     {
@@ -35,7 +35,7 @@
         "CMAKE_EXPORT_COMPILE_COMMANDS": "OFF",
         "PACE_INSTALL": "ON",
         "PACE_PACKAGE": "ON",
-        "PACE_BUILD_DEMO": "OFF"
+        "PACE_DEMO": "OFF"
       }
     }
   ]

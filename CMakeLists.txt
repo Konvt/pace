@@ -21,9 +21,14 @@ project(${PACE_PROJECT})
 
 option(PACE_INSTALL "Enable install target" ${PACE_IS_TOP_LEVEL})
 option(PACE_PACKAGE "Enable packaging support" ${PACE_IS_TOP_LEVEL})
-option(PACE_BUILD_DEMO "Build demo programs from demo/ directory using Makefile" OFF)
+option(PACE_DEMO "Build demo programs from demo/ directory using Makefile" OFF)
+# Optional C++20 module support
+option(PACE_MODULE "Build the C++20 module interface" OFF)
 
 include(CMakePackageConfigHelpers)
+if(PACE_INSTALL)
+  include(GNUInstallDirs)
+endif()
 
 add_library(pace INTERFACE)
 add_library(pace::pace ALIAS pace)
@@ -35,8 +40,30 @@ target_include_directories(
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
+
+if(PACE_MODULE)
+  if(CMAKE_VERSION VERSION_LESS "3.28")
+    message(FATAL_ERROR
+      "PACE_MODULE requires CMake 3.28 or newer")
+  endif()
+
+  add_library(pace_module)
+  add_library(pace::module ALIAS pace_module)
+
+  target_sources(pace_module
+    PUBLIC
+      FILE_SET CXX_MODULES
+      TYPE CXX_MODULES
+      BASE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/module"
+      FILES "${CMAKE_CURRENT_SOURCE_DIR}/module/lib.cppm")
+
+  target_compile_features(pace_module PUBLIC cxx_std_20)
+
+  target_link_libraries(pace_module PUBLIC pace)
+endif()
+
+
 if(PACE_INSTALL)
-  include(GNUInstallDirs)
   configure_package_config_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/pace-config.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/pace-config.cmake
@@ -45,7 +72,6 @@ if(PACE_INSTALL)
     ${CMAKE_CURRENT_BINARY_DIR}/pace-config-version.cmake
     VERSION ${PROJECT_VERSION}
     COMPATIBILITY AnyNewerVersion)
-
   configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/cmake/pace.pc.in
     ${CMAKE_CURRENT_BINARY_DIR}/pace.pc
@@ -126,7 +152,7 @@ if(PACE_PACKAGE)
   add_custom_target(pack DEPENDS ${PACE_PKG_FILE})
 endif()
 
-if(PACE_BUILD_DEMO)
+if(PACE_DEMO)
   file(GLOB DEMO_SOURCES CONFIGURE_DEPENDS "demo/*.cpp")
   foreach(source IN LISTS DEMO_SOURCES)
     get_filename_component(demo_name ${source} NAME_WE)
