@@ -150,14 +150,16 @@ namespace pace {
 
                    static_cast<MostDerived*>( this )->epilogue( ostream, style_off );
 
+                   const auto hide_done = config::hide_completed();
                    if ( istty ) {
-                     if ( config::hide_completed() )
+                     if ( hide_done )
                        ostream << console::linestart;
                      ostream << console::linewipe;
-                   }
-                   if ( ( Zone == Region::Bottom || Zone == Region::Top ) && istty )
-                     ostream << console::resetscroll << console::restorecursor;
-                   else
+                     if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
+                       ostream << console::resetscroll << console::restorecursor;
+                     else if ( !hide_done )
+                       ostream << console::nextline;
+                   } else
                      ostream << console::nextline;
                    ostream << io::flush;
                  } break;

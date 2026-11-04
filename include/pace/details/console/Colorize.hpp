@@ -18,11 +18,7 @@ namespace pace {
 #else
           if ( self.color.encoding() != render::Paint::None ) {
             pipeline << '\x1B' << '[';
-            switch ( self.color.encoding() ) {
-            case render::Paint::Xterm24bit: pipeline << '3' << '8' << ';' << '2'; PACE__FALLTHROUGH;
-            case render::Paint::Csi8:       self.color.emit_to( pipeline ); break;
-            default:                        utils::unreachable();
-            }
+            self.color.as_forecolor( pipeline );
             pipeline << 'm';
           }
 #endif
@@ -41,11 +37,7 @@ namespace pace {
 #else
           if ( self.color.encoding() != render::Paint::None ) {
             pipeline << '\x1B' << '[';
-            switch ( self.color.encoding() ) {
-            case render::Paint::Xterm24bit: pipeline << '4' << '8' << ';' << '2'; PACE__FALLTHROUGH;
-            case render::Paint::Csi8:       self.color.emit_to( pipeline ); break;
-            default:                        utils::unreachable();
-            }
+            self.color.as_backcolor( pipeline );
             pipeline << 'm';
           }
 #endif
@@ -69,17 +61,9 @@ namespace pace {
             return pipeline << Backcolor { self.background };
 
           pipeline << '\x1B' << '[';
-          switch ( self.foreground.encoding() ) {
-          case render::Paint::Xterm24bit: pipeline << '3' << '8' << ';' << '2'; PACE__FALLTHROUGH;
-          case render::Paint::Csi8:       self.foreground.emit_to( pipeline ); break;
-          default:                        utils::unreachable();
-          }
+          self.foreground.as_forecolor( pipeline );
           pipeline << ';';
-          switch ( self.background.encoding() ) {
-          case render::Paint::Xterm24bit: pipeline << '4' << '8' << ';' << '2'; PACE__FALLTHROUGH;
-          case render::Paint::Csi8:       self.background.emit_to( pipeline ); break;
-          default:                        utils::unreachable();
-          }
+          self.background.as_backcolor( pipeline );
           pipeline << 'm';
 #endif
           return pipeline;

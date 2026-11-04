@@ -33,6 +33,37 @@ namespace pace {
         render::Paint encoding_;
 #endif
 
+        template<typename F>
+        PACE__CXX20_CNSTXPR void emit_to( io::CharPipeline& pipeline, F&& enum_parser ) const
+        {
+#ifdef PACE_NOSTYLE
+          (void)pipeline;
+#else
+          // only output the digit string
+          constexpr auto digits = digit_text();
+          switch ( encoding_ ) {
+          case render::Paint::Csi8: {
+            const auto str = digits.data() + ( enum_parser( sgr_.ansi ) * 3 );
+            pipeline << str[0] << str[1];
+          } break;
+          case render::Paint::Xterm24bit: {
+            pipeline << '4' << '8' << ';' << '2';
+            for ( auto offset : sgr_.rgb ) {
+              pipeline << ';';
+              const auto str = digits.data() + ( offset * 3 );
+              pipeline << str[0];
+              if ( offset >= 10 )
+                pipeline << str[1];
+              if ( offset >= 100 )
+                pipeline << str[2];
+            }
+          } break;
+
+          default: utils::unreachable();
+          }
+#endif
+        }
+
       public:
 #ifdef PACE_NOSTYLE
         TrueColor() = default;
@@ -75,33 +106,39 @@ namespace pace {
 #endif
         }
 
-        PACE__FORCEINLINE void emit_to( io::CharPipeline& pipeline ) const
+        PACE__FORCEINLINE void as_forecolor( io::CharPipeline& pipeline ) const
         {
-#ifdef PACE_NOSTYLE
-          (void)pipeline;
-#else
-          // only output the digit string
-          constexpr auto digits = digit_text();
-          switch ( encoding_ ) {
-          case render::Paint::Csi8: {
-            const auto str = digits.data() + ( utils::to_underlying( sgr_.ansi ) * 3 );
-            pipeline << str[0] << str[1];
-          } break;
-          case render::Paint::Xterm24bit: {
-            for ( auto offset : sgr_.rgb ) {
-              pipeline << ';';
-              const auto str = digits.data() + ( offset * 3 );
-              pipeline << str[0];
-              if ( offset >= 10 )
-                pipeline << str[1];
-              if ( offset >= 100 )
-                pipeline << str[2];
-            }
-          } break;
+          emit_to( pipeline, []( Color ansi ) PACE__CXX17_CNSTXPR noexcept -> std::uint8_t {
+            switch ( ansi ) {
+            case Color::Black:   return 30;
+            case Color::Red:     return 31;
+            case Color::Green:   return 32;
+            case Color::Yellow:  return 33;
+            case Color::Blue:    return 34;
+            case Color::Magenta: return 35;
+            case Color::Cyan:    return 36;
+            case Color::White:   return 37;
 
-          default: utils::unreachable();
-          }
-#endif
+            default: utils::unreachable();
+            }
+          } );
+        }
+        PACE__FORCEINLINE void as_backcolor( io::CharPipeline& pipeline ) const
+        {
+          emit_to( pipeline, []( Color ansi ) PACE__CXX17_CNSTXPR noexcept -> std::uint8_t {
+            switch ( ansi ) {
+            case Color::Black:   return 40;
+            case Color::Red:     return 41;
+            case Color::Green:   return 42;
+            case Color::Yellow:  return 43;
+            case Color::Blue:    return 44;
+            case Color::Magenta: return 45;
+            case Color::Cyan:    return 46;
+            case Color::White:   return 47;
+
+            default: utils::unreachable();
+            }
+          } );
         }
 
         PACE__NODISCARD PACE__CXX20_CNSTXPR render::Paint encoding() const noexcept

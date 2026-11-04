@@ -28,16 +28,7 @@ namespace pace {
   enum class Region : std::uint8_t { Fixed, Relative, Bottom, Top };
 
   // The ANSI 8 colors
-  enum class Color : std::uint8_t {
-    Black = 30,
-    Red,
-    Green,
-    Blue,
-    Yellow,
-    Magenta,
-    Cyan,
-    White,
-  };
+  enum class Color : std::uint8_t { Black, Red, Green, Yellow, Blue, Magenta, Cyan, White };
 } // namespace pace
 
 #endif

@@ -36,6 +36,8 @@ namespace pace {
     {
       PACE__ASSERT( rhs.active() == false );
       core_ = std::move( rhs.core_ );
+      if ( core_ != nullptr )
+        initr_.test_and_set( std::memory_order_relaxed );
       rhs.initr_.clear( std::memory_order_release );
     }
     DynamicBar& operator=( DynamicBar&& rhs ) & noexcept
@@ -46,7 +48,9 @@ namespace pace {
       PACE__ASSERT( active() == false );
       PACE__ASSERT( rhs.active() == false );
       core_ = std::move( rhs.core_ );
-      if ( core_ == nullptr )
+      if ( core_ != nullptr )
+        initr_.test_and_set( std::memory_order_relaxed );
+      else
         initr_.clear( std::memory_order_release );
       rhs.initr_.clear( std::memory_order_release );
       return *this;

@@ -34,7 +34,8 @@ int main()
     // or access layout information and other status data,
     // you can even destruct/transfer the previous DynamicBar object.
     auto stolen = std::move( dbar );
-    auto bar = dbar.insert<pace::config::Line>( pace::option::Prefix( "No.3" ), pace::option::Quota( 1000 ) );
+    auto bar =
+      stolen.insert<pace::config::Line>( pace::option::Prefix( "No.3" ), pace::option::Quota( 1000 ) );
     // Do some ticks, then reset the current bar before completing.
     for ( int i = 0; i < 500; ++i ) {
       bar->tick();

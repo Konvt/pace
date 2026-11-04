@@ -1,6 +1,8 @@
 #ifndef PACE_RUNTIME
 #define PACE_RUNTIME
 
+#include "../details/charcodes/StringView.hpp"
+#include "../details/charcodes/U8Raw.hpp"
 #include "../details/console/Screen.hpp"
 #include "../details/render/Renderer.hpp"
 
@@ -55,6 +57,17 @@ namespace pace {
       details::render::Renderer<Channel::Err>::working_interval(
         std::chrono::duration_cast<std::chrono::microseconds>( new_rate ) );
     }
+
+    // Calculate the terminal display width of a UTF-8 encoded string.
+    PACE__NODISCARD inline PACE__CXX20_CNSTXPR std::size_t text_width( details::charcodes::StringView text )
+    { return details::charcodes::U8Raw::text_width( text ); }
+#ifdef __cpp_lib_char8_t
+    PACE__NODISCARD inline std::size_t text_width( std::u8string_view text )
+    {
+      return details::charcodes::U8Raw::text_width(
+        { reinterpret_cast<const char*>( text.data() ), text.size() } );
+    }
+#endif
   } // namespace config
 } // namespace pace
 

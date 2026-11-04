@@ -41,7 +41,7 @@ namespace pace {
         if ( params.task_quota == 0 )
           PACE__UNLIKELY return pipeline
             << details::io::align<details::utils::TextAlign::Right>( fixed_width(),
-                                                                      decimals_ > 0 ? "nan.%" : "n/a%" );
+                                                                     decimals_ > 0 ? "nan.%" : "n/a%" );
 
         std::string orig;
         details::utils::format_to( std::back_inserter( orig ),
@@ -49,7 +49,7 @@ namespace pace {
                                    meaningful_precision<details::types::Float>( decimals_ ) );
         orig.push_back( '%' );
         return pipeline << details::io::align<details::utils::TextAlign::Right>( fixed_width(),
-                                                                                  std::move( orig ) );
+                                                                                 std::move( orig ) );
       }
 
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR std::size_t fixed_width() const noexcept
@@ -86,6 +86,8 @@ namespace pace {
   } // namespace facade
 
   PACE__INHERIT_REGISTER( facade::Percentage, details::aspects::Capacity );
+
+  PACE__OPTION_REGISTER( facade::Percentage, option::PercentDecs );
 
   PACE__ENTAIL_REGISTER( facade::Percentage,
                          details::behaviors::Incremental,

@@ -344,13 +344,17 @@ Portrayal:
                        else if PACE__CXX17_CNSTXPR ( Zone == Region::Top )
                          ostream << console::savecursor << console::firstline;
                      }
-                     {
+                     const auto num_newlines = [&]() {
                        std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
-                       do_schedule( ostream, istty, style_off, hide_done );
-                     }
-                     if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
-                       if ( istty )
+                       return do_schedule( ostream, istty, style_off, hide_done );
+                     }();
+                     if ( istty ) {
+                       if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
                          ostream << console::resetscroll << console::restorecursor;
+                       else if ( hide_done && num_newlines > 0 )
+                         // Since rendering always adds an extra line break, this cancels it out.
+                         ostream << console::prevline;
+                     }
                      ostream << io::flush;
                      state_.store( Phase::Stop, std::memory_order_release );
                    } break;

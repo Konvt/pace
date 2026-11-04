@@ -136,10 +136,9 @@ Resurrection:
 
           return false;
         }
-        PACE__FORCEINLINE void do_schedule( io::CharPipeline& pipeline, bool istty ) &
+        PACE__FORCEINLINE std::size_t do_schedule( io::CharPipeline& pipeline, bool istty, bool hide_done ) &
         {
           const auto style_off    = !istty && config::auto_style_off();
-          const auto hide_done    = config::hide_completed();
           std::size_t active_rows = 0;
           if ( istty && hide_done )
             // read only, lock free
@@ -171,11 +170,12 @@ Resurrection:
             const auto vanish = active_rows - num_newlines;
             if PACE__CXX17_CNSTXPR ( Zone != Region::Bottom )
               pipeline << io::repeat( vanish, io::concat( console::linewipe, console::nextline ) )
-                       << io::cursorup( vanish );
+                       << io::cursorup( vanish - 1 );
             else
               pipeline << io::repeat( vanish, io::concat( console::linewipe, console::prevline ) )
-                       << io::cursordown( vanish );
+                       << io::cursordown( vanish - 1 );
           }
+          return num_newlines;
         }
 
         void do_halt( bool forced ) final
@@ -207,8 +207,9 @@ Resurrection:
             if ( !executor.try_appoint( [this]() {
                    auto guard = utils::make_scope_fail(
                      [this]() noexcept { state_.store( Phase::Stop, std::memory_order_release ); } );
-                   auto& ostream    = io::OStream<Sink>::itself();
-                   const auto istty = console::Screen<Sink>::renderable();
+                   auto& ostream        = io::OStream<Sink>::itself();
+                   const auto istty     = console::Screen<Sink>::renderable();
+                   const auto hide_done = config::hide_completed();
                    switch ( state_.load( std::memory_order_acquire ) ) {
                    case Phase::Awake: {
                      if ( istty ) {
@@ -244,7 +245,7 @@ Resurrection:
                      // all access to stages_ always occurs within a same thread,
                      // so we do not need to use a mutex to protect it.
                      std::fill( stages_.begin(), stages_.end(), Locus::Offstage );
-                     do_schedule( ostream, istty );
+                     do_schedule( ostream, istty, hide_done );
 
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
                        if ( istty )
@@ -291,7 +292,7 @@ Resurrection:
                      } else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
                        (void)console::Screen<Sink>::itself().vertical_alteration( 0 );
 
-                     do_schedule( ostream, istty );
+                     do_schedule( ostream, istty, hide_done );
 
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
                        if ( istty )
@@ -312,11 +313,15 @@ Resurrection:
                          ostream << console::savecursor << console::firstline;
                      }
 
-                     do_schedule( ostream, istty );
+                     const auto num_newlines = do_schedule( ostream, istty, hide_done );
 
-                     if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
-                       if ( istty )
+                     if ( istty ) {
+                       if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
                          ostream << console::resetscroll << console::restorecursor;
+                       else if ( hide_done && num_newlines > 0 )
+                         // Since rendering always adds an extra line break, this cancels it out.
+                         ostream << console::prevline;
+                     }
                      ostream << io::flush;
                      state_.store( Phase::Stop, std::memory_order_release );
                    } break;
