@@ -10,16 +10,16 @@ namespace pace {
 
     std::shared_ptr<Context> core_;
     mutable details::concurrent::SharedMutex mtx_;
-    std::atomic_flag initr_ = ATOMIC_FLAG_INIT;
+    std::atomic<bool> initr_ { false };
 
     PACE__FORCEINLINE void setup_if_null() &
     {
-      if ( !initr_.test( std::memory_order_relaxed ) ) {
+      if ( !initr_.load( std::memory_order_relaxed ) ) {
         std::lock_guard<details::concurrent::SharedMutex> lock { mtx_ };
-        if ( !initr_.test( std::memory_order_relaxed ) ) {
+        if ( !initr_.load( std::memory_order_relaxed ) ) {
           PACE__ASSERT( core_ == nullptr );
           core_ = std::make_shared<Context>();
-          initr_.test_and_set( std::memory_order_release );
+          initr_.store( true, std::memory_order_release );
         }
       }
     }
@@ -37,8 +37,8 @@ namespace pace {
       PACE__ASSERT( rhs.active() == false );
       core_ = std::move( rhs.core_ );
       if ( core_ != nullptr )
-        initr_.test_and_set( std::memory_order_relaxed );
-      rhs.initr_.clear( std::memory_order_release );
+        initr_.store( true, std::memory_order_relaxed );
+      rhs.initr_.store( false, std::memory_order_release );
     }
     DynamicBar& operator=( DynamicBar&& rhs ) & noexcept
     { // The thread insecurity here is deliberately designed.
@@ -48,11 +48,8 @@ namespace pace {
       PACE__ASSERT( active() == false );
       PACE__ASSERT( rhs.active() == false );
       core_ = std::move( rhs.core_ );
-      if ( core_ != nullptr )
-        initr_.test_and_set( std::memory_order_relaxed );
-      else
-        initr_.clear( std::memory_order_release );
-      rhs.initr_.clear( std::memory_order_release );
+      initr_.store( core_ != nullptr, std::memory_order_release );
+      rhs.initr_.store( false, std::memory_order_release );
       return *this;
     }
     ~DynamicBar() = default;
@@ -153,10 +150,8 @@ namespace pace {
       PACE__ASSERT( active() == false );
       PACE__ASSERT( other.active() == false );
       core_.swap( other.core_ );
-      if ( core_ == nullptr )
-        initr_.clear( std::memory_order_release );
-      if ( other.core_ == nullptr )
-        other.initr_.clear( std::memory_order_release );
+      initr_.store( core_ != nullptr, std::memory_order_release );
+      other.initr_.store( other.core_ != nullptr, std::memory_order_release );
     }
     friend void swap( DynamicBar& a, DynamicBar& b ) noexcept { a.swap( b ); }
   };

@@ -53,7 +53,8 @@
 ### DynamicBar
 ![dynamicbar](images/dynamicbar.gif)
 
-### Usage
+## Usage
+### Minimum use case
 ```cpp
 #include "pace/ProgressBar.hpp"
 
@@ -71,6 +72,8 @@ int main()
     bar.tick();
 }
 ```
+### Simulate packages installation
+![downloader](images/downloader.gif)
 
 For more examples, see [GUIDE.md](docs/GUIDE.md) and [demo/](demo/).
 

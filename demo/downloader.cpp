@@ -97,7 +97,7 @@ void print_apt_preamble( const vector<Package>& packages )
        << "Need to get " << human_size( total_kb ) << " of archives.\n"
        << "After this operation, " << human_size( total_kb * 3 )
        << " of additional disk space will be used.\n"
-       << "Do you want to continue? [Y/n] Y\n\n";
+       << "Do you want to continue? [Y/n] y\n\n";
 }
 
 int main()
@@ -112,6 +112,7 @@ int main()
 
   { // stage 1, downloading only
     pace::ProgressBar<pace::Channel::Err, pace::Policy::Sync, pace::Region::Relative> bar;
+    // In fact, you can pick any Policy and Region here.
     bar.config()
       .divider( " " )
       .percent_decs( 0 )
@@ -136,9 +137,7 @@ int main()
       const int tick_ms     = max( 10, static_cast<int>( duration / ticks ) );
 
       // Begin this package's task cycle: fresh quota => progress 0/ticks.
-      bar.config().quota( ticks );
-      bar.config().postfix( "[waiting for headers] " + pkg.name + " | archive.ubuntu.com" );
-      bar.poke(); // show handshake state before first tick
+      bar.config().quota( ticks ).postfix( "[waiting for headers] " + pkg.name + " | archive.ubuntu.com" );
 
       for ( int t = 0; t < ticks; ++t ) {
         if ( t == ticks / 3 ) {
@@ -163,20 +162,20 @@ int main()
   const auto install_steps = make_install_steps( packages, rd );
   { // stage 2: installing
     pace::ProgressBar<pace::Channel::Err, pace::Policy::Async, pace::Region::Bottom> bar;
-    bar.config()
-      .with( pace::option::Quota( install_steps.size() ),
-             pace::option::Filler( "#" ),
-             pace::option::Lead( "" ),
-             pace::option::Remain( " " ),
-             pace::option::Divider( " " ),
-             pace::option::Prefix( "Progress:" ),
-             pace::option::PercentDecs( 0 ),
-             pace::option::FontBold( false ),
-             pace::option::FillerForecolor(),
-             pace::option::InfoForecolor(),
-             pace::option::PrefixBackcolor( pace::Color::Green ),
-             pace::option::Only<pace::facade::Percentage, pace::facade::CharPlot>() )
-      .bar_width( pace::config::terminal_width( pace::Channel::Err ) - bar.layout_width() );
+    bar.config().with( pace::option::Quota( install_steps.size() ),
+                       pace::option::Filler( "#" ),
+                       pace::option::Lead( "" ),
+                       pace::option::Remain( " " ),
+                       pace::option::Divider( " " ),
+                       pace::option::Prefix( "Progress:" ),
+                       pace::option::PercentDecs( 0 ),
+                       pace::option::FontBold( false ),
+                       pace::option::FillerForecolor(),
+                       pace::option::InfoForecolor(),
+                       pace::option::PrefixBackcolor( pace::Color::Green ),
+                       pace::option::Only<pace::facade::Percentage, pace::facade::CharPlot>() );
+    // After C++17, this can be transformed into a chained call to the previous expression.
+    bar.config().bar_width( pace::config::terminal_width( pace::Channel::Err ) - bar.layout_width() );
 
     for ( const auto& step : install_steps ) {
       bar.tick();

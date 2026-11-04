@@ -145,6 +145,7 @@ namespace pace {
         {
           // Calling swap is UB when the allocator does not satisfy POCS and the allocators are not equal.
           PACE__ASSERT( static_cast<Derived*>( this )->allocator() == other.allocator() );
+          (void)other;
         }
       };
       template<typename Alloc, typename Derived>
@@ -311,14 +312,6 @@ namespace pace {
         class unsafe_iterator {
           friend BasicSharedString;
 
-          const Char* cursor_;
-
-          constexpr unsafe_iterator() noexcept : cursor_ { nullptr } {}
-          constexpr unsafe_iterator( pointer cursor ) noexcept : cursor_ { cursor } {}
-          constexpr unsafe_iterator( const_iterator itr ) noexcept
-            : cursor_ { itr.owner()->data() + itr.offset() }
-          {}
-
         public:
 #if PACE__CXX20
           using iterator_category = std::contiguous_iterator_tag;
@@ -329,6 +322,16 @@ namespace pace {
           using value_type      = Char;
           using pointer         = const value_type*;
           using reference       = const value_type&;
+
+        private:
+          const Char* cursor_;
+
+        public:
+          constexpr unsafe_iterator() noexcept : cursor_ { nullptr } {}
+          constexpr unsafe_iterator( pointer cursor ) noexcept : cursor_ { cursor } {}
+          constexpr unsafe_iterator( const_iterator itr ) noexcept
+            : cursor_ { itr.owner()->data() + itr.offset() }
+          {}
 
           ~unsafe_iterator() = default;
 

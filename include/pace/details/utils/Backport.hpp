@@ -3,6 +3,7 @@
 
 #include "../core/Core.hpp"
 #include "../traits/Backport.hpp"
+#include <cstdint>
 #include <exception>
 #include <functional>
 #include <iterator>

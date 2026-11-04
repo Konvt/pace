@@ -147,7 +147,7 @@
 # undef PACE__FORCEINLINE
 # define PACE__FORCEINLINE
 #else
-# define PACE__ASSERT( expr ) ( (void)( expr ) )
+# define PACE__ASSERT( expr ) ( (void)( 0 ) )
 #endif
 
 // For assertion conditions without side effects.

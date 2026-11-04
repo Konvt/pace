@@ -7,8 +7,8 @@
 namespace pace {
   namespace details {
     namespace console {
-#define PACE__METHOD( FunctionName, Param )                                      \
-  PACE__FORCEINLINE io::CharPipeline& FunctionName( io::CharPipeline& pipeline ) \
+#define PACE__METHOD( FunctionName, Param )                    \
+  io::CharPipeline& FunctionName( io::CharPipeline& pipeline ) \
   { return pipeline << Param; }
 
       PACE__METHOD( resetstyle, "\x1B[0m" );

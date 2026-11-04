@@ -52,6 +52,7 @@
 ![dynamicbar](../images/dynamicbar.gif)
 
 ## 用例
+### 最小用例
 ```cpp
 #include "pace/ProgressBar.hpp"
 
@@ -69,6 +70,8 @@ int main()
     bar.tick();
 }
 ```
+### 模拟软件包安装
+![downloader](images/downloader.gif)
 
 更多用例详见 [GUIDE.zh.md](GUIDE.zh.md) 及 [demo/](../demo/)。
 

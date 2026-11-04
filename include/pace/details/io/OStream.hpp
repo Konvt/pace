@@ -11,7 +11,7 @@
 #if PACE__WIN
 # include <vector>
 #elif PACE__UNIX
-# include "../../exception/Error.hpp
+# include "../../exception/Error.hpp"
 #else
 # include <iostream>
 #endif
