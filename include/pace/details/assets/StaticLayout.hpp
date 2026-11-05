@@ -248,8 +248,7 @@ Resurrection:
                      do_schedule( ostream, istty, hide_done );
 
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
-                       if ( istty )
-                         ostream << console::restorecursor;
+                       ostream << io::when( istty, console::restorecursor );
 
                      auto expected = Phase::Awake;
                      state_.compare_exchange_strong( expected, Phase::Refresh, std::memory_order_release );
@@ -295,8 +294,7 @@ Resurrection:
                      do_schedule( ostream, istty, hide_done );
 
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
-                       if ( istty )
-                         ostream << console::restorecursor;
+                       ostream << io::when( istty, console::restorecursor );
                      ostream << io::flush;
                    } break;
 
@@ -318,9 +316,9 @@ Resurrection:
                      if ( istty ) {
                        if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
                          ostream << console::resetscroll << console::restorecursor;
-                       else if ( hide_done && num_newlines > 0 )
+                       else
                          // Since rendering always adds an extra line break, this cancels it out.
-                         ostream << console::prevline;
+                         ostream << io::when( hide_done && num_newlines > 0, console::prevline );
                      }
                      ostream << io::flush;
                      state_.store( Phase::Stop, std::memory_order_release );

@@ -76,16 +76,18 @@ namespace pace {
 
                    static_cast<MostDerived*>( this )->prologue( ostream, style_off );
 
-                   if ( istty )
+                   if ( istty ) {
                      ostream << console::linewipe;
-                   if ( ( Zone == Region::Bottom || Zone == Region::Top ) && istty )
-                     // Unlike the conventional mode,
-                     // Top and Bottom render in a dedicated canvas area on the terminal interface,
-                     // where no other rendering content typically intrudes.
-                     // Therefore, we don't need to consider interference from other elements,
-                     // making it unnecessary to output an extra newline character.
-                     ostream << console::restorecursor;
-                   else
+                     if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
+                       // Unlike the conventional mode,
+                       // Top and Bottom render in a dedicated canvas area on the terminal interface,
+                       // where no other rendering content typically intrudes.
+                       // Therefore, we don't need to consider interference from other elements,
+                       // making it unnecessary to output an extra newline character.
+                       ostream << console::restorecursor;
+                     else
+                       ostream << console::nextline;
+                   } else
                      ostream << console::nextline;
                    ostream << io::flush;
                  } break;
@@ -127,11 +129,13 @@ namespace pace {
 
                    static_cast<MostDerived*>( this )->monologue( ostream, style_off );
 
-                   if ( istty )
+                   if ( istty ) {
                      ostream << console::linewipe;
-                   if ( ( Zone == Region::Bottom || Zone == Region::Top ) && istty )
-                     ostream << console::restorecursor;
-                   else
+                     if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
+                       ostream << console::restorecursor;
+                     else
+                       ostream << console::nextline;
+                   } else
                      ostream << console::nextline;
                    ostream << io::flush;
                  } break;
@@ -152,13 +156,11 @@ namespace pace {
 
                    const auto hide_done = config::hide_completed();
                    if ( istty ) {
-                     if ( hide_done )
-                       ostream << console::linestart;
-                     ostream << console::linewipe;
+                     ostream << io::when( hide_done, console::linestart ) << console::linewipe;
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
                        ostream << console::resetscroll << console::restorecursor;
-                     else if ( !hide_done )
-                       ostream << console::nextline;
+                     else
+                       ostream << io::when( !hide_done, console::nextline );
                    } else
                      ostream << console::nextline;
                    ostream << io::flush;

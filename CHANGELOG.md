@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-11-05
+### Added
+- Added a new demo `downloader.cpp`
+- Added two new `Region` parameters
+- Provided module support for building system
+- Allow finding the corresponding bar type in `MultiBar` from config or bar type
+- Allow referencing a portion of the details components when using the module
+- Allow adjustment of the decimal precision for `facade::Percentage`
+
+### Changed
+- Renamed the `active_count` method of `DynamicBar` and `MultiBar` to `layout_height`
+- Renamed the namespace `slice` to `views`
+- Renamed exception type `InvalidState` to `StateError`
+- Renamed `provider_v` to `provider` to maintain name consistency
+- Renamed `ProvideFor` to `Provider`
+- Renamed the method `fixed_width` to `layout_width`, and moved it under bar types instead of config types
+- Changed the time unit for asynchronous rendering interval
+- Simplified the construction of the selector of Facades
+- Optimized the time and space complexity of certain compile-time components
+- Adjusted the return value type of the 'insert' of the DynamicBar to ensure consistency
+
+### Fixed
+- Fixed some layout problems
+- Fixed compilation errors
+- Fixed several concurrency issues
+
+### Removed
+- Removed the `abort` and `reset` methods from `DynamicBar`
+- Removed the `Std` prefix from  the components in the `Channel` enumeration
+
+---
+
 ## [1.2.3] - 2026-07-18
 ### Added
 - None
@@ -19,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Removed the `wait` and `wait_for` methods from the progress bar
 
-- - -
+---
 
 ## [1.2.2] - 2026-06-15
 ### Added
@@ -38,7 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - None
 
-- - -
+---
 
 ## [1.2.1] - 2026-05-20
 ### Added
@@ -56,7 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - None
 
-- - -
+---
 
 ## [1.2.0] - 2026-05-15
 ### Added
@@ -73,7 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - None
 
-- - -
+---
 
 ## [1.1.0] - 2026-05-12
 ### Added
@@ -89,7 +121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - None
 
-- - -
+---
 
 ## [1.0.0] - 2026-05-11
 ### Added
@@ -114,7 +146,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed option/Option.hpp
 - Removed several internal types and redundant assertion messages
 
-- - -
+---
 
 ## [1.0.0-alpha.4] - 2026-02-05
 ### Added
@@ -136,7 +168,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Removed some unnecessary type aliases
 
-- - -
+---
 
 ## [1.0.0-alpha.3] - 2026-01-03
 ### Added
@@ -155,7 +187,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - None
 
-- - -
+---
 
 ## [1.0.0-alpha.2] - 2025-12-24
 ### Added
@@ -179,7 +211,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed the namespace `pgbar::color`
 - Removed the symmetric parameter design of `operator|`, and now `operator|` must be called in a left-associative form
 
-- - -
+---
 
 ## [1.0.0-alpha.1] - 2025-11-26
 ### Added
@@ -202,4 +234,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - None
 
-- - -
+---

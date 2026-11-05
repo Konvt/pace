@@ -268,8 +268,7 @@ Portrayal:
                          line_variation_ = 0;
                      }
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
-                       if ( istty )
-                         ostream << console::restorecursor;
+                       ostream << io::when( istty, console::restorecursor );
                      ostream << io::flush;
                      auto expected = Phase::Awake;
                      state_.compare_exchange_strong( expected, Phase::Refresh, std::memory_order_relaxed );
@@ -351,9 +350,9 @@ Portrayal:
                      if ( istty ) {
                        if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
                          ostream << console::resetscroll << console::restorecursor;
-                       else if ( hide_done && num_newlines > 0 )
+                       else
                          // Since rendering always adds an extra line break, this cancels it out.
-                         ostream << console::prevline;
+                         ostream << io::when( hide_done && num_newlines > 0, console::prevline );
                      }
                      ostream << io::flush;
                      state_.store( Phase::Stop, std::memory_order_release );
@@ -383,26 +382,21 @@ Portrayal:
               items_.emplace_back( item );
             }
             ++alive_cnt_;
-            if PACE__CXX17_CNSTXPR ( Mode == Policy::Sync ) {
-              auto guard = utils::make_scope_fail( [this, item]() noexcept {
-                --alive_cnt_;
-                std::lock_guard<concurrent::SharedMutex> lock2 { res_mtx_ };
-                const auto itr =
-                  std::find_if( items_.begin(), items_.end(), [item]( const Slot& slot ) noexcept {
-                    return item == slot.target;
-                  } );
-                // We cannot guarantee whether other threads have completed the rendering in advance
-                // by calling the `tick` method of another progress bar during the exception throwing process.
-                // Therefore, we can only consider the current object as being aborted
-                // instead of directly deleting it.
-                if ( itr != items_.end() )
-                  itr->target = nullptr;
-              } );
-              executor.template trigger<Mode>();
-            } else {
-              lock1.unlock();
-              executor.template trigger<Mode>(); // noexcept
-            }
+            auto guard = utils::make_scope_fail( [this, item]() noexcept {
+              --alive_cnt_;
+              std::lock_guard<concurrent::SharedMutex> lock2 { res_mtx_ };
+              const auto itr =
+                std::find_if( items_.begin(), items_.end(), [item]( const Slot& slot ) noexcept {
+                  return item == slot.target;
+                } );
+              // We cannot guarantee whether other threads have completed the rendering in advance
+              // by calling the `tick` method of another progress bar during the exception throwing process.
+              // Therefore, we can only consider the current object as being aborted
+              // instead of directly deleting it.
+              if ( itr != items_.end() )
+                itr->target = nullptr;
+            } );
+            executor.template trigger<Mode>();
           }
         }
         void pop( const Indicator* item, bool forced = false )

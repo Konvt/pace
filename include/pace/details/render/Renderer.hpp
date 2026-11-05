@@ -254,7 +254,7 @@ namespace pace {
 
         // Trigger a rendering execution.
         template<Policy Mode>
-        void trigger() & noexcept( Mode != Policy::Sync )
+        void trigger() &
         {
           box_.rethrow();
           if PACE__CXX17_CNSTXPR ( Mode == Policy::Async ) {
