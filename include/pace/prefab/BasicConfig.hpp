@@ -83,24 +83,23 @@ namespace pace {
       static_assert( details::traits::is_unique<details::traits::TemplateList<Facades...>>::value,
                      "redundant Facades are not allowed" );
       using Element = details::traits::TemplateSet<Facades...>;
-      template<typename Option>
-      using is_setting =
-        details::traits::AnyOf<details::traits::TpContains<details::traits::OptionLinker_t<
-                                                             details::traits::C3_t<details::aspects::Prefix,
-                                                                                   details::aspects::Postfix,
-                                                                                   details::aspects::Segment,
-                                                                                   Facades...>>,
-                                                           Option>,
-                               details::traits::is_selection<Option>>;
+      using Setting = details::traits::OptionLinker_t<
+        details::traits::
+          C3_t<details::aspects::Prefix, details::aspects::Postfix, details::aspects::Segment, Facades...>>;
 
-      PACE__FORCEINLINE friend void unpack( BasicConfig& self, option::Projection proj ) noexcept
+      template<typename Option>
+      using is_setting = details::traits::AnyOf<details::traits::TpContains<Setting, Option>,
+                                                details::traits::is_selection<Option>>;
+
+      PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR void unpack( BasicConfig& self,
+                                                                option::Projection proj ) noexcept
       {
         const std::size_t length = std::min( sizeof...( Facades ), proj.value.size() );
         for ( std::size_t i = 0; i < length; ++i )
           self.projection_.set( i, proj.value[i] );
       }
       template<template<typename...> class... Fs>
-      PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR void unpack( BasicConfig& self,
+      PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR void unpack( BasicConfig& self,
                                                                 option::Only<Fs...> ) noexcept
       {
         static_assert(
@@ -113,7 +112,7 @@ namespace pace {
         };
       }
       template<template<typename...> class... Fs>
-      PACE__FORCEINLINE friend PACE__CXX14_CNSTXPR void unpack( BasicConfig& self,
+      PACE__FORCEINLINE friend PACE__CXX23_CNSTXPR void unpack( BasicConfig& self,
                                                                 option::Except<Fs...> ) noexcept
       {
         static_assert(
@@ -137,7 +136,7 @@ namespace pace {
                ,
                typename = typename std::enable_if<details::traits::AllOf<is_setting<Args>...>::value>::type>
 #endif
-      PACE__CXX23_CNSTXPR BasicConfig( details::traits::TypeSet<Args...> tag ) : layout_type( tag )
+      PACE__CXX14_CNSTXPR BasicConfig( details::traits::TypeSet<Args...> tag ) : layout_type( tag )
       {
         // Projection is only used for injecting default values.
         if PACE__CXX17_CNSTXPR ( !details::traits::AnyOf<details::traits::is_selection<Args>...>::value )
@@ -161,7 +160,7 @@ namespace pace {
        * minimal or curated set of components.
        */
       template<template<typename...> class... Fs>
-      static option::Projection bake( option::Only<Fs...> )
+      PACE__NODISCARD static PACE__CXX20_CNSTXPR option::Projection bake( option::Only<Fs...> )
       {
         static_assert(
           details::traits::AllOf<
@@ -184,7 +183,7 @@ namespace pace {
        * are enabled by default, with only a few exclusions.
        */
       template<template<typename...> class... Fs>
-      static option::Projection bake( option::Except<Fs...> )
+      PACE__NODISCARD static PACE__CXX20_CNSTXPR option::Projection bake( option::Except<Fs...> )
       {
         static_assert(
           details::traits::AllOf<
@@ -196,6 +195,10 @@ namespace pace {
                                                 false )... };
         return { std::move( projection ) };
       }
+
+      // Construct a config without any injecting default values.
+      PACE__NODISCARD static PACE__CXX20_CNSTXPR BasicConfig raw() noexcept
+      { return BasicConfig( details::traits::TpAppend_t<Setting, option::Only<>>() ); }
 
       template<typename... Args
 #ifdef __cpp_concepts
