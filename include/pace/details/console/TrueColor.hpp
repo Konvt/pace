@@ -106,7 +106,7 @@ namespace pace {
 #endif
         }
 
-        PACE__FORCEINLINE void as_forecolor( io::CharPipeline& pipeline ) const
+        PACE__FORCEINLINE void emit_foreground( io::CharPipeline& pipeline ) const
         {
           emit_to( pipeline, []( Color ansi ) PACE__CXX17_CNSTXPR noexcept -> std::uint8_t {
             switch ( ansi ) {
@@ -123,7 +123,7 @@ namespace pace {
             }
           } );
         }
-        PACE__FORCEINLINE void as_backcolor( io::CharPipeline& pipeline ) const
+        PACE__FORCEINLINE void emit_background( io::CharPipeline& pipeline ) const
         {
           emit_to( pipeline, []( Color ansi ) PACE__CXX17_CNSTXPR noexcept -> std::uint8_t {
             switch ( ansi ) {

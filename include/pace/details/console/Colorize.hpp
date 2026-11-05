@@ -18,7 +18,7 @@ namespace pace {
 #else
           if ( self.color.encoding() != render::Paint::None ) {
             pipeline << '\x1B' << '[';
-            self.color.as_forecolor( pipeline );
+            self.color.emit_foreground( pipeline );
             pipeline << 'm';
           }
 #endif
@@ -37,7 +37,7 @@ namespace pace {
 #else
           if ( self.color.encoding() != render::Paint::None ) {
             pipeline << '\x1B' << '[';
-            self.color.as_backcolor( pipeline );
+            self.color.emit_background( pipeline );
             pipeline << 'm';
           }
 #endif
@@ -61,9 +61,9 @@ namespace pace {
             return pipeline << Backcolor { self.background };
 
           pipeline << '\x1B' << '[';
-          self.foreground.as_forecolor( pipeline );
+          self.foreground.emit_foreground( pipeline );
           pipeline << ';';
-          self.background.as_backcolor( pipeline );
+          self.background.emit_background( pipeline );
           pipeline << 'm';
 #endif
           return pipeline;
