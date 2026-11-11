@@ -24,8 +24,6 @@ namespace pace {
         template<typename Config>
         struct FetchElement {
         private:
-          static_assert( traits::is_config<Config>::value, "cannot fetch an invalid type" );
-
           template<typename Result, typename... Rests>
           struct Helper {
             static_assert( !std::is_void<Result>::value, "cannot fetch a non-existent type" );
@@ -67,7 +65,7 @@ namespace pace {
         enum class Locus : std::uint8_t { Offstage, Onstage, Echo };
         std::array<Locus, sizeof...( Configs )> stages_;
 
-        /// @return Indicates whether the current rendering needs to occupy a separate line.
+        /// @return Indicates whether the current rendering has occupied a separate line.
         template<std::size_t Pos>
         PACE__NODISCARD bool do_render( io::CharPipeline& pipeline,
                                         bool istty,
@@ -207,9 +205,8 @@ Resurrection:
             if ( !executor.try_appoint( [this]() {
                    auto guard = utils::make_scope_fail(
                      [this]() noexcept { state_.store( Phase::Stop, std::memory_order_release ); } );
-                   auto& ostream        = io::OStream<Sink>::itself();
-                   const auto istty     = console::Screen<Sink>::renderable();
-                   const auto hide_done = config::hide_completed();
+                   auto& ostream    = io::OStream<Sink>::itself();
+                   const auto istty = console::Screen<Sink>::renderable();
                    switch ( state_.load( std::memory_order_acquire ) ) {
                    case Phase::Awake: {
                      if ( istty ) {
@@ -245,7 +242,7 @@ Resurrection:
                      // all access to stages_ always occurs within a same thread,
                      // so we do not need to use a mutex to protect it.
                      std::fill( stages_.begin(), stages_.end(), Locus::Offstage );
-                     do_schedule( ostream, istty, hide_done );
+                     do_schedule( ostream, istty, config::hide_completed() );
 
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
                        ostream << io::when( istty, console::restorecursor );
@@ -291,7 +288,7 @@ Resurrection:
                      } else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
                        (void)console::Screen<Sink>::itself().vertical_alteration( 0 );
 
-                     do_schedule( ostream, istty, hide_done );
+                     do_schedule( ostream, istty, config::hide_completed() );
 
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
                        ostream << io::when( istty, console::restorecursor );
@@ -311,6 +308,7 @@ Resurrection:
                          ostream << console::savecursor << console::firstline;
                      }
 
+                     const auto hide_done    = config::hide_completed();
                      const auto num_newlines = do_schedule( ostream, istty, hide_done );
 
                      if ( istty ) {
@@ -395,16 +393,14 @@ Resurrection:
           return *this;
         }
         ~StaticLayout() noexcept
-        { kill(); }
+        { cancel(); }
 
-        void shut()
+        void close()
         {
-          // We cannot lock `sched_mtx_` here, because it will reverse the locking order
-          // between `sched_mtx_` and the mutex held by the bar object itself.
-          (void)std::initializer_list<bool> { ( this->ElementAt_t<Tags>::reset(), false )... };
+          (void)std::initializer_list<bool> { ( this->ElementAt_t<Tags>::finish(), false )... };
           PACE__ASSERT( online() == false );
         }
-        void kill() noexcept
+        void cancel() noexcept
         {
           (void)std::initializer_list<bool> { ( this->ElementAt_t<Tags>::abort(), false )... };
           PACE__ASSERT( online() == false );

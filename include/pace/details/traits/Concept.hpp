@@ -101,20 +101,19 @@ namespace pace {
         decltype( _impl_trivial_allocator_test::check_destroy<T>( std::declval<Alloc>() ) );
 
       template<typename T, typename = void>
-      struct _impl_is_pointer_like : std::false_type {};
+      struct _impl_is_dereferenceable : std::false_type {};
       template<typename P>
-      struct _impl_is_pointer_like<P*, void> : std::true_type {};
+      struct _impl_is_dereferenceable<P*, void> : std::true_type {};
       template<typename T>
-      struct _impl_is_pointer_like<
+      struct _impl_is_dereferenceable<
         T,
         typename std::enable_if<
           Not<AnyOf<std::is_reference<T>,
                     std::is_void<decltype( *std::declval<T&>() )>,
-                    std::is_void<decltype( std::declval<T&>().operator->() )>,
-                    std::is_void<decltype( static_cast<bool>( std::declval<T&>() ) )>>>::value>::type>
+                    std::is_void<decltype( std::declval<T&>().operator->() )>>>::value>::type>
         : std::true_type {};
       template<typename T>
-      using is_pointer_like = _impl_is_pointer_like<T>;
+      using is_dereferenceable = _impl_is_dereferenceable<T>;
 
       // Check whether the type Instance is an instantiated version of Tmp or whether it inherits from Tmp
       // itself.

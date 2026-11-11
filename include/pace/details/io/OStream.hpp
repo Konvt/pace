@@ -44,7 +44,7 @@ namespace pace {
       class OStream final
         : public CharPipeline
         , public utils::Singleton<OStream<Sink>> {
-        friend class utils::Singleton<OStream>;
+        friend utils::Singleton<OStream>;
 
 #if PACE__WIN && !defined( PACE_UTF8 )
         std::vector<WCHAR> wb_buffer_;

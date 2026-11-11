@@ -11,4 +11,5 @@ int main()
     .enable<pace::facade::SpinPlot, pace::facade::Speed, pace::facade::Elapsed, pace::facade::ETA>();
   for ( size_t i = 0; i < 2147483647; ++i )
     spibar.tick();
+  spibar.finish();
 }

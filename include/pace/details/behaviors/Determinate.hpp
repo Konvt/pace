@@ -10,6 +10,8 @@ namespace pace {
       class Determinate : public Base {
         template<typename, typename>
         friend class Renderable;
+        template<typename, typename>
+        friend class Incremental;
 
         void on_awaken()
         {

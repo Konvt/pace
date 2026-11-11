@@ -2,7 +2,6 @@
 #define PACE_PLAIN
 
 #include "Incremental.hpp"
-#include "Reactive.hpp"
 #include "Renderable.hpp"
 #include "Temporal.hpp"
 
@@ -15,13 +14,7 @@ namespace pace {
         friend class Renderable;
 
         PACE__FORCEINLINE void prologue( io::CharPipeline& pipeline, bool style_off ) &
-        {
-          monologue( pipeline, style_off );
-          concurrent::atomic_commit_all( this->state_,
-                                         Base::Phase::Awake,
-                                         Base::Phase::Refresh,
-                                         std::memory_order_release );
-        }
+        { monologue( pipeline, style_off ); }
         PACE__FORCEINLINE void monologue( io::CharPipeline& pipeline, bool style_off ) &
         {
           PACE__ASSERT( this->task_cnt_ <= this->task_end_ );
@@ -32,10 +25,7 @@ namespace pace {
                                                   style_off ) );
         }
         PACE__FORCEINLINE void epilogue( io::CharPipeline& pipeline, bool style_off ) &
-        {
-          monologue( pipeline, style_off );
-          concurrent::atomic_commit_all( this->state_, Base::Phase::Stop, std::memory_order_release );
-        }
+        { monologue( pipeline, style_off ); }
 
       protected:
         Plain()                       = default;
@@ -50,7 +40,6 @@ namespace pace {
 
     // The type Renderable must be the top base class.
     PACE__INHERIT_REGISTER( behaviors::Plain,
-                            behaviors::Reactive,
                             behaviors::Incremental,
                             behaviors::Temporal,
                             behaviors::Renderable );

@@ -8,21 +8,22 @@ int main()
 {
   mt19937 rd { random_device {}() };
   {
-    pace::iterate<pace::config::Block>(
+    pace::iterate<pace::BlockBar<>>(
       10000,
       [&]( int ) {
         this_thread::sleep_for( chrono::microseconds( uniform_int_distribution<int>( 1, 1200 )( rd ) ) );
       },
-      []( pace::BlockBar<>& self ) { self.config().filler_forecolor( pace::Color::Green ); },
       pace::option::Lead( { " ", "▁", "▂", "▃", "▄", "▅", "▆", "▇" } ),
-      pace::option::InfoForecolor( "#FFD200" ) );
+      pace::option::InfoForecolor( "#FFA500" ) );
   }
   {
-    for ( auto _ : pace::iterate<pace::config::Block>(
+    for ( auto _ : pace::iterate<pace::BlockBar<>>(
             10000,
-            []( pace::BlockBar<>& self ) { self.config().filler_forecolor( pace::Color::Green ); },
+            []( pace::BlockBar<>& self ) {
+              self.config().filler( "▇" ).filler_forecolor( pace::Color::Green );
+            },
             pace::option::Lead( { " ", " ", "░", "░", "▒", "▒", "▓", "▓" } ),
-            pace::option::InfoForecolor( "#00BBFF" ) ) ) {
+            pace::option::InfoForecolor( "#FFEE11" ) ) ) {
       this_thread::sleep_for( chrono::microseconds( uniform_int_distribution<int>( 1, 1200 )( rd ) ) );
     }
   }

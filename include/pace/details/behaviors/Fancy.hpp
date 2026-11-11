@@ -16,10 +16,6 @@ namespace pace {
         {
           this->frame_cnt_ = 0;
           monologue( pipeline, style_off );
-          concurrent::atomic_commit_all( this->state_,
-                                         Base::Phase::Awake,
-                                         Base::Phase::Refresh,
-                                         std::memory_order_release );
         }
         PACE__FORCEINLINE void monologue( io::CharPipeline& pipeline, bool style_off ) &
         {
@@ -33,10 +29,7 @@ namespace pace {
           ++this->frame_cnt_;
         }
         PACE__FORCEINLINE void epilogue( io::CharPipeline& pipeline, bool style_off ) &
-        {
-          monologue( pipeline, style_off );
-          concurrent::atomic_commit_all( this->state_, Base::Phase::Stop, std::memory_order_release );
-        }
+        { monologue( pipeline, style_off ); }
 
       protected:
         Fancy()                       = default;

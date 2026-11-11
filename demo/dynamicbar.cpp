@@ -10,22 +10,23 @@ int main()
   pace::DynamicBar<> dbar;
 
   auto /* std::unique_ptr<BarType> */ bar1 = dbar.insert<pace::ProgressBar<>>();
-  auto bar2 =
-    dbar.insert( pace::config::Line( pace::option::Prefix( "No.2" ), pace::option::Quota( 8000 ) ) );
+  auto bar2                                = pace::auto_finish(
+    dbar.insert<pace::config::Line>( pace::option::Prefix( "No.2" ), pace::option::Quota( 8000 ) ) );
 
   vector<thread> pool;
   pool.emplace_back( [&bar1]() {
-    bar1->config().prefix( "No.1" ).quota( 1919 );
+    auto bar = pace::auto_finish( std::move( bar1 ) );
+    bar->config().prefix( "No.1" ).quota( 1919 );
     this_thread::sleep_for( chrono::seconds( 3 ) );
     do {
-      bar1->tick();
+      bar.tick();
       this_thread::sleep_for( chrono::milliseconds( 5 ) );
-    } while ( bar1->active() );
+    } while ( bar->active() );
   } );
   pool.emplace_back( [&bar2]() {
     this_thread::sleep_for( chrono::seconds( 2 ) );
     do {
-      bar2->tick();
+      bar2.tick();
       this_thread::sleep_for( chrono::microseconds( 900 ) );
     } while ( bar2->active() );
   } );
@@ -36,12 +37,12 @@ int main()
     auto stolen = std::move( dbar );
     auto bar =
       stolen.insert<pace::config::Line>( pace::option::Prefix( "No.3" ), pace::option::Quota( 1000 ) );
-    // Do some ticks, then reset the current bar before completing.
+    // Do some ticks, then reset the current bar before actual completing.
     for ( int i = 0; i < 500; ++i ) {
       bar->tick();
       this_thread::sleep_for( chrono::milliseconds( 5 ) );
     }
-    bar->reset();
+    bar->finish();
 
     // passing an empty argument to delete the color
     bar->config().info_forecolor( {} );
@@ -52,8 +53,7 @@ int main()
     // and as a result, the escape sequences will be executed in the wrong order.
     // It does not cause rendering errors, but the cursor may be moved to the wrong location.
     // Therefore, we need to take a break.
-    if ( pace::config::hide_completed() )
-      this_thread::sleep_for( chrono::milliseconds( 50 ) );
+    this_thread::sleep_for( chrono::milliseconds( 50 ) );
 
     // Restart a new iteration, and the "No.3" bar will reappear at the bottom of the terminal.
     for ( int i = 0; i < 400; ++i ) {

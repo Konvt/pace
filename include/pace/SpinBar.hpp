@@ -10,7 +10,6 @@
 #include "facade/SpinPlot.hpp"
 #include "prefab/BasicBar.hpp"
 #include "prefab/BasicConfig.hpp"
-#include "views/TrackedSpan.hpp"
 
 namespace pace {
   namespace config {

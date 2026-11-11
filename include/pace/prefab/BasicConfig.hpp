@@ -419,23 +419,27 @@ namespace pace {
       friend PACE__CXX23_CNSTXPR void swap( BasicConfig& a, BasicConfig& b ) noexcept { a.swap( b ); }
 
       template<typename Option>
-      friend auto operator<<( BasicConfig& self, Option&& opt )
+      friend BasicConfig& operator<<( BasicConfig& self, Option&& opt )
 #ifdef __cpp_concepts
-        -> decltype( auto )
         requires is_setting<std::decay_t<Option>>::value
-#else
-        -> typename std::enable_if<is_setting<typename std::decay<Option>::type>::value, BasicConfig&>::type
 #endif
-      { return self.with( std::forward<Option>( opt ) ); }
+      {
+#ifndef __cpp_concepts
+        static_assert( is_setting<typename std::decay<Option>::type>::value, "not an option" );
+#endif
+        return self.with( std::forward<Option>( opt ) );
+      }
       template<typename Option>
-      friend auto operator<<( BasicConfig&& self, Option&& opt )
+      friend BasicConfig&& operator<<( BasicConfig&& self, Option&& opt )
 #ifdef __cpp_concepts
-        -> decltype( auto )
         requires is_setting<std::decay_t<Option>>::value
-#else
-        -> typename std::enable_if<is_setting<typename std::decay<Option>::type>::value, BasicConfig&&>::type
 #endif
-      { return std::move( self.with( std::forward<Option>( opt ) ) ); }
+      {
+#ifndef __cpp_concepts
+        static_assert( is_setting<typename std::decay<Option>::type>::value, "not an option" );
+#endif
+        return std::move( self.with( std::forward<Option>( opt ) ) );
+      }
     };
   } // namespace prefab
 

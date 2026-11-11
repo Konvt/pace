@@ -11,9 +11,12 @@ namespace pace {
       template<template<typename...> class... Facades>
       struct Builder<prefab::BasicConfig<Facades...>> final
         : public Assembler<prefab::BasicConfig<Facades...>> {
+
       private:
         using Config = prefab::BasicConfig<Facades...>;
         using Base   = Assembler<Config>;
+        static_assert( traits::is_instance_of<Config, aspects::RenderRule>::value,
+                       "the config type must derive from RenderRule" );
         static_assert( traits::AllOf<traits::is_instance_of<Config, aspects::Prefix>,
                                      traits::is_instance_of<Config, aspects::Postfix>,
                                      traits::is_instance_of<Config, aspects::Segment>>::value,

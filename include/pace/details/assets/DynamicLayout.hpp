@@ -16,7 +16,7 @@ namespace pace {
           template<typename Derived>
           PACE__NODISCARD static bool draw( Indicator* item, io::CharPipeline& pipeline, bool style_off )
           {
-            static_assert( traits::AllOf<std::is_base_of<Indicator, Derived>, traits::is_bar<Derived>>::value,
+            static_assert( std::is_base_of<Indicator, Derived>::value,
                            "Derived must inherit from Indicator" );
             PACE__TRUST( item != nullptr );
             return static_cast<Derived*>( item )->draw( pipeline, style_off );

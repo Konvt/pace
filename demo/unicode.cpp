@@ -22,6 +22,7 @@ int main()
   auto start = chrono::high_resolution_clock::now();
   for ( size_t i = 0; i < iteration; ++i )
     pbar.tick();
+  pbar.finish();
   auto duration = chrono::duration_cast<chrono::microseconds>( chrono::high_resolution_clock::now() - start );
   cout << "Average time per iteration: " << ( duration.count() / static_cast<double>( iteration ) ) << " us\n"
        << flush;

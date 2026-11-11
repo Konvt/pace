@@ -6,19 +6,15 @@
 namespace pace {
   template<typename Bar, typename... Bars>
   class MultiBar;
-  template<Channel S, Policy M, Region Z, typename Config, typename... Configs>
-  class MultiBar<prefab::BasicBar<Config, S, M, Z>, prefab::BasicBar<Configs, S, M, Z>...> {
-    static_assert( details::traits::AllOf<details::traits::is_config<Config>,
-                                          details::traits::is_config<Configs>...>::value,
-                   "invalid config type" );
-
+  template<Channel S, Policy M, Region Z, typename Soul, typename... Souls>
+  class MultiBar<prefab::BasicBar<Soul, S, M, Z>, prefab::BasicBar<Souls, S, M, Z>...> {
     template<std::size_t Pos>
-    using ConfigAt_t = details::traits::TypeAt_t<Pos, Config, Configs...>;
+    using ConfigAt_t = details::traits::TypeAt_t<Pos, Soul, Souls...>;
     template<std::size_t Pos>
     using BarAt_t = prefab::BasicBar<ConfigAt_t<Pos>, S, M, Z>;
 
     details::assets::
-      StaticLayout<S, M, Z, details::traits::MakeIndexSequence<sizeof...( Configs ) + 1>, Config, Configs...>
+      StaticLayout<S, M, Z, details::traits::MakeIndexSequence<sizeof...( Souls ) + 1>, Soul, Souls...>
         package_;
 
   public:
@@ -28,47 +24,52 @@ namespace pace {
 
     MultiBar() = default;
 
-#ifdef __cpp_concepts
     template<typename Cfg, typename... Cfgs>
-      requires(
-        sizeof...( Cfgs ) <= sizeof...( Configs )
-        && details::traits::TpStartsWith<details::traits::TypeList<std::decay_t<Cfg>, std::decay_t<Cfgs>...>,
-                                         Config,
-                                         Configs...>::value )
-#else
-    template<typename Cfg,
-             typename... Cfgs,
-             typename = typename std::enable_if<details::traits::AllOf<
-               details::traits::BoolConstant<( sizeof...( Cfgs ) <= sizeof...( Configs ) )>,
-               details::traits::TpStartsWith<details::traits::TypeList<typename std::decay<Cfg>::type,
-                                                                       typename std::decay<Cfgs>::type...>,
-                                             Config,
-                                             Configs...>>::value>::type>
-#endif
-    MultiBar( Cfg&& cfg, Cfgs&&... cfgs ) noexcept( sizeof...( Cfgs ) == sizeof...( Configs ) )
-      : package_ { std::forward<Cfg>( cfg ), std::forward<Cfgs>( cfgs )... }
-    {}
-
-    template<typename Cfg, typename... Cfgs
+    MultiBar( Cfg&& cfg, Cfgs&&... cfgs ) noexcept( sizeof...( Cfgs ) == sizeof...( Souls ) )
 #ifdef __cpp_concepts
-             >
       requires(
-        sizeof...( Cfgs ) <= sizeof...( Configs )
-        && details::traits::TpStartsWith<details::traits::TypeList<Cfg, Cfgs...>, Config, Configs...>::value )
-#else
-             ,
-             typename = typename std::enable_if<details::traits::AllOf<
-               details::traits::BoolConstant< ( sizeof...( Cfgs ) <= sizeof...( Configs ) )>,
-               details::traits::TpStartsWith<
-                 details::traits::TypeList<Cfg,
-                 Cfgs...>,
-                 Config,
-                 Configs...>>::value>::type>
+        sizeof...( Cfgs ) <= sizeof...( Souls )
+        && details::traits::TpStartsWith<
+          details::traits::TypeList<typename std::decay<Cfg>::type, typename std::decay<Cfgs>::type...>,
+          Soul,
+          Souls...>::value )
 #endif
+      : package_ { std::forward<Cfg>( cfg ), std::forward<Cfgs>( cfgs )... }
+    {
+#ifndef __cpp_concepts
+      static_assert( sizeof...( Cfgs ) <= sizeof...( Souls ), "too many configurations" );
+      static_assert(
+        details::traits::TpStartsWith<
+          details::traits::TypeList<typename std::decay<Cfg>::type, typename std::decay<Cfgs>::type...>,
+          Soul,
+          Souls...>::value,
+        "inconsistent configuration parameters" );
+#endif
+    }
+
+    template<typename Cfg, typename... Cfgs>
     MultiBar( prefab::BasicBar<Cfg, S, M, Z>&& bar, prefab::BasicBar<Cfgs, S, M, Z>&&... bars )
-      noexcept( sizeof...( Cfgs ) == sizeof...( Configs ) )
+      noexcept( sizeof...( Cfgs ) == sizeof...( Souls ) )
+#ifdef __cpp_concepts
+      requires(
+        sizeof...( Cfgs ) <= sizeof...( Souls )
+        && details::traits::TpStartsWith<
+          details::traits::TypeList<typename std::decay<Cfg>::type, typename std::decay<Cfgs>::type...>,
+          Soul,
+          Souls...>::value )
+#endif
       : package_ { std::move( bar ), std::move( bars )... }
-    {}
+    {
+#ifndef __cpp_concepts
+      static_assert( sizeof...( Cfgs ) <= sizeof...( Souls ), "too many configurations" );
+      static_assert(
+        details::traits::TpStartsWith<
+          details::traits::TypeList<typename std::decay<Cfg>::type, typename std::decay<Cfgs>::type...>,
+          Soul,
+          Souls...>::value,
+        "inconsistent configuration parameters" );
+#endif
+    }
 
     MultiBar( const MultiBar& )                  = delete;
     MultiBar& operator=( const MultiBar& ) &     = delete;
@@ -76,13 +77,14 @@ namespace pace {
     MultiBar& operator=( MultiBar&& ) & noexcept = default;
     ~MultiBar()                                  = default;
 
-    // Reset all the progress bars.
-    PACE__FORCEINLINE void reset() { package_.shut(); }
+    // Mark all the progress bars as completed.
+    PACE__FORCEINLINE void finish() { package_.close(); }
     // Abort all the progress bars.
-    PACE__FORCEINLINE void abort() noexcept { package_.kill(); }
+    PACE__FORCEINLINE void abort() noexcept { package_.cancel(); }
+
     // Returns the number of progress bars.
     PACE__NODISCARD static PACE__FORCEINLINE PACE__CNSTEVAL std::size_t size() noexcept
-    { return sizeof...( Configs ) + 1; }
+    { return sizeof...( Souls ) + 1; }
     // Check whether a progress bar is running
     PACE__NODISCARD PACE__FORCEINLINE bool active() const noexcept { return package_.online(); }
     /// @return The number of terminal lines currently occupied by the progress bar,
@@ -128,24 +130,8 @@ namespace pace {
 
 #ifdef __cpp_deduction_guides
   template<Channel S, Policy M, Region Z, typename Cfg, typename... Cfgs>
-  MultiBar( prefab::BasicBar<Cfg, S, M, Z>&& bar, prefab::BasicBar<Cfgs, S, M, Z>&&... bars )
+  MultiBar( prefab::BasicBar<Cfg, S, M, Z>&&, prefab::BasicBar<Cfgs, S, M, Z>&&... )
     -> MultiBar<prefab::BasicBar<Cfg, S, M, Z>, prefab::BasicBar<Cfgs, S, M, Z>...>;
-
-  // CTAD, only generates the default version,
-  // which means the the Sink is `Channel::Err` and Mode is `Policy::Async`.
-  template<typename Config, typename... Configs
-# ifdef __cpp_concepts
-           >
-    requires( details::traits::is_config<std::decay_t<Config>>::value
-              && ( details::traits::is_config<std::decay_t<Configs>>::value && ... ) )
-# else
-           ,
-    typename = std::enable_if_t<details::traits::AllOf<details::traits::is_config<std::decay_t<Config>>,
-                                                         details::traits::is_config<std::decay_t<Configs>>...>::value>>
-# endif
-  MultiBar( Config, Configs... )
-    -> MultiBar<prefab::BasicBar<std::decay_t<Config>, Channel::Err, Policy::Async, Region::Fixed>,
-                prefab::BasicBar<std::decay_t<Configs>, Channel::Err, Policy::Async, Region::Fixed>...>;
 #endif
 
   // Generates a MultiBar type containing Count instances of the given Bar type.
@@ -153,67 +139,56 @@ namespace pace {
   using MultiBar_t = details::traits::FillWith_t<MultiBar, Bar, Count>;
 
   // Creates a MultiBar using existing bar instances.
-  template<typename Config, typename... Configs, Channel Sink, Policy Mode, Region Zone>
+  template<typename Soul, typename... Souls, Channel Sink, Policy Mode, Region Zone>
   PACE__NODISCARD PACE__FORCEINLINE auto make_multi(
-    prefab::BasicBar<Config, Sink, Mode, Zone>&& bar,
-    prefab::BasicBar<Configs, Sink, Mode, Zone>&&... bars ) noexcept
-#ifdef __cpp_concepts
-    -> MultiBar<prefab::BasicBar<Config, Sink, Mode, Zone>, prefab::BasicBar<Configs, Sink, Mode, Zone>...>
-    requires( details::traits::is_config<Config>::value
-              && ( details::traits::is_config<Configs>::value && ... ) )
-#else
-    -> typename std::enable_if<details::traits::AllOf<details::traits::is_config<Config>,
-                                                      details::traits::is_config<Configs>...>::value,
-                               MultiBar<prefab::BasicBar<Config, Sink, Mode, Zone>,
-                                        prefab::BasicBar<Configs, Sink, Mode, Zone>...>>::type
-#endif
+    prefab::BasicBar<Soul, Sink, Mode, Zone>&& bar,
+    prefab::BasicBar<Souls, Sink, Mode, Zone>&&... bars ) noexcept
+    -> MultiBar<prefab::BasicBar<Soul, Sink, Mode, Zone>, prefab::BasicBar<Souls, Sink, Mode, Zone>...>
   { return { std::move( bar ), std::move( bars )... }; }
   // Creates a MultiBar using configuration objects.
   template<Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
-           typename Config,
-           typename... Configs>
-  PACE__NODISCARD PACE__FORCEINLINE auto make_multi( Config&& cfg, Configs&&... cfgs )
-    noexcept( details::traits::Not<details::traits::AnyOf<std::is_lvalue_reference<Config&&>,
-                                                          std::is_lvalue_reference<Configs&&>...>>::value )
+           typename Soul,
+           typename... Souls>
+  PACE__NODISCARD PACE__FORCEINLINE auto make_multi( Soul&& cfg, Souls&&... cfgs ) noexcept(
+    details::traits::Not<
+      details::traits::AnyOf<std::is_lvalue_reference<Soul&&>, std::is_lvalue_reference<Souls&&>...>>::value )
 #ifdef __cpp_concepts
-      -> MultiBar<prefab::BasicBar<std::decay_t<Config>, Sink, Mode, Zone>,
-                  prefab::BasicBar<std::decay_t<Configs>, Sink, Mode, Zone>...>
-    requires( details::traits::is_config<std::decay_t<Config>>::value
-              && ( details::traits::is_config<std::decay_t<Configs>>::value && ... ) )
+    -> MultiBar<prefab::BasicBar<std::decay_t<Soul>, Sink, Mode, Zone>,
+                prefab::BasicBar<std::decay_t<Souls>, Sink, Mode, Zone>...>
+    requires( details::traits::is_config<std::decay_t<Soul>>::value
+              && ( details::traits::is_config<std::decay_t<Souls>>::value && ... ) )
 #else
-      -> typename std::enable_if<
-        details::traits::AllOf<details::traits::is_config<typename std::decay<Config>::type>,
-                               details::traits::is_config<typename std::decay<Configs>::type>...>::value,
-        MultiBar<prefab::BasicBar<typename std::decay<Config>::type, Sink, Mode, Zone>,
-                 prefab::BasicBar<typename std::decay<Configs>::type, Sink, Mode, Zone>...>>::type
+    -> typename std::enable_if<
+      details::traits::AllOf<details::traits::is_config<typename std::decay<Soul>::type>,
+                             details::traits::is_config<typename std::decay<Souls>::type>...>::value,
+      MultiBar<prefab::BasicBar<typename std::decay<Soul>::type, Sink, Mode, Zone>,
+               prefab::BasicBar<typename std::decay<Souls>::type, Sink, Mode, Zone>...>>::type
 #endif
-  { return { std::forward<Config>( cfg ), std::forward<Configs>( cfgs )... }; }
+  { return { std::forward<Soul>( cfg ), std::forward<Souls>( cfgs )... }; }
 
   namespace details {
     namespace utils {
-      template<std::size_t Cnt, Channel S, Policy M, Region Z, typename B, std::size_t... Is>
-      PACE__NODISCARD PACE__FORCEINLINE typename std::enable_if<
-        traits::is_bar<typename std::decay<B>::type>::value,
-        MultiBar_t<prefab::BasicBar<typename std::decay<B>::type::config_type, S, M, Z>, Cnt>>::type
-        _impl_make_multi( B&& bar, traits::IndexSequence<Is...> )
-          noexcept( traits::BoolConstant<( Cnt == 1 )>::value )
+      template<std::size_t Cnt, typename Soul, Channel S, Policy M, Region Z, typename B, std::size_t... Is>
+      PACE__NODISCARD PACE__FORCEINLINE auto _impl_make_multi( prefab::BasicBar<Soul, S, M, Z>&& bar,
+                                                               traits::IndexSequence<Is...> )
+        noexcept( traits::BoolConstant<( Cnt == 1 )>::value )
+          -> MultiBar_t<prefab::BasicBar<Soul, S, M, Z>, Cnt>
       {
-        using Bar = typename std::decay<B>::type;
-        std::array<typename Bar::config_type, Cnt - 1> cfgs { { ( (void)( Is ), bar.config() )... } };
-        return { std::forward<B>( bar ), Bar( std::move( cfgs[Is] ) )... };
+        std::array<Soul, Cnt - 1> cfgs { { ( (void)( Is ), bar.config() )... } };
+        return { std::move( bar ).config(), std::move( cfgs[Is] )... };
       }
-      template<std::size_t Cnt, Channel S, Policy M, Region Z, typename C, std::size_t... Is>
-      PACE__NODISCARD PACE__FORCEINLINE typename std::enable_if<
-        traits::is_config<typename std::decay<C>::type>::value,
-        MultiBar_t<prefab::BasicBar<typename std::decay<C>::type, S, M, Z>, Cnt>>::type
-        _impl_make_multi( C&& cfg, traits::IndexSequence<Is...> )
-          noexcept( traits::AllOf<traits::BoolConstant<( Cnt == 1 )>,
-                                  traits::Not<std::is_lvalue_reference<C&&>>>::value )
+      template<std::size_t Cnt, Channel S, Policy M, Region Z, typename Soul, std::size_t... Is>
+      PACE__NODISCARD PACE__FORCEINLINE auto _impl_make_multi( Soul&& cfg, traits::IndexSequence<Is...> )
+        noexcept( traits::AllOf<traits::BoolConstant<( Cnt == 1 )>,
+                                traits::Not<std::is_lvalue_reference<Soul&&>>>::value )
+          -> MultiBar_t<prefab::BasicBar<typename std::decay<Soul>::type, S, M, Z>, Cnt>
       {
-        std::array<C, Cnt - 1> cfgs { { ( (void)( Is ), cfg )... } };
-        return { std::forward<C>( cfg ), std::move( cfgs[Is] )... };
+        static_assert( details::traits::is_config<typename std::decay<Soul>::type>::value,
+                       "not a configuration" );
+        std::array<Soul, Cnt - 1> cfgs { { ( (void)( Is ), cfg )... } };
+        return { std::forward<Soul>( cfg ), std::move( cfgs[Is] )... };
       }
     } // namespace utils
   } // namespace details
@@ -222,15 +197,14 @@ namespace pace {
    * Creates a MultiBar with a fixed number of BasicBar instances using a single bar object.
    * **All BasicBar instances are initialized using the same configuration.**
    */
-  template<std::size_t Cnt, typename Config, Channel S, Policy M, Region Z>
-  PACE__NODISCARD PACE__FORCEINLINE auto make_multi( prefab::BasicBar<Config, S, M, Z>&& bar )
+  template<std::size_t Cnt, typename Soul, Channel S, Policy M, Region Z>
+  PACE__NODISCARD PACE__FORCEINLINE auto make_multi( prefab::BasicBar<Soul, S, M, Z>&& bar )
     noexcept( Cnt == 1 )
 #ifdef __cpp_concepts
-    requires( Cnt > 0 && details::traits::is_config<Config>::value )
+      -> MultiBar_t<prefab::BasicBar<Soul, S, M, Z>, Cnt>
+    requires( Cnt > 0 )
 #else
-      -> typename std::enable_if<details::traits::AllOf<details::traits::BoolConstant<( Cnt > 0 )>,
-                                                        details::traits::is_config<Config>>::value,
-                                 MultiBar_t<prefab::BasicBar<Config, S, M, Z>, Cnt>>::type
+      -> typename std::enable_if<( Cnt > 0 ), MultiBar_t<prefab::BasicBar<Soul, S, M, Z>, Cnt>>::type
 #endif
   {
     return details::utils::_impl_make_multi<Cnt, S, M, Z>( std::move( bar ),
@@ -244,21 +218,25 @@ namespace pace {
            Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
-           typename Config>
-  PACE__NODISCARD PACE__FORCEINLINE auto make_multi( Config&& cfg )
+           typename Soul>
+  PACE__NODISCARD PACE__FORCEINLINE auto make_multi( Soul&& cfg )
     noexcept( details::traits::AllOf<details::traits::BoolConstant<( Cnt == 1 )>,
-                                     details::traits::Not<std::is_lvalue_reference<Config&&>>>::value )
+                                     details::traits::Not<std::is_lvalue_reference<Soul&&>>>::value )
 #ifdef __cpp_concepts
-    requires( Cnt > 0 && details::traits::is_config<std::decay_t<Config>>::value )
+      -> MultiBar_t<prefab::BasicBar<std::decay_t<Soul>, Sink, Mode, Zone>, Cnt>
+    requires( Cnt > 0 && details::traits::is_config<typename std::decay<Soul>::type>::value )
 #else
       -> typename std::enable_if<
-        details::traits::AllOf<details::traits::BoolConstant<( Cnt > 0 )>,
-                               details::traits::is_config<typename std::decay<Config>::type>>::value,
-        MultiBar_t<prefab::BasicBar<typename std::decay<Config>::type, Sink, Mode, Zone>, Cnt>>::type
+        ( Cnt > 0 ),
+        MultiBar_t<prefab::BasicBar<typename std::decay<Soul>::type, Sink, Mode, Zone>, Cnt>>::type
 #endif
   {
+#ifndef __cpp_concepts
+    static_assert( details::traits::is_config<typename std::decay<Soul>::type>::value,
+                   "not a configuration" );
+#endif
     return details::utils::_impl_make_multi<Cnt, Sink, Mode, Zone>(
-      std::forward<Config>( cfg ),
+      std::forward<Soul>( cfg ),
       details::traits::MakeIndexSequence<Cnt - 1>() );
   }
 
@@ -271,7 +249,7 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE auto make_multi( Objs&&... objs ) noexcept( sizeof...( Objs ) == Cnt )
 #ifdef __cpp_concepts
     -> MultiBar_t<Bar, Cnt>
-    requires( Cnt > 0 && sizeof...( Objs ) <= Cnt && details::traits::is_bar<Bar>::value
+    requires( Cnt > 0 && sizeof...( Objs ) <= Cnt
               && ( ( ( std::is_same_v<std::remove_cv_t<Bar>, std::decay_t<Objs>> && ... )
                      && !( std::is_lvalue_reference_v<Objs&&> || ... ) )
                    || ( std::is_same_v<typename Bar::config_type, std::decay_t<Objs>> && ... ) ) )
@@ -280,7 +258,6 @@ namespace pace {
       details::traits::AllOf<
         details::traits::BoolConstant<( Cnt > 0 )>,
         details::traits::BoolConstant<( sizeof...( Objs ) <= Cnt )>,
-        details::traits::is_bar<Bar>,
         details::traits::AnyOf<
           details::traits::AllOf<
             std::is_same<typename std::remove_cv<Bar>::type, typename std::decay<Objs>::type>...,
@@ -295,51 +272,48 @@ namespace pace {
    * The ctor sequentially initializes the first few instances corresponding to the provided configurations;
    * **any remaining instances with no corresponding configurations will be default-initialized.**
    */
-  template<typename Config,
+  template<typename Soul,
            std::size_t Cnt,
            Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
-           typename... Configs>
-  PACE__NODISCARD PACE__FORCEINLINE auto make_multi( Configs&&... configs )
-    noexcept( sizeof...( Configs ) == Cnt )
+           typename... Souls>
+  PACE__NODISCARD PACE__FORCEINLINE auto make_multi( Souls&&... cfgs ) noexcept( sizeof...( Souls ) == Cnt )
 #ifdef __cpp_concepts
-      -> MultiBar_t<prefab::BasicBar<Config, Sink, Mode, Zone>, Cnt>
-    requires( Cnt > 0 && sizeof...( Configs ) <= Cnt && details::traits::is_config<Config>::value
-              && ( std::is_same_v<Config, std::decay_t<Configs>> && ... ) )
+    -> MultiBar_t<prefab::BasicBar<Soul, Sink, Mode, Zone>, Cnt>
+    requires( Cnt > 0 && sizeof...( Souls ) <= Cnt && details::traits::is_config<Soul>::value
+              && ( std::is_same_v<Soul, std::decay_t<Souls>> && ... ) )
 #else
-      -> typename std::enable_if<
-        details::traits::AllOf<details::traits::BoolConstant<( Cnt > 0 )>,
-                               details::traits::BoolConstant<( sizeof...( Configs ) <= Cnt )>,
-                               details::traits::is_config<Config>,
-                               std::is_same<Config, typename std::decay<Configs>::type>...>::value,
-        MultiBar_t<prefab::BasicBar<Config, Sink, Mode, Zone>, Cnt>>::type
+    -> typename std::enable_if<
+      details::traits::AllOf<details::traits::BoolConstant<( Cnt > 0 )>,
+                             details::traits::BoolConstant<( sizeof...( Souls ) <= Cnt )>,
+                             details::traits::is_config<Soul>,
+                             std::is_same<Soul, typename std::decay<Souls>::type>...>::value,
+      MultiBar_t<prefab::BasicBar<Soul, Sink, Mode, Zone>, Cnt>>::type
 #endif
-  { return { std::forward<Configs>( configs )... }; }
+  { return { std::forward<Souls>( cfgs )... }; }
   /**
    * Creates a MultiBar with a fixed number of BasicBar instances using mutiple bar objects.
    * The ctor sequentially initializes the first few instances corresponding to the provided objects;
    * **any remaining instances with no corresponding configurations will be default-initialized.**
    */
-  template<typename Config,
+  template<typename Soul,
            std::size_t Cnt,
            Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
-           typename... Configs>
-  PACE__NODISCARD PACE__FORCEINLINE auto make_multi( prefab::BasicBar<Configs, Sink, Mode, Zone>&&... bars )
-    noexcept( sizeof...( Configs ) == Cnt )
+           typename... Souls>
+  PACE__NODISCARD PACE__FORCEINLINE auto make_multi( prefab::BasicBar<Souls, Sink, Mode, Zone>&&... bars )
+    noexcept( sizeof...( Souls ) == Cnt )
 #ifdef __cpp_concepts
-      -> MultiBar_t<prefab::BasicBar<Config, Sink, Mode, Zone>, Cnt>
-    requires( Cnt > 0 && sizeof...( Configs ) <= Cnt && details::traits::is_config<Config>::value
-              && ( std::is_same_v<Config, std::decay_t<Configs>> && ... ) )
+      -> MultiBar_t<prefab::BasicBar<Soul, Sink, Mode, Zone>, Cnt>
+    requires( Cnt > 0 && sizeof...( Souls ) <= Cnt && ( std::is_same_v<Soul, std::decay_t<Souls>> && ... ) )
 #else
       -> typename std::enable_if<
         details::traits::AllOf<details::traits::BoolConstant<( Cnt > 0 )>,
-                               details::traits::BoolConstant<( sizeof...( Configs ) <= Cnt )>,
-                               details::traits::is_config<Config>,
-                               std::is_same<Config, typename std::decay<Configs>::type>&&...>::value,
-        MultiBar_t<prefab::BasicBar<Config, Sink, Mode, Zone>, Cnt>>::type
+                               details::traits::BoolConstant<( sizeof...( Souls ) <= Cnt )>,
+                               std::is_same<Soul, typename std::decay<Souls>::type>&&...>::value,
+        MultiBar_t<prefab::BasicBar<Soul, Sink, Mode, Zone>, Cnt>>::type
 #endif
   { return { std::move( bars )... }; }
 } // namespace pace

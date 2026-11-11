@@ -6,8 +6,8 @@ int main()
     pace::prefab::BasicConfig<pace::facade::Speed, pace::facade::Counter, pace::facade::Elapsed>;
   using AnotherBar = pace::prefab::BasicBar<AnotherConfig>;
 
-  AnotherBar another;
-  another.config()
+  pace::AutoFinish<AnotherBar> another;
+  another->config()
     .divider( " | " )
     .speed_unit( {
       "ticks/sec",
@@ -24,9 +24,9 @@ int main()
     .quota( 2147483647 );
 
 #ifdef __cpp_variable_templates
-  another.config() << pace::option::except<>;
+  another->config() << pace::option::except<>;
 #else
-  another.config() << pace::option::Except<>();
+  another->config() << pace::option::Except<>();
 #endif
 
   for ( size_t _ = 0; _ < 2147483647; ++_ )

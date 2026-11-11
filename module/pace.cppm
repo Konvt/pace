@@ -26,6 +26,10 @@ export namespace pace {
   using pace::DynamicBar;
   using pace::make_dynamic;
 
+  using pace::auto_finish;
+  using pace::AutoFinish;
+  using pace::AutoFinishWith;
+
   namespace exception {
     using pace::exception::Error;
     using pace::exception::InvalidArgument;
@@ -38,7 +42,11 @@ export namespace pace {
     using pace::views::NumericSpan;
     using pace::views::SizedSpan;
     using pace::views::TrackedSpan;
-  }
+
+    using pace::views::auto_finish;
+    using pace::views::AutoFinish;
+    using pace::views::AutoFinishWith;
+  } // namespace views
 
   namespace config {
     using pace::config::auto_style_off;

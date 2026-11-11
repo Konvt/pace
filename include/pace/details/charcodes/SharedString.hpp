@@ -2,6 +2,7 @@
 #define PACE_SHARED_STRING
 
 #include "../traits/Backport.hpp"
+#include "../traits/Concept.hpp"
 #include "../traits/Util.hpp"
 #include "../utils/Backport.hpp"
 #include <algorithm>

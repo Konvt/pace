@@ -2,7 +2,9 @@
 #define PACE_INDICATOR
 
 #include "config/Runtime.hpp"
+#include "details/core/Core.hpp"
 #include "details/concurrent/Util.hpp"
+#include <atomic>
 
 namespace pace {
   namespace config {
@@ -45,8 +47,10 @@ namespace pace {
     Indicator& operator=( Indicator&& ) &    = default;
     virtual ~Indicator()                     = default;
 
-    virtual void reset()                                 = 0;
-    virtual void abort() noexcept                        = 0;
+    virtual void finish() = 0;
+
+    virtual void abort() noexcept = 0;
+
     virtual void tick() &                                = 0;
     PACE__NODISCARD virtual bool active() const noexcept = 0;
   };

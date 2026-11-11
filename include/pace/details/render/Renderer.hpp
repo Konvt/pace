@@ -18,7 +18,7 @@ namespace pace {
       // It ensures that only one thread is executing the rendering at any given time.
       template<Channel Sink>
       class Renderer final : public utils::Singleton<Renderer<Sink>> {
-        friend class utils::Singleton<Renderer>;
+        friend utils::Singleton<Renderer>;
 
         // Since nanoseconds are too small
         // and certain configurations make it impossible for rendering duration to be less than 1 μs,

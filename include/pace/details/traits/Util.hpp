@@ -1,7 +1,6 @@
 #ifndef PACE_TRAITS_UTIL
 #define PACE_TRAITS_UTIL
 
-#include "Concept.hpp"
 #include "TypeList.hpp"
 
 namespace pace {
@@ -25,7 +24,6 @@ namespace pace {
 
       template<typename T>
       struct PointeeOf {
-        static_assert( is_pointer_like<T>::value, "invalid type" );
         using type = typename std::remove_reference<decltype( *std::declval<T&>() )>::type;
       };
       template<typename T>

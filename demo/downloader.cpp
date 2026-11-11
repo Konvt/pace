@@ -111,9 +111,10 @@ int main()
   print_apt_preamble( packages );
 
   { // stage 1, downloading only
-    pace::ProgressBar<pace::Channel::Err, pace::Policy::Sync, pace::Region::Relative> bar;
+    auto bar =
+      pace::auto_finish<pace::config::Line, pace::Channel::Err, pace::Policy::Sync, pace::Region::Relative>();
     // In fact, you can pick any Policy and Region here.
-    bar.config()
+    bar->config()
       .divider( " " )
       .percent_decs( 0 )
       .info_forecolor( pace::Color::Yellow )
@@ -137,14 +138,14 @@ int main()
       const int tick_ms     = max( 10, static_cast<int>( duration / ticks ) );
 
       // Begin this package's task cycle: fresh quota => progress 0/ticks.
-      bar.config().quota( ticks ).postfix( "[waiting for headers] " + pkg.name + " | archive.ubuntu.com" );
+      bar->config().quota( ticks ).postfix( "[waiting for headers] " + pkg.name + " | archive.ubuntu.com" );
 
       for ( int t = 0; t < ticks; ++t ) {
         if ( t == ticks / 3 ) {
           ostringstream sp;
           sp << "[" << fixed << setprecision( 1 ) << speed << " MB/s] " << pkg.repo << " " << pkg.name << " "
              << pkg.version;
-          bar.config().postfix( sp.str() );
+          bar->config().postfix( sp.str() );
         }
         bar.tick();
         this_thread::sleep_for( chrono::milliseconds( tick_ms ) );
@@ -182,6 +183,7 @@ int main()
       cout << step.text << endl;
       this_thread::sleep_for( chrono::milliseconds( step.delay_ms ) );
     }
+    bar.finish();
   }
 
   cout << "All packages installed successfully." << endl;

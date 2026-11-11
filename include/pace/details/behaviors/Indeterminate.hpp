@@ -2,7 +2,6 @@
 #define PACE_INDETERMINATE
 
 #include "Incremental.hpp"
-#include "Reactive.hpp"
 #include "Renderable.hpp"
 #include "Temporal.hpp"
 
@@ -13,6 +12,8 @@ namespace pace {
       class Indeterminate : public Base {
         template<typename, typename>
         friend class Renderable;
+        template<typename, typename>
+        friend class Incremental;
 
         void on_awaken()
         {
@@ -39,7 +40,6 @@ namespace pace {
 
     // The type Renderable must be the top base class.
     PACE__INHERIT_REGISTER( behaviors::Indeterminate,
-                            behaviors::Reactive,
                             behaviors::Incremental,
                             behaviors::Temporal,
                             behaviors::Renderable );

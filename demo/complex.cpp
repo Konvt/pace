@@ -1,3 +1,4 @@
+#include "pace/Automation.hpp"
 #include "pace/BlockBar.hpp"
 #include "pace/MultiBar.hpp"
 #include "pace/ProgressBar.hpp"
@@ -15,7 +16,7 @@ int main()
                                           pace::option::Filler( "⠇" ),
                                           pace::option::Lead( { "⠈", "⠐", "⠠", "⢀", "⡀", "⠄", "⠂", "⠁" } ),
                                           pace::option::Shift( 1 ),
-                                          pace::option::InfoForecolor( "#7D7" ) ),
+                                          pace::option::InfoForecolor( "#77dd77" ) ),
                       pace::config::Block( pace::option::Prefix( "Picking something..." ),
                                            pace::option::Filler( "⠿" ),
                                            pace::option::Lead( { " ", "⠄", "⠆", "⠇", "⠧", "⠷" } ),
@@ -28,30 +29,23 @@ int main()
   vector<thread> pool;
   pool.emplace_back( [&]() {
     bool flag = true;
-    // Bind a callback executed at the end of the iteration below.
-    bar.at<0>() << [&]( pace::ProgressBar<>& self ) {
-      if ( flag )
-        self.config().prefix( "✔ Mission Accomplished" ).prefix_forecolor( pace::Color::Green );
-      else
-        self.config().prefix( "❌ Mission failed" ).prefix_forecolor( pace::Color::Red );
-    };
-
     mt19937 rd { random_device {}() };
-    bar.at<0>().iterate( 50000, [&rd]( int ) {
-      this_thread::sleep_for( chrono::microseconds( uniform_int_distribution<int>( 1, 1025 )( rd ) ) );
-    } );
+    // Bind a callback executed at the end of the iteration below.
+    pace::views::auto_finish(
+      bar.at<0>(),
+      [&]( pace::ProgressBar<>& self ) {
+        if ( flag )
+          self.config().prefix( "✔ Mission Accomplished" ).prefix_forecolor( pace::Color::Green );
+        else
+          self.config().prefix( "❌ Mission failed" ).prefix_forecolor( pace::Color::Red );
+      } )
+      .iterate( 50000, [&rd]( int ) {
+        this_thread::sleep_for( chrono::microseconds( uniform_int_distribution<int>( 1, 1025 )( rd ) ) );
+      } );
   } );
   pool.emplace_back( [&]() {
-    bool flag = true;
     using std::get;
     auto& second_bar = get<pace::config::Block>( bar );
-    second_bar << [&]( pace::BlockBar<>& self ) {
-      if ( flag )
-        self.config().prefix( "✔ Mission Accomplished" ).prefix_forecolor( pace::Color::Green );
-      else
-        self.config().prefix( "❌ Mission failed" ).prefix_forecolor( pace::Color::Red );
-    };
-
     mt19937 rd { random_device {}() };
     get<pace::BlockBar<>>( bar ).config().quota( 10000 );
     const size_t terminate_val = 5000 + uniform_int_distribution<int>( 10, 1000 )( rd );
@@ -59,12 +53,12 @@ int main()
       second_bar.tick();
       this_thread::sleep_for( chrono::microseconds( uniform_int_distribution<int>( 1, 1105 )( rd ) ) );
     }
-    flag = false;
-    second_bar.reset();
+    second_bar.config().prefix( "❌ Mission failed" ).prefix_forecolor( pace::Color::Red );
+    second_bar.finish();
   } );
   bar.at<2>().tick();
 
   for ( auto& td : pool )
     td.join();
-  bar.at<2>().reset();
+  bar.at<2>().finish();
 }

@@ -24,41 +24,41 @@ int main()
                                            pace::option::InfoForecolor( "#7DD4DF" ) ),
                       pace::config::Block( pace::option::Lead( { " ", "▖", "▞", "▛" } ),
                                            pace::option::InfoForecolor( "#8AB7EB" ) ) );
-  mbar.at<0>()
-    .config()
+
+  auto top = pace::views::auto_finish( mbar.at<0>(),
+                                       // Bind a callback to mark that the current bar has been compeleted.
+                                       [&]( typename tuple_element<0, decltype( mbar )>::type& self ) {
+                                         // After C++14, `auto& self` is more recommended.
+                                         self.config().filler_forecolor( pace::Color::Green ).lead( "" );
+                                       } );
+  top->config()
     .quota( ( tuple_size<decltype( mbar )>::value - 1 ) * 2 )
     .disable<pace::facade::Counter, pace::facade::Speed, pace::facade::Elapsed, pace::facade::ETA>();
-  // Bind a callback that will be executed at the end of the iteration below.
-  mbar.at<0>() << [&]( typename tuple_element<0, decltype( mbar )>::type& self ) {
-    // After C++14, `auto& self` is more recommended.
-    self.config().filler_forecolor( pace::Color::Green ).lead( "" );
-  };
-  // Bind a callback to mark that the current bar has been compeleted.
-  mbar.at<1>() << [&]() { mbar.at<0>().tick(); };
-  mbar.at<2>() << [&]() { mbar.at<0>().tick(); };
-  mbar.at<3>() << [&]() { mbar.at<0>().tick(); };
 
   vector<thread> pool;
   pool.emplace_back( [&]() {
     mt19937 rd { random_device {}() };
+    top.tick();
     mbar.at<1>().config().quota( 30000 );
-    mbar.at<0>().tick();
     for ( size_t i = 0; i < 30000; ++i ) {
       mbar.at<1>().tick();
       this_thread::sleep_for( chrono::microseconds( uniform_int_distribution<>( 1, 1025 )( rd ) ) );
     }
+    mbar.at<1>().finish();
+    top.tick();
   } );
   pool.emplace_back( [&]() {
     mt19937 rd { random_device {}() };
-    mbar.at<0>().tick();
-    mbar.at<2>().iterate( 10000, [&rd]( int ) {
+    top.tick();
+    pace::views::auto_finish( mbar.at<2>(), [&]() { top.tick(); } ).iterate( 10000, [&rd]( int ) {
       this_thread::sleep_for( chrono::microseconds( uniform_int_distribution<>( 10, 1100 )( rd ) ) );
     } );
   } );
   pool.emplace_back( [&]() {
     mt19937 rd { random_device {}() };
-    mbar.at<0>().tick();
-    for ( auto _ : mbar.at<3>().iterate( 80000 ) )
+    top.tick();
+    auto bar = pace::views::auto_finish( mbar.at<3>(), [&]() { top.tick(); } );
+    for ( auto _ : bar.iterate( 80000 ) )
       this_thread::sleep_for( chrono::microseconds( uniform_int_distribution<>( 1, 1005 )( rd ) ) );
   } );
 
