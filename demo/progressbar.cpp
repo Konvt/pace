@@ -1,5 +1,4 @@
 #include "pace/ProgressBar.hpp"
-#include "pace/Automation.hpp"
 #include <chrono>
 
 int main()

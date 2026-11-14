@@ -26,7 +26,7 @@ namespace pace {
         UI* operator->() noexcept { return std::addressof( ui_ ); }
         const UI* operator->() const noexcept { return std::addressof( ui_ ); }
 
-        explicit operator UI&() noexcept { return ui_; }
+        operator UI&() noexcept { return ui_; }
       };
       template<typename UI>
       class UIBox {
@@ -52,7 +52,7 @@ namespace pace {
         UI* operator->() noexcept { return std::addressof( ui_ ); }
         const UI* operator->() const noexcept { return std::addressof( ui_ ); }
 
-        operator UI&() & noexcept { return ui_; }
+        explicit operator UI&() & noexcept { return ui_; }
       };
 
       template<typename Fn, bool Unary>
@@ -319,9 +319,11 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE constexpr auto auto_finish( Args&&... args ) ->
 #ifdef __cpp_concepts
     AutoFinish<Bar>
-    requires std::is_constructible_v<Bar, Args...>
+    requires( std::is_base_of_v<Indicator, Bar> && std::is_constructible_v<Bar, Args...> )
 #else
-    typename std::enable_if<std::is_constructible<Bar, Args...>::value, AutoFinish<Bar>>::type
+    typename std::enable_if<
+      details::traits::AllOf<std::is_base_of<Indicator, Bar>, std::is_constructible<Bar, Args...>>::value,
+      AutoFinish<Bar>>::type
 #endif
   { return { std::forward<Args>( args )... }; }
   template<typename Bar>
@@ -334,12 +336,15 @@ namespace pace {
   PACE__NODISCARD constexpr auto auto_finish( Obj&& obj, F&& callback ) ->
 #ifdef __cpp_concepts
     AutoFinishWith<Bar, std::decay_t<F>>
-    requires( details::traits::is_invocable<std::decay_t<F>&>::value
-              || details::traits::is_invocable<std::decay_t<F>&, Bar&>::value )
+    requires( std::is_base_of_v<Indicator, Bar>
+              && ( details::traits::is_invocable<std::decay_t<F>&>::value
+                   || details::traits::is_invocable<std::decay_t<F>&, Bar&>::value ) )
 #else
     typename std::enable_if<
-      details::traits::AnyOf<details::traits::is_invocable<typename std::decay<F>::type&>,
-                             details::traits::is_invocable<typename std::decay<F>::type&, Bar&>>::value,
+      details::traits::AllOf<
+        std::is_base_of<Indicator, Bar>,
+        details::traits::AnyOf<details::traits::is_invocable<typename std::decay<F>::type&>,
+                               details::traits::is_invocable<typename std::decay<F>::type&, Bar&>>>::value,
       AutoFinishWith<Bar, typename std::decay<F>::type>>::type
 #endif
   { return { std::forward<Obj>( obj ), std::forward<F>( callback ) }; }
@@ -348,12 +353,15 @@ namespace pace {
   PACE__NODISCARD constexpr auto auto_finish( F&& callback, Options&&... options ) ->
 #ifdef __cpp_concepts
     AutoFinishWith<Bar, std::decay_t<F>>
-    requires( details::traits::is_invocable<std::decay_t<F>&>::value
-              || details::traits::is_invocable<std::decay_t<F>&, Bar&>::value )
+    requires( std::is_base_of_v<Indicator, Bar>
+              && ( details::traits::is_invocable<std::decay_t<F>&>::value
+                   || details::traits::is_invocable<std::decay_t<F>&, Bar&>::value ) )
 #else
     typename std::enable_if<
-      details::traits::AnyOf<details::traits::is_invocable<typename std::decay<F>::type&>,
-                             details::traits::is_invocable<typename std::decay<F>::type&, Bar&>>::value,
+      details::traits::AllOf<
+        std::is_base_of<Indicator, Bar>,
+        details::traits::AnyOf<details::traits::is_invocable<typename std::decay<F>::type&>,
+                               details::traits::is_invocable<typename std::decay<F>::type&, Bar&>>>::value,
       AutoFinishWith<Bar, typename std::decay<F>::type>>::type
 #endif
   { return { std::forward<F>( callback ), std::forward<Options>( options )... }; }

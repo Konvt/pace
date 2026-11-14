@@ -82,18 +82,18 @@ namespace pace {
         core_,
         std::move( bar ) );
     }
-    template<typename Soul>
-    PACE__NODISCARD auto insert( Soul cfg ) -> std::unique_ptr<prefab::BasicBar<Soul, Sink, Mode, Zone>>
+    template<typename Config>
+    PACE__NODISCARD auto insert( Config cfg ) -> std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>
 #ifdef __cpp_concepts
-      requires details::traits::is_config<typename std::decay<Soul>::type>::value
+      requires details::traits::is_config<typename std::decay<Config>::type>::value
 #endif
     {
 #ifndef __cpp_concepts
-      static_assert( details::traits::is_config<typename std::decay<Soul>::type>::value,
+      static_assert( details::traits::is_config<typename std::decay<Config>::type>::value,
                      "not a configuration" );
 #endif
       setup_if_null();
-      return details::utils::make_unique<details::assets::ManagedBar<Soul, Sink, Mode, Zone>>(
+      return details::utils::make_unique<details::assets::ManagedBar<Config, Sink, Mode, Zone>>(
         core_,
         std::move( cfg ) );
     }
@@ -120,19 +120,19 @@ namespace pace {
         core_,
         std::forward<Options>( options )... );
     }
-    template<typename Soul, typename... Options>
+    template<typename Config, typename... Options>
     PACE__NODISCARD auto insert( Options&&... options )
 #ifdef __cpp_concepts
-      -> std::unique_ptr<prefab::BasicBar<Soul, Sink, Mode, Zone>>
-      requires( details::traits::is_config<Soul>::value && std::is_constructible_v<Soul, Options...> )
+      -> std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>
+      requires( details::traits::is_config<Config>::value && std::is_constructible_v<Config, Options...> )
 #else
-      -> typename std::enable_if<details::traits::AllOf<details::traits::is_config<Soul>,
-                                                        std::is_constructible<Soul, Options...>>::value,
-                                 std::unique_ptr<prefab::BasicBar<Soul, Sink, Mode, Zone>>>::type
+      -> typename std::enable_if<details::traits::AllOf<details::traits::is_config<Config>,
+                                                        std::is_constructible<Config, Options...>>::value,
+                                 std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>::type
 #endif
     {
       setup_if_null();
-      return details::utils::make_unique<details::assets::ManagedBar<Soul, Sink, Mode, Zone>>(
+      return details::utils::make_unique<details::assets::ManagedBar<Config, Sink, Mode, Zone>>(
         core_,
         std::forward<Options>( options )... );
     }
@@ -244,14 +244,14 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( std::size_t count, Objs&&... objs )
 #ifdef __cpp_concepts
     -> std::vector<std::unique_ptr<Bar>>
-    requires( ( ( std::is_same_v<std::remove_cv_t<Bar>, std::remove_cv_t<Objs>> && ... )
+    requires( ( ( std::is_same_v<Bar, std::decay_t<Objs>> && ... )
                 && !( std::is_lvalue_reference_v<Objs&&> || ... ) )
               || ( std::is_same<typename Bar::config_type, std::decay_t<Objs>>::value && ... ) )
 #else
     -> typename std::enable_if<
       details::traits::AnyOf<
         details::traits::AllOf<
-          std::is_same<typename std::remove_cv<Bar>::type, typename std::remove_cv<Objs>::type>...,
+          std::is_same<Bar, typename std::decay<Objs>::type>...,
           details::traits::Not<details::traits::AnyOf<std::is_lvalue_reference<Objs&&>...>>>,
         details::traits::AllOf<std::is_same<typename Bar::config_type, typename std::decay<Objs>::type>...>>::
         value,
@@ -287,25 +287,24 @@ namespace pace {
    * The ctor sequentially initializes the first few instances corresponding to the provided configurations;
    * **An unmatched count and Bars number will cause an exception `pace::exception::InvalidArgument`.**
    */
-  template<typename Soul,
+  template<typename Config,
            Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
            typename... Souls>
   PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( std::size_t count, Souls&&... cfgs )
 #ifdef __cpp_concepts
-    -> std::vector<std::unique_ptr<prefab::BasicBar<Soul, Sink, Mode, Zone>>>
-    requires( details::traits::is_config<Soul>::value
-              && ( std::is_same_v<std::remove_cv_t<Soul>, std::decay_t<Souls>> && ... ) )
+    -> std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>
+    requires( details::traits::is_config<Config>::value
+              && ( std::is_same_v<Config, std::decay_t<Souls>> && ... ) )
 #else
-    ->
-    typename std::enable_if<details::traits::AllOf<details::traits::is_config<Soul>,
-                                                   std::is_same<typename std::remove_cv<Soul>::type,
-                                                                typename std::decay<Souls>::type>...>::value,
-                            std::vector<std::unique_ptr<prefab::BasicBar<Soul, Sink, Mode, Zone>>>>::type
+    -> typename std::enable_if<
+      details::traits::AllOf<details::traits::is_config<Config>,
+                             std::is_same<Config, typename std::decay<Souls>::type>...>::value,
+      std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
-    std::vector<std::unique_ptr<prefab::BasicBar<Soul, Sink, Mode, Zone>>> products;
+    std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>> products;
     if ( count == 0 )
       PACE__UNLIKELY return products;
     else if ( count < sizeof...( Souls ) )
@@ -325,7 +324,7 @@ namespace pace {
       ( products.emplace_back( factory.insert( std::forward<Souls>( cfgs ) ) ), false )...
     };
     std::generate_n( std::back_inserter( products ), count - sizeof...( Souls ) - 1, [&factory]() {
-      return factory.template insert<Soul>();
+      return factory.template insert<Config>();
     } );
     return products;
   }
@@ -334,7 +333,7 @@ namespace pace {
    * The ctor sequentially initializes the first few instances corresponding to the provided objects;
    * **An unmatched count and Bars number will cause an exception `pace::exception::InvalidArgument`.**
    */
-  template<typename Soul,
+  template<typename Config,
            Channel Sink = Channel::Err,
            Policy Mode  = Policy::Async,
            Region Zone  = Region::Fixed,
@@ -342,15 +341,15 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( std::size_t count,
                                                        prefab::BasicBar<Souls, Sink, Mode, Zone>&&... bars )
 #ifdef __cpp_concepts
-    -> std::vector<std::unique_ptr<prefab::BasicBar<Soul, Sink, Mode, Zone>>>
-    requires( std::is_same_v<Soul, std::decay_t<Souls>> && ... )
+    -> std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>
+    requires( std::is_same_v<Config, std::decay_t<Souls>> && ... )
 #else
     -> typename std::enable_if<
-      details::traits::AllOf<std::is_same<Soul, typename std::decay<Souls>::type>...>::value,
-      std::vector<std::unique_ptr<prefab::BasicBar<Soul, Sink, Mode, Zone>>>>::type
+      details::traits::AllOf<std::is_same<Config, typename std::decay<Souls>::type>...>::value,
+      std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>>::type
 #endif
   {
-    std::vector<std::unique_ptr<prefab::BasicBar<Soul, Sink, Mode, Zone>>> products;
+    std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>> products;
     if ( count == 0 )
       PACE__UNLIKELY return products;
     else if ( count < sizeof...( Souls ) )
@@ -369,7 +368,7 @@ namespace pace {
     (void)std::initializer_list<bool> { ( products.emplace_back( factory.insert( std::move( bars ) ) ),
                                           false )... };
     std::generate_n( std::back_inserter( products ), count - sizeof...( Souls ) - 1, [&factory]() {
-      return factory.template insert<Soul>();
+      return factory.template insert<Config>();
     } );
     return products;
   }
