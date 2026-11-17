@@ -2,14 +2,7 @@ CompileFlags:
   Add: [-Wall, -Wpedantic, -Wextra, -std=c++23]
 
 Diagnostics:
-  ClangTidy:
-    Add:
-      - "modernize-*"
-      - "performance-*"
-    Remove:
-      - "modernize-use-trailing-return-type"
-      - "modernize-use-constraints"
-      - "modernize-type-traits"
-      - "performance-enum-size"
-      - "performance-avoid-endl"
   UnusedIncludes: Strict
+
+Documentation:
+  CommentFormat: Doxygen

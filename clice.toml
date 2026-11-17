@@ -1,0 +1,14 @@
+[[rules]]
+append = [
+  "-Wall",
+  "-Wpedantic",
+  "-Wextra",
+  "-std=c++23",
+]
+
+[diagnostics]
+clang_tidy = true
+slow_clang_tidy_checks = true
+
+[semantic_tokens.kinds]
+comment = ""

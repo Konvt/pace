@@ -1,0 +1,12 @@
+Checks: >
+  clang-diagnostic-*,
+  clang-analyzer-*,
+  modernize-*,
+  performance-*,
+  -modernize-use-trailing-return-type,
+  -modernize-use-constraints,
+  -modernize-type-traits,
+  -modernize-concat-nested-namespaces,
+  -modernize-use-scoped-lock,
+  -performance-enum-size,
+  -performance-avoid-endl
