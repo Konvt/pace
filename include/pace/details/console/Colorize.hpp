@@ -16,7 +16,7 @@ namespace pace {
 #ifdef PACE_NOSTYLE
           (void)self;
 #else
-          if ( self.color.encoding() != render::Paint::None ) {
+          if ( self.color.encoding() != types::Paint::None ) {
             pipeline << '\x1B' << '[';
             self.color.emit_foreground( pipeline );
             pipeline << 'm';
@@ -35,7 +35,7 @@ namespace pace {
 #ifdef PACE_NOSTYLE
           (void)self;
 #else
-          if ( self.color.encoding() != render::Paint::None ) {
+          if ( self.color.encoding() != types::Paint::None ) {
             pipeline << '\x1B' << '[';
             self.color.emit_background( pipeline );
             pipeline << 'm';
@@ -55,9 +55,9 @@ namespace pace {
 #ifdef PACE_NOSTYLE
           (void)self;
 #else
-          if ( self.background.encoding() == render::Paint::None )
+          if ( self.background.encoding() == types::Paint::None )
             return pipeline << Forecolor { self.foreground };
-          if ( self.foreground.encoding() == render::Paint::None )
+          if ( self.foreground.encoding() == types::Paint::None )
             return pipeline << Backcolor { self.background };
 
           pipeline << '\x1B' << '[';

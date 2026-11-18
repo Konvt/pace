@@ -4,7 +4,6 @@
 #include "../../exception/Error.hpp"
 #include "../charcodes/StringView.hpp"
 #include "../core/Types.hpp"
-#include "../render/Paint.hpp"
 
 namespace pace {
   namespace details {
@@ -16,12 +15,12 @@ namespace pace {
 
           constexpr Ink() noexcept : hex {} {}
         } value_;
-        render::Paint encoding_;
+        types::Paint encoding_;
 
         PACE__CXX20_CNSTXPR void from_str( charcodes::StringView hex_str ) &
         {
           if ( hex_str.empty() ) {
-            encoding_ = render::Paint::None;
+            encoding_ = types::Paint::None;
             return;
           } else if ( ( hex_str.size() != 7 && hex_str.size() != 4 ) || hex_str.front() != '#' )
             throw exception::InvalidArgument( charcodes::make_literal( "pace: invalid hex color format" ) );
@@ -37,9 +36,9 @@ namespace pace {
           }
 
 #ifdef PACE_NOSTYLE
-          encoding_ = render::Paint::None;
+          encoding_ = types::Paint::None;
 #else
-          encoding_  = render::Paint::Xterm24bit;
+          encoding_  = types::Paint::Xterm24bit;
           value_.hex = 0;
           if ( hex_str.size() == 4 ) {
             for ( std::size_t i = 1; i < hex_str.size(); ++i ) {
@@ -66,13 +65,13 @@ namespace pace {
         }
 
       public:
-        constexpr RGBValue() noexcept : encoding_ { render::Paint::None } {}
+        constexpr RGBValue() noexcept : encoding_ { types::Paint::None } {}
 
         PACE__CXX14_CNSTXPR RGBValue( types::HexRGB hex_val ) noexcept
-          : encoding_ { render::Paint::Xterm24bit }
+          : encoding_ { types::Paint::Xterm24bit }
         { value_.hex = hex_val; }
         PACE__CXX14_CNSTXPR
-        RGBValue( Color enum_val ) noexcept : encoding_ { render::Paint::Csi8 } { value_.ansi = enum_val; }
+        RGBValue( Color enum_val ) noexcept : encoding_ { types::Paint::Csi8 } { value_.ansi = enum_val; }
         template<
           typename SV,
           typename = typename std::enable_if<std::is_convertible<SV, charcodes::StringView>::value>::type>
@@ -89,7 +88,7 @@ namespace pace {
         }
         PACE__CXX14_CNSTXPR RGBValue& operator=( Color enum_val ) & noexcept
         {
-          encoding_   = render::Paint::Csi8;
+          encoding_   = types::Paint::Csi8;
           value_.ansi = enum_val;
           return *this;
         }
@@ -102,7 +101,7 @@ namespace pace {
           return *this;
         }
 
-        PACE__NODISCARD constexpr render::Paint encoding() const noexcept { return encoding_; }
+        PACE__NODISCARD constexpr types::Paint encoding() const noexcept { return encoding_; }
 
         PACE__NODISCARD constexpr std::uint8_t r() const noexcept { return ( value_.hex >> 16 ) & 0xFF; }
         PACE__NODISCARD constexpr std::uint8_t g() const noexcept { return ( value_.hex >> 8 ) & 0xFF; }

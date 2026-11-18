@@ -17,6 +17,11 @@ namespace pace {
       using Bit8       = std::uint8_t; // a computable and addressable Byte type
       using HexRGB     = std::uint32_t;
       using GlyphWidth = std::uint8_t; // value is between [0, 3]
+
+      // Used for parsing console::TrueColor and console::RGBValue.
+      enum class Paint : std::uint8_t { None, Csi8, Xterm24bit };
+
+      enum class Expression : std::uint8_t {  };
     } // namespace types
   } // namespace details
 

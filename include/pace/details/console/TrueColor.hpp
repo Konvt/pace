@@ -1,6 +1,7 @@
 #ifndef PACE_TRUE_COLOR
 #define PACE_TRUE_COLOR
 
+#include "../core/Types.hpp"
 #include "../io/CharPipeline.hpp"
 #include "../wrappers/RGBValue.hpp"
 
@@ -30,14 +31,14 @@ namespace pace {
 
           SGR() = default;
         } sgr_;
-        render::Paint encoding_;
+        types::Paint encoding_;
 #endif
 
       public:
 #ifdef PACE_NOSTYLE
         TrueColor() = default;
 #else
-        PACE__CXX20_CNSTXPR TrueColor() noexcept : encoding_ { render::Paint::None } {}
+        PACE__CXX20_CNSTXPR TrueColor() noexcept : encoding_ { types::Paint::None } {}
 #endif
 
         PACE__CXX20_CNSTXPR TrueColor( wrappers::RGBValue rgb ) noexcept
@@ -47,9 +48,9 @@ namespace pace {
           : encoding_ { rgb.encoding() }
         {
           switch ( rgb.encoding() ) {
-          case render::Paint::Csi8:       sgr_.ansi = rgb.color(); break;
-          case render::Paint::Xterm24bit: sgr_.rgb = { rgb.r(), rgb.g(), rgb.b() }; break;
-          default:                        break;
+          case types::Paint::Csi8:       sgr_.ansi = rgb.color(); break;
+          case types::Paint::Xterm24bit: sgr_.rgb = { rgb.r(), rgb.g(), rgb.b() }; break;
+          default:                       break;
           }
         }
 #endif
@@ -63,7 +64,7 @@ namespace pace {
           (void)rgb;
 #else
           sgr_.rgb  = { rgb.r(), rgb.g(), rgb.b() };
-          encoding_ = render::Paint::Xterm24bit;
+          encoding_ = types::Paint::Xterm24bit;
 #endif
           return *this;
         }
@@ -71,7 +72,7 @@ namespace pace {
         PACE__FORCEINLINE PACE__CXX20_CNSTXPR void clear() noexcept
         {
 #ifndef PACE_NOSTYLE
-          encoding_ = render::Paint::None;
+          encoding_ = types::Paint::None;
 #endif
         }
 
@@ -83,7 +84,7 @@ namespace pace {
           // only output the digit string
           constexpr auto digits = digit_text();
           switch ( encoding_ ) {
-          case render::Paint::Csi8: {
+          case types::Paint::Csi8: {
 
             const auto str = digits.data() + [this]() noexcept {
               switch ( sgr_.ansi ) {
@@ -101,7 +102,7 @@ namespace pace {
             }() * 3;
             pipeline << str[0] << str[1];
           } break;
-          case render::Paint::Xterm24bit: {
+          case types::Paint::Xterm24bit: {
             pipeline << '3' << '8' << ';' << '2';
             for ( auto offset : sgr_.rgb ) {
               pipeline << ';';
@@ -126,7 +127,7 @@ namespace pace {
           // only output the digit string
           constexpr auto digits = digit_text();
           switch ( encoding_ ) {
-          case render::Paint::Csi8: {
+          case types::Paint::Csi8: {
 
             const auto str = digits.data() + [this]() noexcept {
               switch ( sgr_.ansi ) {
@@ -144,7 +145,7 @@ namespace pace {
             }() * 3;
             pipeline << str[0] << str[1];
           } break;
-          case render::Paint::Xterm24bit: {
+          case types::Paint::Xterm24bit: {
             pipeline << '4' << '8' << ';' << '2';
             for ( auto offset : sgr_.rgb ) {
               pipeline << ';';
@@ -162,10 +163,10 @@ namespace pace {
 #endif
         }
 
-        PACE__NODISCARD PACE__CXX20_CNSTXPR render::Paint encoding() const noexcept
+        PACE__NODISCARD PACE__CXX20_CNSTXPR types::Paint encoding() const noexcept
         {
 #ifdef PACE_NOSTYLE
-          return render::Paint::None;
+          return types::Paint::None;
 #else
           return encoding_;
 #endif
