@@ -27,12 +27,11 @@ namespace pace {
     template<typename Cfg, typename... Cfgs>
     MultiBar( Cfg&& cfg, Cfgs&&... cfgs ) noexcept( sizeof...( Cfgs ) == sizeof...( Souls ) )
 #ifdef __cpp_concepts
-      requires(
-        sizeof...( Cfgs ) <= sizeof...( Souls )
-        && details::traits::TpStartsWith<
-          details::traits::TypeList<typename std::decay<Cfg>::type, typename std::decay<Cfgs>::type...>,
-          Soul,
-          Souls...>::value )
+      requires( sizeof...( Cfgs ) <= sizeof...( Souls ) )
+           && details::traits::TpStartsWith<
+                details::traits::TypeList<typename std::decay<Cfg>::type, typename std::decay<Cfgs>::type...>,
+                Soul,
+                Souls...>::value
 #endif
       : package_ { std::forward<Cfg>( cfg ), std::forward<Cfgs>( cfgs )... }
     {
@@ -51,12 +50,11 @@ namespace pace {
     MultiBar( prefab::BasicBar<Cfg, S, M, Z>&& bar, prefab::BasicBar<Cfgs, S, M, Z>&&... bars )
       noexcept( sizeof...( Cfgs ) == sizeof...( Souls ) )
 #ifdef __cpp_concepts
-      requires(
-        sizeof...( Cfgs ) <= sizeof...( Souls )
-        && details::traits::TpStartsWith<
-          details::traits::TypeList<typename std::decay<Cfg>::type, typename std::decay<Cfgs>::type...>,
-          Soul,
-          Souls...>::value )
+      requires( sizeof...( Cfgs ) <= sizeof...( Souls ) )
+           && details::traits::TpStartsWith<
+                details::traits::TypeList<typename std::decay<Cfg>::type, typename std::decay<Cfgs>::type...>,
+                Soul,
+                Souls...>::value
 #endif
       : package_ { std::move( bar ), std::move( bars )... }
     {
@@ -159,8 +157,8 @@ namespace pace {
 #ifdef __cpp_concepts
     -> MultiBar<prefab::BasicBar<std::decay_t<Soul>, Sink, Mode, Zone>,
                 prefab::BasicBar<std::decay_t<Souls>, Sink, Mode, Zone>...>
-    requires( details::traits::is_config<std::decay_t<Soul>>::value
-              && ( details::traits::is_config<std::decay_t<Souls>>::value && ... ) )
+    requires details::traits::is_config<std::decay_t<Soul>>::value
+          && ( details::traits::is_config<std::decay_t<Souls>>::value && ... )
 #else
     -> typename std::enable_if<
       details::traits::AllOf<details::traits::is_config<typename std::decay<Soul>::type>,
@@ -226,7 +224,7 @@ namespace pace {
                                      details::traits::Not<std::is_lvalue_reference<Soul&&>>>::value )
 #ifdef __cpp_concepts
       -> MultiBar_t<prefab::BasicBar<std::decay_t<Soul>, Sink, Mode, Zone>, Cnt>
-    requires( Cnt > 0 && details::traits::is_config<typename std::decay<Soul>::type>::value )
+    requires( Cnt > 0 ) && details::traits::is_config<typename std::decay<Soul>::type>::value
 #else
       -> typename std::enable_if<
         ( Cnt > 0 ),
@@ -251,10 +249,10 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE auto make_multi( Objs&&... objs ) noexcept( sizeof...( Objs ) == Cnt )
 #ifdef __cpp_concepts
     -> MultiBar_t<Bar, Cnt>
-    requires( Cnt > 0 && sizeof...( Objs ) <= Cnt
-              && ( ( ( std::is_same_v<Bar, std::decay_t<Objs>> && ... )
-                     && !( std::is_lvalue_reference_v<Objs&&> || ... ) )
-                   || ( std::is_same_v<typename Bar::config_type, std::decay_t<Objs>> && ... ) ) )
+    requires( Cnt > 0 ) && ( sizeof...( Objs ) <= Cnt )
+         && ( ( ( std::is_same_v<Bar, std::decay_t<Objs>> && ... )
+                && !( std::is_lvalue_reference_v<Objs&&> || ... ) )
+              || ( std::is_same_v<typename Bar::config_type, std::decay_t<Objs>> && ... ) )
 #else
     -> typename std::enable_if<
       details::traits::AllOf<
@@ -283,8 +281,8 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE auto make_multi( Souls&&... cfgs ) noexcept( sizeof...( Souls ) == Cnt )
 #ifdef __cpp_concepts
     -> MultiBar_t<prefab::BasicBar<Config, Sink, Mode, Zone>, Cnt>
-    requires( Cnt > 0 && sizeof...( Souls ) <= Cnt && details::traits::is_config<Config>::value
-              && ( std::is_same_v<Config, std::decay_t<Souls>> && ... ) )
+    requires( Cnt > 0 ) && ( sizeof...( Souls ) <= Cnt ) && details::traits::is_config<Config>::value
+         && ( std::is_same_v<Config, std::decay_t<Souls>> && ... )
 #else
     -> typename std::enable_if<
       details::traits::AllOf<details::traits::BoolConstant<( Cnt > 0 )>,
@@ -309,7 +307,8 @@ namespace pace {
     noexcept( sizeof...( Souls ) == Cnt )
 #ifdef __cpp_concepts
       -> MultiBar_t<prefab::BasicBar<Config, Sink, Mode, Zone>, Cnt>
-    requires( Cnt > 0 && sizeof...( Souls ) <= Cnt && ( std::is_same_v<Config, std::decay_t<Souls>> && ... ) )
+    requires( Cnt > 0 ) && ( sizeof...( Souls ) <= Cnt )
+         && ( std::is_same_v<Config, std::decay_t<Souls>> && ... )
 #else
       -> typename std::enable_if<
         details::traits::AllOf<details::traits::BoolConstant<( Cnt > 0 )>,

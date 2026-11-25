@@ -103,16 +103,15 @@ void print_apt_preamble( const vector<Package>& packages )
 int main()
 {
   cout << "[simulation] fake apt-like output, no real packages are installed" << endl;
-
-  pace::config::hide_completed( true );
   mt19937_64 rd { random_device {}() };
 
   const auto packages = make_packages();
   print_apt_preamble( packages );
+  std::this_thread::sleep_for( std::chrono::seconds( std::uniform_int_distribution<int> { 2, 4 }( rd ) ) );
 
   { // stage 1, downloading only
     auto bar =
-      pace::auto_finish<pace::config::Line, pace::Channel::Err, pace::Policy::Sync, pace::Region::Relative>();
+      pace::auto_retire<pace::config::Line, pace::Channel::Err, pace::Policy::Sync, pace::Region::Relative>();
     // In fact, you can pick any Policy and Region here.
     bar->config()
       .divider( " " )
@@ -183,7 +182,7 @@ int main()
       cout << step.text << endl;
       this_thread::sleep_for( chrono::milliseconds( step.delay_ms ) );
     }
-    bar.finish();
+    bar.retire();
   }
 
   cout << "All packages installed successfully." << endl;

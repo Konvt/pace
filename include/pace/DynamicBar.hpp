@@ -102,8 +102,9 @@ namespace pace {
     PACE__NODISCARD auto insert( Options&&... options )
 #ifdef __cpp_concepts
       -> std::unique_ptr<Bar>
-      requires( std::is_base_of_v<Indicator, Bar> && Bar::channel_value == Sink && Bar::policy_value == Mode
-                && Bar::region_value == Zone && std::is_constructible_v<Bar, Options...> )
+      requires std::is_base_of_v<Indicator, Bar> && ( Bar::channel_value == Sink )
+            && ( Bar::policy_value == Mode ) && ( Bar::region_value == Zone )
+            && std::is_constructible_v<Bar, Options...>
 #else
       -> typename std::enable_if<
         details::traits::AllOf<std::is_base_of<Indicator, Bar>,
@@ -124,7 +125,7 @@ namespace pace {
     PACE__NODISCARD auto insert( Options&&... options )
 #ifdef __cpp_concepts
       -> std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>
-      requires( details::traits::is_config<Config>::value && std::is_constructible_v<Config, Options...> )
+      requires details::traits::is_config<Config>::value && std::is_constructible_v<Config, Options...>
 #else
       -> typename std::enable_if<details::traits::AllOf<details::traits::is_config<Config>,
                                                         std::is_constructible<Config, Options...>>::value,
@@ -170,8 +171,8 @@ namespace pace {
 #ifdef __cpp_concepts
     -> std::tuple<std::unique_ptr<prefab::BasicBar<std::decay_t<Soul>, Sink, Mode, Zone>>,
                   std::unique_ptr<prefab::BasicBar<std::decay_t<Souls>, Sink, Mode, Zone>>...>
-    requires( details::traits::is_config<std::decay_t<Soul>>::value
-              && ( details::traits::is_config<std::decay_t<Souls>>::value && ... ) )
+    requires details::traits::is_config<std::decay_t<Soul>>::value
+          && ( details::traits::is_config<std::decay_t<Souls>>::value && ... )
 #else
     -> typename std::enable_if<
       details::traits::AllOf<details::traits::is_config<typename std::decay<Soul>::type>,
@@ -244,9 +245,9 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( std::size_t count, Objs&&... objs )
 #ifdef __cpp_concepts
     -> std::vector<std::unique_ptr<Bar>>
-    requires( ( ( std::is_same_v<Bar, std::decay_t<Objs>> && ... )
-                && !( std::is_lvalue_reference_v<Objs&&> || ... ) )
-              || ( std::is_same<typename Bar::config_type, std::decay_t<Objs>>::value && ... ) )
+    requires( ( std::is_same_v<Bar, std::decay_t<Objs>> && ... )
+              && !( std::is_lvalue_reference_v<Objs&&> || ... ) )
+         || ( std::is_same<typename Bar::config_type, std::decay_t<Objs>>::value && ... )
 #else
     -> typename std::enable_if<
       details::traits::AnyOf<
@@ -295,8 +296,8 @@ namespace pace {
   PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( std::size_t count, Souls&&... cfgs )
 #ifdef __cpp_concepts
     -> std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>
-    requires( details::traits::is_config<Config>::value
-              && ( std::is_same_v<Config, std::decay_t<Souls>> && ... ) )
+    requires details::traits::is_config<Config>::value
+          && ( std::is_same_v<Config, std::decay_t<Souls>> && ... )
 #else
     -> typename std::enable_if<
       details::traits::AllOf<details::traits::is_config<Config>,

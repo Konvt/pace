@@ -176,8 +176,8 @@ namespace pace {
         PACE__NODISCARD auto iterate( R& container ) &
 #ifdef __cpp_concepts
           -> views::TrackedSpan<views::SizedSpan<std::remove_reference_t<R>>, Derived*>
-          requires( traits::is_sized_range<std::remove_reference_t<R>>::value
-                    && !std::ranges::view<std::remove_reference_t<R>> )
+          requires traits::is_sized_range<std::remove_reference_t<R>>::value
+                && ( !std::ranges::view<std::remove_reference_t<R>> )
 #else
           -> typename std::enable_if<
             traits::is_sized_range<typename std::remove_reference<R>::type>::value,
@@ -189,7 +189,7 @@ namespace pace {
         }
 #ifdef __cpp_concepts
         template<class R>
-          requires( traits::is_sized_range<R>::value && std::ranges::view<R> )
+          requires traits::is_sized_range<R>::value && std::ranges::view<R>
         PACE__NODISCARD auto iterate( R view ) & -> views::TrackedSpan<R, Derived*>
         {
           throw_if_active();

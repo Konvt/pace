@@ -99,10 +99,10 @@ namespace pace {
   PACE__NODISCARD auto auto_finish( Soul&& cfg, F&& callback ) ->
 #ifdef __cpp_concepts
     AutoFinishWith<prefab::BasicBar<Soul, Sink, Mode, Zone>, typename std::decay<F>::type>
-    requires( details::traits::is_config<Soul>::value && details::traits::is_config<std::decay_t<Soul>>::value
-              && ( details::traits::is_invocable<std::decay_t<F>&>::value
-                   || details::traits::is_invocable<std::decay_t<F>&,
-                                                    prefab::BasicBar<Soul, Sink, Mode, Zone>&>::value ) )
+    requires details::traits::is_config<Soul>::value && details::traits::is_config<std::decay_t<Soul>>::value
+          && ( details::traits::is_invocable<std::decay_t<F>&>::value
+               || details::traits::is_invocable<std::decay_t<F>&,
+                                                prefab::BasicBar<Soul, Sink, Mode, Zone>&>::value )
 #else
     typename std::enable_if<
       details::traits::AllOf<
@@ -123,9 +123,8 @@ namespace pace {
   PACE__NODISCARD auto auto_finish( prefab::BasicBar<Soul, Sink, Mode, Zone>&& bar, F&& callback ) ->
 #ifdef __cpp_concepts
     AutoFinishWith<prefab::BasicBar<Soul, Sink, Mode, Zone>, typename std::decay<F>::type>
-    requires(
-      details::traits::is_invocable<std::decay_t<F>&>::value
-      || details::traits::is_invocable<std::decay_t<F>&, prefab::BasicBar<Soul, Sink, Mode, Zone>&>::value )
+    requires details::traits::is_invocable<std::decay_t<F>&>::value
+          || details::traits::is_invocable<std::decay_t<F>&, prefab::BasicBar<Soul, Sink, Mode, Zone>&>::value
 #else
     typename std::enable_if<
       details::traits::AnyOf<details::traits::is_invocable<typename std::decay<F>::type&>,
@@ -143,10 +142,10 @@ namespace pace {
   PACE__NODISCARD auto auto_finish( F&& callback, Options&&... options ) ->
 #ifdef __cpp_concepts
     AutoFinishWith<prefab::BasicBar<Config, Sink, Mode, Zone>, typename std::decay<F>::type>
-    requires( details::traits::is_config<Config>::value
-              && ( details::traits::is_invocable<std::decay_t<F>&>::value
-                   || details::traits::is_invocable<std::decay_t<F>&,
-                                                    prefab::BasicBar<Config, Sink, Mode, Zone>&>::value ) )
+    requires details::traits::is_config<Config>::value
+          && ( details::traits::is_invocable<std::decay_t<F>&>::value
+               || details::traits::is_invocable<std::decay_t<F>&,
+                                                prefab::BasicBar<Config, Sink, Mode, Zone>&>::value )
 #else
     typename std::enable_if<
       details::traits::AllOf<

@@ -33,11 +33,11 @@ namespace pace {
           if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() )
             pipeline << brush( console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } )
                      << this->l_border_;
-          this->traits::BaseOf_t<typename Config::layout_type, aspects::Prefix>::build( pipeline, params );
+          this->traits::BaseOf_t<typename Config::layer_type, aspects::Prefix>::build( pipeline, params );
 
           this->template render_each<Facades...>( pipeline, params );
 
-          this->traits::BaseOf_t<typename Config::layout_type, aspects::Postfix>::build( pipeline, params );
+          this->traits::BaseOf_t<typename Config::layer_type, aspects::Postfix>::build( pipeline, params );
           if ( !this->prefix_.empty() || !this->postfix_.empty() || this->projection_.any() )
             pipeline << brush(
               io::concat( console::resetcolor,

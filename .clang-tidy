@@ -5,8 +5,10 @@ Checks: >
   performance-*,
   -modernize-use-trailing-return-type,
   -modernize-use-constraints,
+  -modernize-use-scoped-lock,
+  -modernize-use-designated-initializers,
   -modernize-type-traits,
   -modernize-concat-nested-namespaces,
-  -modernize-use-scoped-lock,
+  -modernize-avoid-c-arrays,
   -performance-enum-size,
   -performance-avoid-endl

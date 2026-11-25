@@ -1065,7 +1065,7 @@ namespace pace {
         template<typename InputIt, typename Sentinel
 #ifdef __cpp_lib_concepts
                  >
-          requires( std::input_iterator<InputIt> && std::sentinel_for<Sentinel, InputIt> )
+          requires std::input_iterator<InputIt> && std::sentinel_for<Sentinel, InputIt>
 #else
                  ,
                  typename std::enable_if<is_legacy_input_iterator<InputIt>::value, bool>::type = 0>
@@ -1156,13 +1156,13 @@ namespace pace {
         }
 #ifdef __cpp_lib_containers_ranges
         template<std::ranges::input_range R>
-          requires( std::convertible_to<std::ranges::range_reference_t<R>, value_type> )
+          requires std::convertible_to<std::ranges::range_reference_t<R>, value_type>
         PACE__CXX20_CNSTXPR BasicSharedString( std::from_range_t, R&& rg, const Alloc& alloc )
           : BasicSharedString( std::ranges::begin( rg ), std::ranges::end( rg ), alloc )
         {}
         template<std::ranges::forward_range R>
-          requires( std::ranges::sized_range<R>
-                    && std::convertible_to<std::ranges::range_reference_t<R>, value_type> )
+          requires std::ranges::sized_range<R>
+                && std::convertible_to<std::ranges::range_reference_t<R>, value_type>
         PACE__CXX20_CNSTXPR BasicSharedString( std::from_range_t, R&& rg, const Alloc& alloc )
           : BasicSharedString( alloc )
         {
@@ -1576,7 +1576,7 @@ namespace pace {
         }
         template<typename InputIt>
 #ifdef __cpp_lib_concepts
-          requires( std::input_iterator<InputIt> && std::equality_comparable<InputIt> )
+          requires std::input_iterator<InputIt> && std::equality_comparable<InputIt>
         PACE__CXX20_CNSTXPR BasicSharedString&
 #else
         PACE__CXX20_CNSTXPR
@@ -1588,13 +1588,12 @@ namespace pace {
 
 #ifdef __cpp_lib_containers_ranges
         template<typename R>
-          requires( std::ranges::input_range<R>
-                    && std::convertible_to<std::ranges::range_reference_t<R>, Char> )
+          requires std::ranges::input_range<R> && std::convertible_to<std::ranges::range_reference_t<R>, Char>
         PACE__CXX20_CNSTXPR BasicSharedString& assign_range( R&& rg )
         { return assign( BasicSharedString( std::from_range, std::forward<R>( rg ), this->allocator() ) ); }
 #endif
 
-        constexpr allocator_type get_allocator() const { return this->allocator(); }
+        PACE__NODISCARD constexpr allocator_type get_allocator() const { return this->allocator(); }
 
         PACE__NODISCARD PACE__CXX20_CNSTXPR Char* data() &
         {
@@ -1892,7 +1891,7 @@ namespace pace {
         PACE__CXX20_CNSTXPR iterator insert( const_iterator pos, Char ch ) { return insert( pos, 1, ch ); }
         template<typename InputIt>
 #ifdef __cpp_lib_concepts
-          requires( std::input_iterator<InputIt> && std::equality_comparable<InputIt> )
+          requires std::input_iterator<InputIt> && std::equality_comparable<InputIt>
         PACE__CXX20_CNSTXPR BasicSharedString&
 #else
         PACE__CXX20_CNSTXPR
@@ -1929,8 +1928,7 @@ namespace pace {
 
 #ifdef __cpp_lib_containers_ranges
         template<typename R>
-          requires( std::ranges::input_range<R>
-                    && std::convertible_to<std::ranges::range_reference_t<R>, Char> )
+          requires std::ranges::input_range<R> && std::convertible_to<std::ranges::range_reference_t<R>, Char>
         PACE__CXX20_CNSTXPR BasicSharedString& insert_range( const_iterator pos, R&& rg )
         {
           return insert( pos - cbegin(),
@@ -2118,7 +2116,7 @@ namespace pace {
         { return append( other, 0 ); }
         template<typename InputIt>
 #ifdef __cpp_lib_concepts
-          requires( std::input_iterator<InputIt> && std::equality_comparable<InputIt> )
+          requires std::input_iterator<InputIt> && std::equality_comparable<InputIt>
         PACE__CXX20_CNSTXPR BasicSharedString&
 #else
         PACE__CXX20_CNSTXPR
@@ -2130,8 +2128,7 @@ namespace pace {
 
 #ifdef __cpp_lib_containers_ranges
         template<typename R>
-          requires( std::ranges::input_range<R>
-                    && std::convertible_to<std::ranges::range_reference_t<R>, Char> )
+          requires std::ranges::input_range<R> && std::convertible_to<std::ranges::range_reference_t<R>, Char>
         PACE__CXX20_CNSTXPR BasicSharedString& append_range( R&& rg )
         { return append( BasicSharedString( std::from_range, std::forward<R>( rg ), this->allocator() ) ); }
 #endif
@@ -2380,7 +2377,7 @@ namespace pace {
         }
         template<typename InputIt>
 #ifdef __cpp_lib_concepts
-          requires( std::input_iterator<InputIt> && std::equality_comparable<InputIt> )
+          requires std::input_iterator<InputIt> && std::equality_comparable<InputIt>
         PACE__CXX20_CNSTXPR BasicSharedString&
 #else
         PACE__CXX20_CNSTXPR
@@ -2433,8 +2430,7 @@ namespace pace {
 
 #ifdef __cpp_lib_containers_ranges
         template<typename R>
-          requires( std::ranges::input_range<R>
-                    && std::convertible_to<std::ranges::range_reference_t<R>, Char> )
+          requires std::ranges::input_range<R> && std::convertible_to<std::ranges::range_reference_t<R>, Char>
         PACE__CXX20_CNSTXPR BasicSharedString& replace_with_range( const_iterator first,
                                                                    const_iterator last,
                                                                    R&& rg )

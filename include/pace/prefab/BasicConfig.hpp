@@ -125,6 +125,13 @@ namespace pace {
         };
       }
 
+    public:
+      using layer_type =
+        typename details::traits::LI_t<details::aspects::Prefix,
+                                       details::aspects::Postfix,
+                                       details::aspects::Segment,
+                                       Facades...>::template type<details::aspects::Schema, BasicConfig>;
+
     protected:
       std::bitset<sizeof...( Facades )> projection_;
 
@@ -136,7 +143,7 @@ namespace pace {
                ,
                typename = typename std::enable_if<details::traits::AllOf<is_setting<Args>...>::value>::type>
 #endif
-      PACE__CXX14_CNSTXPR BasicConfig( details::traits::TypeSet<Args...> tag ) : layout_type( tag )
+      PACE__CXX14_CNSTXPR BasicConfig( details::traits::TypeSet<Args...> tag ) : layer_type( tag )
       {
         // Projection is only used for injecting default values.
         if PACE__CXX17_CNSTXPR ( !details::traits::AnyOf<details::traits::is_selection<Args>...>::value )
@@ -144,12 +151,6 @@ namespace pace {
       }
 
     public:
-      using layout_type =
-        typename details::traits::LI_t<details::aspects::Prefix,
-                                       details::aspects::Postfix,
-                                       details::aspects::Segment,
-                                       Facades...>::template type<details::aspects::Schema, BasicConfig>;
-
       /**
        * Build a Projection that explicitly enables a selected subset of Facades.
 
@@ -203,8 +204,8 @@ namespace pace {
       template<typename... Args
 #ifdef __cpp_concepts
                >
-        requires( details::traits::is_unique<details::traits::TypeList<Args...>>::value
-                  && ( is_setting<Args>::value && ... ) )
+        requires details::traits::is_unique<details::traits::TypeList<Args...>>::value
+              && ( is_setting<Args>::value && ... )
 #else
                ,
                typename = typename std::enable_if<
@@ -215,21 +216,21 @@ namespace pace {
         : BasicConfig( details::traits::TypeSet<typename std::decay<Args>::type...>() )
       { (void)std::initializer_list<bool> { ( unpack( *this, std::move( args ) ), false )... }; }
 
-      BasicConfig( const BasicConfig& other ) noexcept( std::is_nothrow_copy_assignable<layout_type>::value )
+      BasicConfig( const BasicConfig& other ) noexcept( std::is_nothrow_copy_assignable<layer_type>::value )
       {
         std::lock_guard<details::concurrent::SharedMutex> lock { other.rw_mtx_ };
-        layout_type::operator=( other );
+        layer_type::operator=( other );
         projection_ = other.projection_;
       }
       BasicConfig( BasicConfig&& rhs ) noexcept
       {
         std::lock_guard<details::concurrent::SharedMutex> lock { rhs.rw_mtx_ };
-        layout_type::operator=( std::move( rhs ) );
+        layer_type::operator=( std::move( rhs ) );
         using std::swap;
         swap( projection_, rhs.projection_ );
       }
       BasicConfig& operator=( const BasicConfig& other ) & noexcept(
-        std::is_nothrow_copy_assignable<layout_type>::value )
+        std::is_nothrow_copy_assignable<layer_type>::value )
       {
         PACE__TRUST( this != &other );
         details::concurrent::SharedLock<details::concurrent::SharedMutex> lock1 { other.rw_mtx_,
@@ -238,7 +239,7 @@ namespace pace {
         std::lock_guard<details::concurrent::SharedMutex> lock2 { this->rw_mtx_, std::adopt_lock };
 
         projection_ = other.projection_;
-        layout_type::operator=( other );
+        layer_type::operator=( other );
         return *this;
       }
       BasicConfig& operator=( BasicConfig&& rhs ) & noexcept
@@ -251,7 +252,7 @@ namespace pace {
         PACE__TRUST( this != &rhs );
         using std::swap;
         swap( projection_, rhs.projection_ );
-        layout_type::operator=( std::move( rhs ) );
+        layer_type::operator=( std::move( rhs ) );
         return *this;
       }
       /**
@@ -264,8 +265,8 @@ namespace pace {
       template<typename Arg, typename... Args>
       BasicConfig& with( Arg arg, Args... args ) &
 #ifdef __cpp_concepts
-        requires( details::traits::is_unique<details::traits::TypeList<Arg, Args...>>::value
-                  && is_setting<Arg>::value && ( is_setting<Args>::value && ... ) )
+        requires details::traits::is_unique<details::traits::TypeList<Arg, Args...>>::value
+              && is_setting<Arg>::value && ( is_setting<Args>::value && ... )
 #endif
       {
 #ifndef __cpp_concepts
@@ -282,8 +283,8 @@ namespace pace {
       template<typename Arg, typename... Args>
       BasicConfig&& with( Arg arg, Args... args ) &&
 #ifdef __cpp_concepts
-        requires( details::traits::is_unique<details::traits::TypeList<Arg, Args...>>::value
-                  && is_setting<Arg>::value && ( is_setting<Args>::value && ... ) )
+        requires details::traits::is_unique<details::traits::TypeList<Arg, Args...>>::value
+              && is_setting<Arg>::value && ( is_setting<Args>::value && ... )
 #endif
       {
 #ifndef __cpp_concepts
@@ -328,8 +329,8 @@ namespace pace {
       template<template<typename...> class F, template<typename...> class... Fs>
       BasicConfig& enable() & noexcept
 #ifdef __cpp_concepts
-        requires( details::traits::TmpContains<Element, F>::value
-                  && ( details::traits::TmpContains<Element, Fs>::value && ... ) )
+        requires details::traits::TmpContains<Element, F>::value
+              && ( details::traits::TmpContains<Element, Fs>::value && ... )
 #endif
       {
 #ifndef __cpp_concepts
@@ -348,8 +349,8 @@ namespace pace {
       template<template<typename...> class F, template<typename...> class... Fs>
       BasicConfig&& enable() && noexcept
 #ifdef __cpp_concepts
-        requires( details::traits::TmpContains<Element, F>::value
-                  && ( details::traits::TmpContains<Element, Fs>::value && ... ) )
+        requires details::traits::TmpContains<Element, F>::value
+              && ( details::traits::TmpContains<Element, Fs>::value && ... )
 #endif
       {
 #ifndef __cpp_concepts
@@ -369,8 +370,8 @@ namespace pace {
       template<template<typename...> class F, template<typename...> class... Fs>
       BasicConfig& disable() & noexcept
 #ifdef __cpp_concepts
-        requires( details::traits::TmpContains<Element, F>::value
-                  && ( details::traits::TmpContains<Element, Fs>::value && ... ) )
+        requires details::traits::TmpContains<Element, F>::value
+              && ( details::traits::TmpContains<Element, Fs>::value && ... )
 #endif
       {
 #ifndef __cpp_concepts
@@ -389,8 +390,8 @@ namespace pace {
       template<template<typename...> class F, template<typename...> class... Fs>
       BasicConfig&& disable() && noexcept
 #ifdef __cpp_concepts
-        requires( details::traits::TmpContains<Element, F>::value
-                  && ( details::traits::TmpContains<Element, Fs>::value && ... ) )
+        requires details::traits::TmpContains<Element, F>::value
+              && ( details::traits::TmpContains<Element, Fs>::value && ... )
 #endif
       {
 #ifndef __cpp_concepts
@@ -414,7 +415,7 @@ namespace pace {
 
         using std::swap;
         swap( projection_, other.projection_ );
-        layout_type::swap( other );
+        layer_type::swap( other );
       }
       friend PACE__CXX23_CNSTXPR void swap( BasicConfig& a, BasicConfig& b ) noexcept { a.swap( b ); }
 

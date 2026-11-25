@@ -42,7 +42,7 @@ namespace pace {
               io::concat( console::resetcolor,
                           console::Dualcolor { this->info_forecolor_, this->info_backcolor_ } ) );
 
-            this->traits::BaseOf_t<typename Base::layout_type, Element>::build( pipeline, params );
+            this->traits::BaseOf_t<typename Base::layer_type, Element>::build( pipeline, params );
 
             if ( any_more<Elements...>() )
               pipeline << brush(
@@ -60,7 +60,7 @@ namespace pace {
         {}
         constexpr Assembler( Base&& config ) noexcept : Base( std::move( config ) ) {}
 
-        std::uint64_t fixed_width() const noexcept
+        PACE__NODISCARD std::uint64_t fixed_width() const noexcept
         {
           concurrent::SharedLock<concurrent::SharedMutex> lock { this->rw_mtx_ };
           std::size_t num_enabled = 0;
@@ -68,13 +68,13 @@ namespace pace {
           (void)std::initializer_list<bool> { (
             num_enabled += this->projection_.test( traits::TmpIndexIn<Facades, Facades...>::value ),
             width += ( this->projection_.test( traits::TmpIndexIn<Facades, Facades...>::value )
-                         ? this->traits::BaseOf_t<typename Base::layout_type, Facades>::fixed_width()
+                         ? this->traits::BaseOf_t<typename Base::layer_type, Facades>::fixed_width()
                          : 0 ),
             false )... };
           // Before the first element and the last element, we do not set a divider.
-          return width + this->traits::BaseOf_t<typename Base::layout_type, aspects::Prefix>::fixed_width()
-               + this->traits::BaseOf_t<typename Base::layout_type, aspects::Postfix>::fixed_width()
-               + this->traits::BaseOf_t<typename Base::layout_type, aspects::Segment>::fixed_width(
+          return width + this->traits::BaseOf_t<typename Base::layer_type, aspects::Prefix>::fixed_width()
+               + this->traits::BaseOf_t<typename Base::layer_type, aspects::Postfix>::fixed_width()
+               + this->traits::BaseOf_t<typename Base::layer_type, aspects::Segment>::fixed_width(
                  num_enabled );
         }
       };

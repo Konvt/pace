@@ -17,7 +17,7 @@ int main()
       pace::option::InfoForecolor( "#FFA500" ) );
   }
   {
-    for ( auto _ : pace::iterate<pace::BlockBar<>>(
+    for ( auto _ : pace::iterate_with<pace::BlockBar<>>(
             10000,
             []( pace::BlockBar<>& self ) {
               self.config().filler( "▇" ).filler_forecolor( pace::Color::Green );
