@@ -79,6 +79,8 @@ namespace pace {
 
     // Mark all the progress bars as completed.
     PACE__FORCEINLINE void finish() { package_.close(); }
+    // Mark all the progress bars as retired.
+    PACE__FORCEINLINE void retire() { package_.hide(); }
     // Abort all the progress bars.
     PACE__FORCEINLINE void abort() noexcept { package_.cancel(); }
 

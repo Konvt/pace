@@ -161,6 +161,22 @@ namespace pace {
 
   //////////////////////////////////////////////////
 
+  template<typename Config,
+           Channel Sink = Channel::Err,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
+           typename... Options>
+  PACE__NODISCARD auto auto_retire( Options&&... options ) ->
+#ifdef __cpp_concepts
+    AutoRetire<prefab::BasicBar<Config, Sink, Mode, Zone>>
+    requires details::traits::is_config<Config>::value && std::is_constructible<Config, Options...>::value
+#else
+    typename std::enable_if<details::traits::AllOf<details::traits::is_config<Config>,
+                                                   std::is_constructible<Config, Options...>>::value,
+                            AutoRetire<prefab::BasicBar<Config, Sink, Mode, Zone>>>::type
+#endif
+  { return { std::forward<Options>( options )... }; }
+
 #ifdef __cpp_deduction_guides
   template<typename Soul, Channel Sink, Policy Mode, Region Zone>
   AutoFinish( prefab::BasicBar<Soul, Sink, Mode, Zone>&& )
@@ -169,6 +185,10 @@ namespace pace {
   template<typename Soul, Channel Sink, Policy Mode, Region Zone, typename F>
   AutoFinishWith( prefab::BasicBar<Soul, Sink, Mode, Zone>&&, F&& )
     -> AutoFinishWith<prefab::BasicBar<Soul, Sink, Mode, Zone>, std::decay_t<F>>;
+
+  template<typename Soul, Channel Sink, Policy Mode, Region Zone>
+  AutoRetire( prefab::BasicBar<Soul, Sink, Mode, Zone>&& )
+    -> AutoRetire<prefab::BasicBar<Soul, Sink, Mode, Zone>>;
 #endif
 
   /**

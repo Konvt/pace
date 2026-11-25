@@ -14,14 +14,20 @@ namespace pace {
 #else
         unsigned char;
 #endif
-      using Bit8       = std::uint8_t; // a computable and addressable Byte type
+      using Bit8       = std::uint8_t; // a computable and addressable @ref Byte type
       using HexRGB     = std::uint32_t;
       using GlyphWidth = std::uint8_t; // value is between [0, 3]
 
-      // Used for parsing console::TrueColor and console::RGBValue.
+      // Used for parsing @ref console::TrueColor and @ref console::RGBValue.
       enum class Paint : std::uint8_t { None, Csi8, Xterm24bit };
 
-      enum class Expression : std::uint8_t {  };
+      // Used to indicate the current rendering result, see @ref behaviors::Renderable.
+      enum class Visage : std::uint8_t {
+        Existent,  ///< Rendering produced output and may continue.
+        Completed, ///< Rendering produced the final output.
+        Effaced,   ///< Rendering produced no output and is vanishing.
+        Extinct    ///< Rendering produced no output and has ceased.
+      };
     } // namespace types
   } // namespace details
 

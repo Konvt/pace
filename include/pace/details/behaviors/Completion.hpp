@@ -76,6 +76,30 @@ namespace pace {
 
         void reset() & noexcept { gate_.clear( std::memory_order_relaxed ); }
       };
+      template<typename Derived>
+      struct Retirement : public Iterable<Derived> {
+        PACE__FORCEINLINE void tick() &
+        {
+          auto& derived = static_cast<Derived&>( *this );
+          derived->tick();
+          if ( derived->completive() )
+            derived->retire();
+        }
+        PACE__FORCEINLINE void tick( std::uint64_t step ) &
+        {
+          auto& derived = static_cast<Derived&>( *this );
+          derived->tick( step );
+          if ( derived->completive() )
+            derived->retire();
+        }
+        PACE__FORCEINLINE void tick_to( std::uint8_t percentage ) &
+        {
+          auto& derived = static_cast<Derived&>( *this );
+          derived->tick_to( percentage );
+          if ( derived->completive() )
+            derived->retire();
+        }
+      };
     } // namespace behaviors
   } // namespace details
 } // namespace pace

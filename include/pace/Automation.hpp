@@ -160,12 +160,54 @@ namespace pace {
     //////////////////////////////////////////////////
 
     template<typename UI>
+    class AutoRetire
+      : public details::wrappers::UIView<UI>
+      , public details::behaviors::Iterable<AutoRetire<UI>> {
+    public:
+      constexpr AutoRetire( UI& ui ) noexcept : details::wrappers::UIView<UI>( ui ) {}
+
+#if !PACE__CXX17
+      AutoRetire( AutoRetire&& ) = default;
+#endif
+
+      AutoRetire( const AutoRetire& )            = delete;
+      AutoRetire& operator=( const AutoRetire& ) = delete;
+
+      PACE__FORCEINLINE void tick()
+      {
+        this->ui_.tick();
+        if ( this->ui_.completive() )
+          this->ui_.retire();
+      }
+      PACE__FORCEINLINE void tick( std::uint64_t step )
+      {
+        this->ui_.tick( step );
+        if ( this->ui_.completive() )
+          this->ui_.retire();
+      }
+      PACE__FORCEINLINE void tick_to( std::uint8_t percentage )
+      {
+        this->ui_.tick_to( percentage );
+        if ( this->ui_.completive() )
+          this->ui_.retire();
+      }
+    };
+
+    //////////////////////////////////////////////////
+
+    template<typename UI>
     AutoFinish<UI> auto_finish( UI& ui ) noexcept
     { return { ui }; }
     template<typename UI, typename F>
     // accept lvalue callback
     AutoFinishWith<UI, F> auto_finish( UI& ui, F&& callback )
     { return { ui, std::forward<F>( callback ) }; }
+
+    //////////////////////////////////////////////////
+
+    template<typename UI>
+    AutoRetire<UI> auto_retire( UI& ui ) noexcept
+    { return { ui }; }
   } // namespace views
 
   template<typename UI>
@@ -314,6 +356,67 @@ namespace pace {
 
   //////////////////////////////////////////////////
 
+  template<typename UI>
+  class AutoRetire
+    : public details::wrappers::UIBox<UI>
+    , public details::behaviors::Retirement<AutoRetire<UI>> {
+  public:
+    /// @param args It can be many option arguments, a config object or even a bar object.
+    template<typename... Args>
+    constexpr AutoRetire( Args&&... args ) noexcept( std::is_nothrow_constructible<UI, Args...>::value )
+#ifdef __cpp_concepts
+      requires std::is_constructible_v<UI, Args...>
+#endif
+      : details::wrappers::UIBox<UI>( std::forward<Args>( args )... )
+    {
+#ifndef __cpp_concepts
+      static_assert( std::is_constructible<UI, Args...>::value, "invalid arguments" );
+#endif
+    }
+
+    AutoRetire( AutoRetire&& )              = default;
+    AutoRetire& operator=( AutoRetire&& ) & = default;
+
+    operator views::AutoRetire<UI>() & noexcept { return { **this }; }
+  };
+  template<typename UI>
+  class AutoRetire<std::unique_ptr<UI>>
+    : public details::behaviors::Retirement<AutoRetire<std::unique_ptr<UI>>> {
+    std::unique_ptr<UI> ui_;
+
+  public:
+    PACE__CXX23_CNSTXPR AutoRetire( std::unique_ptr<UI>&& ui ) noexcept : ui_ { std::move( ui ) }
+    { PACE__ASSERT( ui_ != nullptr ); }
+
+    AutoRetire( AutoRetire&& )              = default;
+    AutoRetire& operator=( AutoRetire&& ) & = default;
+
+    UI& operator*() & noexcept { return *ui_; };
+    const UI& operator*() const& noexcept { return *ui_; }
+    UI&& operator*() && noexcept { return std::move( *ui_ ); };
+
+    UI* operator->() noexcept { return ui_.get(); }
+    const UI* operator->() const noexcept { return ui_.get(); }
+
+    operator views::AutoRetire<UI>() & noexcept { return { **this }; }
+  };
+
+#ifdef __cpp_deduction_guides
+  template<typename UI>
+  AutoRetire( std::unique_ptr<UI>&& ) -> AutoRetire<std::unique_ptr<UI>>;
+#endif
+
+  //////////////////////////////////////////////////
+
+  template<typename Bar, template<typename> class Automation, typename... Args>
+  PACE__NODISCARD constexpr Automation<Bar> auto_finish( Args&&... args )
+  {
+    static_assert( std::is_move_constructible<Automation<Bar>>::value
+                     && std::is_move_assignable<Automation<Bar>>::value,
+                   "cannot create an Automation of the view property" );
+    return { std::forward<Args>( args )... };
+  }
+
   /// @param args It can be many option arguments, a config object or even a bar object.
   template<typename Bar, typename... Args>
   PACE__NODISCARD PACE__FORCEINLINE constexpr auto auto_finish( Args&&... args ) ->
@@ -370,22 +473,36 @@ namespace pace {
     -> AutoFinishWith<std::unique_ptr<Bar>, typename std::decay<F>::type>
   { return { std::move( ui ), std::forward<F>( callback ) }; }
 
+  /// @param args It can be many option arguments, a config object or even a bar object.
+  template<typename Bar, typename... Args>
+  PACE__NODISCARD PACE__FORCEINLINE constexpr auto auto_retire( Args&&... args ) ->
+#ifdef __cpp_concepts
+    AutoRetire<Bar>
+    requires std::is_constructible_v<Bar, Args...>
+#else
+    typename std::enable_if<std::is_constructible<Bar, Args...>::value, AutoRetire<Bar>>::type
+#endif
+  { return auto_finish<Bar, AutoRetire>( std::forward<Args>( args )... ); }
+  template<typename Bar>
+  PACE__NODISCARD constexpr auto auto_retire( std::unique_ptr<Bar>&& ui ) -> AutoRetire<std::unique_ptr<Bar>>
+  { return { std::move( ui ) }; }
+
   //////////////////////////////////////////////////
 
-  template<typename Bar, typename N, typename... Options>
+  template<typename Bar, template<typename> class Automation = AutoFinish, typename N, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, N step, Options&&... options ) ->
 #ifdef __cpp_concepts
-    views::TrackedSpan<views::NumericSpan<N>, AutoFinish<Bar>>
+    views::TrackedSpan<views::NumericSpan<N>, Automation<Bar>>
     requires( std::is_arithmetic_v<N> && std::is_constructible_v<Bar, Options...> )
 #else
     typename std::enable_if<
       details::traits::AllOf<std::is_arithmetic<N>, std::is_constructible<Bar, Options...>>::value,
-      views::TrackedSpan<views::NumericSpan<N>, AutoFinish<Bar>>>::type
+      views::TrackedSpan<views::NumericSpan<N>, Automation<Bar>>>::type
 #endif
   {
     return {
       { startpoint, endpoint, step },
-      auto_finish<Bar>( std::forward<Options>( options )... )
+      auto_finish<Bar, Automation>( std::forward<Options>( options )... )
     };
   }
   template<typename Bar, typename N, typename Act, typename... Options>
@@ -414,7 +531,11 @@ namespace pace {
       auto_finish<Bar>( std::forward<Act>( act ), std::forward<Options>( options )... )
     };
   }
-  template<typename Bar, typename N, typename Proc, typename... Options>
+  template<typename Bar,
+           template<typename> class Automation = AutoFinish,
+           typename N,
+           typename Proc,
+           typename... Options>
   PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, N step, Proc&& op, Options&&... options )
 #ifdef __cpp_concepts
     requires( std::is_arithmetic_v<N> && std::is_constructible_v<Bar, Options...>
@@ -425,7 +546,7 @@ namespace pace {
                                                       details::traits::is_invocable<Proc&, N>>::value>::type
 #endif
   {
-    auto_finish<Bar>( std::forward<Options>( options )... )
+    auto_finish<Bar, Automation>( std::forward<Options>( options )... )
       .iterate( startpoint, endpoint, step, std::forward<Proc>( op ) );
   }
   template<typename Bar, typename N, typename Proc, typename Act, typename... Options>
@@ -441,35 +562,36 @@ namespace pace {
               && ( details::traits::is_invocable<std::decay_t<Act>&>::value
                    || details::traits::is_invocable<std::decay_t<Act>&, Bar&>::value ) )
 #else
-    -> typename std::enable_if<details::traits::AllOf<
-      std::is_arithmetic<N>,
-      std::is_constructible<Bar, Options...>,
-      details::traits::is_invocable<Proc&, N>,
-      details::traits::AnyOf<details::traits::is_invocable<typename std::decay<Act>::type&>,
-                             details::traits::is_invocable<typename std::decay<Act>::type&, Bar&>>>::value>::
-      type
+    -> typename std::enable_if<details::traits::AllOf<std::is_arithmetic<N>,
+                                                      std::is_constructible<Bar, Options...>,
+                                                      details::traits::is_invocable<Proc&, N>>::value>::type
 #endif
   {
+#ifndef __cpp_concepts
+    static_assert( details::traits::is_invocable<typename std::decay<Act>::type&>::value
+                     || details::traits::is_invocable<typename std::decay<Act>::type&, Bar&>::value,
+                   "unknown callback type" );
+#endif
     auto_finish<Bar>( std::forward<Act>( act ), std::forward<Options>( options )... )
       .iterate( startpoint, endpoint, step, std::forward<Proc>( op ) );
   }
 
   //////////////////////////////////////////////////
 
-  template<typename Bar, typename N, typename... Options>
+  template<typename Bar, template<typename> class Automation = AutoFinish, typename N, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N endpoint, N step, Options&&... options ) ->
 #ifdef __cpp_concepts
-    views::TrackedSpan<views::NumericSpan<N>, AutoFinish<Bar>>
+    views::TrackedSpan<views::NumericSpan<N>, Automation<Bar>>
     requires( std::is_floating_point_v<N> && std::is_constructible_v<Bar, Options...> )
 #else
     typename std::enable_if<
       details::traits::AllOf<std::is_floating_point<N>, std::is_constructible<Bar, Options...>>::value,
-      views::TrackedSpan<views::NumericSpan<N>, AutoFinish<Bar>>>::type
+      views::TrackedSpan<views::NumericSpan<N>, Automation<Bar>>>::type
 #endif
   {
     return {
       { {}, endpoint, step },
-      auto_finish<Bar>( std::forward<Options>( options )... )
+      auto_finish<Bar, Automation>( std::forward<Options>( options )... )
     };
   }
   template<typename Bar, typename N, typename Act, typename... Options>
@@ -494,7 +616,11 @@ namespace pace {
       auto_finish<Bar>( std::forward<Act>( act ), std::forward<Options>( options )... )
     };
   }
-  template<typename Bar, typename N, typename Proc, typename... Options>
+  template<typename Bar,
+           template<typename> class Automation = AutoFinish,
+           typename N,
+           typename Proc,
+           typename... Options>
   PACE__FORCEINLINE auto iterate( N endpoint, N step, Proc&& op, Options&&... options )
 #ifdef __cpp_concepts
     requires( std::is_floating_point_v<N> && std::is_constructible_v<Bar, Options...>
@@ -505,7 +631,7 @@ namespace pace {
                                                       details::traits::is_invocable<Proc&, N>>::value>::type
 #endif
   {
-    auto_finish<Bar>( std::forward<Options>( options )... )
+    auto_finish<Bar, Automation>( std::forward<Options>( options )... )
       .iterate( endpoint, step, std::forward<Proc>( op ) );
   }
   template<typename Bar, typename N, typename Proc, typename Act, typename... Options>
@@ -516,35 +642,36 @@ namespace pace {
               && ( details::traits::is_invocable<std::decay_t<Act>&>::value
                    || details::traits::is_invocable<std::decay_t<Act>&, Bar&>::value ) )
 #else
-    -> typename std::enable_if<details::traits::AllOf<
-      std::is_floating_point<N>,
-      std::is_constructible<Bar, Options...>,
-      details::traits::is_invocable<Proc&, N>,
-      details::traits::AnyOf<details::traits::is_invocable<typename std::decay<Act>::type&>,
-                             details::traits::is_invocable<typename std::decay<Act>::type&, Bar&>>>::value>::
-      type
+    -> typename std::enable_if<details::traits::AllOf<std::is_floating_point<N>,
+                                                      std::is_constructible<Bar, Options...>,
+                                                      details::traits::is_invocable<Proc&, N>>::value>::type
 #endif
   {
+#ifndef __cpp_concepts
+    static_assert( details::traits::is_invocable<typename std::decay<Act>::type&>::value
+                     || details::traits::is_invocable<typename std::decay<Act>::type&, Bar&>::value,
+                   "unknown callback type" );
+#endif
     auto_finish<Bar>( std::forward<Act>( act ), std::forward<Options>( options )... )
       .iterate( endpoint, step, std::forward<Proc>( op ) );
   }
 
   //////////////////////////////////////////////////
 
-  template<typename Bar, typename N, typename... Options>
+  template<typename Bar, template<typename> class Automation = AutoFinish, typename N, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, Options&&... options ) ->
 #ifdef __cpp_concepts
-    views::TrackedSpan<views::NumericSpan<N>, AutoFinish<Bar>>
+    views::TrackedSpan<views::NumericSpan<N>, Automation<Bar>>
     requires( std::is_integral_v<N> && std::is_constructible_v<Bar, Options...> )
 #else
     typename std::enable_if<
       details::traits::AllOf<std::is_integral<N>, std::is_constructible<Bar, Options...>>::value,
-      views::TrackedSpan<views::NumericSpan<N>, AutoFinish<Bar>>>::type
+      views::TrackedSpan<views::NumericSpan<N>, Automation<Bar>>>::type
 #endif
   {
     return {
       { startpoint, endpoint },
-      auto_finish<Bar>( std::forward<Options>( options )... )
+      auto_finish<Bar, Automation>( std::forward<Options>( options )... )
     };
   }
   template<typename Bar, typename N, typename Act, typename... Options>
@@ -570,7 +697,11 @@ namespace pace {
       auto_finish<Bar>( std::forward<Act>( act ), std::forward<Options>( options )... )
     };
   }
-  template<typename Bar, typename N, typename Proc, typename... Options>
+  template<typename Bar,
+           template<typename> class Automation = AutoFinish,
+           typename N,
+           typename Proc,
+           typename... Options>
   PACE__FORCEINLINE auto iterate( N startpoint, N endpoint, Proc&& op, Options&&... options )
 #ifdef __cpp_concepts
     requires( std::is_integral_v<N> && std::is_constructible_v<Bar, Options...>
@@ -581,7 +712,7 @@ namespace pace {
                                                       details::traits::is_invocable<Proc&, N>>::value>::type
 #endif
   {
-    auto_finish<Bar>( std::forward<Options>( options )... )
+    auto_finish<Bar, Automation>( std::forward<Options>( options )... )
       .iterate( startpoint, endpoint, std::forward<Proc>( op ) );
   }
   template<typename Bar, typename N, typename Proc, typename Act, typename... Options>
@@ -591,31 +722,32 @@ namespace pace {
               && ( details::traits::is_invocable<std::decay_t<Act>&>::value
                    || details::traits::is_invocable<std::decay_t<Act>&, Bar&>::value ) )
 #else
-    -> typename std::enable_if<details::traits::AllOf<
-      std::is_integral<N>,
-      std::is_constructible<Bar, Options...>,
-      details::traits::AnyOf<details::traits::is_invocable<typename std::decay<Act>::type&>,
-                             details::traits::is_invocable<typename std::decay<Act>::type&, Bar&>>>::value>::
-      type
+    -> typename std::enable_if<
+      details::traits::AllOf<std::is_integral<N>, std::is_constructible<Bar, Options...>>::value>::type
 #endif
   {
+#ifndef __cpp_concepts
+    static_assert( details::traits::is_invocable<typename std::decay<Act>::type&>::value
+                     || details::traits::is_invocable<typename std::decay<Act>::type&, Bar&>::value,
+                   "unknown callback type" );
+#endif
     auto_finish<Bar>( std::forward<Act>( act ), std::forward<Options>( options )... )
       .iterate( startpoint, endpoint, std::forward<Proc>( op ) );
   }
 
   //////////////////////////////////////////////////
 
-  template<typename Bar, typename N, typename... Options>
+  template<typename Bar, template<typename> class Automation = AutoFinish, typename N, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N endpoint, Options&&... options ) ->
 #ifdef __cpp_concepts
-    views::TrackedSpan<views::NumericSpan<N>, AutoFinish<Bar>>
+    views::TrackedSpan<views::NumericSpan<N>, Automation<Bar>>
     requires( std::is_integral_v<N> && std::is_constructible_v<Bar, Options...> )
 #else
     typename std::enable_if<
       details::traits::AllOf<std::is_integral<N>, std::is_constructible<Bar, Options...>>::value,
-      views::TrackedSpan<views::NumericSpan<N>, AutoFinish<Bar>>>::type
+      views::TrackedSpan<views::NumericSpan<N>, Automation<Bar>>>::type
 #endif
-  { return { { endpoint }, auto_finish<Bar>( std::forward<Options>( options )... ) }; }
+  { return { { endpoint }, auto_finish<Bar, Automation>( std::forward<Options>( options )... ) }; }
   template<typename Bar, typename N, typename Act, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( N endpoint, Act&& act, Options&&... options ) ->
 #ifdef __cpp_concepts
@@ -636,7 +768,11 @@ namespace pace {
     return { { endpoint },
              auto_finish<Bar>( std::forward<Act>( act ), std::forward<Options>( options )... ) };
   }
-  template<typename Bar, typename N, typename Proc, typename... Options>
+  template<typename Bar,
+           template<typename> class Automation = AutoFinish,
+           typename N,
+           typename Proc,
+           typename... Options>
   PACE__FORCEINLINE auto iterate( N endpoint, Proc&& op, Options&&... options )
 #ifdef __cpp_concepts
     requires( std::is_integral_v<N> && std::is_constructible_v<Bar, Options...>
@@ -646,7 +782,10 @@ namespace pace {
                                                       std::is_constructible<Bar, Options...>,
                                                       details::traits::is_invocable<Proc&, N>>::value>::type
 #endif
-  { auto_finish<Bar>( std::forward<Options>( options )... ).iterate( endpoint, std::forward<Proc>( op ) ); }
+  {
+    auto_finish<Bar, Automation>( std::forward<Options>( options )... )
+      .iterate( endpoint, std::forward<Proc>( op ) );
+  }
   template<typename Bar, typename N, typename Proc, typename Act, typename... Options>
   PACE__FORCEINLINE auto iterate( N endpoint, Proc&& op, Act&& act, Options&&... options )
 #ifdef __cpp_concepts
@@ -655,35 +794,40 @@ namespace pace {
               && ( details::traits::is_invocable<std::decay_t<Act>&>::value
                    || details::traits::is_invocable<std::decay_t<Act>&, Bar&>::value ) )
 #else
-    -> typename std::enable_if<details::traits::AllOf<
-      std::is_integral<N>,
-      std::is_constructible<Bar, Options...>,
-      details::traits::is_invocable<Proc&, N>,
-      details::traits::AnyOf<details::traits::is_invocable<typename std::decay<Act>::type&>,
-                             details::traits::is_invocable<typename std::decay<Act>::type&, Bar&>>>::value>::
-      type
+    -> typename std::enable_if<details::traits::AllOf<std::is_integral<N>,
+                                                      std::is_constructible<Bar, Options...>,
+                                                      details::traits::is_invocable<Proc&, N>>::value>::type
 #endif
   {
+#ifndef __cpp_concepts
+    static_assert( details::traits::is_invocable<typename std::decay<Act>::type&>::value
+                     || details::traits::is_invocable<typename std::decay<Act>::type&, Bar&>::value,
+                   "unknown callback type" );
+#endif
     auto_finish<Bar>( std::forward<Act>( act ), std::forward<Options>( options )... )
       .iterate( endpoint, std::forward<Proc>( op ) );
   }
 
   //////////////////////////////////////////////////
 
-  template<typename Bar, typename Itr, typename Snt, typename... Options>
+  template<typename Bar,
+           template<typename> class Automation = AutoFinish,
+           typename Itr,
+           typename Snt,
+           typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( Itr startpoint, Snt endpoint, Options&&... options ) ->
 #ifdef __cpp_concepts
-    views::TrackedSpan<views::IteratorSpan<Itr, Snt>, AutoFinish<Bar>>
+    views::TrackedSpan<views::IteratorSpan<Itr, Snt>, Automation<Bar>>
     requires( details::traits::is_sized_cursor<Itr, Snt>::value && std::is_constructible_v<Bar, Options...> )
 #else
     typename std::enable_if<details::traits::AllOf<details::traits::is_sized_cursor<Itr, Snt>,
                                                    std::is_constructible<Bar, Options...>>::value,
-                            views::TrackedSpan<views::IteratorSpan<Itr, Snt>, AutoFinish<Bar>>>::type
+                            views::TrackedSpan<views::IteratorSpan<Itr, Snt>, Automation<Bar>>>::type
 #endif
   {
     return {
       { std::move( startpoint ), std::move( endpoint ) },
-      auto_finish<Bar>( std::forward<Options>( options )... )
+      auto_finish<Bar, Automation>( std::forward<Options>( options )... )
     };
   }
   template<typename Bar, typename Itr, typename Snt, typename Act, typename... Options>
@@ -712,7 +856,12 @@ namespace pace {
       auto_finish<Bar>( std::forward<Act>( act ), std::forward<Options>( options )... )
     };
   }
-  template<typename Bar, typename Itr, typename Snt, typename Proc, typename... Options>
+  template<typename Bar,
+           template<typename> class Automation = AutoFinish,
+           typename Itr,
+           typename Snt,
+           typename Proc,
+           typename... Options>
   PACE__FORCEINLINE auto iterate( Itr startpoint, Snt endpoint, Proc&& op, Options&&... options )
 #ifdef __cpp_concepts
     requires( details::traits::is_sized_cursor<Itr, Snt>::value && std::is_constructible_v<Bar, Options...>
@@ -724,7 +873,7 @@ namespace pace {
       details::traits::is_invocable<Proc&, details::traits::IterReference_t<Itr>>>::value>::type
 #endif
   {
-    auto_finish<Bar>( std::forward<Options>( options )... )
+    auto_finish<Bar, Automation>( std::forward<Options>( options )... )
       .iterate( std::move( startpoint ), std::move( endpoint ), std::forward<Proc>( op ) );
   }
   template<typename Bar, typename Itr, typename Snt, typename Proc, typename Act, typename... Options>
@@ -738,31 +887,36 @@ namespace pace {
     -> typename std::enable_if<details::traits::AllOf<
       details::traits::is_sized_cursor<Itr, Snt>,
       std::is_constructible<Bar, Options...>,
-      details::traits::is_invocable<Proc&, details::traits::IterReference_t<Itr>>,
-      details::traits::AnyOf<details::traits::is_invocable<typename std::decay<Act>::type&>,
-                             details::traits::is_invocable<typename std::decay<Act>::type&, Bar&>>>::value>::
-      type
+      details::traits::is_invocable<Proc&, details::traits::IterReference_t<Itr>>>::value>::type
 #endif
   {
+#ifndef __cpp_concepts
+    static_assert( details::traits::is_invocable<typename std::decay<Act>::type&>::value
+                     || details::traits::is_invocable<typename std::decay<Act>::type&, Bar&>::value,
+                   "unknown callback type" );
+#endif
     auto_finish<Bar>( std::forward<Act>( act ), std::forward<Options>( options )... )
       .iterate( std::move( startpoint ), std::move( endpoint ), std::forward<Proc>( op ) );
   }
 
   //////////////////////////////////////////////////
 
-  template<typename Bar, class R, typename... Options>
+  template<typename Bar, template<typename> class Automation = AutoFinish, class R, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( R&& range, Options&&... options ) ->
 #ifdef __cpp_concepts
-    views::TrackedSpan<views::SizedSpan<std::remove_reference_t<R>>, AutoFinish<Bar>>
+    views::TrackedSpan<views::SizedSpan<std::remove_reference_t<R>>, Automation<Bar>>
     requires( details::traits::is_sized_range<R>::value
               && !std::ranges::view<std::remove_reference_t<R>> && std::is_constructible_v<Bar, Options...> )
 #else
     typename std::enable_if<
       details::traits::AllOf<details::traits::is_sized_range<R>,
                              std::is_constructible<Bar, Options...>>::value,
-      views::TrackedSpan<views::SizedSpan<typename std::remove_reference<R>::type>, AutoFinish<Bar>>>::type
+      views::TrackedSpan<views::SizedSpan<typename std::remove_reference<R>::type>, Automation<Bar>>>::type
 #endif
-  { return { { std::forward<R>( range ) }, auto_finish<Bar>( std::forward<Options>( options )... ) }; }
+  {
+    return { { std::forward<R>( range ) },
+             auto_finish<Bar, Automation>( std::forward<Options>( options )... ) };
+  }
   template<typename Bar, class R, typename Act, typename... Options>
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( R&& range, Act&& act, Options&&... options ) ->
 #ifdef __cpp_concepts
@@ -786,12 +940,12 @@ namespace pace {
              auto_finish<Bar>( std::forward<Act>( act ), std::forward<Options>( options )... ) };
   }
 #ifdef __cpp_concepts
-  template<typename Bar, class R, typename... Options>
+  template<typename Bar, template<typename> class Automation = AutoFinish, class R, typename... Options>
     requires( details::traits::is_sized_range<R>::value
               && std::ranges::view<R> && std::is_constructible_v<Bar, Options...> )
   PACE__NODISCARD PACE__FORCEINLINE auto iterate( R view, Options&&... options )
-    -> views::TrackedSpan<R, AutoFinish<Bar>>
-  { return { std::move( view ), auto_finish<Bar>( std::forward<Options>( options )... ) }; }
+    -> views::TrackedSpan<R, Automation<Bar>>
+  { return { std::move( view ), auto_finish<Bar, Automation>( std::forward<Options>( options )... ) }; }
   template<typename Bar, class R, typename Act, typename... Options>
     requires( details::traits::is_sized_range<R>::value
               && std::ranges::view<R> && std::is_constructible_v<Bar, Options...>
@@ -804,7 +958,11 @@ namespace pace {
              auto_finish<Bar>( std::forward<Act>( act ), std::forward<Options>( options )... ) };
   }
 #endif
-  template<typename Bar, class R, typename Proc, typename... Options>
+  template<typename Bar,
+           template<typename> class Automation = AutoFinish,
+           class R,
+           typename Proc,
+           typename... Options>
   PACE__FORCEINLINE auto iterate( R&& range, Proc&& op, Options&&... options )
 #ifdef __cpp_concepts
     requires( details::traits::is_sized_range<R>::value && std::is_constructible_v<Bar, Options...>
@@ -819,7 +977,7 @@ namespace pace {
         is_invocable<Proc&, details::traits::IterReference_t<details::traits::IteratorOf_t<R>>>>::value>::type
 #endif
   {
-    auto_finish<Bar>( std::forward<Options>( options )... )
+    auto_finish<Bar, Automation>( std::forward<Options>( options )... )
       .iterate( std::forward<R>( range ), std::forward<Proc>( op ) );
   }
   template<typename Bar, class R, typename Proc, typename Act, typename... Options>
@@ -829,14 +987,15 @@ namespace pace {
               && ( details::traits::is_invocable<std::decay_t<Act>&>::value
                    || details::traits::is_invocable<std::decay_t<Act>&, Bar&>::value ) )
 #else
-    -> typename std::enable_if<details::traits::AllOf<
-      details::traits::is_sized_range<R>,
-      std::is_constructible<Bar, Options...>,
-      details::traits::AnyOf<details::traits::is_invocable<typename std::decay<Act>::type&>,
-                             details::traits::is_invocable<typename std::decay<Act>::type&, Bar&>>>::value>::
-      type
+    -> typename std::enable_if<details::traits::AllOf<details::traits::is_sized_range<R>,
+                                                      std::is_constructible<Bar, Options...>>::value>::type
 #endif
   {
+#ifndef __cpp_concepts
+    static_assert( details::traits::is_invocable<typename std::decay<Act>::type&>::value
+                     || details::traits::is_invocable<typename std::decay<Act>::type&, Bar&>::value,
+                   "unknown callback type" );
+#endif
     auto_finish<Bar>( std::forward<Act>( act ), std::forward<Options>( options )... )
       .iterate( std::forward<R>( range ), std::forward<Proc>( op ) );
   }

@@ -55,19 +55,20 @@ namespace pace {
                        ostream << console::savecursor;
                        auto& screen      = console::Screen<Sink>::itself();
                        const auto height = screen.height();
-                       if ( height > 1 ) {
-                         if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
-                           ostream << console::nextline << io::setscroll( 1, height - 1 )
-                                   << console::restorecursor << console::cursordown << console::cursorup
-                                   << console::savecursor;
-                         else
-                           ostream << io::setscroll( 2, height ) << console::restorecursor
-                                   << console::cursorup << console::cursordown << console::savecursor;
-                       }
                        if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
-                         ostream << io::setline( height );
+                         ostream << io::when( height > 1,
+                                              io::concat( console::cursornext,
+                                                          console::cursorup,
+                                                          console::savecursor,
+                                                          io::setscroll( 1, height - 1 ) ) )
+                                 << io::setline( height );
                        else
-                         ostream << console::firstline;
+                         ostream << io::when( height > 1,
+                                              io::concat( console::cursorup,
+                                                          console::cursordown,
+                                                          console::savecursor,
+                                                          io::setscroll( 2, height ) ) )
+                                 << console::firstline;
                        (void)screen.vertical_alteration( height );
                      }
                    } else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
@@ -76,7 +77,7 @@ namespace pace {
                    static_cast<MostDerived*>( this )->prologue( ostream, !istty && config::auto_style_off() );
 
                    if ( istty ) {
-                     ostream << console::linewipe;
+                     ostream << console::eraseafter;
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
                        // Unlike the conventional mode,
                        // Top and Bottom render in a dedicated canvas area on the terminal interface,
@@ -85,9 +86,9 @@ namespace pace {
                        // making it unnecessary to output an extra newline character.
                        ostream << console::restorecursor;
                      else
-                       ostream << console::nextline;
+                       ostream << console::linefeed;
                    } else
-                     ostream << console::nextline;
+                     ostream << console::linefeed;
                    concurrent::atomic_commit_all( state_,
                                                   Phase::Awake,
                                                   Phase::Refresh,
@@ -106,26 +107,24 @@ namespace pace {
                        auto& screen          = console::Screen<Sink>::itself();
                        const auto height     = screen.height();
                        const auto old_height = screen.vertical_alteration( height );
-                       if ( height != old_height && height > 1 ) {
-                         if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
-                           ostream << io::setscroll( 1, height - 1 )
-                                   << io::when( height < old_height,
-                                                io::concat( console::restorecursor,
-                                                            console::cursordown,
-                                                            console::cursorup,
-                                                            console::savecursor ) );
-                         else
-                           ostream << io::setscroll( 2, height )
-                                   << io::when( height < old_height,
-                                                io::concat( console::restorecursor,
-                                                            console::cursorup,
-                                                            console::cursordown,
-                                                            console::savecursor ) );
-                       }
                        if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
-                         ostream << io::setline( height );
+                         ostream << io::when(
+                           height > 1,
+                           io::concat(
+                             io::when(
+                               height < old_height,
+                               io::concat( console::cursordown, console::cursorup, console::savecursor ) ),
+                             io::when( height != old_height, io::setscroll( 1, height - 1 ) ) ) )
+                                 << io::setline( height );
                        else
-                         ostream << console::firstline;
+                         ostream << io::when(
+                           height > 1,
+                           io::concat(
+                             io::when(
+                               height < old_height,
+                               io::concat( console::cursorup, console::cursordown, console::savecursor ) ),
+                             io::when( height != old_height, io::setscroll( 2, height ) ) ) )
+                                 << console::firstline;
                      }
                    } else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
                      (void)console::Screen<Sink>::itself().vertical_alteration( 0 );
@@ -134,13 +133,13 @@ namespace pace {
                                                                  !istty && config::auto_style_off() );
 
                    if ( istty ) {
-                     ostream << console::linewipe;
+                     ostream << console::eraseafter;
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
                        ostream << console::restorecursor;
                      else
-                       ostream << console::nextline;
+                       ostream << console::linefeed;
                    } else
-                     ostream << console::nextline;
+                     ostream << console::linefeed;
                    ostream << io::flush;
                  } break;
 
@@ -158,16 +157,36 @@ namespace pace {
 
                    static_cast<MostDerived*>( this )->epilogue( ostream, !istty && config::auto_style_off() );
 
-                   const auto hide_done = config::hide_completed();
                    if ( istty ) {
-                     ostream << io::when( hide_done, console::linestart ) << console::linewipe;
+                     ostream << console::eraseafter;
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
                        ostream << console::resetscroll << console::restorecursor;
                      else
-                       ostream << io::when( !hide_done, console::nextline );
+                       ostream << console::linefeed;
                    } else
-                     ostream << console::nextline;
+                     ostream << console::linefeed;
                    ostream << io::flush;
+                   concurrent::atomic_commit_all( state_, Phase::Stop, std::memory_order_release );
+                 } break;
+
+                 case Phase::Vanish: {
+                   if ( istty ) {
+                     if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
+                       ostream << console::restorecursor;
+                     else if PACE__CXX17_CNSTXPR ( Zone == Region::Relative )
+                       ostream << console::prevline;
+                     else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top ) {
+                       ostream << console::savecursor << console::resetscroll;
+                       if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
+                         ostream << io::setline( console::Screen<Sink>::height() );
+                       else
+                         ostream << console::firstline;
+                     }
+                     ostream << console::deleteline;
+                     if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
+                       ostream << console::restorecursor;
+                     ostream << io::flush;
+                   }
                    concurrent::atomic_commit_all( state_, Phase::Stop, std::memory_order_release );
                  } break;
 
@@ -186,11 +205,11 @@ namespace pace {
         render::Builder<Soul> config_;
         std::mutex mtx_;
         concurrent::Quiesce motion_;
-        enum class Phase : std::uint8_t { Stop, Awake, Refresh, Finish };
+        enum class Phase : std::uint8_t { Stop, Awake, Refresh, Finish, Vanish };
         std::atomic<Phase> state_ { Phase::Stop };
 
         // This method always assumes that the cursor is at the beginning of the line.
-        PACE__NODISCARD PACE__FORCEINLINE bool draw( io::CharPipeline& pipeline, bool style_off )
+        PACE__NODISCARD PACE__FORCEINLINE types::Visage draw( io::CharPipeline& pipeline, bool style_off )
         {
           auto guard = utils::make_scope_fail( [this]() noexcept {
             concurrent::atomic_commit_all( state_, Phase::Stop, std::memory_order_release );
@@ -200,15 +219,21 @@ namespace pace {
             static_cast<MostDerived*>( this )->prologue( pipeline, style_off );
             concurrent::atomic_commit_all( state_, Phase::Awake, Phase::Refresh, std::memory_order_release );
             break;
+
           case Phase::Refresh: static_cast<MostDerived*>( this )->monologue( pipeline, style_off ); break;
+
           case Phase::Finish:
             static_cast<MostDerived*>( this )->epilogue( pipeline, style_off );
             concurrent::atomic_commit_all( state_, Phase::Stop, std::memory_order_release );
-            break;
+            return types::Visage::Completed;
 
-          default: return false;
+          case Phase::Vanish:
+            concurrent::atomic_commit_all( state_, Phase::Stop, std::memory_order_release );
+            return types::Visage::Effaced;
+
+          default: return types::Visage::Extinct;
           }
-          return true;
+          return types::Visage::Existent;
         }
 
         template<Phase Next>
@@ -292,6 +317,9 @@ namespace pace {
         // Normal closing of the object, all the information that has been output will remain on the screen.
         // This method will attempt to render the progress bar at least one more time.
         void finish() final { do_reset<Phase::Finish>(); }
+        // Closing the object, erase the already output information if possible.
+        // This method will attempt to render the progress bar at least one more time.
+        void retire() final { do_reset<Phase::Vanish>(); }
         // Immediately shutdown the object, will not make any further output attempts.
         void abort() noexcept final { do_reset<Phase::Stop>(); }
 
