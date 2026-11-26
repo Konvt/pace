@@ -106,7 +106,7 @@ namespace pace {
 
 # ifdef __cpp_lib_ranges
         template<std::contiguous_iterator It, typename End>
-          requires std::sized_sentinel_for<End, It> && std::is_same_v<std::iter_value_t<It>, Char>
+          requires std::sized_sentinel_for<End, It> && std::same_as<std::iter_value_t<It>, Char>
                   && (!std::is_convertible_v<End, std::size_t>)
         PACE__CXX20_CNSTXPR BasicStringView( It first, End last )
           : data_ { std::to_address( first ) }, length_ { last - first }
@@ -114,8 +114,8 @@ namespace pace {
 # endif
 # ifdef __cpp_lib_containers_ranges
         template<std::ranges::contiguous_range R>
-          requires( !std::is_same_v<std::remove_cvref_t<R>, BasicStringView> )
-                 && std::ranges::sized_range<R> && std::is_same_v<std::ranges::range_value_t<R>, Char>
+          requires( !std::same_as<std::remove_cvref_t<R>, BasicStringView> )
+                 && std::ranges::sized_range<R> && std::same_as<std::ranges::range_value_t<R>, Char>
                  && ( !std::is_convertible_v<R, const_pointer> )
                  && (!requires( std::remove_cvref_t<R>& d ) { d.operator BasicStringView<Char, Traits>(); })
         PACE__CXX20_CNSTXPR explicit BasicStringView( R&& r )

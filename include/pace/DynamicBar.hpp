@@ -243,11 +243,11 @@ namespace pace {
    */
   template<typename Bar, typename... Objs>
   PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( std::size_t count, Objs&&... objs )
-#ifdef __cpp_concepts
+#ifdef __cpp_lib_concepts
     -> std::vector<std::unique_ptr<Bar>>
-    requires( ( std::is_same_v<Bar, std::decay_t<Objs>> && ... )
+    requires( ( std::same_as<Bar, std::decay_t<Objs>> && ... )
               && !( std::is_lvalue_reference_v<Objs&&> || ... ) )
-         || ( std::is_same<typename Bar::config_type, std::decay_t<Objs>>::value && ... )
+         || ( std::same_as<typename Bar::config_type, std::decay_t<Objs>> && ... )
 #else
     -> typename std::enable_if<
       details::traits::AnyOf<
@@ -294,10 +294,9 @@ namespace pace {
            Region Zone  = Region::Fixed,
            typename... Souls>
   PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( std::size_t count, Souls&&... cfgs )
-#ifdef __cpp_concepts
+#ifdef __cpp_lib_concepts
     -> std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>
-    requires details::traits::is_config<Config>::value
-          && ( std::is_same_v<Config, std::decay_t<Souls>> && ... )
+    requires details::traits::is_config<Config>::value && ( std::same_as<Config, std::decay_t<Souls>> && ... )
 #else
     -> typename std::enable_if<
       details::traits::AllOf<details::traits::is_config<Config>,
@@ -341,9 +340,9 @@ namespace pace {
            typename... Souls>
   PACE__NODISCARD PACE__FORCEINLINE auto make_dynamic( std::size_t count,
                                                        prefab::BasicBar<Souls, Sink, Mode, Zone>&&... bars )
-#ifdef __cpp_concepts
+#ifdef __cpp_lib_concepts
     -> std::vector<std::unique_ptr<prefab::BasicBar<Config, Sink, Mode, Zone>>>
-    requires( std::is_same_v<Config, std::decay_t<Souls>> && ... )
+    requires( std::same_as<Config, std::decay_t<Souls>> && ... )
 #else
     -> typename std::enable_if<
       details::traits::AllOf<std::is_same<Config, typename std::decay<Souls>::type>...>::value,

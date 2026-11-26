@@ -33,13 +33,19 @@
 # define PACE__NOINLINE
 #endif
 
+#if _MSC_VER >= 1929
+# define PACE__NO_UNIQUE_ADDR [[msvc::no_unique_address]]
+#else
+# define PACE__NO_UNIQUE_ADDR [[no_unique_address]]
+#endif
+
 #ifdef __has_builtin
 # define PACE__BUILTIN( builtin ) __has_builtin( builtin )
 #else
 # define PACE__BUILTIN( _ ) 0
 #endif
 
-#if defined( _MSC_VER ) && defined( _MSVC_LANG ) // for msvc
+#ifdef _MSVC_LANG // for msvc
 # define PACE__CC_STD _MSVC_LANG
 #else
 # define PACE__CC_STD __cplusplus
@@ -72,9 +78,17 @@
 #if PACE__CC_STD >= 202002L
 # define PACE__CXX20    1
 # define PACE__UNLIKELY [[unlikely]]
+
+# ifndef PACE__NO_UNIQUE_ADDR
+#  define PACE__NO_UNIQUE_ADDR [[no_unique_address]]
+# endif
 #else
 # define PACE__CXX20 0
 # define PACE__UNLIKELY
+
+# ifndef PACE__NO_UNIQUE_ADDR
+#  define PACE__NO_UNIQUE_ADDR
+# endif
 #endif
 #if PACE__CC_STD >= 201703L
 # define PACE__CXX17       1

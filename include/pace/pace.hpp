@@ -34,6 +34,7 @@
 # undef PACE__TRUST
 # undef PACE__ASSUME
 # undef PACE__CXX23_CNSTXPR
+# undef PACE__NO_UNIQUE_ADDR
 # undef PACE__NOINLINE
 # undef PACE__FORCEINLINE
 # undef PACE__NODISCARD

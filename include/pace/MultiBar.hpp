@@ -25,7 +25,6 @@ namespace pace {
     MultiBar() = default;
 
     template<typename Cfg, typename... Cfgs>
-    MultiBar( Cfg&& cfg, Cfgs&&... cfgs ) noexcept( sizeof...( Cfgs ) == sizeof...( Souls ) )
 #ifdef __cpp_concepts
       requires( sizeof...( Cfgs ) <= sizeof...( Souls ) )
            && details::traits::TpStartsWith<
@@ -33,6 +32,7 @@ namespace pace {
                 Soul,
                 Souls...>::value
 #endif
+    MultiBar( Cfg&& cfg, Cfgs&&... cfgs ) noexcept( sizeof...( Cfgs ) == sizeof...( Souls ) )
       : package_ { std::forward<Cfg>( cfg ), std::forward<Cfgs>( cfgs )... }
     {
 #ifndef __cpp_concepts
@@ -47,8 +47,6 @@ namespace pace {
     }
 
     template<typename Cfg, typename... Cfgs>
-    MultiBar( prefab::BasicBar<Cfg, S, M, Z>&& bar, prefab::BasicBar<Cfgs, S, M, Z>&&... bars )
-      noexcept( sizeof...( Cfgs ) == sizeof...( Souls ) )
 #ifdef __cpp_concepts
       requires( sizeof...( Cfgs ) <= sizeof...( Souls ) )
            && details::traits::TpStartsWith<
@@ -56,6 +54,8 @@ namespace pace {
                 Soul,
                 Souls...>::value
 #endif
+    MultiBar( prefab::BasicBar<Cfg, S, M, Z>&& bar, prefab::BasicBar<Cfgs, S, M, Z>&&... bars )
+      noexcept( sizeof...( Cfgs ) == sizeof...( Souls ) )
       : package_ { std::move( bar ), std::move( bars )... }
     {
 #ifndef __cpp_concepts
@@ -247,12 +247,12 @@ namespace pace {
    */
   template<typename Bar, std::size_t Cnt, typename... Objs>
   PACE__NODISCARD PACE__FORCEINLINE auto make_multi( Objs&&... objs ) noexcept( sizeof...( Objs ) == Cnt )
-#ifdef __cpp_concepts
+#ifdef __cpp_lib_concepts
     -> MultiBar_t<Bar, Cnt>
     requires( Cnt > 0 ) && ( sizeof...( Objs ) <= Cnt )
-         && ( ( ( std::is_same_v<Bar, std::decay_t<Objs>> && ... )
+         && ( ( ( std::same_as<Bar, std::decay_t<Objs>> && ... )
                 && !( std::is_lvalue_reference_v<Objs&&> || ... ) )
-              || ( std::is_same_v<typename Bar::config_type, std::decay_t<Objs>> && ... ) )
+              || ( std::same_as<typename Bar::config_type, std::decay_t<Objs>> && ... ) )
 #else
     -> typename std::enable_if<
       details::traits::AllOf<
@@ -279,10 +279,10 @@ namespace pace {
            Region Zone  = Region::Fixed,
            typename... Souls>
   PACE__NODISCARD PACE__FORCEINLINE auto make_multi( Souls&&... cfgs ) noexcept( sizeof...( Souls ) == Cnt )
-#ifdef __cpp_concepts
+#ifdef __cpp_lib_concepts
     -> MultiBar_t<prefab::BasicBar<Config, Sink, Mode, Zone>, Cnt>
     requires( Cnt > 0 ) && ( sizeof...( Souls ) <= Cnt ) && details::traits::is_config<Config>::value
-         && ( std::is_same_v<Config, std::decay_t<Souls>> && ... )
+         && ( std::same_as<Config, std::decay_t<Souls>> && ... )
 #else
     -> typename std::enable_if<
       details::traits::AllOf<details::traits::BoolConstant<( Cnt > 0 )>,
@@ -305,10 +305,10 @@ namespace pace {
            typename... Souls>
   PACE__NODISCARD PACE__FORCEINLINE auto make_multi( prefab::BasicBar<Souls, Sink, Mode, Zone>&&... bars )
     noexcept( sizeof...( Souls ) == Cnt )
-#ifdef __cpp_concepts
+#ifdef __cpp_lib_concepts
       -> MultiBar_t<prefab::BasicBar<Config, Sink, Mode, Zone>, Cnt>
     requires( Cnt > 0 ) && ( sizeof...( Souls ) <= Cnt )
-         && ( std::is_same_v<Config, std::decay_t<Souls>> && ... )
+         && ( std::same_as<Config, std::decay_t<Souls>> && ... )
 #else
       -> typename std::enable_if<
         details::traits::AllOf<details::traits::BoolConstant<( Cnt > 0 )>,
