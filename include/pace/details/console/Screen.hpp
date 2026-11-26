@@ -4,6 +4,7 @@
 #include "../core/Core.hpp"
 #include "../core/Platform.hpp"
 #include "../core/Types.hpp"
+#include "../io/OStream.hpp"
 #include "../utils/Backport.hpp"
 #include "../utils/Singleton.hpp"
 
@@ -19,14 +20,25 @@ namespace pace {
   namespace details {
     namespace console {
       template<Channel Sink>
-      class Screen final : public utils::Singleton<Screen<Sink>> {
+      class Screen final
+        : private io::OStream<Sink>
+        , public utils::Singleton<Screen<Sink>> {
+        template<typename>
+        friend class utils::Singleton;
+
         // It's internal components, and is only called by the rendering thread
         // (there is only one such thread), so atomic is not used.
-        std::uint16_t vertical_snapshot_ = 0;
+        std::uint16_t vertical_snapshot_;
+        bool renderable_snapshot_;
+
+        Screen() = default;
 
       public:
+        io::OStream<Sink>& ostream() noexcept { return *this; }
+        const io::OStream<Sink>& ostream() const noexcept { return *this; }
+
         // Detect whether the specified output stream is bound to a terminal.
-        PACE__NODISCARD static bool renderable() noexcept
+        PACE__NODISCARD static bool interactive() noexcept
         {
 #if defined( PACE_INTTY ) || PACE__UNKNOWN
           return true;
@@ -40,10 +52,12 @@ namespace pace {
 #endif
         }
 
+        // Record whether rendering should use interactive terminal controls.
+        void set_renderable( bool value ) noexcept { renderable_snapshot_ = value; }
+        PACE__NODISCARD bool renderable() const noexcept { return renderable_snapshot_; }
+
         PACE__NODISCARD static std::uint16_t width() noexcept
         {
-          if ( !renderable() )
-            return 0;
 #if PACE__WIN
           CONSOLE_SCREEN_BUFFER_INFO info;
           if ( GetConsoleScreenBufferInfo( sys::std_handle<Sink>(), &info ) )
@@ -61,8 +75,6 @@ namespace pace {
         }
         PACE__NODISCARD static std::uint16_t height() noexcept
         {
-          if ( !renderable() )
-            return 0;
 #if PACE__WIN
           CONSOLE_SCREEN_BUFFER_INFO info;
           if ( GetConsoleScreenBufferInfo( sys::std_handle<Sink>(), &info ) )

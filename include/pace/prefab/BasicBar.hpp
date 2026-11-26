@@ -104,13 +104,13 @@ namespace pace {
           && details::traits::is_routine<std::decay_t<F>,
                                          prefab::BasicBar<std::decay_t<Soul>, Sink, Mode, Zone>>::value
 #else
-    typename std::enable_if<details::traits::AllOf<
-      details::traits::is_config<typename std::decay<Soul>::type>,
-      details::traits::is_routine<typename std::decay<F>::type,
-                                  prefab::BasicBar<typename std::decay<Soul>::type, Sink, Mode, Zone>>>>::
-      value,
-    AutoFinishWith < prefab::BasicBar<typename std::decay<Soul>::type, Sink, Mode, Zone>,
-    typename std::decay<F>::type >> ::type
+    typename std::enable_if<
+      details::traits::AllOf<details::traits::is_config<typename std::decay<Soul>::type>,
+                             details::traits::is_routine<
+                               typename std::decay<F>::type,
+                               prefab::BasicBar<typename std::decay<Soul>::type, Sink, Mode, Zone>>>::value,
+      AutoFinishWith<prefab::BasicBar<typename std::decay<Soul>::type, Sink, Mode, Zone>,
+                     typename std::decay<F>::type>>::type
 #endif
   {
 #ifndef __cpp_concepts
@@ -124,9 +124,10 @@ namespace pace {
     AutoFinishWith<prefab::BasicBar<Soul, Sink, Mode, Zone>, typename std::decay<F>::type>
     requires details::traits::is_routine<std::decay_t<F>, prefab::BasicBar<Soul, Sink, Mode, Zone>>::value
 #else
-    typename std::enable_if<details::traits::is_routine<typename std::decay<F>::type,
-                                                        prefab::BasicBar<Soul, Sink, Mode, Zone>>>::value,
-    AutoFinishWith < prefab::BasicBar<Soul, Sink, Mode, Zone>, typename std::decay<F>::type >> ::type
+    typename std::enable_if<
+      details::traits::is_routine<typename std::decay<F>::type,
+                                  prefab::BasicBar<Soul, Sink, Mode, Zone>>::value,
+      AutoFinishWith<prefab::BasicBar<Soul, Sink, Mode, Zone>, typename std::decay<F>::type>>::type
 #endif
   { return { std::move( bar ), std::forward<F>( callback ) }; }
   template<typename Config,
@@ -145,8 +146,8 @@ namespace pace {
     typename std::enable_if<
       details::traits::AllOf<details::traits::is_config<Config>,
                              details::traits::is_routine<typename std::decay<F>::type,
-                                                         prefab::BasicBar<Soul, Sink, Mode, Zone>>>>::value,
-    AutoFinishWith < prefab::BasicBar<Config, Sink, Mode, Zone>, typename std::decay<F>::type >> ::type
+                                                         prefab::BasicBar<Config, Sink, Mode, Zone>>>::value,
+      AutoFinishWith<prefab::BasicBar<Config, Sink, Mode, Zone>, typename std::decay<F>::type>>::type
 #endif
   { return { std::forward<F>( callback ), std::forward<Options>( options )... }; }
 

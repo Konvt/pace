@@ -7,6 +7,7 @@ Checks: >
   -modernize-use-constraints,
   -modernize-use-scoped-lock,
   -modernize-use-designated-initializers,
+  -modernize-use-ranges,
   -modernize-type-traits,
   -modernize-concat-nested-namespaces,
   -modernize-avoid-c-arrays,

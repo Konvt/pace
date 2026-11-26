@@ -41,16 +41,13 @@ namespace pace {
        * the class still uses the method `write` of `std::ostream` in standard library.
        */
       template<Channel Sink>
-      class OStream final
-        : public CharPipeline
-        , public utils::Singleton<OStream<Sink>> {
-        friend utils::Singleton<OStream>;
-
+      class OStream : public CharPipeline {
 #if PACE__WIN && !defined( PACE_UTF8 )
         std::vector<WCHAR> wb_buffer_;
         std::vector<char> localized_;
 #endif
 
+      protected:
         OStream() noexcept
         {
           // Enable virtual terminal processing on the specified output channel (Windows only).
@@ -102,8 +99,6 @@ namespace pace {
             std::cerr.write( content.data(), content.size() ).flush();
 #endif
         }
-
-        ~OStream() = default;
 
 #if PACE__WIN && !defined( PACE_UTF8 )
         PACE__FORCEINLINE PACE__CXX23_CNSTXPR void reset() noexcept

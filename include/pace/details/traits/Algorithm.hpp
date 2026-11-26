@@ -7,6 +7,14 @@
 namespace pace {
   namespace details {
     namespace traits {
+      // Before CWG 2518 (P2593R1, adopted during the C++23 cycle),
+      // `static_assert( false )` in a template definition made the program
+      // ill-formed, no diagnostic required (IFNDR).
+      // For compatibility with compilers that have not implemented this DR,
+      // we still provide the following dependency expression.
+      template<typename...>
+      struct Contradiction : std::false_type {};
+
       template<std::size_t Nth, typename... Ts>
       struct TypeAt
 #if PACE__BUILTIN( __type_pack_element )

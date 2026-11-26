@@ -17,8 +17,8 @@ namespace pace {
     PACE__NODISCARD inline bool intty( Channel channel ) noexcept
     {
       if ( channel == Channel::Out )
-        return details::console::Screen<Channel::Out>::renderable();
-      return details::console::Screen<Channel::Err>::renderable();
+        return details::console::Screen<Channel::Out>::interactive();
+      return details::console::Screen<Channel::Err>::interactive();
     }
 
     PACE__NODISCARD inline std::uint16_t terminal_width( Channel channel ) noexcept

@@ -5,7 +5,6 @@
 #include "../concurrent/Quiesce.hpp"
 #include "../console/Escode.hpp"
 #include "../console/Screen.hpp"
-#include "../io/OStream.hpp"
 #include "../render/Builder.hpp"
 #include "../render/Renderer.hpp"
 #include <mutex>
@@ -32,20 +31,22 @@ namespace pace {
           PACE__ASSERT( executor.empty() == false );
           if ( !forced )
             executor.execute();
-          executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().reset(); } );
+          executor.dismiss_then( []() noexcept { console::Screen<Sink>::itself().ostream().reset(); } );
         }
         virtual void do_boot() &
         {
           auto& executor = render::Renderer<Sink>::itself();
           if ( !executor.try_appoint( [this]() {
                  // No exceptions are caught here, this should be done by the thread manager.
-                 auto& ostream    = io::OStream<Sink>::itself();
-                 const auto istty = console::Screen<Sink>::renderable();
+                 auto& screen  = console::Screen<Sink>::itself();
+                 auto& ostream = screen.ostream();
                  switch ( state_.load( std::memory_order_relaxed ) ) {
                  case Phase::Awake: {
-                   auto guard = utils::make_scope_fail( [this]() noexcept {
+                   auto guard       = utils::make_scope_fail( [this]() noexcept {
                      concurrent::atomic_commit_all( state_, Phase::Stop, std::memory_order_release );
                    } );
+                   const auto istty = screen.interactive();
+                   screen.set_renderable( istty );
                    if ( istty ) {
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed || Zone == Region::Relative ) {
                        ostream << console::linestart;
@@ -53,7 +54,6 @@ namespace pace {
                          ostream << console::savecursor;
                      } else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top ) {
                        ostream << console::savecursor;
-                       auto& screen      = console::Screen<Sink>::itself();
                        const auto height = screen.height();
                        if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
                          ostream << io::when( height > 1,
@@ -72,7 +72,7 @@ namespace pace {
                        (void)screen.vertical_alteration( height );
                      }
                    } else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
-                     (void)console::Screen<Sink>::itself().vertical_alteration( 0 );
+                     (void)screen.vertical_alteration( 0 );
 
                    static_cast<MostDerived*>( this )->prologue( ostream, !istty && config::auto_style_off() );
 
@@ -97,6 +97,7 @@ namespace pace {
                  } break;
 
                  case Phase::Refresh: {
+                   const auto istty = screen.renderable();
                    if ( istty ) {
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                        ostream << console::restorecursor;
@@ -104,7 +105,6 @@ namespace pace {
                        ostream << console::prevline;
                      else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top ) {
                        ostream << console::savecursor;
-                       auto& screen          = console::Screen<Sink>::itself();
                        const auto height     = screen.height();
                        const auto old_height = screen.vertical_alteration( height );
                        if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
@@ -127,7 +127,7 @@ namespace pace {
                                  << console::firstline;
                      }
                    } else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
-                     (void)console::Screen<Sink>::itself().vertical_alteration( 0 );
+                     (void)screen.vertical_alteration( 0 );
 
                    static_cast<MostDerived*>( this )->monologue( ostream,
                                                                  !istty && config::auto_style_off() );
@@ -144,13 +144,14 @@ namespace pace {
                  } break;
 
                  case Phase::Finish: {
+                   const auto istty = screen.renderable();
                    if ( istty ) {
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                        ostream << console::restorecursor;
                      else if PACE__CXX17_CNSTXPR ( Zone == Region::Relative )
                        ostream << console::prevline;
                      else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
-                       ostream << console::savecursor << io::setline( console::Screen<Sink>::height() );
+                       ostream << console::savecursor << io::setline( screen.height() );
                      else if PACE__CXX17_CNSTXPR ( Zone == Region::Top )
                        ostream << console::savecursor << console::firstline;
                    }
@@ -170,6 +171,7 @@ namespace pace {
                  } break;
 
                  case Phase::Vanish: {
+                   const auto istty = screen.renderable();
                    if ( istty ) {
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                        ostream << console::restorecursor;
@@ -178,7 +180,7 @@ namespace pace {
                      else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top ) {
                        ostream << console::savecursor << console::resetscroll;
                        if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
-                         ostream << io::setline( console::Screen<Sink>::height() );
+                         ostream << io::setline( screen.height() );
                        else
                          ostream << console::firstline;
                      }
@@ -196,7 +198,7 @@ namespace pace {
             PACE__UNLIKELY throw exception::StateError(
               charcodes::make_literal( "pace: another progress bar instance is already running" ) );
 
-          io::OStream<Sink>::itself() << io::reset; // reset the state.
+          console::Screen<Sink>::itself().ostream() << io::reset; // reset the state.
           auto guard = utils::make_scope_fail( [&executor]() noexcept { executor.dismiss(); } );
           executor.template activate<Mode>();
         }

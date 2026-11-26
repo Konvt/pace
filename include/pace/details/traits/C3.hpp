@@ -110,7 +110,7 @@ namespace pace {
                  typename /* NaturalList<...> */ Nums,
                  template<typename...> class K>
         struct FetchSub {
-          static_assert( sizeof( VBs ) == 0,
+          static_assert( Contradiction<VBs, Nums, TemplateList<K>>::value,
                          "invalid C3 merge state: expected node not found while updating tail counts" );
         };
         template<template<typename...> class... VBs,
@@ -189,7 +189,7 @@ namespace pace {
 
         template<typename /* Relation<...> */ VBs, typename /* NaturalList<...> */ Nums>
         struct TakeFeasible {
-          static_assert( sizeof( VBs ) == 0,
+          static_assert( Contradiction<VBs, Nums>::value,
                          "invalid C3 linearization: no feasible candidate; "
                          "the inheritance order may be inconsistent or cyclic" );
         };

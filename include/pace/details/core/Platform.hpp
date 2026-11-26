@@ -36,7 +36,7 @@ namespace pace {
 #else
       template<Channel Sink>
       void std_handle()
-      { static_assert( sizeof( Channel ) == 0, "Windows only" ); }
+      { static_assert( Contradiction<std::integral_constant<Channel, Sink>>::value, "Windows only" ); }
 #endif
     } // namespace sys
   } // namespace details

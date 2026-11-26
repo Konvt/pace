@@ -2,7 +2,7 @@
 #define PACE_STATIC_LAYOUT
 
 #include "../assets/PackagedBar.hpp"
-#include "../io/OStream.hpp"
+#include "../console/Screen.hpp"
 #include "../utils/Backport.hpp"
 #include "../utils/ScopeGuard.hpp"
 #include "../utils/Util.hpp"
@@ -178,7 +178,7 @@ Resurrection:
               state_.store( Phase::Finish, std::memory_order_release );
               executor.execute();
             }
-            executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().reset(); } );
+            executor.dismiss_then( []() noexcept { console::Screen<Sink>::itself().ostream().reset(); } );
           } else if ( !forced )
             executor.execute();
         }
@@ -190,10 +190,12 @@ Resurrection:
             if ( !executor.try_appoint( [this]() {
                    auto guard = utils::make_scope_fail(
                      [this]() noexcept { state_.store( Phase::Stop, std::memory_order_release ); } );
-                   auto& ostream    = io::OStream<Sink>::itself();
-                   const auto istty = console::Screen<Sink>::renderable();
+                   auto& screen  = console::Screen<Sink>::itself();
+                   auto& ostream = screen.ostream();
                    switch ( state_.load( std::memory_order_acquire ) ) {
                    case Phase::Awake: {
+                     const auto istty = screen.interactive();
+                     screen.set_renderable( istty );
                      if ( istty ) {
                        if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed || Zone == Region::Relative ) {
                          ostream << console::linestart;
@@ -201,7 +203,6 @@ Resurrection:
                            ostream << console::savecursor;
                        } else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top ) {
                          ostream << console::savecursor;
-                         auto& screen      = console::Screen<Sink>::itself();
                          const auto height = screen.height();
                          (void)screen.vertical_alteration( height );
                          if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
@@ -234,7 +235,7 @@ Resurrection:
                                                             console::firstline ) );
                        }
                      } else
-                       console::Screen<Sink>::itself().vertical_alteration( 0 );
+                       screen.vertical_alteration( 0 );
 
                      // Since the Renderer ensures that only one thread is performing rendering at any time,
                      // all access to stages_ always occurs within a same thread,
@@ -252,6 +253,7 @@ Resurrection:
 
                    case Phase::Refresh: {
                      std::uint16_t height = 0; // used only in Region::Bottom or Region::Top
+                     const auto istty     = screen.renderable();
                      if ( istty ) {
                        if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                          ostream << console::restorecursor;
@@ -260,7 +262,6 @@ Resurrection:
                            stages_.size() - std::count( stages_.cbegin(), stages_.cend(), Locus::Offstage ) );
                        else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top ) {
                          ostream << console::savecursor;
-                         auto& screen          = console::Screen<Sink>::itself();
                          height                = screen.height();
                          const auto old_height = screen.vertical_alteration( height );
                          if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
@@ -284,7 +285,7 @@ Resurrection:
                                    << console::firstline;
                        }
                      } else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
-                       (void)console::Screen<Sink>::itself().vertical_alteration( 0 );
+                       (void)screen.vertical_alteration( 0 );
 
                      do_schedule( ostream, istty );
 
@@ -303,6 +304,7 @@ Resurrection:
                    } break;
 
                    case Phase::Finish: {
+                     const auto istty = screen.renderable();
                      if ( istty ) {
                        if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                          ostream << console::restorecursor;
@@ -311,7 +313,7 @@ Resurrection:
                            stages_.size() - std::count( stages_.cbegin(), stages_.cend(), Locus::Offstage ) );
                        else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top ) {
                          ostream << console::savecursor;
-                         const auto height = console::Screen<Sink>::height();
+                         const auto height = screen.height();
                          if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
                            ostream << io::when( height > sizeof...( Configs ),
                                                 io::setscroll( height - sizeof...( Configs ) + 1, height ) )
@@ -340,7 +342,7 @@ Resurrection:
               PACE__UNLIKELY throw exception::StateError(
                 charcodes::make_literal( "pace: another progress bar instance is already running" ) );
 
-            io::OStream<Sink>::itself() << io::reset;
+            console::Screen<Sink>::itself().ostream() << io::reset;
             state_.store( Phase::Awake, std::memory_order_relaxed );
 
             auto guard = utils::make_scope_fail( [&]() noexcept {

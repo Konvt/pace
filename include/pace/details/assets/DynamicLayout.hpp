@@ -2,7 +2,6 @@
 #define PACE_DYNAMIC_LAYOUT
 
 #include "../console/Screen.hpp"
-#include "../io/OStream.hpp"
 #include "ManagedBar.hpp"
 
 namespace pace {
@@ -186,21 +185,20 @@ Portrayal:
             if ( !executor.try_appoint( [this]() {
                    auto guard = utils::make_scope_fail(
                      [this]() noexcept { state_.store( Phase::Stop, std::memory_order_release ); } );
-                   auto& ostream        = io::OStream<Sink>::itself();
-                   const auto istty     = console::Screen<Sink>::renderable();
-                   const auto style_off = !istty && config::auto_style_off();
+                   auto& screen         = console::Screen<Sink>::itself();
+                   auto& ostream        = screen.ostream();
                    std::uint16_t height = 0; // used only in Region::Bottom or Region::Top
-
                    switch ( state_.load( std::memory_order_relaxed ) ) {
                    case Phase::Awake: {
+                     const auto istty = screen.interactive();
+                     screen.set_renderable( istty );
                      if ( istty ) {
                        if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed || Zone == Region::Relative ) {
                          ostream << console::linestart;
                          if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                            ostream << console::savecursor;
                        } else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top ) {
-                         auto& screen = console::Screen<Sink>::itself();
-                         height       = screen.height();
+                         height = screen.height();
                          (void)screen.vertical_alteration( height );
                        }
                      }
@@ -230,9 +228,9 @@ Portrayal:
                                                               io::setscroll( items_.size() + 1, height ) ) )
                                      << console::firstline;
                          } else
-                           console::Screen<Sink>::itself().vertical_alteration( 0 );
+                           screen.vertical_alteration( 0 );
                        }
-                       do_schedule( ostream, istty, style_off );
+                       do_schedule( ostream, istty, !istty && config::auto_style_off() );
                      }
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
                        ostream << io::when( istty, console::restorecursor );
@@ -242,6 +240,7 @@ Portrayal:
                    } break;
 
                    case Phase::Refresh: {
+                     const auto istty        = screen.renderable();
                      // used only in Region::Bottom or Region::Top
                      std::size_t active_rows = 0, new_rows = 0;
                      std::uint16_t old_height = 0; // used only in Region::Bottom or Region::Top
@@ -292,9 +291,8 @@ Portrayal:
                              std::find_if( items_.crbegin(), items_.crend(), []( const Slot& slot ) noexcept {
                                return slot.stage != Locus::Backstage;
                              } ) );
-                           auto& screen = console::Screen<Sink>::itself();
-                           height       = screen.height();
-                           old_height   = screen.vertical_alteration( height );
+                           height     = screen.height();
+                           old_height = screen.vertical_alteration( height );
                            ostream << console::savecursor;
                            if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom ) {
                              ostream << io::when(
@@ -319,9 +317,9 @@ Portrayal:
                                      << console::firstline;
                          }
                        } else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
-                         (void)console::Screen<Sink>::itself().vertical_alteration( 0 );
+                         (void)screen.vertical_alteration( 0 );
 
-                       return do_schedule( ostream, istty, style_off );
+                       return do_schedule( ostream, istty, !istty && config::auto_style_off() );
                      }();
 
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top ) {
@@ -361,6 +359,7 @@ Portrayal:
                    } break;
 
                    case Phase::Finish: {
+                     const auto istty        = screen.renderable();
                      std::size_t active_rows = 0; // used only in Region::Bottom or Region::Top
                      if ( istty ) {
                        if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
@@ -375,7 +374,7 @@ Portrayal:
                            std::count_if( items_.cbegin(), items_.cend(), []( const Slot& slot ) noexcept {
                              return slot.stage != Locus::Offstage;
                            } );
-                         height = console::Screen<Sink>::height();
+                         height = screen.height();
                          ostream << console::savecursor;
                          if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom ) {
                            ostream << io::when( height > active_rows,
@@ -389,7 +388,7 @@ Portrayal:
                      }
                      const auto num_newlines = [&]() {
                        std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
-                       return do_schedule( ostream, istty, style_off );
+                       return do_schedule( ostream, istty, !istty && config::auto_style_off() );
                      }();
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top ) {
                        if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
@@ -417,7 +416,7 @@ Portrayal:
             } );
             items_.emplace_back( item );
 
-            io::OStream<Sink>::itself() << io::reset;
+            console::Screen<Sink>::itself().ostream() << io::reset;
             state_.store( Phase::Awake, std::memory_order_release );
             executor.template activate<Mode>();
             ++alive_cnt_;
@@ -463,7 +462,7 @@ Portrayal:
                 std::lock_guard<concurrent::SharedMutex> lock2 { res_mtx_ };
                 items_.clear();
               }
-              executor.dismiss_then( []() noexcept { io::OStream<Sink>::itself().reset(); } );
+              executor.dismiss_then( []() noexcept { console::Screen<Sink>::itself().ostream().reset(); } );
               return;
             }
             if ( !forced )
