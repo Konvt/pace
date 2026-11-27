@@ -4,6 +4,7 @@
 #include "Indicator.hpp"
 #include "details/behaviors/Completion.hpp"
 #include "details/behaviors/Iterable.hpp"
+#include "prefab/BasicBar.hpp"
 #include <memory>
 #include <type_traits>
 
@@ -286,10 +287,36 @@ namespace pace {
 
     operator views::AutoFinish<UI>() & noexcept { return { **this }; }
   };
+  template<typename UI>
+  class AutoFinish<std::shared_ptr<UI>>
+    : public details::behaviors::Completion<AutoFinish<std::shared_ptr<UI>>>
+    , public details::behaviors::LIterable<AutoFinish<std::shared_ptr<UI>>> {
+    std::shared_ptr<UI> ui_;
+
+  public:
+    PACE__CXX23_CNSTXPR AutoFinish( std::shared_ptr<UI> ui ) noexcept : ui_ { std::move( ui ) }
+    { PACE__ASSERT( ui_ != nullptr ); }
+
+    AutoFinish( const AutoFinish& )              = default;
+    AutoFinish& operator=( const AutoFinish& ) & = default;
+    AutoFinish( AutoFinish&& )                   = default;
+    AutoFinish& operator=( AutoFinish&& ) &      = default;
+
+    UI& operator*() & noexcept { return *ui_; };
+    const UI& operator*() const& noexcept { return *ui_; }
+    UI&& operator*() && noexcept { return std::move( *ui_ ); };
+
+    UI* operator->() noexcept { return ui_.get(); }
+    const UI* operator->() const noexcept { return ui_.get(); }
+
+    operator views::AutoFinish<UI>() & noexcept { return { **this }; }
+  };
 
 #ifdef __cpp_deduction_guides
   template<typename UI>
   AutoFinish( std::unique_ptr<UI>&& ) -> AutoFinish<std::unique_ptr<UI>>;
+  template<typename UI>
+  AutoFinish( std::shared_ptr<UI>&& ) -> AutoFinish<std::shared_ptr<UI>>;
 #endif
 
   //////////////////////////////////////////////////
@@ -375,10 +402,40 @@ namespace pace {
 
     operator views::AutoFinishWith<UI, Fn&>() & noexcept { return { *ui_, this->hook_ }; }
   };
+  template<typename UI, typename Fn>
+  class AutoFinishWith<std::shared_ptr<UI>, Fn>
+    : public details::wrappers::EventualRoutine<Fn>
+    , public details::behaviors::CompletionWith<AutoFinishWith<std::shared_ptr<UI>, Fn>>
+    , public details::behaviors::LIterable<AutoFinishWith<std::shared_ptr<UI>, Fn>> {
+    std::shared_ptr<UI> ui_;
+
+  public:
+    template<typename F>
+    PACE__CXX23_CNSTXPR AutoFinishWith( std::shared_ptr<UI> ui, F&& hook )
+      noexcept( std::is_nothrow_constructible<Fn, F>::value )
+      : details::wrappers::EventualRoutine<Fn>( std::forward<F>( hook ) ), ui_ { std::move( ui ) }
+    { PACE__ASSERT( ui_ != nullptr ); }
+
+    UI& operator*() & noexcept { return *ui_; };
+    const UI& operator*() const& noexcept { return *ui_; }
+    UI&& operator*() && noexcept { return std::move( *ui_ ); };
+
+    UI* operator->() noexcept { return ui_.get(); }
+    const UI* operator->() const noexcept { return ui_.get(); }
+
+    AutoFinishWith( const AutoFinishWith& )            = delete;
+    AutoFinishWith& operator=( const AutoFinishWith& ) = delete;
+    AutoFinishWith( AutoFinishWith&& )                 = default;
+    AutoFinishWith& operator=( AutoFinishWith&& ) &    = default;
+
+    operator views::AutoFinishWith<UI, Fn&>() & noexcept { return { *ui_, this->hook_ }; }
+  };
 
 #ifdef __cpp_deduction_guides
   template<typename UI, typename F>
   AutoFinishWith( std::unique_ptr<UI>&&, F&& ) -> AutoFinishWith<std::unique_ptr<UI>, std::decay_t<F>>;
+  template<typename UI, typename F>
+  AutoFinishWith( std::shared_ptr<UI>&&, F&& ) -> AutoFinishWith<std::shared_ptr<UI>, std::decay_t<F>>;
 #endif
 
   //////////////////////////////////////////////////
@@ -429,10 +486,36 @@ namespace pace {
 
     operator views::AutoRetire<UI>() & noexcept { return { **this }; }
   };
+  template<typename UI>
+  class AutoRetire<std::shared_ptr<UI>>
+    : public details::behaviors::Retirement<AutoRetire<std::shared_ptr<UI>>>
+    , public details::behaviors::LIterable<AutoRetire<std::shared_ptr<UI>>> {
+    std::shared_ptr<UI> ui_;
+
+  public:
+    PACE__CXX23_CNSTXPR AutoRetire( std::shared_ptr<UI> ui ) noexcept : ui_ { std::move( ui ) }
+    { PACE__ASSERT( ui_ != nullptr ); }
+
+    AutoRetire( const AutoRetire& )              = default;
+    AutoRetire& operator=( const AutoRetire& ) & = default;
+    AutoRetire( AutoRetire&& )                   = default;
+    AutoRetire& operator=( AutoRetire&& ) &      = default;
+
+    UI& operator*() & noexcept { return *ui_; };
+    const UI& operator*() const& noexcept { return *ui_; }
+    UI&& operator*() && noexcept { return std::move( *ui_ ); };
+
+    UI* operator->() noexcept { return ui_.get(); }
+    const UI* operator->() const noexcept { return ui_.get(); }
+
+    operator views::AutoRetire<UI>() & noexcept { return { **this }; }
+  };
 
 #ifdef __cpp_deduction_guides
   template<typename UI>
   AutoRetire( std::unique_ptr<UI>&& ) -> AutoRetire<std::unique_ptr<UI>>;
+  template<typename UI>
+  AutoRetire( std::shared_ptr<UI>&& ) -> AutoRetire<std::shared_ptr<UI>>;
 #endif
 
   //////////////////////////////////////////////////
@@ -518,10 +601,40 @@ namespace pace {
 
     operator views::AutoRetireWith<UI, Fn&>() & noexcept { return { *ui_, this->hook_ }; }
   };
+  template<typename UI, typename Fn>
+  class AutoRetireWith<std::shared_ptr<UI>, Fn>
+    : public details::wrappers::EventualRoutine<Fn>
+    , public details::behaviors::RetirementWith<AutoRetireWith<std::shared_ptr<UI>, Fn>>
+    , public details::behaviors::LIterable<AutoRetireWith<std::shared_ptr<UI>, Fn>> {
+    std::shared_ptr<UI> ui_;
+
+  public:
+    template<typename F>
+    PACE__CXX23_CNSTXPR AutoRetireWith( std::shared_ptr<UI> ui, F&& hook )
+      noexcept( std::is_nothrow_constructible<Fn, F>::value )
+      : details::wrappers::EventualRoutine<Fn>( std::forward<F>( hook ) ), ui_ { std::move( ui ) }
+    { PACE__ASSERT( ui_ != nullptr ); }
+
+    UI& operator*() & noexcept { return *ui_; };
+    const UI& operator*() const& noexcept { return *ui_; }
+    UI&& operator*() && noexcept { return std::move( *ui_ ); };
+
+    UI* operator->() noexcept { return ui_.get(); }
+    const UI* operator->() const noexcept { return ui_.get(); }
+
+    AutoRetireWith( const AutoRetireWith& )            = delete;
+    AutoRetireWith& operator=( const AutoRetireWith& ) = delete;
+    AutoRetireWith( AutoRetireWith&& )                 = default;
+    AutoRetireWith& operator=( AutoRetireWith&& ) &    = default;
+
+    operator views::AutoRetireWith<UI, Fn&>() & noexcept { return { *ui_, this->hook_ }; }
+  };
 
 #ifdef __cpp_deduction_guides
   template<typename UI, typename F>
   AutoRetireWith( std::unique_ptr<UI>&&, F&& ) -> AutoRetireWith<std::unique_ptr<UI>, std::decay_t<F>>;
+  template<typename UI, typename F>
+  AutoRetireWith( std::shared_ptr<UI>&&, F&& ) -> AutoRetireWith<std::shared_ptr<UI>, std::decay_t<F>>;
 #endif
 
   //////////////////////////////////////////////////
@@ -541,6 +654,10 @@ namespace pace {
   template<typename UI>
   PACE__NODISCARD PACE__FORCEINLINE constexpr auto auto_finish( std::unique_ptr<UI>&& ui )
     -> AutoFinish<std::unique_ptr<UI>>
+  { return { std::move( ui ) }; }
+  template<typename UI>
+  PACE__NODISCARD PACE__FORCEINLINE constexpr auto auto_finish( std::shared_ptr<UI> ui )
+    -> AutoFinish<std::shared_ptr<UI>>
   { return { std::move( ui ) }; }
 
   /// @param obj The bar object or the config object.
@@ -577,6 +694,14 @@ namespace pace {
                    "unknown callback type" );
     return { std::move( ui ), std::forward<F>( callback ) };
   }
+  template<typename UI, typename F>
+  PACE__NODISCARD constexpr auto auto_finish( std::shared_ptr<UI> ui, F&& callback )
+    -> AutoFinishWith<std::shared_ptr<UI>, typename std::decay<F>::type>
+  {
+    static_assert( details::traits::is_routine<typename std::decay<F>::type, UI>::value,
+                   "unknown callback type" );
+    return { std::move( ui ), std::forward<F>( callback ) };
+  }
 
   /// @param args It can be many option arguments, a config object or even a bar object.
   template<typename Bar, typename... Args>
@@ -590,6 +715,9 @@ namespace pace {
   { return { std::forward<Args>( args )... }; }
   template<typename Bar>
   PACE__NODISCARD constexpr auto auto_retire( std::unique_ptr<Bar>&& ui ) -> AutoRetire<std::unique_ptr<Bar>>
+  { return { std::move( ui ) }; }
+  template<typename Bar>
+  PACE__NODISCARD constexpr auto auto_retire( std::shared_ptr<Bar> ui ) -> AutoRetire<std::shared_ptr<Bar>>
   { return { std::move( ui ) }; }
 
   /// @param obj The bar object or the config object.
@@ -626,6 +754,170 @@ namespace pace {
                    "unknown callback type" );
     return { std::move( ui ), std::forward<F>( callback ) };
   }
+  template<typename UI, typename F>
+  PACE__NODISCARD constexpr auto auto_retire( std::shared_ptr<UI>&& ui, F&& callback )
+    -> AutoRetireWith<std::shared_ptr<UI>, typename std::decay<F>::type>
+  {
+    static_assert( details::traits::is_routine<typename std::decay<F>::type, UI>::value,
+                   "unknown callback type" );
+    return { std::move( ui ), std::forward<F>( callback ) };
+  }
+
+  //////////////////////////////////////////////////
+
+  template<Channel Sink = Channel::Err,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
+           typename Soul>
+  PACE__NODISCARD auto auto_finish( Soul&& cfg ) ->
+#ifdef __cpp_concepts
+    AutoFinish<prefab::BasicBar<std::decay_t<Soul>, Sink, Mode, Zone>>
+    requires details::traits::is_config<std::decay_t<Soul>>::value
+#else
+    typename std::enable_if<
+      details::traits::is_config<typename std::decay<Soul>::type>::value,
+      AutoFinish<prefab::BasicBar<typename std::decay<Soul>::type, Sink, Mode, Zone>>>::type
+#endif
+  { return { std::forward<Soul>( cfg ) }; }
+  template<typename Soul, Channel Sink, Policy Mode, Region Zone>
+  PACE__NODISCARD auto auto_finish( prefab::BasicBar<Soul, Sink, Mode, Zone>&& bar )
+    -> AutoFinish<prefab::BasicBar<Soul, Sink, Mode, Zone>>
+  { return { std::move( bar ) }; }
+  template<typename Config,
+           Channel Sink = Channel::Err,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
+           typename... Options>
+  PACE__NODISCARD auto auto_finish( Options&&... options ) ->
+#ifdef __cpp_concepts
+    AutoFinish<prefab::BasicBar<Config, Sink, Mode, Zone>>
+    requires details::traits::is_config<Config>::value && std::is_constructible_v<Config, Options...>
+#else
+    typename std::enable_if<details::traits::AllOf<details::traits::is_config<Config>,
+                                                   std::is_constructible<Config, Options...>>::value,
+                            AutoFinish<prefab::BasicBar<Config, Sink, Mode, Zone>>>::type
+#endif
+  { return { std::forward<Options>( options )... }; }
+
+  //////////////////////////////////////////////////
+
+  template<Channel Sink = Channel::Err,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
+           typename Soul,
+           typename F,
+           typename... Options>
+  PACE__NODISCARD auto auto_finish( Soul&& cfg, F&& callback ) ->
+#ifdef __cpp_concepts
+    AutoFinishWith<prefab::BasicBar<std::decay_t<Soul>, Sink, Mode, Zone>, typename std::decay<F>::type>
+    requires details::traits::is_config<std::decay_t<Soul>>::value
+          && details::traits::is_routine<std::decay_t<F>,
+                                         prefab::BasicBar<std::decay_t<Soul>, Sink, Mode, Zone>>::value
+#else
+    typename std::enable_if<
+      details::traits::AllOf<details::traits::is_config<typename std::decay<Soul>::type>,
+                             details::traits::is_routine<
+                               typename std::decay<F>::type,
+                               prefab::BasicBar<typename std::decay<Soul>::type, Sink, Mode, Zone>>>::value,
+      AutoFinishWith<prefab::BasicBar<typename std::decay<Soul>::type, Sink, Mode, Zone>,
+                     typename std::decay<F>::type>>::type
+#endif
+  {
+#ifndef __cpp_concepts
+    static_assert( details::traits::is_config<typename std::decay<Soul>::type>::value, "not a valid object" );
+#endif
+    return { std::forward<Soul>( cfg ), std::forward<F>( callback ) };
+  }
+  template<typename Soul, Channel Sink, Policy Mode, Region Zone, typename F, typename... Options>
+  PACE__NODISCARD auto auto_finish( prefab::BasicBar<Soul, Sink, Mode, Zone>&& bar, F&& callback ) ->
+#ifdef __cpp_concepts
+    AutoFinishWith<prefab::BasicBar<Soul, Sink, Mode, Zone>, typename std::decay<F>::type>
+    requires details::traits::is_routine<std::decay_t<F>, prefab::BasicBar<Soul, Sink, Mode, Zone>>::value
+#else
+    typename std::enable_if<
+      details::traits::is_routine<typename std::decay<F>::type,
+                                  prefab::BasicBar<Soul, Sink, Mode, Zone>>::value,
+      AutoFinishWith<prefab::BasicBar<Soul, Sink, Mode, Zone>, typename std::decay<F>::type>>::type
+#endif
+  { return { std::move( bar ), std::forward<F>( callback ) }; }
+  template<typename Config,
+           Channel Sink = Channel::Err,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
+           typename F,
+           typename... Options>
+  PACE__NODISCARD auto auto_finish( F&& callback, Options&&... options ) ->
+#ifdef __cpp_concepts
+    AutoFinishWith<prefab::BasicBar<Config, Sink, Mode, Zone>, typename std::decay<F>::type>
+    requires details::traits::is_config<Config>::value
+          && details::traits::is_routine<typename std::decay<F>::type,
+                                         prefab::BasicBar<Config, Sink, Mode, Zone>>::value
+#else
+    typename std::enable_if<
+      details::traits::AllOf<details::traits::is_config<Config>,
+                             details::traits::is_routine<typename std::decay<F>::type,
+                                                         prefab::BasicBar<Config, Sink, Mode, Zone>>>::value,
+      AutoFinishWith<prefab::BasicBar<Config, Sink, Mode, Zone>, typename std::decay<F>::type>>::type
+#endif
+  { return { std::forward<F>( callback ), std::forward<Options>( options )... }; }
+
+  //////////////////////////////////////////////////
+
+  template<typename Config,
+           Channel Sink = Channel::Err,
+           Policy Mode  = Policy::Async,
+           Region Zone  = Region::Fixed,
+           typename... Options>
+  PACE__NODISCARD auto auto_retire( Options&&... options ) ->
+#ifdef __cpp_concepts
+    AutoRetire<prefab::BasicBar<Config, Sink, Mode, Zone>>
+    requires details::traits::is_config<Config>::value && std::is_constructible_v<Config, Options...>
+#else
+    typename std::enable_if<details::traits::AllOf<details::traits::is_config<Config>,
+                                                   std::is_constructible<Config, Options...>>::value,
+                            AutoRetire<prefab::BasicBar<Config, Sink, Mode, Zone>>>::type
+#endif
+  { return { std::forward<Options>( options )... }; }
+
+#ifdef __cpp_deduction_guides
+  template<typename Soul, Channel Sink, Policy Mode, Region Zone>
+  AutoFinish( prefab::BasicBar<Soul, Sink, Mode, Zone>&& )
+    -> AutoFinish<prefab::BasicBar<Soul, Sink, Mode, Zone>>;
+
+  template<typename Soul, Channel Sink, Policy Mode, Region Zone, typename F>
+  AutoFinishWith( prefab::BasicBar<Soul, Sink, Mode, Zone>&&, F&& )
+    -> AutoFinishWith<prefab::BasicBar<Soul, Sink, Mode, Zone>, std::decay_t<F>>;
+
+  template<typename Soul, Channel Sink, Policy Mode, Region Zone>
+  AutoRetire( prefab::BasicBar<Soul, Sink, Mode, Zone>&& )
+    -> AutoRetire<prefab::BasicBar<Soul, Sink, Mode, Zone>>;
+#endif
+
+  /**
+   * A `Config`-based overload of `iterate` would normally be expected here,
+   * but we intentionally omit one for the following reasons:
+
+   * `iterate` does not express the *construction* of a progress bar.
+   * Instead, it uses the contents of the argument list to create a side-effect object
+   * (i.e. a progress bar object) for visualizing range traversal,
+   * and then immediately uses it.
+
+   * In principle, unless its returned `TrackedSpan` is explicitly stored,
+   * the generated side-effect object essentially satisfies the affine property
+   * (i.e. it is used at most once).
+
+   * Furthermore, since `BasicBar`'s constructor supports forwarding constructor arguments
+   * of `Config` types, this does not affect the resulting user experience.
+
+   * Additionally, providing such overloads would form a Cartesian product
+   * between different completion strategies and different range specifications,
+   * leading to combinatorial explosion.
+   * This would significantly increase the burden on overload resolution
+   * and consequently lengthen compile times, which is not worth the cost.
+
+   * Moreover, the parameter list required by the `Config`-based version would simply be too long
+   * compared to the concise `Bar`-based version.
+   */
 
   //////////////////////////////////////////////////
 

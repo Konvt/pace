@@ -23,9 +23,10 @@ namespace pace {
         if ( this->bar_width_ == 0 )
           return pipeline;
 
-        const auto brush        = details::io::when( !params.style_off && this->colorful() );
-        const auto len_finished = static_cast<std::size_t>( this->bar_width_ * params.progress_ratio );
-        const details::types::Float fraction = ( this->bar_width_ * params.progress_ratio ) - len_finished;
+        const auto progress                  = (std::min<details::types::Float>)( params.progress_ratio, 1 );
+        const auto brush                     = details::io::when( !params.style_off && this->colorful() );
+        const auto len_finished              = static_cast<std::size_t>( this->bar_width_ * progress );
+        const details::types::Float fraction = ( this->bar_width_ * progress ) - len_finished;
         PACE__TRUST( fraction >= 0.0 );
         PACE__TRUST( fraction <= 1.0 );
         const auto incomplete_block = static_cast<std::size_t>( fraction * this->lead_.size() );

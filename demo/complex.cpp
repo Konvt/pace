@@ -1,3 +1,4 @@
+#include "pace/Automation.hpp"
 #include "pace/BlockBar.hpp"
 #include "pace/MultiBar.hpp"
 #include "pace/ProgressBar.hpp"

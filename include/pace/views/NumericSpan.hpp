@@ -44,7 +44,7 @@ namespace pace {
       public:
         using iterator_category = std::random_access_iterator_tag;
         using value_type        = N;
-        using difference_type   = typename std::make_signed<value_type>::type;
+        using difference_type   = std::ptrdiff_t;
         using pointer           = value_type*;
         using reference         = value_type;
 

@@ -27,6 +27,9 @@ namespace pace {
     friend void config::auto_style_off( bool ) noexcept;
     friend bool config::auto_style_off() noexcept;
 
+  protected:
+    void swap( Indicator& ) const noexcept {}
+
   public:
     Indicator()                              = default;
     Indicator( const Indicator& )            = delete;

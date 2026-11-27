@@ -29,7 +29,9 @@ namespace pace {
         // It's internal components, and is only called by the rendering thread
         // (there is only one such thread), so atomic is not used.
         std::uint16_t vertical_snapshot_;
+#ifndef PACE_INTTY
         bool renderable_snapshot_;
+#endif
 
         Screen() = default;
 
@@ -53,8 +55,22 @@ namespace pace {
         }
 
         // Record whether rendering should use interactive terminal controls.
-        void set_renderable( bool value ) noexcept { renderable_snapshot_ = value; }
-        PACE__NODISCARD bool renderable() const noexcept { return renderable_snapshot_; }
+        void set_renderable( bool value ) noexcept
+        {
+#ifdef PACE_INTTY
+          (void)value;
+#else
+          renderable_snapshot_ = value;
+#endif
+        }
+        PACE__NODISCARD constexpr bool renderable() const noexcept
+        {
+#ifdef PACE_INTTY
+          return true;
+#else
+          return renderable_snapshot_;
+#endif
+        }
 
         PACE__NODISCARD static std::uint16_t width() noexcept
         {

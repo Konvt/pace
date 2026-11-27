@@ -1,3 +1,4 @@
+#include "pace/Automation.hpp"
 #include "pace/ProgressBar.hpp"
 #include <algorithm>
 #include <chrono>

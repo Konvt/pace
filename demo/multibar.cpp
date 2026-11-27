@@ -1,4 +1,5 @@
 #include "pace/MultiBar.hpp"
+#include "pace/Automation.hpp"
 #include "pace/BlockBar.hpp"
 #include "pace/FlowBar.hpp"
 #include <chrono>

@@ -7,13 +7,13 @@
   - [组件子功能](#组件子功能)
     - [Speed](#speed)
     - [Elapsed 与 ETA](#elapsed-与-eta)
-  - [范围迭代支持](#范围迭代支持)
+  - [迭代模型](#迭代模型)
+    - [自动标记完成](#自动标记完成)
+    - [Range-Based for 支持](#range-based-for-支持)
   - [进度条模板参数](#进度条模板参数)
     - [输出流](#输出流)
     - [渲染策略](#渲染策略)
     - [渲染位置](#渲染位置)
-  - [回调系统](#回调系统)
-  - [隐藏进度条](#隐藏进度条)
 - [组件差异](#组件差异)
   - [ProgressBar](#progressbar)
     - [元素构成](#元素构成)
@@ -51,7 +51,7 @@
   - [TrackedSpan](#trackedspan)
     - [成员方法](#成员方法-3)
     - [迭代器类型](#迭代器类型-3)
-  - [iterate](#iterate)
+  - [iterate 与 iterate\_with](#iterate-与-iterate_with)
 - [组合模型](#组合模型)
   - [模块化组件](#模块化组件)
   - [拼接新的配置类型](#拼接新的配置类型)
@@ -60,7 +60,7 @@
     - [自定义渲染](#自定义渲染)
 - [设计说明](#设计说明)
   - [断言检查](#断言检查)
-  - [线程安全、更新计数与任务总数一致性](#线程安全更新计数与任务总数一致性)
+  - [线程安全性](#线程安全性)
   - [进度条对象的生命周期](#进度条对象的生命周期)
   - [Unicode 支持](#unicode-支持)
   - [渲染器设计](#渲染器设计)
@@ -72,13 +72,15 @@
 
 # 公共规范
 ## 快速上手
-因为设计问题，pace 的*大部分进度条类型的接口都是类似的*，因此我们以 `pace::ProgressBar` 为例介绍如何使用 pace 的各种进度条类型。
+pace 的*大部分进度条类型所具有的方法都是类似的*，因此我们以 `pace::ProgressBar` 为例介绍如何使用 pace 的各种进度条类型。
 
 进度条是以执行一个固定数量大小的任务为目标设计的，因此几乎所有进度条类型都需要获取一个任务数量参数，然后调用 `tick()` 方法进行迭代。
 
 对于 `pace::ProgressBar` 和 `pace::BlockBar` 来说，不注入初始任务参数就调用 `tick()` 会抛出异常 `pace::exception::StateError`。
 
-pace 的所有进度条类型都是模板类型，但模板参数都被赋予了默认值，因此可以直接实例化一个空参数对象。
+并且进度条需要手动调用 `finish()` 或 `retire()` 或 `abort()` 方法关闭；进度条对象本身在析构时会自行调用 `abort()`。
+
+pace 的所有进度条类型都是模板类型，但它们都具有默认值，因此可以直接实例化一个空参数对象：
 
 ```cxx
 {
@@ -93,7 +95,7 @@ pace 的所有进度条类型都是模板类型，但模板参数都被赋予了
 }
 {
   pace::ProgressBar<> bar;
-  //  采用了数据与行为互相分离的设计，因此注入任务参数时必须调用 config() 方法访问内部的配置数据对象
+  // 进度条的数据与行为实现是分离的，因此注入任务参数时必须调用 config() 方法访问内部的配置数据对象
   bar.config().quota( 200 );
 
   bar.tick( 20 );    // 前进 20 步
@@ -101,6 +103,8 @@ pace 的所有进度条类型都是模板类型，但模板参数都被赋予了
 
   for ( int i = 0; i < 100; ++i )
     bar.tick(); // 每次调用仅前进 1 步
+
+  bar.finish(); // 关闭进度条
 }
 {
   // 除了调用 config() 方法，注入任务参数也可以通过构造时传递一个带有预期参数的包装类型完成
@@ -108,10 +112,19 @@ pace 的所有进度条类型都是模板类型，但模板参数都被赋予了
   // 注意：传递重复的参数会导致编译错误
   bar.tick_to( 20 );  // 将进度设置为 20%
   bar.tick_to( 130 ); // 超出 100% 的部分会被丢弃，并将进度条进度锁定到 100%
+  bar.finish();
 }
 ```
 
-如果想要检查进度条运行情况，或是强行终止进度条的运行，那么可以使用 `active()` 和 `reset()` 方法。
+三个用于关闭进度条的方法及其作用如下：
+
+- `finish()`：正常关闭，在进度条完全关闭之前保证至少再渲染一次进度条。
+- `retire()`：正常关闭，但会将已经输出的进度条信息从终端界面清除，不会再执行额外渲染。
+- `abort()`：强制关闭，立即关闭进度条且不做任何额外工作，非正常调用（例如对象被析构）可能会导致终端渲染效果异常；该方法满足 `noexcept`。
+
+以上三个方法均保证调用的幂等性。
+
+如果需要确认一个进度条是否正在运行，那么可以使用 `active()` 方法。
 
 ```cxx
 pace::ProgressBar<> bar { pace::option::Quota( 500 ) };
@@ -123,7 +136,8 @@ for ( int i = 0; i < 400; ++i ) {
 }
 
 assert( bar.progress() == 400 ); // 该方法可以获取进度条当前的迭代数
-bar.reset();
+assert( bar.completive() );      // 进度条也提供了直接判断进度是否完成的方法
+bar.finish();
 assert( bar.active() == false );
 ```
 
@@ -231,7 +245,7 @@ auto config4 = pace::config::Line() << pace::option::Quota( 114514 ) << pace::op
 ### 组件开关
 不难发现，一个进度条类型是由多个组件构成的，这些组件共同决定了一个进度条的形态。
 
-无论是哪种进度条类型，它的组件开关都可以使用 `pace::option::Only` 或 `pace::option::Except` 完成。
+无论是哪种进度条类型，它的组件开关都可以使用 `pace::option::Only` 或 `pace::option::Except` 完成；该操作仅在运行时关闭对应组件渲染，不影响组件实际仍然参与类型表达。
 
 `pace::option::Only` 的含义是：仅保留选中的若干个组件；`pace::option::Except` 的含义是：仅关闭选中的若干个组件。
 
@@ -324,13 +338,96 @@ pace 不要求 `pace::option::SpeedUnit` 的单位数量与倍率累计上限严
 
 如果传递的格式字符串不满足以上语法，或者包含重复时间单位，或者一个时间单位都没有，会抛出异常 `pace::exception::InvalidArgument`。
 
-## 范围迭代支持
-在处理一些可迭代类型、或者是数值范围的迭代任务时，pace 可以使用 `iterate` 方法将进度条接入到这些场景里。
+## 迭代模型
+[`Automation.hpp`](../include/pace/Automation.hpp) 定义了一组用于将进度条集成到 C++ 迭代机制的类型。
+### 自动标记完成
+pace 的进度条需要手动调用 `finish()` 或 `retire()` 关闭进度条，但在一些特殊场景下界定“最后一个使得进度条迭代结束”的位置会比较困难，例如多个线程并发更新同一个进度条对象，且该进度条对象仅能在这几个工作线程中被访问时。
 
-`iterate` 的使用与 Python 中的 `range` 函数类似，它可以同时在由数值指定的范围上进行遍历；进度条对象的任务数量会由 `iterate` 自动配置。
+因此 pace 提供了以下几个组件，用于自动检测进度并调用对应的方法：
+
+- `views::AutoFinish` 与 `AutoFinish`：自动调用 `finish()` 方法。
+- `views::AutoRetire` 与 `AutoRetire`：自动调用 `retire()` 方法。
+- `views::AutoFinishWith` 与 `AutoFinishWith`：允许绑定一个回调函数，在关闭进度条之前先执行该回调，然后再调用 `finish()`。
+- `views::AutoRetireWith` 与 `AutoRetireWith`：同上，但是调用 `retire()` 方法。
+
+其中位于名称空间 `views` 下的组件只允许绑定到一个已存在的进度条对象，且构造得到的代理对象本身不可移动且不可复制。
+
+为方便使用，pace 同时提供了几个重名的工厂函数：
+
+- `views::auto_finish` 与 `auto_finish`：根据参数形式决定返回对应名称空间下的 `AutoFinish` 或 `AutoFinishWith` 类型对象。
+- `views::auto_retire` 与 `auto_retire`：根据参数形式决定返回对应名称空间下的 `AutoRetire` 或 `AutoRetireWith` 类型对象。
+
+以上类型的析构函数均无实际作用，`views` 名称空间下的组件即使析构也不会自动关闭进度条；而非 `views` 名称空间下的组件在析构时会通过类成员析构调用进度条对象自己的析构函数，这会导致进度条调用 `abort()` 中断渲染过程。
+
+使用方式如下：
 
 ```cxx
 pace::ProgressBar<> bar;
+bar.config().quota( 100 );
+
+{ // 引用一个已存在的对象
+  {
+    auto proxy = pace::views::auto_finish( bar );
+    // 可以对 proxy 使用 operator* 得到对应的进度条对象引用
+    // 同时也能使用 operator-> 直接访问内部的进度条对象
+    assert( &bar == &( *proxy ) );
+    do
+      proxy.tick();
+    while ( proxy->active() );
+  }
+  {
+    auto with_callback = pace::views::auto_finish( bar, []( auto& self ) {
+      self.config().disable_all().prefix( "Everything done" );
+    } );
+    // callback 可以是无参函数，或者是一个接收被绑定进度条的类型本身的引用参数
+    do
+      with_callback.tick();
+    while ( with_callback->active() );
+
+    // 如果需要重复使用带回调的对象，必须先调用 reset() 方法重置内部状态变量
+    with_callback.reset();
+  }
+}
+{ // 直接构造一个持有对应进度条的对象
+  auto bar1 = pace::auto_finish<pace::ProgressBar<>>();
+  auto bar2 =
+    pace::auto_finish<pace::ProgressBar<>>( pace::option::Quota( 100 ), pace::option::Prefix( "..." ) );
+  auto bar3 = pace::auto_finish( pace::ProgressBar<>() );
+  auto bar4 = pace::auto_finish<pace::Channel::Out>( pace::config::Line() );
+
+  auto bar_with_callback1 =
+    // 构造一个不含默认配置的进度条
+    pace::auto_finish( pace::config::Line::raw(), []( auto& self ) { self.config().prefix( "Done" ); } );
+  auto bar_with_callback2 =
+    pace::auto_finish<pace::ProgressBar<>>( []( auto& self ) { self.config().prefix( "Done" ); },
+                                            pace::option::Quota( 100 ),
+                                            pace::option::Prefix( "..." ) );
+  // 可以移动一个已存在的对象
+  auto bar_with_callback3 =
+    pace::auto_finish( std::move( bar.config() ), []( auto& self ) { self.config().prefix( "Done" ); } );
+
+  // 我们特别允许了从 DynamicBar::insert 方法的返回值直接构造一个 Automation 对象
+  pace::DynamicBar<> factory;
+  // 实际上这里存储了一个 std::unique_ptr
+  auto bar_from_dbar = pace::auto_finish( factory.insert<pace::ProgressBar<>>() );
+
+  // 不过如果你有一个 std::shared_ptr 管理的进度条对象，pace 也能支持它：
+  auto shared_bar = pace::auto_finish( std::make_shared<pace::ProgressBar<>>() );
+  // 特别的，仅不带回调的 std::shared_ptr 版本的 Automation 对象允许 copy
+  // 其余 Automation 对象均只满足 move-only  
+}
+```
+
+`auto_retire` 的参数以及使用方式与 `auto_finish` 完全相同，此处不再重复介绍。
+### Range-Based for 支持
+在 Automation 类型的基础之上，pace 允许使用一个名为 `iterate` 的方法访问一些可迭代类型。
+
+`iterate` 的使用与 Python 中的 `range` 函数类似，它可以同时在由数值指定的范围上进行遍历；进度条对象的任务数量会由 `iterate` 自动配置。
+
+但该方法必须通过一个已存在的 Automation 对象才能访问：
+
+```cxx
+auto bar = pace::auto_finish<pace::ProgressBar<>>();
 
 // Iteration range: [100, 0), step: -1
 for ( auto num : bar.iterate( 100, 0, -1 ) ) {
@@ -342,12 +439,17 @@ for ( auto fnum : bar.iterate( -2.0, -0.01 ) ) {
 }
 // Iteration range: [0, 100), step: 1
 bar.iterate( 100, []( int ) { std::this_thread::sleep_for( 100ms ); } );
+
+// 对于不含回调的 views Automation 类型对象来说，还可以支持这种形式的调用：
+for ( auto num : pace::views::auto_finish( *bar ).iterate( 100 ) ) {
+  std::this_thread::sleep_for( 100ms );
+}
 ```
 
 除此之外，进度条对象也可以与满足概念 `std::ranges::sized_range`（不要求使用 C++20）的类型进行交互，例如 `std::vector` 和原始数组。
 
 ```cxx
-pace::ProgressBar<> bar;
+auto bar = pace::auto_finish<pace::ProgressBar<>>();
 
 std::vector<int> arr1 {
   0, 1, 2, 3, 4, 5, 6,
@@ -359,7 +461,7 @@ for ( auto& ele : bar.iterate( arr1.begin(), arr1.end() ) ) {
   std::this_thread::sleep_for( 300ms );
 }
 // 逆序遍历
-bar.iterate( arr2, []( int& ) { std::this_thread::sleep_for( 300ms ); } );
+bar.iterate( arr2 | std::views::reverse, []( int& ) { std::this_thread::sleep_for( 300ms ); } );
 ```
 
 如果满足 `std::ranges::sized_range` 约束，且使用 C++20 标准，那么 `iterate` 能够正确处理满足概念 `std::ranges::view` 的视图类型的引用生命周期。
@@ -372,12 +474,14 @@ pace 的所有进度条类型都是模板类型，它们需要三个模板参数
 ```cxx
 static_assert( std::is_same<pace::ProgressBar<>,
                             pace::ProgressBar<pace::Channel::Err>>::value,
-                "" );
+               "" );
 
 pace::ProgressBar<pace::Channel::Out> bar; // 绑定到 stdout 上
 ```
 
-pace 会在运行时动态检查指定的输出流是否真实地绑定在一个终端设备上；如果某个输出流并不导向终端，pace 会关闭字符渲染效果以及终端光标操纵。
+pace 会在运行时动态检查指定的输出流是否真实地绑定在一个终端设备上，但 pace 会假定在单个任务周期内（从进度条启动到关闭这段时间），输出流的指向不发生改变。
+
+如果某个输出流并不导向终端，pace 会关闭字符渲染效果以及终端光标操纵。
 
 具体来说，当 pace 发现指定的输出流并不指向一个终端时（可以使用 `pace::config::intty( pace::Channel )` 函数检查），首先会在渲染时关闭所有终端光标操纵序列，然后检查 `pace::config::auto_style_off()` 函数的返回值。若 `pace::config::auto_style_off()` 返回 `true`，pace 会关闭字符渲染效果，此时输出的进度条就是一个纯文本；否则输出的进度条依然会保留为终端渲染设计的字符渲染序列。
 
@@ -426,7 +530,7 @@ bar.tick(); // Ok!
 ```cxx
 static_assert( std::is_same<pace::ProgressBar<>,
                             pace::ProgressBar<pace::Channel::Err, pace::Policy::Async>>::value,
-                "" );
+               "" );
 
 pace::ProgressBar<pace::Channel::Err, pace::Policy::Sync> bar; // 使用同步渲染
 ```
@@ -443,8 +547,6 @@ pace::ProgressBar<pace::Channel::Err, pace::Policy::Sync> bar; // 使用同步�
 
 > 进度条的布局高度可以通过 `layout_height()` 方法获取；当进度条不活跃时会返回 0。
 
-使用 `pace::Region::Relative` 模式同时输出进度条以及自定义信息时，一般必须配合使用 `pace::Policy::Signal` 或 `pace::Policy::Sync`，否则会因为异步渲染机制导致终端滚动。
-
 ```cxx
 pace::ProgressBar</* any channel */, pace::Policy::Signal, pace::Region::Relative> bar;
 bar.config().quota( 100 );
@@ -459,39 +561,6 @@ std::cerr << "Extra log information\n\n" << std::flush;
 while ( bar.active() )
   bar.tick();
 ```
-
-## 回调系统
-pace 的所有进度条类型都提供了一个 `action` 方法，该方法可以接收或清除一个 `void()` 或 `void( /* Bar Type */& )` 类型的函数回调。
-
-这个回调会在进度条对象调用 `reset()` 方法时、终止进度条渲染（`active()` 函数返回值从 `true` 切换为 `false`）**之前**被调用。
-
-同样的，如果进度条正常运行且正常终止，那么进度条类型会在内部自己调用 `reset()` 方法，此时回调函数依然会在进度条终止之前被调用。
-
-支持 `action` 的进度条对象都包含了 `operator<<` 重载，可以使用该运算符直接传递回调。
-
-```cxx
-pace::ProgressBar<> bar;
-bool flag = true;
-auto callback = [&]( pace::ProgressBar<>& self ) {
-  if ( flag )
-    self.config().prefix( "✔ Mission Accomplished" ).prefix_forecolor( pace::Color::Green );
-  else
-    self.config().prefix( "❌ Mission failed" ).prefix_forecolor( pace::Color::Red );
-};
-
-bar.action( callback );
-// or
-bar << callback;
-```
-
-传递的回调函数类型必须满足 `std::is_move_constructible`；而且**绝对不应该**在回调内部调用*修改进度条对象自身状态*的方法（例如 `tick` 或 `reset`，但 `config` 除外），否则会导致*死锁*。
-
-如果希望手动终止对象运行、并且跳过回调函数的执行，可以调用对象的 `abort` 方法；而且对象析构导致的渲染终止也不会执行预设的回调函数。
-
-## 隐藏进度条
-pace 允许自动隐藏已经完成的进度条字符串。当函数 `pace::config::hide_completed()` 返回 `true` 时，只要进度条的 `active()` 方法从 `true` 变为 `false`，且指定输出流绑定到终端上，那么这个已完成的进度条会被立即隐藏。
-
-可以调用 `pace::config::hide_completed( bool )` 修改实际行为，默认值是 `false`。
 
 # 组件差异
 ## ProgressBar
@@ -953,12 +1022,14 @@ for ( size_t i = 0; i < bar.layout_height(); ++i )
 std::cerr << std::flush;
 
 bar.at<2>().tick();
-while ( bar.at<0>().active() )
+for ( int i = 0; i < 5; ++i )
   bar.at<0>().tick();
-while ( bar.at<1>().active() )
+for ( int i = 0; i < 55; ++i )
   bar.at<1>().tick();
-while ( bar.at<2>().active() )
+for ( int i = 0; i < 199; ++i )
   bar.at<2>().tick();
+
+bar.finish(); // 一次关闭所有进度条
 ```
 ### 元组协议
 `pace::MultiBar` 为标准库的 `std::tuple_element` 和 `std::tuple_size` 提供了特化实现，同时提供了 `get` 的重载版本；因此可以将 `pace::MultiBar` 视作是一个特殊版本的 `std::tuple`。
@@ -1008,17 +1079,19 @@ std::vector<std::thread> pool;
   pool.emplace_back( [&bar1]() {
     bar1->config().prefix( "No.1" ).quota( 1919810 );
     std::this_thread::sleep_for( std::chrono::seconds( 5 ) );
-    do {
+    for ( int i = 0; i < 1919810; ++i ) {
       bar1->tick();
       std::this_thread::sleep_for( std::chrono::milliseconds( 5 ) );
-    } while ( bar1->active() );
+    }
+    bar1->finish();
   } );
   pool.emplace_back( [&bar2]() {
     std::this_thread::sleep_for( std::chrono::seconds( 3 ) );
-    do {
+    for ( int i = 0; i < 8000; ++i ) {
       bar2->tick();
       std::this_thread::sleep_for( std::chrono::microseconds( 900 ) );
-    } while ( bar2->active() );
+    }
+    bar2->finish();
   } );
   pool.emplace_back( [&dbar]() {
     auto bar =
@@ -1027,7 +1100,7 @@ std::vector<std::thread> pool;
       bar->tick();
       std::this_thread::sleep_for( std::chrono::milliseconds( 5 ) );
     }
-    bar->reset();
+    bar->finish();
 
     // "No.3" 将会重新出现在终端的底部
     for ( int i = 0; i < 400; ++i ) {
@@ -1110,17 +1183,22 @@ for ( size_t i = 0; i < dbar.layout_height(); ++i )
 std::cerr << std::flush;
 
 bar3->tick();
-while ( bar1->active() )
+for ( int i = 0; i < 5; ++i )
   bar1->tick();
+for ( int i = 0; i < 55; ++i )
 while ( bar2->active() )
   bar2->tick();
-while ( bar3->active() )
+for ( int i = 0; i < 199; ++i )
   bar3->tick();
+
+bar1->finish();
+bar2->finish();
+bar3->finish();
 ```
 
-需要注意的是，所有与 `DynamicBar` 相关联的进度条对象的**所有权**都不属于 `DynamicBar`，因此与 `MultiBar` 不同，`DynamicBar` 无法提供一个可靠的全局性 `reset()` 或 `abort()` 方法支持。
+需要注意的是，所有与 `DynamicBar` 相关联的进度条对象的**所有权**都不属于 `DynamicBar`，因此与 `MultiBar` 不同，`DynamicBar` 无法提供一个可靠的全局性 `finish()` 或 `retire()` 或 `abort()` 方法支持。
 
-如果需要同时关闭所有已启动进度条，必须手动跟踪这些进度条并逐一调用 `reset()` 或 `abort()`，当然尝试关闭一个已经关闭的进度条是安全的，只要不违反[并发调用约束](#线程安全更新计数与任务总数一致性)。
+如果需要同时关闭所有已启动进度条，必须手动跟踪这些进度条并逐一调用对应的方法，当然尝试关闭一个已经关闭的进度条是安全的，只要不违反[并发调用约束](#线程安全更新计数与任务总数一致性)。
 
 ## NumericSpan
 `pace::views::NumericSpan` 是一个模板类型，它被用于表达一个数值范围的起始点、终止点和步长；该数值范围在数学上被表示为：`[start, end)`。
@@ -1161,9 +1239,9 @@ int arr1[50] = {};
 std::vector<int> arr2;
 
 try {
- auto reverse_span1 = pace::views::IteratorSpan<int*>( arr1 + 49, arr1 - 1 );
+  auto reverse_span1 = pace::views::IteratorSpan<int*>( arr1 + 49, arr1 - 1 );
 } catch ( const pace::exception::InvalidArgument& ) {
- // ...
+  // ...
 }
 auto reverse_span2 =
  pace::views::IteratorSpan<std::reverse_iterator<std::vector<int>::iterator>>( arr2.rbegin(),
@@ -1205,25 +1283,21 @@ void swap( SizedSpan& ) noexcept; // 交换两个抽象范围
 
 `pace::views::TrackedSpan` 只能接受一个满足概念 `std::ranges::sized_range` 的*视图类型*对象，和一个进度条对象；它的作用是为了简化进度条实例与 Enhanced-for 等需要使用迭代器的场景的交互。
 
-这是一个 move-only 的特殊类型，它只应该被工厂函数，如进度条的 `iterate` 方法，构造并返回，而不应该手动构造。
+这是一个特殊类型，它只应该被工厂函数，如进度条的 `iterate` 方法，构造并返回，而不应该手动构造。
 
 调用 `pace::views::TrackedSpan` 的 `begin` 方法会导致副作用：`pace::views::TrackedSpan` 对象将尝试根据内部的抽象范围大小，对其引用的进度条实例设置任务数量。
 ### 成员方法
 `pace::views::TrackedSpan` 有以下几个方法：
 
 ```cxx
-/* iterator */ begin() &;          // 为内部的进度条实例赋值，并返回起始迭代器
-/* sentinel */ end() const;        // 返回终止迭代器
-bool empty() const noexcept;       // 检查当前对象是否指向了一个有效的进度条实例
-explicit operator bool() noexcept; // 检查当前对象是否非空
-
-void swap( TrackedSpan& ) noexcept; // 交换两个代理范围
+/* iterator */ begin() &;   // 为内部的进度条实例赋值，并返回起始迭代器
+/* sentinel */ end() const; // 返回终止迭代器
 ```
 ### 迭代器类型
 `pace::views::TrackedSpan::iterator` 属于前向迭代器，该迭代器的自增运算符会尝试调用与之绑定的进度条实例的 `tick()` 方法，因此会在意料之外的场景触发副作用。
 
-## iterate
-`iterate` 是一系列模板函数的重载名称，它是 pace 的进度条类型的 `iterate` 方法的包装接口。
+## iterate 与 iterate_with
+`iterate` 和 `iterate_with` 是一系列模板函数的重载名称，它是 pace 的进度条类型的 `iterate` 方法的包装接口。
 
 这个函数允许不显式构造一个进度条对象，同时使用进度条的 `iterate` 方法可视化一个迭代进度过程。
 
@@ -1234,36 +1308,36 @@ void swap( TrackedSpan& ) noexcept; // 交换两个代理范围
 pace::iterate<pace::ProgressBar<>>( 100, 0, -1, []( int ) { std::this_thread::sleep_for( 100ms ); } );
 
 // Iteration range: [0.0, -2.0), step: -0.01
-pace::iterate<pace::config::Line>(
- -2.0,
- -0.01,
- []( int ) { std::this_thread::sleep_for( 100ms ); },
- pace::option::InfoForecolor( "#FFDD88" ),
- pace::option::Prefix( "Iterating..." ) );
+pace::iterate<pace::ProgressBar<>>(
+  -2.0,
+  -0.01,
+  []( int ) { std::this_thread::sleep_for( 100ms ); },
+  pace::option::InfoForecolor( "#FFDD88" ),
+  pace::option::Prefix( "Iterating..." ) );
 
 // Iteration range: [100, 0), step: 1
 pace::iterate<pace::ProgressBar<>>(
- 100,
- []( int ) { std::this_thread::sleep_for( 100ms ); },
- pace::config::Line( pace::option::InfoForecolor( "#FF8899" ),
-                     pace::option::SpeedUnit( { "files/s", "k files/s", "M files/s", "G files/s" } ) ) );
+  100,
+  []( int ) { std::this_thread::sleep_for( 100ms ); },
+  pace::config::Line( pace::option::InfoForecolor( "#FF8899" ),
+                      pace::option::SpeedUnit( { "files/s", "k files/s", "M files/s", "G files/s" } ) ) );
 
 int arr1[] { 100, 99, 98, 97, 96, 95, 94, 93, 92, 91 };
 std::vector<int> arr2 {
- 0, 1, 2, 3, 4, 5, 6,
+  0, 1, 2, 3, 4, 5, 6,
 };
 
 pace::iterate<pace::BlockBar<pace::Channel::Out>>( arr1,
-                                                     arr1 + ( sizeof( arr1 ) / sizeof( int ) ),
-                                                     []( int& ele ) {
-                                                       ele += 1;
-                                                       std::this_thread::sleep_for( 300ms );
-                                                     } );
+                                                   arr1 + ( sizeof( arr1 ) / sizeof( int ) ),
+                                                   []( int& ele ) {
+                                                     ele += 1;
+                                                     std::this_thread::sleep_for( 300ms );
+                                                   } );
 // Iteration over a STL container.
-pace::iterate<pace::config::Block, pace::Channel::Err, pace::Policy::Sync>( arr2, []( int ) {
- std::this_thread::sleep_for( 300ms );
-} );
+pace::iterate<pace::BlockBar<>>( arr2, []( int ) { std::this_thread::sleep_for( 300ms ); } );
 ```
+
+如果需要传入回调函数，则应该使用 `iterate_with` 函数，该函数除了支持额外的回调参数以外使用方法与 `iterate` 完全相同。
 
 # 组合模型
 实际上，pace 库的所有进度条类型以及配置类型都是在编译期生成的。
@@ -1297,9 +1371,10 @@ AnotherBar another;
 another.config().quota( 100 ).divider( " | " ).enable_all();
 
 for ( int i = 0; i < 100; ++i ) {
- another.tick();
- std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
+  another.tick();
+  std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
 }
+another.finish();
 ```
 
 如果去掉上述代码的 `config()` 部分，会发现这个编译期生成的进度条什么都没有显示；这是因为没有为这个进度条配置默认参数。
@@ -1351,7 +1426,6 @@ int main()
     std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
   }
 }
-
 ```
 
 虽然 pace 支持混用不同的进度条指示器（以 Plot 结尾的外观组件），但由于依赖解析算法的性质，这些指示器实际上共享同一组功能组件 `pace::details::aspects`，同时混用这些指示器会导致进度条的外观区分度下降，而且可能产生奇怪的渲染效果。
@@ -1426,7 +1500,7 @@ protected:
     return pipeline;
   }
 
-  uint64_t fixed_length() const noexcept { return 8 + ( format_ ? 2 : 0 ); }
+  uint64_t fixed_width() const noexcept { return 8 + ( format_ ? 2 : 0 ); }
 
   template<typename... Option>
   Clock( pace::details::traits::TypeSet<Option...> tag ) : Base( tag )
@@ -1517,39 +1591,45 @@ pace 使用 `<cassert>` 中的 `assert` 在代码中插入了多处断言检查�
 
 自赋值操作同样会被断言检查并拒绝。
 
-## 线程安全、更新计数与任务总数一致性
-pace 中的进度条类型会在调用任意一个 `tick` 方法时启动，在调用 `tick` 所产生的已完成任务数量恰好达到预定任务数量时，进度条类型就会自动停止。
+## 线程安全性
+pace 保证进度条的 `tick`、`finish`、`retire` 和 `abrot` 方法均为条件性线程安全。
 
-同时，pace 保证在同一个任务周期内（从第一个 `tick` 开始到最后一个 `tick` 为止），所有对 `tick`、`reset` 方法的调用都是线程安全的。
+具体地说，多个线程同时调用任意一个方法，是线程安全的；但多个线程同时调用一种以上的方法则不保证线程安全，这不仅会导致终端渲染状态异常，而且在特定的渲染策略下还会产生 UAF 问题（use-after-free）。
 
-但如果总计调用 `tick` 的次数超过了任务总数，这一保证会失效：
+> `tick()`、`tick_to()` 和有参形式的 `tick()` 被视作同一种方法。
+
+除此之外，对于 [Automation](../include/pace/Automation.hpp) 类型来说，如果调用 `tick` 所产生的任务数量大于任务总数，会导致自动关闭承诺失效，甚至在部分渲染策略下导致 UAF。
+
+在正常情况下，Automation 类型保证 `tick` 调用线程安全，且并发调用时仅有一个线程会尝试关闭进度条；如果是带有回调的 Automation 对象，同样保证只有一个线程能够调用回调并关闭进度条。
+
+> 注意如果需要重复使用一个带回调的 Automation 对象，需要先调用对象的 `reset()` 方法。
+
+实际上，进度条对象只允许在一次任务周期内调用能够产生恰好等于预定任务数的 `tick`，以及恰好一次 `finish()` 或 `retire()` 或 `abort()` 调用。
+
+> 一次任务周期指的是从第一次 `tick` 调用开始，到任意一个 `finish()` 或 `retire()` 或 `abort()` 调用结束。
 
 ```cxx
-pace::ProgressBar<> bar;
-bar.config().quota( 1000 );
+auto bar = pace::auto_finish<pace::ProgressBar<>>();
+bar->config().quota( 1000 );
 
 std::vector<std::thread> pool;
 pool.emplace_back( [&]() {
- for ( size_t i = 0; i < 500; ++i )
-   bar.tick();
+  for ( size_t i = 0; i < 500; ++i )
+    bar.tick();
 } );
 pool.emplace_back( [&]() {
- std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
- bar.tick( 700 );
+  std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
+  bar.tick( 700 );
 } );
 pool.emplace_back( [&]() {
- std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
- bar.tick_to( 80 );
+  std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
+  bar.tick_to( 80 );
 } );
 ```
 
-在上述代码中，两个线程累计调用 `tick` 的次数超过了预定任务数 `1000`，因此多余的 `( 500 + 700 + 1000 * 0.8 ) - 1000 = 1000` 次调用不受线程安全保障，它们既可能被丢弃、也可能正常计入下一轮进度条运行时的计数器中。
+在上述代码中，多个线程累计调用 `tick` 的次数超过了预定任务数 `1000`，因此多余的 `( 500 + 700 + 1000 * 0.8 ) - 1000 = 1000` 次调用不受线程安全保障，它们既可能被丢弃、也可能正常计入下一轮进度条运行时的计数器中。
 
 此外，`tick_to` 只保证调用后，进度条的累计任务数**不低于**指定的百分比，它不保证跨线程的 `tick` 次数同步；也就是说，如果有多个线程*正在*同时调用 `tick`，此时调用 `tick_to` 有可能会丢失若干次 `tick`。
-
-同理，当有多个线程*正在同时*调用 `tick`，如果另有一个线程突然尝试调用 `reset` 或 `abort`，是线程不安全的，同时会导致 UB 发生。
-
-> 实际上，只要涉及到*互斥所有权*的并发调用都不保证线程安全，例如多线程同时移动、多个 `tick` 线程运行过程中尝试 `reset` 或 `abort`。
 
 ## 进度条对象的生命周期
 每个进度条对象的生命周期都严格服从于 C++ 标准的对象生命周期机制：
@@ -1559,7 +1639,7 @@ pool.emplace_back( [&]() {
 
 这里之所以提及生命周期问题，是因为进度条在被析构过程中，会无视当前迭代进度立即终止运行。
 
-这种强制性终止与调用 `reset()` 方法停止不同：`reset()` 方法允许进度条在即将停止之前，调用（可能）预先传递的回调函数；而析构导致的终止则不会执行这个过程，只会立即关闭与之关联的全局渲染器并清理资源。
+这种强制性终止与调用 `finish()`/`retire()` 方法停止不同：`finish()`/`retire()` 方法允许进度条在即将停止之前，根据实际方法的语义修改终端渲染效果；而析构导致的终止则不会执行这个过程，只会立即关闭与之关联的全局渲染器并清理资源。
 
 > 实质上就等价于调用 `abort()` 方法。
 
@@ -1600,20 +1680,20 @@ pace 采用了多线程协作模式设计，因此渲染器实际上是一个在
 
 ```cxx
 {
- pace::ProgressBar<> bar1;
- pace::SweepBar<> bar2;
- pace::SpinBar<pace::Channel::Out> bar3;
+  pace::ProgressBar<> bar1;
+  pace::SweepBar<> bar2;
+  pace::SpinBar<pace::Channel::Out> bar3;
 
- bar1.config().quota( 100 );
- bar1.tick();
+  bar1.config().quota( 100 );
+  bar1.tick();
 
- try {
-   bar2.tick(); // Oops!
- } catch ( const pace::exception::StateError& e ) {
-   std::cerr << std::endl << e.what() << std::endl;
- }
+  try {
+    bar2.tick(); // Oops!
+  } catch ( const pace::exception::StateError& e ) {
+    std::cerr << std::endl << e.what() << std::endl;
+  }
 
- bar3.tick(); // Ok!
+  bar3.tick(); // Ok!
 }
 
 pace::ProgressBar<> bar;

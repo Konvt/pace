@@ -31,8 +31,8 @@ namespace pace {
           PACE__TRUST( tasks_completed <= task_quota );
           if ( task_quota > 0 )
             progress_ratio = static_cast<types::Float>( tasks_completed ) / task_quota;
-          PACE__TRUST( progress_ratio >= 0.0 );
-          PACE__TRUST( progress_ratio <= 1.0 );
+          PACE__ASSERT( progress_ratio >= 0.0 );
+          PACE__ASSERT( progress_ratio <= 1.0 );
         }
         Parameter( std::uint64_t quota,
                    std::uint64_t completed,

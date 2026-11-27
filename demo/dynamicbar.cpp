@@ -1,5 +1,6 @@
 #include "pace/DynamicBar.hpp"
 #include "pace/ProgressBar.hpp"
+#include "pace/Automation.hpp"
 #include <chrono>
 #include <thread>
 #include <vector>

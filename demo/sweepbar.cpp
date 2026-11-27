@@ -1,4 +1,5 @@
 #include "pace/SweepBar.hpp"
+#include "pace/Automation.hpp"
 
 int main()
 {

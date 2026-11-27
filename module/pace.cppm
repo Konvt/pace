@@ -12,6 +12,7 @@ export namespace pace {
 
   using pace::Indicator;
   using pace::iterate;
+  using pace::iterate_with;
 
   using pace::BlockBar;
   using pace::FlowBar;
@@ -27,8 +28,11 @@ export namespace pace {
   using pace::make_dynamic;
 
   using pace::auto_finish;
+  using pace::auto_retire;
   using pace::AutoFinish;
   using pace::AutoFinishWith;
+  using pace::AutoRetire;
+  using pace::AutoRetireWith;
 
   namespace exception {
     using pace::exception::Error;
@@ -44,13 +48,15 @@ export namespace pace {
     using pace::views::TrackedSpan;
 
     using pace::views::auto_finish;
+    using pace::views::auto_retire;
     using pace::views::AutoFinish;
     using pace::views::AutoFinishWith;
+    using pace::views::AutoRetire;
+    using pace::views::AutoRetireWith;
   } // namespace views
 
   namespace config {
     using pace::config::auto_style_off;
-    using pace::config::hide_completed;
     using pace::config::intty;
     using pace::config::refresh_interval;
     using pace::config::terminal_width;

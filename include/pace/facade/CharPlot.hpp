@@ -23,10 +23,10 @@ namespace pace {
         if ( this->bar_width_ == 0 )
           return pipeline;
 
-        const auto brush = details::io::when( !params.style_off && this->colorful() );
-        auto frame_cnt   = params.frame_count;
-        const auto len_finished =
-          static_cast<std::size_t>( std::floor( this->bar_width_ * params.progress_ratio ) );
+        const auto brush        = details::io::when( !params.style_off && this->colorful() );
+        auto frame_cnt          = params.frame_count;
+        const auto len_finished = static_cast<std::size_t>(
+          std::floor( this->bar_width_ * (std::min<details::types::Float>)( params.progress_ratio, 1 ) ) );
         std::size_t len_vacancy = this->bar_width_ - len_finished;
 
         pipeline << brush( details::io::concat(

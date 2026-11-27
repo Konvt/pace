@@ -7,13 +7,13 @@
   - [Component Subfeatures](#component-subfeatures)
     - [Speed](#speed)
     - [Elapsed and ETA](#elapsed-and-eta)
-  - [Iterating Over Ranges](#iterating-over-ranges)
+  - [Iteration Models](#iteration-models)
+    - [Automatic Completion](#automatic-completion)
+    - [Range-Based for Support](#range-based-for-support)
   - [The Template Argument](#the-template-argument)
     - [Output stream](#output-stream)
     - [Rendering policy](#rendering-policy)
     - [Rendering region](#rendering-region)
-  - [Callback support](#callback-support)
-  - [Hide The Bar](#hide-the-bar)
 - [The Differences Of Components](#the-differences-of-components)
   - [ProgressBar](#progressbar)
     - [Element composition](#element-composition)
@@ -51,7 +51,7 @@
   - [TrackedSpan](#trackedspan)
     - [Member functions](#member-functions-1)
     - [Iterator type](#iterator-type-3)
-  - [iterate](#iterate)
+  - [iterate and iterate\_with](#iterate-and-iterate_with)
 - [Composition Model](#composition-model)
   - [Modular Components](#modular-components)
   - [Composing New Configuration Types](#composing-new-configuration-types)
@@ -60,7 +60,7 @@
     - [Custom rendering](#custom-rendering)
 - [Design Notes](#design-notes)
   - [Assertion Checks](#assertion-checks)
-  - [Thread Safety, Update Count and Consistency With Total Task Count](#thread-safety-update-count-and-consistency-with-total-task-count)
+  - [Thread Safety](#thread-safety)
   - [Lifecycle of Bar Objects](#lifecycle-of-bar-objects)
   - [Unicode Support](#unicode-support)
   - [Renderer Design](#renderer-design)
@@ -72,11 +72,13 @@
 
 # Shared Spec
 ## Quick Start
-Due to design considerations, *most progress bar type interfaces in pace are similar*, so this section uses `pace::ProgressBar` as an example to demonstrate how to use the various progress bar types in pace.
+*Most progress bar type interfaces in pace are similar*, so this section uses `pace::ProgressBar` as an example to demonstrate how to use the various progress bar types in pace.
 
 Progress bars are designed around executing a task with a fixed quota, so nearly all progress bar types require a task quota parameter, followed by iterative calls to the `tick()` method.
 
 For `pace::ProgressBar` and `pace::BlockBar`, calling `tick()` without providing an initial quota parameter will throw the `pace::exception::StateError` exception.
+
+The progress bar also needs to be closed by manually calling the `finish()`, `retire()`, or `abort()` method; the progress bar object itself will call `abort()` when it is destructed.
 
 All progress bar types in pace are template types, but all template parameters provide default values, so an empty parameter object can be instantiated directly.
 
@@ -93,9 +95,9 @@ All progress bar types in pace are template types, but all template parameters p
 }
 {
   pace::ProgressBar<> bar;
-  // pace adopts a design that separates data from behavior,
-  // so injecting task parameters requires calling config()
-  // to access the internal configuration data object
+  // The progress bar's data and behavior are implemented separately.
+  // Therefore, when injecting task parameters, you must call the `config()` method
+  // to access the internal configuration data object.
   bar.config().quota( 200 );
 
   bar.tick( 20 );    // Advance by 20 steps
@@ -103,6 +105,8 @@ All progress bar types in pace are template types, but all template parameters p
 
   for ( int i = 0; i < 100; ++i )
     bar.tick(); // Each call advances by only 1 step
+
+  bar.finish(); // close the bar
 }
 {
   // Besides calling config(), task parameters can also be injected
@@ -111,6 +115,7 @@ All progress bar types in pace are template types, but all template parameters p
   // Note: passing duplicated parameters will result in a compilation error
   bar.tick_to( 20 );  // Set progress to 20%
   bar.tick_to( 130 ); // Any value beyond 100% will be discarded, and the progress bar will be locked at 100%
+  bar.finish();
 }
 ```
 
@@ -126,7 +131,7 @@ for ( int i = 0; i < 400; ++i ) {
 }
 
 assert( bar.progress() == 400 ); // This method retrieves the current iteration count of the progress bar
-bar.reset();
+bar.finish();
 assert( bar.active() == false );
 ```
 
@@ -236,7 +241,7 @@ auto config4 = pace::config::Line() << pace::option::Quota( 114514 ) << pace::op
 ### Component switch
 It is not difficult to observe that a progress bar type is composed of multiple components, and these components collectively determine the final appearance of a progress bar.
 
-Regardless of the progress bar type, component toggling can be implemented through `pace::option::Only` or `pace::option::Except`.
+Regardless of the progress bar type, component toggling can be implemented through `pace::option::Only` or `pace::option::Except`; This operation disables the rendering of the corresponding components only at runtime, without affecting their actual participation in type expressions.
 
 The meaning of `pace::option::Only` is: retain only the selected components; the meaning of `pace::option::Except` is: disable only the selected components.
 
@@ -336,13 +341,101 @@ Only the largest unit does not carry over. All smaller units are reduced modulo 
 
 If the provided format string does not conform to the grammar above, or contains duplicate time units, or has no time units at all, an exception of type `pace::exception::InvalidArgument` is thrown.
 
-## Iterating Over Ranges
-When processing iteration tasks involving iterable types or numeric ranges, pace can integrate progress bars into these scenarios through the `iterate` method.
+## Iteration Models
+[`Automation.hpp`](../include/pace/Automation.hpp) defines a set of types for integrating progress bars into C++ iteration mechanisms.
 
-The usage of `iterate` is similar to Python's `range` function. It supports iteration over ranges specified by numeric values, while the task count of the progress bar object is configured automatically by `iterate`.
+### Automatic Completion
+Progress bars in pace must be explicitly closed by calling `finish()` or `retire()`. However, in certain scenarios, it can be difficult to determine where to place the call that marks the end of progress bar iteration. For example, when multiple threads concurrently update the same progress bar object and that object is accessible only within those worker threads.
+
+To address this issue, pace provides the following components to automatically detect the completion of progress and invoke the corresponding methods:
+
+- `views::AutoFinish` and `AutoFinish`: Automatically invoke `finish()`.
+- `views::AutoRetire` and `AutoRetire`: Automatically invoke `retire()`.
+- `views::AutoFinishWith` and `AutoFinishWith`: Allow a callback to be bound and executed before closing the progress bar with `finish()`.
+- `views::AutoRetireWith` and `AutoRetireWith`: Work similarly, but invoke `retire()` instead.
+
+The components in the `views` namespace can only be bound to an existing progress bar object. Furthermore, the resulting proxy objects are neither movable nor copyable.
+
+For convenience, pace also provides several factory functions with corresponding names:
+
+- `views::auto_finish` and `auto_finish`: Return an object of the corresponding `AutoFinish` or `AutoFinishWith` type, depending on the arguments provided.
+- `views::auto_retire` and `auto_retire`: Return an object of the corresponding `AutoRetire` or `AutoRetireWith` type, depending on the arguments provided.
+
+The destructors of all these types have no direct effect. In particular, destroying a component in the `views` namespace does not automatically close the progress bar. By contrast, when a component outside the `views` namespace is destroyed, its progress bar object is destroyed through the destructor of its class member. This causes the progress bar to invoke `abort()`, thereby interrupting the rendering process.
+
+Usage examples are shown below:
 
 ```cxx
 pace::ProgressBar<> bar;
+bar.config().quota( 100 );
+
+{ // Bind to an existing object
+  {
+    auto proxy = pace::views::auto_finish( bar );
+    // operator* provides a reference to the underlying progress bar object.
+    // operator-> can also be used to access the underlying progress bar directly.
+    assert( &bar == &( *proxy ) );
+    do
+      proxy.tick();
+    while ( proxy->active() );
+  }
+  {
+    auto with_callback = pace::views::auto_finish( bar, []( auto& self ) {
+      self.config().disable_all().prefix( "Everything done" );
+    } );
+    // The callback can be either a function with no arguments or a function
+    // that accepts a reference to the bound progress bar object.
+    do
+      with_callback.tick();
+    while ( with_callback->active() );
+
+    // To reuse an object with a callback, its internal state variables
+    // must first be reset by calling reset().
+    with_callback.reset();
+  }
+}
+{ // Directly construct an object that owns the corresponding progress bar
+  auto bar1 = pace::auto_finish<pace::ProgressBar<>>();
+  auto bar2 =
+    pace::auto_finish<pace::ProgressBar<>>( pace::option::Quota( 100 ), pace::option::Prefix( "..." ) );
+  auto bar3 = pace::auto_finish( pace::ProgressBar<>() );
+  auto bar4 = pace::auto_finish<pace::Channel::Out>( pace::config::Line() );
+
+  auto bar_with_callback1 =
+    // Construct a progress bar without default configuration
+    pace::auto_finish( pace::config::Line::raw(), []( auto& self ) { self.config().prefix( "Done" ); } );
+  auto bar_with_callback2 =
+    pace::auto_finish<pace::ProgressBar<>>( []( auto& self ) { self.config().prefix( "Done" ); },
+                                            pace::option::Quota( 100 ),
+                                            pace::option::Prefix( "..." ) );
+  // An existing object can also be moved into the constructor.
+  auto bar_with_callback3 =
+    pace::auto_finish( std::move( bar.config() ), []( auto& self ) { self.config().prefix( "Done" ); } );
+
+  // Special support is provided for directly constructing an Automation object
+  // from the return value of DynamicBar::insert.
+  pace::DynamicBar<> factory;
+  // Internally, this stores a std::unique_ptr.
+  auto bar_from_dbar = pace::auto_finish( factory.insert<pace::ProgressBar<>>() );
+
+  // Progress bar objects managed by std::shared_ptr are also supported.
+  auto shared_bar = pace::auto_finish( std::make_shared<pace::ProgressBar<>>() );
+  // Notably, only the Automation object constructed from std::shared_ptr
+  // without a callback is copyable.
+  // All other Automation objects are move-only.
+}
+```
+
+The arguments and usage of `auto_retire` are identical to those of `auto_finish`, so they are not repeated here.
+### Range-Based for Support
+Building upon the `Automation` types, pace provides an `iterate` method for working with certain iterable types.
+
+Similar to Python's `range()` function, `iterate` supports iteration over ranges specified by numerical values. It also automatically configures the progress bar's task count based on the specified iteration range.
+
+However, this method can only be accessed through an existing `Automation` object:
+
+```cxx
+auto bar = pace::auto_finish<pace::ProgressBar<>>();
 
 // Iteration range: [100, 0), step: -1
 for ( auto num : bar.iterate( 100, 0, -1 ) ) {
@@ -354,12 +447,18 @@ for ( auto fnum : bar.iterate( -2.0, -0.01 ) ) {
 }
 // Iteration range: [0, 100), step: 1
 bar.iterate( 100, []( int ) { std::this_thread::sleep_for( 100ms ); } );
+
+// Additionally, for Automation objects of the views type without callbacks,
+// the following form of invocation is also supported:
+for ( auto num : pace::views::auto_finish( *bar ).iterate( 100 ) ) {
+  std::this_thread::sleep_for( 100ms );
+}
 ```
 
-In addition, progress bar objects can interact with types satisfying the `std::ranges::sized_range` concept (without requiring C++20), such as `std::vector` and raw arrays.
+In addition, progress bar objects can interact with types that satisfy the `std::ranges::sized_range` concept (without requiring C++20), such as `std::vector` and raw arrays.
 
 ```cxx
-pace::ProgressBar<> bar;
+auto bar = pace::auto_finish<pace::ProgressBar<>>();
 
 std::vector<int> arr1 {
   0, 1, 2, 3, 4, 5, 6,
@@ -367,14 +466,14 @@ std::vector<int> arr1 {
 int arr2[] { 100, 99, 98, 97, 96, 95, 94, 93, 92, 91 };
 
 for ( auto& ele : bar.iterate( arr1.begin(), arr1.end() ) ) {
-  ele += 1; // ele is a reference to the element inside the vector
+  ele += 1; // ele is a reference to an element in the vector.
   std::this_thread::sleep_for( 300ms );
 }
 // Reverse iteration
-bar.iterate( arr2, []( int& ) { std::this_thread::sleep_for( 300ms ); } );
+bar.iterate( arr2 | std::views::reverse, []( int& ) { std::this_thread::sleep_for( 300ms ); } );
 ```
 
-If the `std::ranges::sized_range` constraint is satisfied and the C++20 standard is used, `iterate` can correctly handle the reference lifetime of view types satisfying the `std::ranges::view` concept.
+If the `std::ranges::sized_range` constraint is satisfied and the C++20 standard is used, `iterate` can correctly handle the reference lifetimes of view types that satisfy the `std::ranges::view` concept.
 
 ## The Template Argument
 All progress bar types in pace are template types. They require three template parameters: `pace::Channel`, `pace::Policy`, and `pace::Region`.
@@ -384,12 +483,14 @@ All progress bar types in pace are template types. They require three template p
 ```cxx
 static_assert( std::is_same<pace::ProgressBar<>,
                             pace::ProgressBar<pace::Channel::Err>>::value,
-                "" );
+               "" );
 
 pace::ProgressBar<pace::Channel::Out> bar; // Bind to stdout
 ```
 
-At runtime, pace dynamically checks whether the specified output stream is actually attached to a terminal device. If the output stream does not point to a terminal, pace disables character rendering effects and terminal cursor manipulation.
+pace dynamically checks at runtime whether the specified output stream is actually connected to a terminal device. However, pace assumes that the output stream's destination remains unchanged throughout a single task cycle (i.e., from the moment the progress bar is started until it is closed).
+
+If an output stream is not directed to a terminal, pace disables character rendering effects and terminal cursor manipulation.
 
 More specifically, when pace detects that the specified output stream is not attached to a terminal (this can be checked using `pace::config::intty( pace::Channel )`), it first disables all terminal cursor manipulation sequences during rendering, and then checks the return value of `pace::config::auto_style_off()`.
 
@@ -442,7 +543,7 @@ Under pace::Policy::Sync, rendering is executed directly by the thread calling `
 ```cxx
 static_assert( std::is_same<pace::ProgressBar<>,
                             pace::ProgressBar<pace::Channel::Err, pace::Policy::Async>>::value,
-                "" );
+               "" );
 
 pace::ProgressBar<pace::Channel::Err, pace::Policy::Sync> bar; // Use synchronous rendering
 ```
@@ -459,10 +560,6 @@ However, if the progress bar string becomes excessively wide, using `pace::Regio
 
 > The layout height of the progress bar can be obtained via the `layout_height()` method; it returns 0 when the progress bar is inactive.
 
-> The rendering structure of any progress bar occupies two terminal lines in total (assuming the progress bar length does not exceed the single-line character limit): one line for the progress bar itself and one empty line.
-
-When using `pace::Region::Relative` together with custom output, `pace::Policy::Signal` or `pace::Policy::Sync` is generally required. Otherwise, the asynchronous rendering mechanism may cause terminal scrolling.
-
 ```cxx
 pace::ProgressBar</* any channel */, pace::Policy::Signal, pace::Region::Relative> bar;
 bar.config().quota( 100 );
@@ -477,39 +574,6 @@ std::cerr << "Extra log information\n\n" << std::flush;
 while ( bar.active() )
   bar.tick();
 ```
-
-## Callback support
-All progress bar types in pace provide an `action` method that can register or clear a callback function of type `void()` or `void( /* Bar Type */& )`.
-
-This callback is invoked when the progress bar object calls its `reset()` method, **before** progress bar rendering is terminated (that is, before the return value of `active()` changes from `true` to `false`).
-
-Likewise, if the progress bar runs and terminates normally, the progress bar type will internally call `reset()` on its own, and the callback will still be invoked before termination.
-
-All progress bar objects that support `action` also provide `operator<<` overloads, allowing callbacks to be passed directly through these operators.
-
-```cxx
-pace::ProgressBar<> bar;
-bool flag = true;
-auto callback = [&]( pace::ProgressBar<>& self ) {
-  if ( flag )
-    self.config().prefix( "✔ Mission Accomplished" ).prefix_forecolor( pace::Color::Green );
-  else
-    self.config().prefix( "❌ Mission failed" ).prefix_forecolor( pace::Color::Red );
-};
-
-bar.action( callback );
-// or
-bar << callback;
-```
-
-The callback type passed in must satisfy `std::is_move_constructible`; moreover, methods that *modify the internal state of the progress bar object itself* (such as `tick` or `reset`, but excluding `config`) should **never** be called inside the callback, otherwise a *deadlock* may occur.
-
-If you want to terminate the object manually while skipping callback execution, call the object's `abort` method instead; additionally, termination caused by object destruction will also bypass the preset callback function.
-
-## Hide The Bar
-pace supports automatically hiding completed progress bar strings. When `pace::config::hide_completed()` returns `true`, a completed progress bar will be hidden immediately as soon as its `active()` method changes from `true` to `false`, provided that the specified output stream is attached to a terminal.
-
-The actual behavior can be modified by calling `pace::config::hide_completed( bool )`. The default value is `false`.
 
 # The Differences Of Components
 ## ProgressBar
@@ -975,12 +1039,14 @@ for ( size_t i = 0; i < bar.layout_height(); ++i )
 std::cerr << std::flush;
 
 bar.at<2>().tick();
-while ( bar.at<0>().active() )
+for ( int i = 0; i < 5; ++i )
   bar.at<0>().tick();
-while ( bar.at<1>().active() )
+for ( int i = 0; i < 55; ++i )
   bar.at<1>().tick();
-while ( bar.at<2>().active() )
+for ( int i = 0; i < 199; ++i )
   bar.at<2>().tick();
+
+bar.finish(); // Close all progress bars at once.
 ```
 ### Tuple protocol
 `pace::MultiBar` provides specializations for `std::tuple_element` and `std::tuple_size`, and also overloads `get`. Therefore, it can be treated as a specialized version of `std::tuple`.
@@ -1030,17 +1096,19 @@ std::vector<std::thread> pool;
   pool.emplace_back( [&bar1]() {
     bar1->config().prefix( "No.1" ).quota( 1919810 );
     std::this_thread::sleep_for( std::chrono::seconds( 5 ) );
-    do {
+    for ( int i = 0; i < 1919810; ++i ) {
       bar1->tick();
       std::this_thread::sleep_for( std::chrono::milliseconds( 5 ) );
-    } while ( bar1->active() );
+    }
+    bar1->finish();
   } );
   pool.emplace_back( [&bar2]() {
     std::this_thread::sleep_for( std::chrono::seconds( 3 ) );
-    do {
+    for ( int i = 0; i < 8000; ++i ) {
       bar2->tick();
       std::this_thread::sleep_for( std::chrono::microseconds( 900 ) );
-    } while ( bar2->active() );
+    }
+    bar2->finish();
   } );
   pool.emplace_back( [&dbar]() {
     auto bar =
@@ -1049,7 +1117,7 @@ std::vector<std::thread> pool;
       bar->tick();
       std::this_thread::sleep_for( std::chrono::milliseconds( 5 ) );
     }
-    bar->reset();
+    bar->finish();
 
     // "No.3" will reappear at the bottom of the terminal
     for ( int i = 0; i < 400; ++i ) {
@@ -1133,17 +1201,22 @@ for ( size_t i = 0; i < dbar.layout_height(); ++i )
 std::cerr << std::flush;
 
 bar3->tick();
-while ( bar1->active() )
+for ( int i = 0; i < 5; ++i )
   bar1->tick();
+for ( int i = 0; i < 55; ++i )
 while ( bar2->active() )
   bar2->tick();
-while ( bar3->active() )
+for ( int i = 0; i < 199; ++i )
   bar3->tick();
+
+bar1->finish();
+bar2->finish();
+bar3->finish();
 ```
 
-It should be noted that the **ownership** of all progress bar objects associated with `DynamicBar` does not belong to `DynamicBar`. Therefore, unlike `MultiBar`, `DynamicBar` cannot provide reliable support for global `reset()` or `abort()` methods.
+It is important to note that **ownership** of all progress bar objects associated with `DynamicBar` does not belong to `DynamicBar` itself. Therefore, unlike `MultiBar`, `DynamicBar` cannot provide reliable global-level `finish()`, `retire()`, or `abort()` methods.
 
-If you need to close all started progress bars at the same time, you must manually track these progress bars and call `reset()` or `abort()` on each one individually. Of course, attempting to close an already closed progress bar is safe, as long as it does not violate [the concurrent call constraints](#thread-safety-update-count-and-consistency-with-total-task-count).
+If you need to close all started progress bars at the same time, you must manually track these progress bars and call the corresponding method on each one individually. Of course, attempting to close an already closed progress bar is safe, as long as it does not violate [the concurrent call constraints](#thread-safety-update-count-and-consistency-with-total-task-count).
 
 ## NumericSpan
 `pace::views::NumericSpan` is a template type used to represent a numerical range defined by a start point, an end point, and a step size. Mathematically, this range is expressed as `[start, end)`.
@@ -1184,12 +1257,12 @@ int arr1[50] = {};
 std::vector<int> arr2;
 
 try {
- auto reverse_span1 = pace::views::IteratorSpan<int*>( arr1 + 49, arr1 - 1 );
+  auto reverse_span1 = pace::views::IteratorSpan<int*>( arr1 + 49, arr1 - 1 );
 } catch ( const pace::exception::InvalidArgument& ) {
- // ...
+  // ...
 }
 auto reverse_span2 =
- pace::views::IteratorSpan<std::reverse_iterator<std::vector<int>::iterator>>( arr2.rbegin(),
+  pace::views::IteratorSpan<std::reverse_iterator<std::vector<int>::iterator>>( arr2.rbegin(),
                                                                                arr2.rend() );
 ```
 ### Member methods
@@ -1229,7 +1302,7 @@ The iterator type of `pace::views::SizedSpan::iterator` is equivalent to the ite
 
 `pace::views::TrackedSpan` only accepts an object of a view type satisfying the concept `std::ranges::sized_range`, together with a progress bar object. Its purpose is to simplify the interaction between progress bar instances and enhanced for-loops or other contexts requiring iterators.
 
-This is a move-only special type. It should only be constructed and returned by factory functions, such as a progress bar’s `iterate` method, and should not be constructed manually.
+This is a special type. It should only be constructed and returned by factory functions, such as a progress bar’s `iterate` method, and should not be constructed manually.
 
 Calling the `begin` method of `pace::views::TrackedSpan` produces a side effect: the object will attempt to set the task count of the referenced progress bar instance based on the size of its internal abstract range.
 ### Member functions
@@ -1238,16 +1311,12 @@ Calling the `begin` method of `pace::views::TrackedSpan` produces a side effect:
 ```cxx
 /* iterator */ begin() &;          // Assigns a value to the internal progress bar instance and returns the starting iterator
 /* sentinel */ end() const;        // Returns the sentinel (end iterator)
-bool empty() const noexcept;       // Checks whether the object refers to a valid progress bar instance
-explicit operator bool() noexcept; // Checks whether the object is non-empty
-
-void swap(TrackedSpan&) noexcept; // Swaps two proxy ranges
 ```
 ### Iterator type
 The iterator type of `pace::views::TrackedSpan::iterator` is a forward iterator. The increment operator of this iterator attempts to call the `tick()` method of the bound progress bar instance, which may trigger side effects in unexpected contexts.
 
-## iterate
-`iterate` is an overloaded name for a series of template functions. It is a wrapper interface for the `iterate` method of the pace progress bar type.
+## iterate and iterate_with
+`iterate` and `iterate_with` is an overloaded name for a series of template functions. It is a wrapper interface for the `iterate` method of the pace progress bar type.
 
 This function allows visualizing an iteration process without explicitly constructing a progress bar object, while still using the progress bar’s `iterate` method.
 
@@ -1258,36 +1327,36 @@ Its usage is the same as the `iterate` method; however, the `iterate` function a
 pace::iterate<pace::ProgressBar<>>( 100, 0, -1, []( int ) { std::this_thread::sleep_for( 100ms ); } );
 
 // Iteration range: [0.0, -2.0), step: -0.01
-pace::iterate<pace::config::Line>(
- -2.0,
- -0.01,
- []( int ) { std::this_thread::sleep_for( 100ms ); },
- pace::option::InfoForecolor( "#FFDD88" ),
- pace::option::Prefix( "Iterating..." ) );
+pace::iterate<pace::ProgressBar<>>(
+  -2.0,
+  -0.01,
+  []( int ) { std::this_thread::sleep_for( 100ms ); },
+  pace::option::InfoForecolor( "#FFDD88" ),
+  pace::option::Prefix( "Iterating..." ) );
 
 // Iteration range: [100, 0), step: 1
 pace::iterate<pace::ProgressBar<>>(
- 100,
- []( int ) { std::this_thread::sleep_for( 100ms ); },
- pace::config::Line( pace::option::InfoForecolor( "#FF8899" ),
-                     pace::option::SpeedUnit( { "files/s", "k files/s", "M files/s", "G files/s" } ) ) );
+  100,
+  []( int ) { std::this_thread::sleep_for( 100ms ); },
+  pace::config::Line( pace::option::InfoForecolor( "#FF8899" ),
+                      pace::option::SpeedUnit( { "files/s", "k files/s", "M files/s", "G files/s" } ) ) );
 
 int arr1[] { 100, 99, 98, 97, 96, 95, 94, 93, 92, 91 };
 std::vector<int> arr2 {
- 0, 1, 2, 3, 4, 5, 6,
+  0, 1, 2, 3, 4, 5, 6,
 };
 
 pace::iterate<pace::BlockBar<pace::Channel::Out>>( arr1,
-                                                     arr1 + ( sizeof( arr1 ) / sizeof( int ) ),
-                                                     []( int& ele ) {
-                                                       ele += 1;
-                                                       std::this_thread::sleep_for( 300ms );
-                                                     } );
+                                                   arr1 + ( sizeof( arr1 ) / sizeof( int ) ),
+                                                   []( int& ele ) {
+                                                     ele += 1;
+                                                     std::this_thread::sleep_for( 300ms );
+                                                   } );
 // Iteration over a STL container.
-pace::iterate<pace::config::Block, pace::Channel::Err, pace::Policy::Sync>( arr2, []( int ) {
- std::this_thread::sleep_for( 300ms );
-} );
+pace::iterate<pace::BlockBar<>>( arr2, []( int ) { std::this_thread::sleep_for( 300ms ); } );
 ```
+
+If a callback function needs to be passed, use the `iterate_with` function, which works exactly the same as `iterate` but additionally supports extra callback arguments.
 
 # Composition Model
 In fact, all progress bar types and configuration types in the pace library are generated at compile time.
@@ -1321,9 +1390,10 @@ AnotherBar another;
 another.config().quota( 100 ).divider( " | " ).enable_all();
 
 for ( int i = 0; i < 100; ++i ) {
- another.tick();
- std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
+  another.tick();
+  std::this_thread::sleep_for( std::chrono::milliseconds( 500 ) );
 }
+another.finish();
 ```
 
 If the `config()` part of the code above is removed, the compiled progress bar will display nothing; this is because no default parameters are provided for this progress bar.
@@ -1455,7 +1525,7 @@ protected:
     return pipeline;
   }
 
-  uint64_t fixed_length() const noexcept { return 8 + ( format_ ? 2 : 0 ); }
+  uint64_t fixed_width() const noexcept { return 8 + ( format_ ? 2 : 0 ); }
 
   template<typename... Option>
   Clock( pace::details::traits::TypeSet<Option...> tag ) : Base( tag )
@@ -1546,39 +1616,45 @@ For example, pace does not allow any progress bar object to call `operator=()` o
 
 Self-assignment is also checked and rejected via assertions.
 
-## Thread Safety, Update Count and Consistency With Total Task Count
-Progress bar types in pace are activated when any `tick` method is called. When the number of completed tasks produced by `tick` reaches the predefined quota, the progress bar automatically stops.
+## Thread Safety
+pace guarantees that the progress bar's `tick`, `finish`, `retire`, and `abort` methods are conditionally thread-safe.
 
-At the same time, pace guarantees that within the same task lifecycle (from the first `tick` call to the last), all calls to `tick` and `reset` are thread-safe.
+Specifically, concurrent calls to the same method from multiple threads are thread-safe. However, thread safety is not guaranteed when multiple threads concurrently invoke more than one type of method. This may not only result in abnormal terminal rendering states but also cause use-after-free (UAF) issues under certain rendering strategies.
 
-However, if the total number of `tick` calls exceeds the task quota, this guarantee becomes invalid:
+> `tick()`, `tick_to()`, and `tick()` with an argument are considered the same method.
+
+Additionally, for the [Automation](../include/pace/Automation.hpp) type, if the number of tasks generated by `tick` calls exceeds the total number of tasks, the automatic completion guarantee may be violated. This may even lead to UAF issues under certain rendering strategies.
+
+Under normal circumstances, the `Automation` type guarantees that `tick` calls are thread-safe and that only one thread will attempt to close the progress bar during concurrent invocations. For an `Automation` object with a callback, it likewise guarantees that only one thread can invoke the callback and close the progress bar.
+
+> If you need to reuse an `Automation` object with a callback, you must call the object's `reset()` method first.
+
+In practice, during a single task cycle, a progress bar must receive exactly the predetermined number of tasks through calls to `tick`, followed by exactly one call to `finish()`, `retire()`, or `abort()`.
+
+> A task cycle is defined as the period starting with the first call to `tick` and ending with a call to any one of `finish()`, `retire()`, or `abort()`.
 
 ```cxx
-pace::ProgressBar<> bar;
-bar.config().quota( 1000 );
+auto bar = pace::auto_finish<pace::ProgressBar<>>();
+bar->config().quota(1000);
 
 std::vector<std::thread> pool;
-pool.emplace_back( [&]() {
- for ( size_t i = 0; i < 500; ++i )
-   bar.tick();
-} );
-pool.emplace_back( [&]() {
- std::this_thread::sleep_for( std::chrono::milliseconds( 200 ) );
- bar.tick( 700 );
-} );
-pool.emplace_back( [&]() {
- std::this_thread::sleep_for( std::chrono::milliseconds( 100 ) );
- bar.tick_to( 80 );
-} );
+pool.emplace_back([&]() {
+  for (size_t i = 0; i < 500; ++i)
+    bar.tick();
+});
+pool.emplace_back([&]() {
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  bar.tick(700);
+});
+pool.emplace_back([&]() {
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+  bar.tick_to(80);
+});
 ```
 
-In the above code, the combined number of `tick` calls across threads exceeds the configured quota of `1000`. Therefore, the excess `(500 + 700 + 1000 * 0.8) - 1000 = 1000` calls are not guaranteed to be thread-safe. These calls may either be discarded or counted into the next runtime cycle of the progress bar.
+In the code above, the cumulative number of tasks reported by `tick` calls across multiple threads exceeds the predetermined quota of `1000`. Consequently, the excess calls, amounting to `(500 + 700 + 1000 * 0.8) - 1000 = 1000`, are not covered by the thread-safety guarantee. These excess calls may either be discarded or successfully counted toward the progress counter of the next progress bar execution cycle.
 
-In addition, `tick_to` only guarantees that the total task progress is **not lower than** the specified percentage after the call. It does not guarantee synchronization of `tick` counts across threads. That is, if multiple threads are concurrently calling `tick`, invoking `tick_to` may result in some `tick` calls being lost.
-
-Similarly, when multiple threads are *simultaneously* calling `tick`, it becomes thread-unsafe if another thread suddenly attempts to call `reset` or `abort`; It will also lead to the occurrence of UB.
-
-> In fact, any concurrent calls involving *mutually exclusive ownership* are not guaranteed to be thread-safe—examples include multiple threads moving simultaneously, or attempting to call `reset` or `abort` while several `tick` threads are running.
+Furthermore, `tick_to` only guarantees that, after the call, the cumulative task count of the progress bar is **at least** the specified percentage of the total quota. It does not guarantee synchronization with the number of `tick` calls across threads. In other words, if multiple threads are concurrently calling `tick`, invoking `tick_to` during that time may cause some `tick` calls to be lost.
 
 ## Lifecycle of Bar Objects
 
@@ -1586,10 +1662,10 @@ The lifecycle of each progress bar object strictly follows C++ object lifecycle 
 
 - Objects created in a local scope are destroyed when control flow leaves that scope.
 - Objects created dynamically exist from `new` until `delete`.
-- 
+
 This lifecycle detail is important because a progress bar will immediately terminate during destruction regardless of current iteration progress.
 
-This forced termination differs from calling `reset()`. The `reset()` method allows the progress bar to optionally invoke pre-registered callbacks before stopping. In contrast, destruction-based termination skips this process entirely, immediately shutting down the associated global renderer and cleaning up resources.
+This type of forced termination differs from stopping by invoking the `finish()` or `retire()` method. The `finish()` and `retire()` methods allow the progress bar to modify its final rendering state before termination, according to the semantics of the respective method. In contrast, termination caused by object destruction bypasses this process, immediately shutting down the associated global renderer and releasing the resources.
 
 > In essence, this is equivalent to calling `abort()`.
 
@@ -1630,20 +1706,20 @@ In multithreaded environments, which thread “dispatches first” depends on th
 
 ```cxx
 {
- pace::ProgressBar<> bar1;
- pace::SweepBar<> bar2;
- pace::SpinBar<pace::Channel::Out> bar3;
+  pace::ProgressBar<> bar1;
+  pace::SweepBar<> bar2;
+  pace::SpinBar<pace::Channel::Out> bar3;
 
- bar1.config().quota( 100 );
- bar1.tick();
+  bar1.config().quota( 100 );
+  bar1.tick();
 
- try {
-   bar2.tick(); // Oops!
- } catch ( const pace::exception::StateError& e ) {
-   std::cerr << std::endl << e.what() << std::endl;
- }
+  try {
+    bar2.tick(); // Oops!
+  } catch ( const pace::exception::StateError& e ) {
+    std::cerr << std::endl << e.what() << std::endl;
+  }
 
- bar3.tick(); // Ok!
+  bar3.tick(); // Ok!
 }
 
 pace::ProgressBar<> bar;

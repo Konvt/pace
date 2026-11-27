@@ -41,8 +41,13 @@ namespace pace {
         if ( params.task_quota == 0 )
           PACE__UNLIKELY return pipeline
             << details::io::align<details::utils::TextAlign::Right>( fixed_width(),
-                                                                     decimals_ > 0 ? "nan.%" : "n/a%" );
+                                                                     decimals_ > 0 ? "nan.%" : "nan%" );
+        else if ( params.tasks_completed > params.task_quota )
+          PACE__UNLIKELY return pipeline
+            << details::io::align<details::utils::TextAlign::Right>( fixed_width(),
+                                                                     decimals_ > 0 ? "err.%" : "err%" );
 
+        PACE__TRUST( params.progress_ratio <= 1 );
         std::string orig;
         details::utils::format_to( std::back_inserter( orig ),
                                    params.progress_ratio * 100.0,

@@ -70,6 +70,7 @@ int main()
 
   for ( auto _ = 0; _ < 100; ++_ )
     bar.tick();
+  bar.finish();
 }
 ```
 ### Simulate packages installation

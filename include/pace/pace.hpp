@@ -6,6 +6,8 @@
 #ifndef PACE_ALL
 # define PACE_ALL
 
+# include "Automation.hpp"
+
 # include "BlockBar.hpp"
 # include "FlowBar.hpp"
 # include "ProgressBar.hpp"
