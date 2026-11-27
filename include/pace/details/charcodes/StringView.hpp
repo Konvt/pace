@@ -180,12 +180,12 @@ namespace pace {
         {
           if ( pos > length_ )
             PACE__UNLIKELY throw std::out_of_range( "pace: assign a sub-string view with invalid subrange" );
-          return { data() + pos, std::min( count, size() - pos ) };
+          return { data() + pos, (std::min)( count, size() - pos ) };
         }
 
         PACE__NODISCARD PACE__CXX17_CNSTXPR int compare( BasicStringView sv ) const noexcept
         {
-          auto result = Traits::compare( data(), sv.data(), std::min( size(), sv.size() ) );
+          auto result = Traits::compare( data(), sv.data(), (std::min)( size(), sv.size() ) );
           if ( result != 0 )
             return result;
           if ( size() < sv.size() )
@@ -218,7 +218,7 @@ namespace pace {
 
         PACE__NODISCARD PACE__CXX17_CNSTXPR size_type find( Char ch, size_type pos = 0 ) const noexcept
         {
-          pos         = std::min( pos, size() );
+          pos         = (std::min)( pos, size() );
           auto result = Traits::find( data() + pos, size() - pos, ch );
           if ( result == nullptr )
             return npos;

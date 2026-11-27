@@ -212,13 +212,14 @@ Resurrection:
                                          io::cursorup_n( sizeof...( Configs ) ),
                                          console::savecursor,
                                          io::setscroll( 1, height - sizeof...( Configs ) ) ) )
-                                   << io::setline( height )
-                                   << io::when( height > sizeof...( Configs ),
-                                                // Erase all residual characters
-                                                io::concat( io::repeat( sizeof...( Configs ),
-                                                                        io::concat( console::eraseline,
-                                                                                    console::prevline ) ),
-                                                            io::setline( height ) ) );
+                                   << io::choice(
+                                        height > sizeof...( Configs ),
+                                        // Erase all residual characters
+                                        io::concat(
+                                          io::setline( height + 1 - sizeof...( Configs ) ),
+                                          io::repeat( sizeof...( Configs ),
+                                                      io::concat( console::eraseline, console::nextline ) ) ),
+                                        io::setline( height ) );
                          else
                            ostream << io::when(
                              height > sizeof...( Configs ),
@@ -226,13 +227,13 @@ Resurrection:
                                          io::cursordown_n( sizeof...( Configs ) ),
                                          console::savecursor,
                                          io::setscroll( sizeof...( Configs ) + 1, height ) ) )
-                                   << console::firstline
-                                   << io::when( height > sizeof...( Configs ),
-                                                // Erase all residual characters
-                                                io::concat( io::repeat( sizeof...( Configs ),
-                                                                        io::concat( console::eraseline,
-                                                                                    console::linefeed ) ),
-                                                            console::firstline ) );
+                                   << io::choice( height > sizeof...( Configs ),
+                                                  // Erase all residual characters
+                                                  io::concat( io::setline( sizeof...( Configs ) ),
+                                                              io::repeat( sizeof...( Configs ),
+                                                                          io::concat( console::eraseline,
+                                                                                      console::prevline ) ) ),
+                                                  console::firstline );
                        }
                      } else
                        screen.vertical_alteration( 0 );

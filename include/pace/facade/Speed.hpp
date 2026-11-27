@@ -165,7 +165,7 @@ namespace pace {
             overflow = true;
         }
 
-        num_powered = std::min( num_powered, units_.size() - 1 );
+        num_powered = (std::min)( num_powered, units_.size() - 1 );
         std::string orig;
         if ( overflow )
           orig = static_cast<std::string>( overflow_text() );

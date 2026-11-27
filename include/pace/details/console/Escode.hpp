@@ -34,7 +34,9 @@ namespace pace {
       // EL 1; Erase the entire line.
       PACE__METHOD( eraseline, "\x1B[2K" );
 
-      // CNL; Move the cursor to the beginning of the previous line.
+      // CNL; Move the cursor to the beginning of the next line.
+      PACE__METHOD( nextline, "\x1B[E" );
+      // CPL; Move the cursor to the beginning of the previous line.
       PACE__METHOD( prevline, "\x1B[F" );
 
       // LF; Move the cursor down by one line.
