@@ -47,6 +47,8 @@ namespace pace {
       // CUP 1;1; Move the cursor to the home position.
       PACE__METHOD( firstline, "\x1B[H" );
 
+      // IL 1; Insert one line at the current cursor position.
+      PACE__METHOD( insertline, "\x1B[L" );
       // DL 1; Delete one line at the current cursor position.
       PACE__METHOD( deleteline, "\x1B[M" );
 
@@ -119,6 +121,14 @@ namespace pace {
         pipeline.append( "\x1B[" );
         utils::format_to( std::back_inserter( pipeline ), n );
         return pipeline.push_back( 'T' );
+      }
+
+      // SU n; Scroll the scrolling region up by n lines.
+      inline io::CharPipeline& scrollup_n( io::CharPipeline& pipeline, std::uint16_t n )
+      {
+        pipeline.append( "\x1B[" );
+        utils::format_to( std::back_inserter( pipeline ), n );
+        return pipeline.push_back( 'S' );
       }
     } // namespace console
 
@@ -217,6 +227,17 @@ namespace pace {
       // SD n; Create a manipulator that scrolls the scrolling region down by n lines.
       PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR ScrollDown
         scrolldown_n( std::uint16_t n ) noexcept
+      { return { { n } }; }
+
+      struct ScrollUp {
+        std::tuple<std::uint16_t> value;
+
+        PACE__FORCEINLINE friend io::CharPipeline& operator<<( io::CharPipeline& pipeline,
+                                                               const ScrollUp& self )
+        { return console::scrollup_n( pipeline, std::get<0>( self.value ) ); }
+      };
+      // SU n; Create a manipulator that scrolls the scrolling region up by n lines.
+      PACE__NODISCARD PACE__FORCEINLINE PACE__CXX14_CNSTXPR ScrollUp scrollup_n( std::uint16_t n ) noexcept
       { return { { n } }; }
     } // namespace io
   } // namespace details

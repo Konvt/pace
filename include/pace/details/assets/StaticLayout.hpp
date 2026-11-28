@@ -75,7 +75,7 @@ namespace pace {
             if ( !this->ElementAt_t<Pos>::active() ) {
               if ( istty ) {
                 if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
-                  pipeline << console::prevline;
+                  pipeline << console::nextline;
                 else
                   pipeline << console::linefeed;
                 return true;
@@ -88,21 +88,9 @@ namespace pace {
           case Locus::Offstage: {
             if ( !this->ElementAt_t<Pos>::active() )
               break;
-            // The newly added progress bar needs to obtain a screen line,
-            // and the progress bar under the Locus::Echo no longer outputs anything except for newline.
-            // We must reclaim it, even if this might go against the original intention of the Locus::Echo.
-            if ( istty ) {
-              if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom ) {
-                const auto phantom =
-                  std::find( stages_.rbegin() + stages_.size() - Pos, stages_.rend(), Locus::Echo );
-                if ( phantom != stages_.rend() )
-                  *phantom = Locus::Offstage;
-              } else {
-                const auto phantom = std::find( stages_.begin() + Pos + 1, stages_.end(), Locus::Echo );
-                if ( phantom != stages_.end() )
-                  *phantom = Locus::Offstage;
-              }
-            }
+            pipeline << io::when(
+              istty && std::find( stages_.cbegin() + Pos + 1, stages_.cend(), Locus::Echo ) != stages_.cend(),
+              console::insertline );
 Resurrection:
             stages_[Pos] = Locus::Onstage;
           }
@@ -117,7 +105,7 @@ Resurrection:
             if ( status != types::Visage::Effaced ) {
               pipeline << io::when( status != types::Visage::Extinct, console::eraseafter );
               if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
-                pipeline << io::choice( istty, console::prevline, console::linefeed );
+                pipeline << io::choice( istty, console::nextline, console::linefeed );
               else
                 pipeline << console::linefeed;
               return true;
@@ -130,35 +118,17 @@ Resurrection:
 
           return false;
         }
-        PACE__FORCEINLINE void do_schedule( io::CharPipeline& pipeline, bool istty ) &
+        PACE__FORCEINLINE std::size_t do_schedule( io::CharPipeline& pipeline, bool istty ) &
         {
-          const auto style_off    = !istty && config::auto_style_off();
-          std::size_t active_rows = 0;
-          if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
-            if ( istty )
-              // read only, lock free
-              active_rows = stages_.size() - std::count( stages_.cbegin(), stages_.cend(), Locus::Offstage );
-
+          const auto style_off     = !istty && config::auto_style_off();
           std::size_t num_newlines = 0;
           {
             std::lock_guard<concurrent::SharedMutex> lock { res_mtx_ };
-            if ( Zone != Region::Bottom || !istty )
-              (void)std::initializer_list<bool> {
-                ( num_newlines += do_render<Tags>( pipeline, istty, style_off ), false )...
-              };
-            else
-              // In Bottom mode, we have a fixed lower boundary;
-              // rendering from top to bottom would make it difficult to predict
-              // the actual number of rows required, so we need to render in reverse.
-              (void)std::initializer_list<bool> { (
-                num_newlines += do_render<sizeof...( Configs ) - Tags - 1>( pipeline, istty, style_off ),
-                false )... };
+            (void)std::initializer_list<bool> {
+              ( num_newlines += do_render<Tags>( pipeline, istty, style_off ), false )...
+            };
           }
-
-          if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
-            if ( active_rows > num_newlines )
-              // active_rows == 0 when the `istty` is false
-              pipeline << io::scrolldown_n( active_rows - num_newlines );
+          return num_newlines;
         }
 
         void do_halt( bool forced ) final
@@ -190,8 +160,10 @@ Resurrection:
             if ( !executor.try_appoint( [this]() {
                    auto guard = utils::make_scope_fail(
                      [this]() noexcept { state_.store( Phase::Stop, std::memory_order_release ); } );
-                   auto& screen  = console::Screen<Sink>::itself();
-                   auto& ostream = screen.ostream();
+                   auto& screen         = console::Screen<Sink>::itself();
+                   auto& ostream        = screen.ostream();
+                   std::uint16_t height = 0; // used only in Region::Bottom or Region::Top
+
                    switch ( state_.load( std::memory_order_acquire ) ) {
                    case Phase::Awake: {
                      const auto istty = screen.interactive();
@@ -203,7 +175,7 @@ Resurrection:
                            ostream << console::savecursor;
                        } else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top ) {
                          ostream << console::savecursor;
-                         const auto height = screen.height();
+                         height = screen.height();
                          (void)screen.vertical_alteration( height );
                          if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
                            ostream << io::when(
@@ -211,15 +183,8 @@ Resurrection:
                              io::concat( io::cursornext_n( sizeof...( Configs ) ),
                                          io::cursorup_n( sizeof...( Configs ) ),
                                          console::savecursor,
-                                         io::setscroll( 1, height - sizeof...( Configs ) ) ) )
-                                   << io::choice(
-                                        height > sizeof...( Configs ),
-                                        // Erase all residual characters
-                                        io::concat(
-                                          io::setline( height + 1 - sizeof...( Configs ) ),
-                                          io::repeat( sizeof...( Configs ),
-                                                      io::concat( console::eraseline, console::nextline ) ) ),
-                                        io::setline( height ) );
+                                         io::setscroll( height + 1 - sizeof...( Configs ), height ) ) )
+                                   << io::setline( height + 1 - sizeof...( Configs ) );
                          else
                            ostream << io::when(
                              height > sizeof...( Configs ),
@@ -242,10 +207,19 @@ Resurrection:
                      // all access to stages_ always occurs within a same thread,
                      // so we do not need to use a mutex to protect it.
                      std::fill( stages_.begin(), stages_.end(), Locus::Offstage );
-                     do_schedule( ostream, istty );
+                     const auto num_newlines = do_schedule( ostream, istty );
 
-                     if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
-                       ostream << io::when( istty, console::restorecursor );
+                     if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top ) {
+                       if ( istty ) {
+                         if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
+                           ostream << io::when(
+                             height > sizeof...( Configs ),
+                             io::concat( io::when( num_newlines < sizeof...( Configs ),
+                                                   io::scrolldown_n( sizeof...( Configs ) - num_newlines ) ),
+                                         io::setscroll( 1, height - sizeof...( Configs ) ) ) );
+                         ostream << console::restorecursor;
+                       }
+                     }
 
                      auto expected = Phase::Awake;
                      state_.compare_exchange_strong( expected, Phase::Refresh, std::memory_order_release );
@@ -253,8 +227,7 @@ Resurrection:
                    } break;
 
                    case Phase::Refresh: {
-                     std::uint16_t height = 0; // used only in Region::Bottom or Region::Top
-                     const auto istty     = screen.renderable();
+                     const auto istty = screen.renderable();
                      if ( istty ) {
                        if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                          ostream << console::restorecursor;
@@ -265,17 +238,22 @@ Resurrection:
                          ostream << console::savecursor;
                          height                = screen.height();
                          const auto old_height = screen.vertical_alteration( height );
-                         if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
+                         if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom ) {
+                           // read only, lock free
+                           const auto active_rows =
+                             stages_.size() - std::count( stages_.cbegin(), stages_.cend(), Locus::Offstage );
                            ostream << io::when(
                              height > sizeof...( Configs ),
                              io::concat( io::when( height < old_height,
                                                    io::concat( io::cursordown_n( sizeof...( Configs ) ),
                                                                io::cursorup_n( sizeof...( Configs ) ),
                                                                console::savecursor ) ),
-                                         io::setscroll( height + 1 - sizeof...( Configs ), height ) ) )
-                                   << io::setline( height );
-                         // Reverse select the area to allow the progress bar to disappear due to retirement
-                         else
+                                         io::setscroll( height + 1 - sizeof...( Configs ), height ),
+                                         io::when( active_rows < sizeof...( Configs ),
+                                                   io::scrollup_n( sizeof...( Configs ) - active_rows ) ) ) )
+                                   << io::setline( height + 1 - sizeof...( Configs ) );
+                           // Reverse select the area to allow the progress bar to disappear due to retirement
+                         } else
                            ostream << io::when(
                              height > sizeof...( Configs ),
                              io::concat( io::when( height < old_height,
@@ -288,13 +266,15 @@ Resurrection:
                      } else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
                        (void)screen.vertical_alteration( 0 );
 
-                     do_schedule( ostream, istty );
+                     const auto num_newlines = do_schedule( ostream, istty );
 
                      if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top ) {
                        if ( istty ) {
                          if ( height > sizeof...( Configs ) ) {
                            if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
-                             ostream << io::setscroll( 1, height - sizeof...( Configs ) );
+                             ostream << io::when( num_newlines < sizeof...( Configs ),
+                                                  io::scrolldown_n( sizeof...( Configs ) - num_newlines ) )
+                                     << io::setscroll( 1, height - sizeof...( Configs ) );
                            else
                              ostream << io::setscroll( sizeof...( Configs ) + 1, height );
                          }
@@ -305,7 +285,8 @@ Resurrection:
                    } break;
 
                    case Phase::Finish: {
-                     const auto istty = screen.renderable();
+                     std::size_t active_rows = 0; //  // used only in Region::Bottom
+                     const auto istty        = screen.renderable();
                      if ( istty ) {
                        if PACE__CXX17_CNSTXPR ( Zone == Region::Fixed )
                          ostream << console::restorecursor;
@@ -315,24 +296,31 @@ Resurrection:
                        else if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top ) {
                          ostream << console::savecursor;
                          const auto height = screen.height();
-                         if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
+                         if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom ) {
+                           active_rows =
+                             stages_.size() - std::count( stages_.cbegin(), stages_.cend(), Locus::Offstage );
                            ostream << io::when( height > sizeof...( Configs ),
                                                 io::setscroll( height - sizeof...( Configs ) + 1, height ) )
-                                   << io::setline( height );
-                         // Even in the final frame, we reverse select the area to prevent interference with
-                         // the terminal content in the normal area.
-                         else
+                                   << io::setline( height + 1 - active_rows );
+                           // Even in the final frame, we reverse select the area to prevent interference with
+                           // the terminal content in the normal area.
+                         } else
                            ostream << io::when( height > sizeof...( Configs ),
                                                 io::setscroll( 1, sizeof...( Configs ) ) )
                                    << console::firstline;
                        }
                      }
 
-                     do_schedule( ostream, istty );
+                     const auto num_newlines = do_schedule( ostream, istty );
 
-                     if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top )
-                       ostream << io::when( istty,
-                                            io::concat( console::resetscroll, console::restorecursor ) );
+                     if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom || Zone == Region::Top ) {
+                       if ( istty ) {
+                         if PACE__CXX17_CNSTXPR ( Zone == Region::Bottom )
+                           ostream << io::when( num_newlines > 0 && num_newlines < active_rows,
+                                                io::scrolldown_n( active_rows - num_newlines ) );
+                         ostream << console::resetscroll << console::restorecursor;
+                       }
+                     }
                      ostream << io::flush;
                      state_.store( Phase::Stop, std::memory_order_release );
                    } break;

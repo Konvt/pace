@@ -11,6 +11,7 @@
 # include "../../exception/Error.hpp"
 # include <windows.h>
 #elif PACE__UNIX
+# include "../traits/Algorithm.hpp"
 # include <unistd.h>
 #endif
 
@@ -36,7 +37,9 @@ namespace pace {
 #else
       template<Channel Sink>
       void std_handle()
-      { static_assert( Contradiction<std::integral_constant<Channel, Sink>>::value, "Windows only" ); }
+      {
+        static_assert( traits::Contradiction<std::integral_constant<Channel, Sink>>::value, "Windows only" );
+      }
 #endif
     } // namespace sys
   } // namespace details

@@ -1216,7 +1216,7 @@ bar3->finish();
 
 It is important to note that **ownership** of all progress bar objects associated with `DynamicBar` does not belong to `DynamicBar` itself. Therefore, unlike `MultiBar`, `DynamicBar` cannot provide reliable global-level `finish()`, `retire()`, or `abort()` methods.
 
-If you need to close all started progress bars at the same time, you must manually track these progress bars and call the corresponding method on each one individually. Of course, attempting to close an already closed progress bar is safe, as long as it does not violate [the concurrent call constraints](#thread-safety-update-count-and-consistency-with-total-task-count).
+If you need to close all started progress bars at the same time, you must manually track these progress bars and call the corresponding method on each one individually. Of course, attempting to close an already closed progress bar is safe, as long as it does not violate [the concurrent call constraints](#thread-safety).
 
 ## NumericSpan
 `pace::views::NumericSpan` is a template type used to represent a numerical range defined by a start point, an end point, and a step size. Mathematically, this range is expressed as `[start, end)`.
